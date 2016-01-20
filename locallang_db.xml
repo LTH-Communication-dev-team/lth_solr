@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>database</type>
+		<description>Language labels for database tables/fields belonging to extension 'lth_solr'</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="tx_dam.tx_lthsolr_indexed">LTH Solr indexed</label>
+			<label index="tt_content.list_type_pi1">LTH Solr</label>
+                        <label index="tt_content.list_type_pi2">Staff List</label>
+		</languageKey>
+	</data>
+</T3locallang>

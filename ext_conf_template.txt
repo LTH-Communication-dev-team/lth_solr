@@ -1,0 +1,8 @@
+# cat=basic/enable; type=string; label=Solr Server (www2.lth.se)
+solrServer =
+
+# cat=basic/enable; type=string; label=Solr Port (8080)
+solrPort =
+
+# cat=basic/enable; type=string; label=Solr Path (/solr/personal)
+solrPath =
