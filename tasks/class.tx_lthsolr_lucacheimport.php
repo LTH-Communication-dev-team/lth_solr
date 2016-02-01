@@ -198,7 +198,7 @@ GROUP BY V.uid";
     {
         $heritageArray = array();
         
-        $sql = "SELECT 
+        /*$sql = "SELECT 
         CONCAT(COALESCE(t1.orgid,''),
         COALESCE(t2.orgid,''),
         COALESCE(t3.orgid,''),
@@ -219,12 +219,14 @@ GROUP BY V.uid";
         LEFT JOIN lucache_vorg AS t8 ON t8.parent = t7.orgid
         LEFT JOIN lucache_vorg AS t9 ON t9.parent = t8.orgid
         LEFT JOIN lucache_vorg AS t10 ON t10.parent = t10.orgid
-        WHERE t1.orgid = 'v1000000'";
+        WHERE t1.orgid = 'v1000000'";*/
+        
+        $sql = "SELECT orgid, parent FROM lucache_vorg";
         
         $res = mysqli_query($con, $sql);
         
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
-            $heritage = $row['heritage'];
+            /*$heritage = $row['heritage'];
             if($heritage) {
                 $tempArray = explode('v', $heritage);
                 $key = 'v' . array_pop($tempArray);
@@ -232,8 +234,10 @@ GROUP BY V.uid";
                 array_shift($tempArray);
                 $tempArray[] = substr($key, 1);
                 $heritageArray[$key] = $tempArray;
-            }
+            }*/
+            $heritageArray[$row['orgid']] = $row['parent'];
         }
+        //$this->debug($heritageArray);
         return $heritageArray;
     }
     
@@ -372,11 +376,30 @@ GROUP BY V.uid";
                     $heritage = array();
                     $orgidArray = explode('###', $value['orgid']);
                     foreach($orgidArray as $key1 => $value1) {
-                        $heritage = array_merge($heritage, $heritageArray[$value1]);
+                        $heritage[] = $value1;
+                        $parent = $heritageArray[$value1];
+                        if($parent) $heritage[] = $parent;
+                        $parent = $heritageArray[$parent];
+                        if($parent) $heritage[] = $parent;
+                        $parent = $heritageArray[$parent];
+                        if($parent) $heritage[] = $parent;
+                        $parent = $heritageArray[$parent];
+                        if($parent) $heritage[] = $parent;
+                        $parent = $heritageArray[$parent];
+                        if($parent) $heritage[] = $parent;
+                        $parent = $heritageArray[$parent];
+                        if($parent) $heritage[] = $parent;
+                        $parent = $heritageArray[$parent];
+                        if($parent) $heritage[] = $parent;
+                        $parent = $heritageArray[$parent];
+                        if($parent) $heritage[] = $parent;
+                        $parent = $heritageArray[$parent];
+                        if($parent) $heritage[] = $parent;
                     }
-                    
-                    $temp = 'v' . implode(',v', $heritage);
-                    $heritage = explode(',', $temp);
+                    array_filter($heritage);
+                    $heritage = array_unique($heritage);
+                    //$temp = 'v' . implode(',v', $heritage);
+                    //$heritage = explode(',', $temp);
                     $display_name_t = $value['first_name'] . ' ' . $value['last_name'];
                     $homepage = $value['homepage'];
                     if(!$homepage || $homepage === '') {

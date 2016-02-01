@@ -524,6 +524,7 @@ class user_sampleflex_addFieldsToFlexForm {
             </style>";
         
         $content .= '<div id="lth_solr_manage_staff" class="lth_solr_manage_staff">';
+        if($response) {
         foreach ($response as $document) {
             $content .= "<div class=\"ui-state-default\"  id=\"" . $document->id . "\">";
             $content .= "<div style=\"width:400px; float:left;\">";
@@ -566,7 +567,144 @@ class user_sampleflex_addFieldsToFlexForm {
             $content .= "</div>";
         }
         
+        }
 
+    
+        $content .= "</div>";
+        return $content;
+    }
+    
+    
+    function manageStaffIntroImage($config)
+    {
+        //print_r($config);
+        $content = '';
+        $categories = '';
+        
+        $pid = $config['row']['pid'];
+        $sys_language_uid = $config['row']['sys_language_uid'];
+        $introVar = 'lth_solr_intro_' . $pid . '_' . $sys_language_uid;
+        $imageVar = 'lth_solr_hide_' . $pid . '_' . $sys_language_uid . '_i';
+        
+        //print_r($config);
+
+	$allResponse = $this->getSolrData($config);
+	$response = $allResponse[0];
+        
+        
+        // show documents using the resultset iterator
+        $content .= "<style>.ui-state-highlight{width:100%; height: 50px; background-color:yellow;}</style>
+            <link rel=\"stylesheet\" href=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css\">
+            <script language=\"javascript\">
+            
+            function updateIndex(action, items, value, checked) {
+                //console.log(items);
+                Ext.Ajax.request({
+                    url: 'ajax.php',
+                    method: 'POST',
+                    params: {
+                        'ajaxID' : 'lth_solr::ajaxControl',
+                        'action' : action,
+                        'items' : items,
+                        'value' : value,
+                        'checked' : checked,
+                        'pid' : '$pid',
+                        'sys_language_uid' : $sys_language_uid,
+                        'sid' : Math.random()
+                    },
+                    success: function(response, opts) {
+                        //var obj = Ext.decode(response.responseText);
+                        //console.dir(obj);
+                        //console.log(response.responseText);
+                        if(action=='updateText') {
+                            //alert(response.responseText);
+                        }
+                        //console.log(response.responseText);
+                    },
+                    failure: function(response, opts) {
+                       console.log('server-side failure with status code ' + response.status);
+                    }
+                });
+            }
+        
+            TYPO3.jQuery(document).ready(function() {
+                TYPO3.jQuery('.lth_solr_categories').click(function() {
+                    updateIndex('updateCategories', TYPO3.jQuery(this).parent().parent().attr('id'), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
+                });
+                
+                TYPO3.jQuery('.lth_solr_hideonpage').click(function() {
+                    updateIndex('updateHideonpage', TYPO3.jQuery(this).parent().parent().attr('id'), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
+                    //console.log(TYPO3.jQuery(this).parent().parent().attr('id'));
+                });
+    
+                TYPO3.jQuery('#lth_solr_manage_staff').sortable({
+                    placeholder: 'ui-state-highlight',
+                    cursor: 'move',
+                    update: function( event, ui ) {
+                        var IDs = [];
+                        TYPO3.jQuery('#lth_solr_manage_staff').find('.ui-state-default').each(function(){ IDs.push(TYPO3.jQuery(this).attr('id')); });
+                        updateIndex('resort', JSON.stringify(IDs));
+                    }
+                }).disableSelection();
+            });
+            </script>
+            <style>
+            .ui-state-default {
+                border: 1px black dotted;
+                height: 50px;
+                width: 100%;
+                display: block;
+                clear:both;
+            }
+            
+            li {
+              display:inline;
+            }
+            </style>";
+        
+        $content .= '<div id="lth_solr_manage_staff" class="lth_solr_manage_staff">';
+        if($response) {
+        foreach ($response as $document) {
+            $content .= "<div class=\"ui-state-default\"  id=\"" . $document->id . "\">";
+            $content .= "<div style=\"width:400px; float:left;\">";
+            
+            $content .= "<ul style=\"\">";
+            
+            $content .= '<li style="width: 100px;">' . $document->id . ': </li>';
+            $content .= '<li style="width: 100px;">' . $document->display_name_t . '</li>';
+            
+            $content .= "</ul>";
+            
+            $content .= "</div>";
+            
+            if($document->lth_solr_intro_t) {
+                $introArray = json_decode($document->lth_solr_intro_t, TRUE);
+                $intro = $introArray[$introVar];
+            }
+                        
+            $content .= "<div style=\"width: 300px; float:left; padding:15px;\">$intro<input type=\"button\" name=\"Edit\" value=\"Edit\"></div>";
+            
+            /*$content .= "<div style=\"width: 300px; float:left; padding:15px; border-left: 1px black solid;\">"
+                    . "<input type=\"checkbox\" name=\"lth_solr_hideonpage\" class=\"lth_solr_hideonpage\" value=\"1\"$checkedHide/>Hide on this page"
+                    . "</div>";*/
+            
+   /*         <form>
+    <input type="hidden" name="hiddenField" />
+</form>
+
+<p>Please edit me...</p>
+
+<script type="text/javascript">
+var replaceWith = $('<input name="temp" type="text" />'),
+    connectWith = $('input[name="hiddenField"]');
+
+$('p').inlineEdit(replaceWith, connectWith);
+</script>*/
+            
+            $content .= "</div>";
+        }
+        
+        }
 
     
         $content .= "</div>";

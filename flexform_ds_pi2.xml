@@ -213,5 +213,23 @@
     </ROOT>
 </manageStaffList>
 
+<manageStaffIntroImage>
+    <ROOT>
+         <TCEforms>
+          <sheetTitle>Manage Staff Introtext and Image</sheetTitle>
+         </TCEforms>
+        <el>
+            <dynField>
+            <TCEforms>
+                <config>
+                 <type>user</type>
+                  <userFunc>user_sampleflex_addFieldsToFlexForm->manageStaffIntroImage</userFunc>
+                </config>
+             </TCEforms>
+          </dynField>
+        </el>
+    </ROOT>
+</manageStaffIntroImage>
+
 </sheets>
 </T3DataStructure>
