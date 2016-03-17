@@ -8,27 +8,30 @@ class lth_solr_ajax {
         $checked = t3lib_div::_GP('checked');
         $pid = t3lib_div::_GP('pid');
         $sys_language_uid = t3lib_div::_GP('sys_language_uid');
+        $categoriesThisPage = t3lib_div::_GP('categoriesThisPage');
+        $introThisPage = t3lib_div::_GP('introThisPage');
         $sid = t3lib_div::_GP('sid');
 
         switch($action) {
             case 'updateIntroAndImage':
-		$content = $this->updateIntroAndImage($items, $pid, $value, $checked, $sys_language_uid);
+		$content = $this->updateIntroAndImage($items, $pid, $value, $checked, $sys_language_uid, $introThisPage);
 		break;	    
             case 'resort':
 		$content = $this->resort($items, $pid, $sys_language_uid);
 		break;
             case 'updateCategories':
-		$content = $this->updateCategories($items, $pid, $value, $checked, $sys_language_uid);
+		$content = $this->updateCategories($items, $pid, $value, $checked, $sys_language_uid, $categoriesThisPage);
 		break;
             case 'updateHideonpage':
 		$content = $this->updateHideonpage($items, $pid, $value, $checked, $sys_language_uid);
 		break;            
-	    case 'updateImage':
+	    /*case 'updateImage':
 		$content = $this->updateImage($catvalue, $username, $checked, $sys_language_uid, $pluginid, $i);
 		break;
 	    case 'updateText':
 		$content = $this->updateText($catvalue, $username, $checked, $sys_language_uid, $pluginid, $i);
 		break;
+             */
 	}
         
         echo json_encode($content);
@@ -108,7 +111,7 @@ class lth_solr_ajax {
     }
     
     
-    public function updateCategories($items, $pid, $value, $checked, $sys_language_uid)
+    public function updateCategories($items, $pid, $value, $checked, $sys_language_uid, $categoriesThisPage)
     {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked", 'crdate' => time()));
         require(__DIR__.'/init.php');
@@ -121,7 +124,11 @@ class lth_solr_ajax {
         
         $query->setQuery('id:'.$items);
         
-        $catVar = 'lth_solr_cat_' . $pid . '_ss';
+        if($categoriesThisPage) {
+            $catVar = 'lth_solr_cat_' . $pid . '_ss';
+        } else {
+            $catVar = 'lth_solr_cat_ss';
+        }
 
         $response = $client->select($query);
         
@@ -201,7 +208,7 @@ class lth_solr_ajax {
         
         $query->setQuery('id:'.$items);
         
-        $hideVar = 'lth_solr_hide_' . $pid . '_' . $sys_language_uid . '_i';
+        $hideVar = 'lth_solr_hide_' . $pid . '_i';
 
         $response = $client->select($query);
         
@@ -269,7 +276,7 @@ class lth_solr_ajax {
     }
    
     
-    public function updateIntroAndImage($username, $pid, $value, $checked, $sys_language_uid)
+    public function updateIntroAndImage($username, $pid, $value, $checked, $sys_language_uid, $introThisPage)
     {
         $valueArray = json_decode($value, true);
         $introText = $valueArray[0];
@@ -290,7 +297,11 @@ class lth_solr_ajax {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(50);
         
-        $introVar = 'staff_custom_text_' . $pid . '_s';
+        if($introThisPage) {
+            $introVar = 'staff_custom_text_' . $pid . '_s';
+        } else {
+            $introVar = 'staff_custom_text_s';
+        }
         $imageVar = 'image_s';
 
         $data = array();
@@ -345,7 +356,7 @@ class lth_solr_ajax {
             $introArray[$introVar] = $introText;
         }
         if($introArray) {
-            $introArray = json_encode($introArray);
+            $introArray = json_encode($introArray, true);
         } else {
             $introArray = '';
         }
@@ -369,7 +380,7 @@ class lth_solr_ajax {
     }
 
     
-    function updateText($strSave, $username, $checked, $sys_language, $pluginId, $i)
+    /*function updateText($strSave, $username, $checked, $sys_language, $pluginId, $i)
     {
 	$confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['institutioner']);
     
@@ -446,6 +457,5 @@ class lth_solr_ajax {
             $response = "Kein Eintrag gefunden";
         }
 	return $response;
-    }
+    }*/
 }
-?>

@@ -60,6 +60,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $detailPage = $this->pi_getFFvalue($piFlexForm, "detailpage", "sDEF", $lDef[$index]);
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $customCategories = $this->pi_getFFvalue($piFlexForm, "customcategories", "sDEF", $lDef[$index]);
+            $categoriesThisPage = $this->pi_getFFvalue($piFlexForm, "categoriesthispage", "sDEF", $lDef[$index]);
             
             $pid = $GLOBALS['TSFE']->page['pid'];
             //$solrId = t3lib_div::_GP('solrid');
@@ -110,7 +111,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 $content .= '</div><input type="hidden" id="lth_solr_type" value="detail" />' .
                         '<input type="hidden" id="lth_solr_scope" value="' . $solrId . '" />';
             } else {
-                $content .= '</div><div id="lth_solr_facet_container" class="grid-8 omega"></div></div>' .
+                $content .= '</div><div id="lth_solr_facet_container" style="margin-left:20px;" class="grid-8 omega"></div></div>' .
                     '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />' .
                     '<input type="hidden" id="lth_solr_detailpage" value="' . $detailPage . '" />' .
                     '<input type="hidden" id="sys_language_uid" value="' . $index . '" />' .
@@ -120,6 +121,8 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                     '<input type="hidden" id="lth_solr_custom_categories" value="' . $customCategories . '" />' .
                     '<input type="hidden" id="fe_user" value="' . $GLOBALS['TSFE']->fe_user->user . '" />' .
                     '<input type="hidden" id="lu_user" value="' . $lu_user . '" />' .
+                    '<input type="hidden" id="categoriesThisPage" value="' . $categoriesThisPage . '" />' .
+                    '<input type="hidden" id="introThisPage" value="' . $introThisPage . '" />' .
                     '<div class="csc-default">&nbsp;</div>';
             }
             

@@ -46,6 +46,10 @@ class user_sampleflex_addFieldsToFlexForm {
                     $addpeople = $n->value;
                 } else if($val == 'removepeople') {
                     $removepeople = $n->value;
+                } else if($val == 'categoriesthispage') {
+                    $categoriesThisPage = $n->value;
+                } else if($val == 'introthispage') {
+                    $introThisPage = $n->value;
                 }
             }
         }
@@ -115,7 +119,7 @@ class user_sampleflex_addFieldsToFlexForm {
         
         //$query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
 
-        $query->addSort('lth_solr_sort_' . $pid . '_' . $sys_language_uid . '_i', $query::SORT_ASC);
+        $query->addSort('lth_solr_sort_' . $pid . '_i', $query::SORT_ASC);
         $query->addSort('last_name_t', $query::SORT_ASC);
         $query->addSort('first_name_t', $query::SORT_ASC);
         
@@ -123,34 +127,11 @@ class user_sampleflex_addFieldsToFlexForm {
 
         // this executes the query and returns the result
         $resultset = $client->select($query);
-        
-        //print_r($resultset);
-        /* display the total number of documents found by solr
-        $content .=  'NumFound: '.$resultset->getNumFound();
 
-        // show documents using the resultset iterator
-        foreach ($resultset as $document) {
-
-            $content .=  '<hr/><table>';
-
-            // the documents are also iterable, to get all fields
-            foreach ($document as $field => $value) {
-                // this converts multivalue fields to a comma-separated string
-                if (is_array($value)) {
-                    $value = implode(', ', $value);
-                }
-
-                $content .=  '<tr><th>' . $field . '</th><td>' . $value . '</td></tr>';
-            }
-
-            $content .=  '</table>';
-        }
-        return $content;*/
-
-	return array($resultset, $customcategories, $pluginId);
+	return array($resultset, $customcategories, $pluginId, $categoriesThisPage, $introThisPage);
     }
     
-    function addCustomCategories ($config)
+    /*function addCustomCategories ($config)
     {
         return '';
 	//print_r($config);
@@ -433,6 +414,8 @@ class user_sampleflex_addFieldsToFlexForm {
         $content .= "</tbody></table>";
         return $content;
     }
+    */
+    
     
     function manageStaffList($config)
     {
@@ -442,15 +425,21 @@ class user_sampleflex_addFieldsToFlexForm {
         
         $pid = $config['row']['pid'];
         $sys_language_uid = $config['row']['sys_language_uid'];
-        $catVar = 'lth_solr_cat_' . $pid . '_' . $sys_language_uid . '_ss';
-        $hideVar = 'lth_solr_hide_' . $pid . '_' . $sys_language_uid . '_i';
+        
         
         //print_r($config);
 
 	$allResponse = $this->getSolrData($config);
 	$response = $allResponse[0];
         $customcategories = $allResponse[1];
-        
+        $categoriesThisPage = $allResponse[3];
+
+        if($categoriesThisPage) {
+            $catVar = 'lth_solr_cat_' . $pid . '_ss';
+        } else {
+            $catVar = 'lth_solr_cat_ss';
+        }
+        $hideVar = 'lth_solr_hide_' . $pid . '_i';
         
         // show documents using the resultset iterator
         $content .= "<style>.ui-state-highlight{width:100%; height: 50px; background-color:yellow;}</style>
@@ -469,6 +458,7 @@ class user_sampleflex_addFieldsToFlexForm {
                         'items' : items,
                         'value' : value,
                         'checked' : checked,
+                        'categoriesThisPage' : '$categoriesThisPage',
                         'pid' : '$pid',
                         'sys_language_uid' : $sys_language_uid,
                         'sid' : Math.random()
@@ -491,11 +481,11 @@ class user_sampleflex_addFieldsToFlexForm {
         
             TYPO3.jQuery(document).ready(function() {
                 TYPO3.jQuery('.lth_solr_categories').click(function() {
-                    updateIndex('updateCategories', TYPO3.jQuery(this).parent().parent().attr('id'), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
+                    updateIndex('updateCategories', TYPO3.jQuery(this).parent().parent().attr('id').replace('edit_',''), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
                 });
                 
                 TYPO3.jQuery('.lth_solr_hideonpage').click(function() {
-                    updateIndex('updateHideonpage', TYPO3.jQuery(this).parent().parent().attr('id'), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
+                    updateIndex('updateHideonpage', TYPO3.jQuery(this).parent().parent().attr('id').replace('edit_',''), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
                     //console.log(TYPO3.jQuery(this).parent().parent().attr('id'));
                 });
     
@@ -520,28 +510,22 @@ class user_sampleflex_addFieldsToFlexForm {
                 display: block;
                 clear:both;
             }
-            .lth_solr_manage_staff_list {
+            #lth_solr_manage_staff_list td {
                 padding:10px;
             }
             li {
-              display:inline;
+                display:inline;
+            }
+            .lth_solr_categories {
+                padding-left:10px;
             }
             </style>";
         
         $content .= '<table id="lth_solr_manage_staff_list" class="lth_solr_manage_staff_list"><tbody class="selections">';
         if($response) {
         foreach ($response as $document) {
-            $content .= "<tr class=\"selection\" id=\"edit_" . $document->id . "\">";
-            $content .= "<td style=\"width:400px; align:top;\">";
-            
-            $content .= "<ul style=\"\">";
-            
-            $content .= '<li style="width: 100px;">' . $document->id . ': </li>';
-            $content .= '<li style="width: 100px;">' . $document->display_name_t . '</li>';
-            
-            $content .= "</ul>";
-            
-            $content .= "</td>";
+            $content .= '<tr class="selection" id="edit_' . $document->id . '">';
+            $content .= '<td style="width:300px; align:top;">'  . $document->display_name_t . ' (' . $document->id . ')</td>';
             
             $categories = '';
             //print_r( $document->$catVar);
@@ -553,7 +537,7 @@ class user_sampleflex_addFieldsToFlexForm {
                         if(in_array($value, $document->$catVar)) {
                             $checkedCat = ' " checked="checked" ';
                         }
-                        $categories .= "<input type=\"checkbox\" name=\"lth_solr_categories\" class=\"lth_solr_categories\" value=\"$value\"$checkedCat/>$value";
+                        $content .= "<td><input type=\"checkbox\" name=\"lth_solr_categories\" class=\"lth_solr_categories\" value=\"$value\"$checkedCat/>$value</td>";
                     }
                 }
             }
@@ -563,10 +547,9 @@ class user_sampleflex_addFieldsToFlexForm {
                 $checkedHide = ' " checked="checked" ';
             }
             
-            $content .= "<td style=\"width: 300px; align:top;\">$categories</td>";
-            $content .= "<td style=\"width: 300px; align:top;\"></td>";
+            //$content .= "<td style=\"width: 500px; align:top;\">$categories</td>";
             
-            $content .= "<td style=\"width: 300px; border-left: 1px black solid;\">"
+            $content .= "<td style=\"width: 150px;padding-left:90px;\">"
                     . "<input type=\"checkbox\" name=\"lth_solr_hideonpage\" class=\"lth_solr_hideonpage\" value=\"1\"$checkedHide/>Hide on this page"
                     . "</td>";
             
@@ -591,13 +574,19 @@ class user_sampleflex_addFieldsToFlexForm {
         $pid = $config['row']['pid'];
 
         $sys_language_uid = $config['row']['sys_language_uid'];
-        $introVar = 'lth_solr_intro_' . $pid . '_' . $sys_language_uid;
+        //$introVar = 'lth_solr_intro_' . $pid . '_' . $sys_language_uid;
         
         //print_r($config);
 
 	$allResponse = $this->getSolrData($config);
 	$response = $allResponse[0];
-        
+        $introThisPage = $allResponse[4];
+
+        if(!$introThisPage || $introThisPage == '') {
+            $introVar = 'staff_custom_text_s';
+        } else {
+            $introVar = 'staff_custom_text_' . $pid . '_s';
+        }
         
         // show documents using the resultset iterator
         $content .= "<style>.ui-state-highlight{width:100%; height: 50px; background-color:yellow;}</style>
@@ -615,6 +604,7 @@ class user_sampleflex_addFieldsToFlexForm {
                         'items' : items,
                         'value' : value,
                         'checked' : checked,
+                        'introThisPage' : '$introThisPage',
                         'pid' : '$pid',
                         'sys_language_uid' : $sys_language_uid,
                         'sid' : Math.random()
@@ -697,7 +687,11 @@ class user_sampleflex_addFieldsToFlexForm {
                     });                    
                     
                     TYPO3.jQuery('.lth_solr_edit_member').click(function() {
-                        createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                        if('#staffIntrotext').length > 0) {
+                            alert('You can only edit one row at the time');
+                        } else {
+                            createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                        }
                     });
                 });
                 
@@ -709,15 +703,6 @@ class user_sampleflex_addFieldsToFlexForm {
             }
         
             TYPO3.jQuery(document).ready(function() {
-            
-                TYPO3.jQuery('.lth_solr_categories').click(function() {
-                    updateIndex('updateCategories', TYPO3.jQuery(this).parent().parent().attr('id'), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
-                });
-                
-                TYPO3.jQuery('.lth_solr_hideonpage').click(function() {
-                    updateIndex('updateHideonpage', TYPO3.jQuery(this).parent().parent().attr('id'), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
-                    //console.log(TYPO3.jQuery(this).parent().parent().attr('id'));
-                });
     
                 TYPO3.jQuery('#lth_solr_manage_staff_intro').sortable({
                     placeholder: 'ui-state-highlight',
@@ -762,7 +747,6 @@ class user_sampleflex_addFieldsToFlexForm {
                 $content .= "<tr id=\"" . $document->id . "\">";
                 $content .= "<td id=\"name_" . $document->id . "\" style=\"width:300px; align:top;\">$document->display_name_t ($document->id)</td>";
 
-                $introVar = 'staff_custom_text_' . $pid . '_s';
                 $intro = $document->$introVar;
                 $content .= "<td style=\"width:400px; align:top;\" id=\"intro_" . $document->id . "\">$intro</td>";
                 

@@ -85,6 +85,8 @@ function lthSolrList()
             sys_language_uid : $('#sys_language_uid').val(),
             categories : $('#lth_solr_categories').val(),
             custom_categories : $('#lth_solr_custom_categories').val(),
+            categoriesThisPage : $('#categoriesThisPage').val(),
+            introThisPage : $('#introThisPage').val(),
             sid : Math.random(),
         },
         //contentType: "application/json; charset=utf-8",
@@ -116,7 +118,7 @@ function lthSolrList()
                         }
                         i++;
                     });
-                    $('#lth_solr_facet_container').append('<div class="item-list"><ul>' + content + '</ul>' + more + '</div>');
+                    $('#lth_solr_facet_container').append('<div class="item-list"><ul><li><b>Personalkategorier</b></li>' + content + '</ul>' + more + '</div>');
                     i=0;
                     maxClass='';
                     more='';

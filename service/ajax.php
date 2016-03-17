@@ -17,6 +17,8 @@ $table_length = t3lib_div::_GP('table_length');
 $pageid = t3lib_div::_GP('pageid');
 $custom_categories = t3lib_div::_GP('custom_categories');
 $categories = t3lib_div::_GP('categories');
+$categoriesThisPage = t3lib_div::_GP('categoriesThisPage');
+$introThisPage = t3lib_div::_GP('introThisPage');
 $sid = t3lib_div::_GP("sid");
 date_default_timezone_set('Europe/Stockholm');
 
@@ -38,7 +40,7 @@ switch($action) {
         getEvent($uid);
         break;
     case 'facetSearch':
-        $content = facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories);
+        $content = facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage);
         break;
     case 'detail':
         $content = detail($scope);
@@ -62,7 +64,7 @@ function rest()
 }
 
 
-function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories)
+function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage)
 {
     $content = '';
     $data = array();
@@ -73,9 +75,20 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
     if($categories === 'standard_category') {
         $catVal = 'standard_category_sv_txt';
     } else {
-        $catVal = 'lth_solr_cat_' . $pageid . '_' . $sys_language_uid . '_ss';
+        if(!$categoriesThisPage || $categoriesThisPage == '') {
+            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'global', 'crdate' => time()));
+            $catVal = 'lth_solr_cat_ss';
+        } else {
+            $catVal = 'lth_solr_cat_' . $pageid . '_ss';
+        } 
+        if(!$introThisPage || $introThisPage == '') {
+            $introVar = 'staff_custom_text_s';
+        } else {
+            $introVar = 'staff_custom_text_' . $pageid . '_s';
+        }
     }
-    $hideVal = 'lth_solr_hide_' . $pageid . '_' . $sys_language_uid . '_i';
+        
+    $hideVal = 'lth_solr_hide_' . $pageid . '_i';
 
     // create a client instance
     $client = new Solarium\Client($config);
@@ -89,6 +102,8 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
     $facetSet = $query->getFacetSet();
     if($facet) {
         $facetArray = json_decode($facet, true);
+                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facet, 'crdate' => time()));
+
         $i=0;
         foreach($facetArray as $key => $value) {
             $facetTempArray = explode('###', $value);
@@ -154,13 +169,19 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
     foreach ($response as $document) {
         
         $intro_t = '';
-        $introVar = 'staff_custom_text_' . $pageid . '_s';
         if($document->$introVar !== '') {
             $intro_t = $document->$introVar;
         }
 
         $title_txt = fixString($document->title_txt);
-        $oname_txt = fixString($document->oname_txt);
+        //$oname_txt = fixString($document->oname_txt);
+        
+        if($document->image_s) {
+            $image = '/fileadmin' . $document->image_s;
+        } else {
+            $image = '/typo3conf/ext/lth_solr/res/placeholder.gif';
+
+        }
         
         $data[] = array(
             ucwords(strtolower($document->first_name_t)) . ' ' . ucwords(strtolower($document->last_name_t)),
@@ -172,8 +193,8 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
             ucwords(strtolower($oname_txt)),
             $document->primary_affiliation_t,
             $document->homepage_t,
-            '/fileadmin' . $document->image_s,
-            $intro_t,
+            $image,
+            fixString($intro_t),
             roomWrap(fixString($document->room_number_s))
         );
     }
@@ -194,7 +215,7 @@ function roomWrap($input)
 
 function fixString($input)
 {
-    if(!input) {
+    if(!input || $input == '') {
         return '';
     } else {
         if(is_array($input)) {
