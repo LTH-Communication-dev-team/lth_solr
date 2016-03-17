@@ -11,7 +11,10 @@ class lth_solr_ajax {
         $sid = t3lib_div::_GP('sid');
 
         switch($action) {
-	    case 'resort':
+            case 'updateIntroAndImage':
+		$content = $this->updateIntroAndImage($items, $pid, $value, $checked, $sys_language_uid);
+		break;	    
+            case 'resort':
 		$content = $this->resort($items, $pid, $sys_language_uid);
 		break;
             case 'updateCategories':
@@ -36,7 +39,7 @@ class lth_solr_ajax {
         $sortVal = 10;
         
         $staffArray = array();
-        $staffArray = json_decode($items);
+        $staffArray = json_decode($items, true);
 
         require(__DIR__.'/init.php');
         
@@ -47,7 +50,7 @@ class lth_solr_ajax {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(50);
         
-        $sortVar = 'lth_solr_sort_' . $pid . '_' . $sys_language_uid . '_i';
+        $sortVar = 'lth_solr_sort_' . $pid . '_i';
 
         foreach($staffArray as $key => $value) {
             $data = array();
@@ -118,7 +121,7 @@ class lth_solr_ajax {
         
         $query->setQuery('id:'.$items);
         
-        $catVar = 'lth_solr_cat_' . $pid . '_' . $sys_language_uid . '_ss';
+        $catVar = 'lth_solr_cat_' . $pid . '_ss';
 
         $response = $client->select($query);
         
@@ -264,215 +267,107 @@ class lth_solr_ajax {
         
         return $result;
     }
+   
     
-    
-    public function updateIndex($catvalue, $username, $checked, $sys_language, $pluginid, $i) 
+    public function updateIntroAndImage($username, $pid, $value, $checked, $sys_language_uid)
     {
-	$confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['institutioner']);
-    
-	if (!$confArr['solrServer']) {
-	    return 'Ange Solr-server';
-	}
+        $valueArray = json_decode($value, true);
+        $introText = $valueArray[0];
+        $imageId = $valueArray[1];
 
-	if (!$confArr['solrPort']) {
-	    return 'Ange Solr-port';
-	}
-
-	if (!$confArr['solrPath']) {
-	    return 'Ange Solr-path';
-	}
-	//$catvalue = str_replace(' ', '_', $catvalue);
-        //require_once(__DIR__ . '/../vendor/solr/Service.php');
-
-        //$solr = new Apache_Solr_Service( 'www2.lth.se', '8080', '/solr/personal' );
-	$scheme = 'http';
-	$solr = t3lib_div::makeInstance('tx_solr_ConnectionManager')->getConnection($confArr['solrServer'], $confArr['solrPort'], $confArr['solrPath'], $scheme);
-
-        $query = "id:$username";
-        $results = false;
-        $limit = 1;
- 
-        if (get_magic_quotes_gpc() == 1) {
-            $query = stripslashes($query);
-        }
-        
-        try {
-            $response = $solr->search($query, 0, $limit);
-        }
-        catch(Exception $e) {
-            return '31:' . $e->getMessage();
-            exit();
-        }
-        
-        if(isset($response->response->docs[0])) {
- 
-            //$docs = array();
-            foreach($response->response->docs as $document) {
-                $doc = array();
-                foreach($document as $field => $value) {
-                    $doc[$field] = $value;
-                }
-                //staff_custom_category_facet_sv
-                //$catvalueArray = explode('_', $catvalue);
-		$sucker = '';
-                if($checked==='true') {
-                    if(is_array($doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss'])) {
-                        $doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss'][] = $catvalue;
-                    } else if($doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss']) {
-			$doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss'] = array($doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss']);
-			$doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss'][] = $catvalue;
-                    } else {
-                        $doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss'] = $catvalue;
-                    }
-                    if($doc['staff_custom_category_sort_'.$sys_language.'_'.$pluginid.'_s']) {
-                        if($catvalue < $doc['staff_custom_category_sort_'.$sys_language.'_'.$pluginid.'_s']) {
-                            $doc['staff_custom_category_sort_'.$sys_language.'_'.$pluginid.'_s'] = $catvalue;
-                        } 
-                    } 
-                } else {
-                    if(is_array($doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss'])) {
-                        unset($doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss'][array_search($catvalue,$doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss'])]);
-			//$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => , 'crdate' => time()));
-
-                    } else {
-                        unset($doc['staff_custom_category_facet_'.$sys_language.'_'.$pluginid.'_ss']);
-                    }
-                    
-                    if($doc['staff_custom_category_sort_'.$sys_language.'_'.$pluginid.'_s'] == $catvalue) {
-                        unset($doc['staff_custom_category_sort_'.$sys_language.'_'.$pluginid.'_s']);
-                    }
-                }
-                //staff_custom_category_facet_sv
-                
-                unset($doc['_version_']);
-                unset($doc['alphaNameSort']);
-
-               // $docs[] = $doc;
-            }
-
-            //$documents = array();
-
-            //foreach ( $docs as $item => $fields ) {
-
-                $part = new Apache_Solr_Document();
-
-                foreach ( $doc as $key => $value ) {
-                    if ( is_array( $value ) ) {
-                        foreach ( $value as $data ) {
-                            $part->setMultiValue( $key, $data );
-                        }
-                    }
-                    else {
-                        $part->$key = $value;
-                    }
-                }
-
-               // $documents[] = $part;
-            //}
-
-            try {
-                $solr->addDocument($part);
-                $solr->commit();
-                $solr->optimize();
-                $response = 'getFeUsers done!'.$sucker;
-            }
-            catch ( Exception $e ) {
-                $response = $e->getMessage();
-            }
-        } else {
-            $response = "Kein Eintrag gefunden";
-        }
-        
-        return $response;
-    }
-    
-    function updateImage($imageId, $username, $checked, $sys_language, $pluginId, $i)
-    {
-	$imageIdArray = explode('_',$imageId);
-	$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('file_name,file_path', 'tx_dam', 'uid='.intval($imageIdArray[2]), '', '', '') or die('149; '.mysql_error());
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('identifier, mime_type', 'sys_file', 'uid='.intval($imageId), '', '', '') or die('398; '.mysql_error());
 	$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
-	$file_name = $row['file_name'];
-	$file_path = $row['file_path'];
+	$identifier = $row['identifier'];
+	$mime_type = $row['mime_type'];
 	$GLOBALS['TYPO3_DB']->sql_free_result($res);
-	
-	$confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['institutioner']);
-    
-	if (!$confArr['solrServer']) {
-	    return 'Ange Solr-server';
-	}
 
-	if (!$confArr['solrPort']) {
-	    return 'Ange Solr-port';
-	}
-
-	if (!$confArr['solrPath']) {
-	    return 'Ange Solr-path';
-	}
-	//$catvalue = str_replace(' ', '_', $catvalue);
-        //require_once(__DIR__ . '/../vendor/solr/Service.php');
-
-        //$solr = new Apache_Solr_Service( 'www2.lth.se', '8080', '/solr/personal' );
-	$scheme = 'http';
-	$solr = t3lib_div::makeInstance('tx_solr_ConnectionManager')->getConnection($confArr['solrServer'], $confArr['solrPort'], $confArr['solrPath'], $scheme);
-
-        $query = "id:$username";
-        $results = false;
-        $limit = 1;
- 
-        if (get_magic_quotes_gpc() == 1) {
-            $query = stripslashes($query);
-        }
+        require(__DIR__.'/init.php');
         
-        try {
-            $response = $solr->search($query, 0, $limit);
-        }
-        catch(Exception $e) {
-            $response = '180:' . $e->getMessage();
-            //exit();
-        }
-        if(isset($response->response->docs[0])) {
- 
-            //$docs = array();
-            foreach($response->response->docs as $document) {
-                $doc = array();
-                foreach($document as $field => $value) {
-                    $doc[$field] = $value;
-                }
-
-                $doc['staff_custom_image_'.$pluginId . '_s'] = $file_path.$file_name;
+        $client = new Solarium\Client($config);
                 
-                unset($doc['_version_']);
-                unset($doc['alphaNameSort']);
-            }
-
-	    $part = new Apache_Solr_Document();
-
-	    foreach ( $doc as $key => $value ) {
-		if ( is_array( $value ) ) {
-		    foreach ( $value as $data ) {
-			$part->setMultiValue( $key, $data );
-		    }
-		}
-		else {
-		    $part->$key = $value;
-		}
-	    }
+        $query = $client->createSelect();
         
+        $buffer = $client->getPlugin('bufferedadd');
+        $buffer->setBufferSize(50);
+        
+        $introVar = 'staff_custom_text_' . $pid . '_s';
+        $imageVar = 'image_s';
 
-            try {
-                $solr->addDocument($part);
-                $solr->commit();
-                $solr->optimize();
-                $response = 'updateImage done!';
+        $data = array();
+
+        $query->setQuery('id:'.$username);      
+
+        $response = $client->select($query);
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($result), 'crdate' => time()));
+        foreach ($response as $document) {
+            foreach ($document as $field => $fieldValue) {
+                if($field != 'score') {
+                    $data[$field] = $fieldValue;
+                }
+                
             }
-            catch ( Exception $e ) {
-                $response = $e->getMessage();
+            if($identifier) {
+                $data['image_s'] = $identifier;
+                $data['image_id_s'] = $imageId;
+            } else {
+                $data['image_s'] = '';
+                $data['image_id_s'] = '';                
             }
-        } else {
-            $response = "Kein Eintrag gefunden";
+            if($introText) {
+                $data[$introVar] = $introText;
+            }
         }
-	return $response;
+
+        $buffer->createDocument($data);
+
+        //$GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "username='$value'", $updateArray);
+        /*print '<pre>';
+        print_r($data);
+        print '</pre>';*/
+        
+        $buffer->flush();
+        $update = $client->createUpdate();
+        $update->addCommit();
+        $client->update($update);
+        
+        /////////////////////////
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_intro, image", "fe_users", "username='$username'");
+        $row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res);
+        $introArray = $row['lth_solr_intro'];
+        $image = $row['image'];
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+
+        if($introArray) {
+            $introArray = json_decode($introArray, true);
+        }
+        
+        if($introText) {
+            $introArray[$introVar] = $introText;
+        }
+        if($introArray) {
+            $introArray = json_encode($introArray);
+        } else {
+            $introArray = '';
+        }
+        
+        $updateImage = '';
+        if($data['image_s'] == '' && $image) {
+            $updateImage = $image;
+        } else if($data['image_s'] != '') {
+            $updateImage = $data['image_s'];
+        }
+
+        $updateArray = array('lth_solr_intro' => $introArray, 'image' => $updateImage, 'image_id' => $imageId, 'tstamp' => time());
+
+        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "username='$username'", $updateArray);
+        /////////////////////////
+        
+        $returnArray = [];
+        $returnArray['introText'] = $introText;
+        $returnArray['identifier'] = $identifier;
+        return $returnArray;
     }
+
     
     function updateText($strSave, $username, $checked, $sys_language, $pluginId, $i)
     {

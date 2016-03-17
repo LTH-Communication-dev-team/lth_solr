@@ -44,13 +44,13 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
 
         $feGroupsArray = $this->getFeGroups();
 
-        $feUsersArray = $this->getFeUsers();
+        $employeeArray = $this->getFeUsers($employeeArray);
                
         $orgArray = $this->getOrg($con);
         
         $heritageArray = $this->getHeritage($con);
         
-        //$this->debug($heritageArray);
+        $categoriesArray = $this->getCategories();
              
         $this->createFolderStructure($grsp, $folderArray, $orgArray);
         
@@ -60,9 +60,9 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         
         $feGroupsArray = $this->getFeGroups();
         
-        $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feUsersArray, $feGroupsArray);
+        $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray);
         
-        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $config);
+        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $categoriesArray, $config);
         
         //$executionSucceeded = TRUE;
         
@@ -103,40 +103,40 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         $employeeArray = array();
         
         $sql = "SELECT 
-E.uid, 
-E.first_name, 
-E.last_name, 
-E.primary_affiliation, 
-E.homepage, 
-E.lang, 
-E.degree, 
-E.degree_en,
-E.email,
-E.hide_on_web, 
-E.update_flag,
-V.guid,
-GROUP_CONCAT(V.title SEPARATOR '###') AS title,
-GROUP_CONCAT(V.title_en SEPARATOR '###') AS title_en,
-GROUP_CONCAT(V.phone SEPARATOR '###') AS phone, 
-GROUP_CONCAT(V.mobile SEPARATOR '###') AS mobile,
-GROUP_CONCAT(V.room_number SEPARATOR '###') AS room_number,
-GROUP_CONCAT(V.orgid SEPARATOR '###') AS orgid,
-GROUP_CONCAT(O.name SEPARATOR '###') AS oname,
-GROUP_CONCAT(O.name_en SEPARATOR '###') AS oname_en,
-GROUP_CONCAT(O.maildelivery SEPARATOR '###') AS maildelivery
-FROM lucache_employee AS E 
-LEFT JOIN lucache_vrole AS V ON E.uid = V.uid
-LEFT JOIN lucache_vorg AS O ON V.orgid = O.orgid
-GROUP BY V.uid";
+            P.primary_uid, 
+            P.first_name, 
+            P.last_name, 
+            P.primary_affiliation, 
+            P.homepage, 
+            P.lang, 
+            P.degree, 
+            P.degree_en,
+            P.primary_lu_email,
+            NOT P.has_primary_vrole AS hide_on_web,
+            V.update_flag,
+            V.guid,
+            V.room_number,
+            GROUP_CONCAT(V.title SEPARATOR '###') AS title,
+            GROUP_CONCAT(V.title_en SEPARATOR '###') AS title_en,
+            GROUP_CONCAT(V.phone SEPARATOR '###') AS phone, 
+            GROUP_CONCAT(V.mobile SEPARATOR '###') AS mobile,
+            GROUP_CONCAT(V.orgid SEPARATOR '###') AS orgid,
+            GROUP_CONCAT(O.name SEPARATOR '###') AS oname,
+            GROUP_CONCAT(O.name_en SEPARATOR '###') AS oname_en,
+            GROUP_CONCAT(O.maildelivery SEPARATOR '###') AS maildelivery
+            FROM lucache_person AS P 
+            LEFT JOIN lucache_vrole AS V ON P.primary_uid = V.uid
+            LEFT JOIN lucache_vorg AS O ON V.orgid = O.orgid
+            GROUP BY V.uid";
         
         $res = mysqli_query($con, $sql) or die("132; ".mysqli_error());
 
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
-            $employeeArray[$row['uid']] = array(
-                'uid' => $row['uid'], 
+            $employeeArray[$row['primary_uid']] = array(
+                'uid' => $row['primary_uid'], 
                 'first_name' => utf8_encode($row['first_name']),
                 'last_name' => utf8_encode($row['last_name']), 
-                'email' => $row['email'],
+                'email' => $row['primary_lu_email'],
                 'primary_affiliation' => $row['primary_affiliation'],
                 'homepage' => $row['homepage'], 
                 'lang' => $row['lang'], 
@@ -145,12 +145,12 @@ GROUP BY V.uid";
                 'hide_on_web' => $row['hide_on_web'],
                 'update_flag' => $row['update_flag'],
                 'guid' => $row['guid'],
+                'room_number' => $row['room_number'],
                 //arrays:
                 'title' => utf8_encode($row['title']),
                 'title_en' => utf8_encode($row['title_en']),
                 'phone' => $row['phone'],
                 'mobile' => $row['mobile'],
-                'room_number' => $row['room_number'],
                 'orgid' => $row['orgid'], 
                 'oname' => utf8_encode($row['oname']),
                 'oname_en' => utf8_encode($row['oname_en']),
@@ -173,11 +173,12 @@ GROUP BY V.uid";
             homepage            VARCHAR(128),   -- eduOrgUnitHomePageURI
             homepage_en         VARCHAR(128),   -- eduOrgUnitHomePageURI;lang-en
          */
-        $res = mysqli_query($con, 'SELECT O1.parent, O1.orgid, ' .
-            'O1.name, O1.name_en, O1.orgtype, O1.homepage, O1.homepage_en, GROUP_CONCAT(O2.orgid) AS subgroup ' .
-            'FROM lucache_vorg AS O1 LEFT JOIN lucache_vorg AS O2 ON O1.orgid = O2.parent ' .
-            'WHERE O1.orgid IS NOT NULL ' .
-            'GROUP BY O1.orgid');
+        $sql = "SELECT O1.parent, O1.orgid,
+            O1.name, O1.name_en, O1.orgtype, O1.homepage, O1.homepage_en, GROUP_CONCAT(O2.orgid) AS subgroup 
+            FROM lucache_vorg AS O1 LEFT JOIN lucache_vorg AS O2 ON O1.orgid = O2.parent 
+            WHERE O1.orgid IS NOT NULL 
+            GROUP BY O1.orgid";
+        $res = mysqli_query($con, $sql);
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $orgArray[$row['orgid']] = array(
                 'orgid' => $row['orgid'],
@@ -242,6 +243,18 @@ GROUP BY V.uid";
     }
     
     
+    private function getCategories()
+    {
+        $categoriesArray = array();
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("title_sv, name_sv, name_en", "tx_lthsolr_titles t JOIN tx_lthsolr_categories c ON t.category = c.id");
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $categoriesArray[strtolower($row['title_sv'])] = array(str_replace(' ', '_', $row['name_sv']), str_replace(' ', '_', $row['name_en']));
+        }
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        return $categoriesArray;
+    }
+    
+    
     private function getFolderStructure($grsp)
     {
         $folderArray = array();
@@ -268,19 +281,32 @@ GROUP BY V.uid";
     }
     
     
-    private function getFeUsers()
+    private function getFeUsers($employeeArray)
     {
-        $feUsersArray = array();
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('username, usergroup, image, lth_solr_cat, lth_solr_sort, lth_solr_intro, lth_solr_txt', 'fe_users', 'deleted = 0');
+        //$feUsersArray = array();
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('username, usergroup, image, image_id, lth_solr_cat, lth_solr_sort, lth_solr_intro', 'fe_users', 'deleted = 0');
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-            $feUsersArray[$row['username']] = array('usergroup' => $row['usergroup'], 
-                'image' => $row['image'], 
-                'lth_solr_cat' => $row['lth_solr_cat'], 
-                'lth_solr_sort' => $row['lth_solr_sort'],
-                'lth_solr_intro' => $row['lth_solr_intro'],
-                'lth_solr_txt' => $row['lth_solr_txt']);
+            $username = $row['username'];
+            $lth_solr_intro = $row['lth_solr_intro'];
+            if($lth_solr_intro && $lth_solr_intro !== '') {
+                $lth_solr_intro = json_decode($lth_solr_intro, true);
+                foreach($lth_solr_intro as $key => $value) {
+                    $employeeArray[$username]['lth_solr_intro'][$key] = $value;
+                }
+            }
+            if($lth_solr_sort && $lth_solr_sort !== '') {
+                $lth_solr_sort = json_decode($lth_solr_sort, true);
+                foreach($lth_solr_sort as $key => $value) {
+                    $employeeArray[$username]['lth_solr_sort'][$key] = $value;
+                }
+            }            
+            $employeeArray[$username]['usergroup'] = $row['usergroup']; 
+            $employeeArray[$username]['image'] = $row['image'];
+            $employeeArray[$username]['image_id'] = $row['image_id'];
+            $employeeArray[$username]['lth_solr_cat'] = $row['lth_solr_cat']; 
+            $employeeArray[$username]['exist'] = TRUE;
         }
-        return $feUsersArray;
+        return $employeeArray;
     }
     
     
@@ -323,7 +349,7 @@ GROUP BY V.uid";
     }
     
     
-    private function createFeUsers($folderArray, $employeeArray, $feUsersArray, $feGroupsArray)
+    private function createFeUsers($folderArray, $employeeArray, $feGroupsArray)
     {
         foreach($employeeArray as $key => $value) {
             //echo $value['usergroup'];
@@ -332,16 +358,21 @@ GROUP BY V.uid";
             //echo $usergroupArray['pid'];
             //echo $usergroupArray['usergroup'];
             if($usergroupArray[0]) {
-                if(array_key_exists($key, $feUsersArray)) {
+                if($value['exist']) {
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
+                        'first_name' => $value['first_name'],
+                        'last_name' => $value['last_name'],
+                        'name' => $value['last_name'] . ', ' . $value['first_name'],
+                        'email' => $value['email'],
+                        'www' => (string)$value['homepage'],
                         'tstamp' => time()
                     );
-                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', 'username = '.$value['uid'], $updateArray);
-                    $employeeArray[$key]['image'] = $feUsersArray[$key]['image'];
+                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username = '".$value['uid'] . "'", $updateArray);
+                    /*$employeeArray[$key]['image'] = $feUsersArray[$key]['image'];
                     $employeeArray[$key]['lth_solr_intro'] = $feUsersArray[$key]['lth_solr_intro'];
-                    $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];
+                    $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
                 } else {
                     $insertArray = array(
                         'username' => $value['uid'],
@@ -362,8 +393,9 @@ GROUP BY V.uid";
     }
     
     
-    private function updateSolr($employeeArray, $heritageArray, $config)
+    private function updateSolr($employeeArray, $heritageArray, $categoriesArray, $config)
     {
+        //$this->debug($employeeArray);
         try {
             if(count($employeeArray) > 0) {
                 //create a client instance
@@ -405,6 +437,16 @@ GROUP BY V.uid";
                     if(!$homepage || $homepage === '') {
                         $homepage = str_replace(' ', '_', $display_name_t);
                     }
+                    
+                    $standard_category_sv = array();
+                    $standard_category_en = array();
+                    $titleArray = explode('###', $value['title']);
+                    foreach($titleArray as $tkey => $tvalue) {
+                        $standard_category_sv[] = $categoriesArray[$tvalue][0];
+                        $standard_category_en[] = $categoriesArray[$tvalue][1];
+                    }
+                    //print_r($standard_category_sv);
+                    
                     //array_shift($heritage);
                     $data = array(
                         'id' => $key,
@@ -425,23 +467,38 @@ GROUP BY V.uid";
                         'title_sort' => explode('###', $value['title']),
                         'ou_sort' => explode('###', $value['oname']),
                         'guid_s' => $value['guid'],
+                        'standard_category_sv_txt' => $standard_category_sv,
+                        'standard_category_en_txt' => $standard_category_en,
                         //arrays:
-                        'title_txt' => explode('###', $value['title']),
-                        'title_en_txt' => explode('###', $value['title_en']),
+                        'title_txt' => $titleArray,
+                        'title_en_txt' => $title_enArray,
                         'phone_txt' => explode('###', $value['phone']),
                         'mobile_txt' => explode('###', $value['mobile']),
-                        'room_number_txt' => explode('###', $value['room_number']),
+                        'room_number_s' => $value['room_number'],
                         'orgid_txt' => explode('###', $value['orgid']),
                         'oname_txt' => explode('###', $value['oname']),
                         'oname_en_txt' => explode('###', $value['oname_en']),
                         'maildelivery_txt' => explode('###', $value['maildelivery']),
                         //extra:
-                        'image_t' => $value['image'],
-                        'lth_solr_intro_t' => $value['lth_solr_intro'],
-                        'lth_solr_txt_t' => $value['lth_solr_txt'],
+                        'image_s' => $value['image'],
+                        'image_id_s' => $value['image_id'],
+                        //'lth_solr_intro_t' => $value['lth_solr_intro'],
+                        //'lth_solr_txt_t' => $value['lth_solr_txt'],
                         'usergroup_txt' => $heritage,
                         'lth_solr_sort_ss' => $value['lth_solr_sort'],
                     );
+                    
+                    if(is_array($value['lth_solr_intro'])) {
+                        foreach($value['lth_solr_intro'] as $key => $value) {
+                            $data[$key] = $value;
+                        }
+                    }
+                    
+                    if(is_array($value['lth_solr_sort'])) {
+                        foreach($value['lth_solr_sort'] as $key => $value) {
+                            $data[$key] = $value;
+                        }
+                    }
 
                     try {
                         $buffer->createDocument($data);                    

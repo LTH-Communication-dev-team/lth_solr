@@ -31,7 +31,7 @@ and open the template in the editor.
     list-style:none !important;
 }
 
-#facetContainer {
-    padding-top:20px;
+#lth_solr_facet_container {
+    margin-top:30px;
     width: 197px;
 }

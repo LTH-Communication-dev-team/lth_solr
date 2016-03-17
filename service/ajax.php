@@ -16,6 +16,7 @@ $sys_language_uid = t3lib_div::_GP('sys_language_uid');
 $table_length = t3lib_div::_GP('table_length');
 $pageid = t3lib_div::_GP('pageid');
 $custom_categories = t3lib_div::_GP('custom_categories');
+$categories = t3lib_div::_GP('categories');
 $sid = t3lib_div::_GP("sid");
 date_default_timezone_set('Europe/Stockholm');
 
@@ -37,7 +38,7 @@ switch($action) {
         getEvent($uid);
         break;
     case 'facetSearch':
-        $content = facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $custom_categories);
+        $content = facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories);
         break;
     case 'detail':
         $content = detail($scope);
@@ -61,7 +62,7 @@ function rest()
 }
 
 
-function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $custom_categories)
+function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories)
 {
     $content = '';
     $data = array();
@@ -69,7 +70,11 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
     
     require(__DIR__.'/init.php');
     
-    $catVal = 'lth_solr_cat_' . $pageid . '_' . $sys_language_uid . '_ss';
+    if($categories === 'standard_category') {
+        $catVal = 'standard_category_sv_txt';
+    } else {
+        $catVal = 'lth_solr_cat_' . $pageid . '_' . $sys_language_uid . '_ss';
+    }
     $hideVal = 'lth_solr_hide_' . $pageid . '_' . $sys_language_uid . '_i';
 
     // create a client instance
@@ -90,17 +95,18 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
             $query->addFilterQuery(array('key' => $i, 'query' => $facetTempArray[0] . ':"' . $facetTempArray[1] . '"', 'tag'=>'inner'));
             $i++;
         }
+    } else if($categories === 'standard_category') {
+        $facetSet->createFacetField('standard')->setField($catVal);
     } else if($custom_categories) {
         $facetSet->createFacetField('custom')->setField($catVal);
     } else {
-        $facetSet->createFacetField('title')->setField('title_autocomplete');
-        $facetSet->createFacetField('ou')->setField('ou_autocomplete');
+        $facetSet->createFacetField('title')->setField('title_sort');
     }
     
     //$lth_solr_sortorder = 'lth_solr_sort_' . $pageid . '_' . $sys_language_uid . '_i';
     
     $sortArray = array(
-            'lth_solr_sort_' . $pageid . '_' . $sys_language_uid . '_i' => 'asc',
+            'lth_solr_sort_' . $pageid . '_i' => 'asc',
             'last_name_s' => 'asc',
             'first_name_s' => 'asc'
         );
@@ -120,7 +126,12 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
 
     // display facet query count
     if(!$facet) {
-        if($custom_categories) {
+        if($categories === 'standard_category') {
+            $facet_standard = $response->getFacetSet()->getFacet('standard');
+            foreach ($facet_standard as $value => $count) {
+                $facetResult[$catVal][] = array($value, $count);
+            }
+        } else if($custom_categories) {
             $facet_custom = $response->getFacetSet()->getFacet('custom');
             foreach ($facet_custom as $value => $count) {
                 $facetResult[$catVal][] = array($value, $count);
@@ -130,7 +141,7 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
             $facet_ou = $response->getFacetSet()->getFacet('ou');
 
             foreach ($facet_title as $value => $count) {
-                $facetResult['title_autocomplete'][] = array($value, $count);
+                $facetResult['title_sort'][] = array($value, $count);
             }
 
             foreach ($facet_ou as $value => $count) {
@@ -141,38 +152,57 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
     
     // show documents using the resultset iterator
     foreach ($response as $document) {
-        if($document->image_t != NULL) {
-            $image_t = 'uploads/pics/' . $document->image_t;
-        } else {
-            $image_t = 'typo3conf/ext/lth_solr/res/placeholder.gif';
+        
+        $intro_t = '';
+        $introVar = 'staff_custom_text_' . $pageid . '_s';
+        if($document->$introVar !== '') {
+            $intro_t = $document->$introVar;
         }
-        $lth_solr_intro = $document->lth_solr_intro_t;
-        $lth_solr_txt = $document->lth_solr_txt_t;
-        if($lth_solr_intro !== '') {
-            $lth_solr_introArray = json_decode($lth_solr_intro, true);
-            $lth_solr_intro = $lth_solr_introArray['lth_solr_intro_' . $pid . '_' . $sys_language_uid];
-        }
-        if($lth_solr_txt !== '') {
-            $lth_solr_txtArray = json_decode($lth_solr_txt, true);
-            $lth_solr_txt = $lth_solr_txtArray['lth_solr_txt_' . $pid . '_' . $sys_language_uid];
-        }
+
+        $title_txt = fixString($document->title_txt);
+        $oname_txt = fixString($document->oname_txt);
+        
         $data[] = array(
             ucwords(strtolower($document->first_name_t)) . ' ' . ucwords(strtolower($document->last_name_t)),
-            ucwords(strtolower($document->title_autocomplete)),
+            ucwords(strtolower($title_txt)),
             $document->phone_txt,
             $document->id,
-            $document->email_t,
-            $document->ou_t,
-            $document->orgid_t,
+            fixString($document->email_t),
+            ucwords(strtolower($title_txt)),
+            ucwords(strtolower($oname_txt)),
             $document->primary_affiliation_t,
             $document->homepage_t,
-            $image_t,
-            $lth_solr_intro,
-            $lth_solr_txt
+            '/fileadmin' . $document->image_s,
+            $intro_t,
+            roomWrap(fixString($document->room_number_s))
         );
     }
     $resArray = array('data' => $data, 'facet' => $facetResult, 'draw' => 1);
     return json_encode($resArray);
+}
+
+
+function roomWrap($input)
+{
+    if(input=='') {
+        return '';
+    } else {
+        return " (Rum $input)";
+    }
+}
+
+
+function fixString($input)
+{
+    if(!input) {
+        return '';
+    } else {
+        if(is_array($input)) {
+            return implode(', ', $input);
+        } else {
+            return $input;
+        }
+    }
 }
 
 
@@ -216,7 +246,7 @@ function detail($scope)
         }
         $data = array(
             ucwords(strtolower($document->first_name_t)) . ' ' . ucwords(strtolower($document->last_name_t)),
-            ucwords(strtolower($document->title_autocomplete)),
+            ucwords(strtolower($document->title_sort)),
             $document->phone_txt,
             $document->id,
             $document->email_t,

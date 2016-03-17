@@ -116,6 +116,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                     '<input type="hidden" id="sys_language_uid" value="' . $index . '" />' .
                     '<input type="hidden" id="pid" value="' . $pid . '" />' .
                     '<input type="hidden" id="lth_solr_type" value="list" />' .
+                    '<input type="hidden" id="lth_solr_categories" value="' . $categories . '" />' .
                     '<input type="hidden" id="lth_solr_custom_categories" value="' . $customCategories . '" />' .
                     '<input type="hidden" id="fe_user" value="' . $GLOBALS['TSFE']->fe_user->user . '" />' .
                     '<input type="hidden" id="lu_user" value="' . $lu_user . '" />' .

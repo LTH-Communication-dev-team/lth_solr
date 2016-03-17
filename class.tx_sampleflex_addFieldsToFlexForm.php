@@ -13,7 +13,7 @@ class user_sampleflex_addFieldsToFlexForm {
     {
 	$confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
     
-	if (!$confArr['solrServer']) {
+	/*if (!$confArr['solrServer']) {
 	    return 'Ange Solr-server';
 	}
 
@@ -23,7 +23,7 @@ class user_sampleflex_addFieldsToFlexForm {
 
 	if (!$confArr['solrPath']) {
 	    return 'Ange Solr-path';
-	}
+	}*/
     
         $addpeopleArray = array();
         $addpeople = '';
@@ -113,7 +113,7 @@ class user_sampleflex_addFieldsToFlexForm {
         
         $query->setQuery($queries);
         
-        $query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
+        //$query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
 
         $query->addSort('lth_solr_sort_' . $pid . '_' . $sys_language_uid . '_i', $query::SORT_ASC);
         $query->addSort('last_name_t', $query::SORT_ASC);
@@ -292,8 +292,8 @@ class user_sampleflex_addFieldsToFlexForm {
                 
                 foreach ( $response->response->docs as $doc) {
 		    $image = '';
-		    if($doc->{'staff_custom_image_'.$pluginId.'_s'}) {
-			$imageArray = explode('/',$doc->{'staff_custom_image_'.$pluginId.'_s'});
+		    if($doc->{'image_s'}) {
+			$imageArray = explode('/',$doc->{'image_s'});
 			$image = end($imageArray);
 		    }
 		    
@@ -346,7 +346,7 @@ class user_sampleflex_addFieldsToFlexForm {
 		    $content .= "<td style=\"width:500px;\" id=\"user_text_$i\">";
 		    $content .= $doc->{'staff_custom_text_'.$pluginId.'_s'} . "</td>";
 		    $content .= "<td style=\"width:200px;\" id=\"user_edit_$i\">";
-		    $content .= "<a href=\"#\" onclick=\"addTextarea('user_text_$i','user_edit_$i','" . $doc->id . "','$pluginId');return false;\">Edit</a>";
+		    $content .= "<a href=\"#\" onclick=\"addTextarea('user_text_$i','user_edit_$i','" . $doc->id . "','$pluginId');return false;\">Edita</a>";
 		    $content .= "</td>";
                     $content .= "</tr>";
                     $i++;
@@ -487,6 +487,7 @@ class user_sampleflex_addFieldsToFlexForm {
                     }
                 });
             }
+            
         
             TYPO3.jQuery(document).ready(function() {
                 TYPO3.jQuery('.lth_solr_categories').click(function() {
@@ -498,16 +499,18 @@ class user_sampleflex_addFieldsToFlexForm {
                     //console.log(TYPO3.jQuery(this).parent().parent().attr('id'));
                 });
     
-                TYPO3.jQuery('#lth_solr_manage_staff').sortable({
+                TYPO3.jQuery('.selections').sortable({
                     placeholder: 'ui-state-highlight',
                     cursor: 'move',
                     update: function( event, ui ) {
                         var IDs = [];
-                        TYPO3.jQuery('#lth_solr_manage_staff').find('.ui-state-default').each(function(){ IDs.push(TYPO3.jQuery(this).attr('id')); });
+                        TYPO3.jQuery('#lth_solr_manage_staff_list').find('.selection').each(function(){ IDs.push(TYPO3.jQuery(this).attr('id').replace('edit_','')); });
                         updateIndex('resort', JSON.stringify(IDs));
                     }
                 }).disableSelection();
+                
             });
+            
             </script>
             <style>
             .ui-state-default {
@@ -517,17 +520,19 @@ class user_sampleflex_addFieldsToFlexForm {
                 display: block;
                 clear:both;
             }
-            
+            .lth_solr_manage_staff_list {
+                padding:10px;
+            }
             li {
               display:inline;
             }
             </style>";
         
-        $content .= '<div id="lth_solr_manage_staff" class="lth_solr_manage_staff">';
+        $content .= '<table id="lth_solr_manage_staff_list" class="lth_solr_manage_staff_list"><tbody class="selections">';
         if($response) {
         foreach ($response as $document) {
-            $content .= "<div class=\"ui-state-default\"  id=\"" . $document->id . "\">";
-            $content .= "<div style=\"width:400px; float:left;\">";
+            $content .= "<tr class=\"selection\" id=\"edit_" . $document->id . "\">";
+            $content .= "<td style=\"width:400px; align:top;\">";
             
             $content .= "<ul style=\"\">";
             
@@ -536,7 +541,7 @@ class user_sampleflex_addFieldsToFlexForm {
             
             $content .= "</ul>";
             
-            $content .= "</div>";
+            $content .= "</td>";
             
             $categories = '';
             //print_r( $document->$catVar);
@@ -558,19 +563,21 @@ class user_sampleflex_addFieldsToFlexForm {
                 $checkedHide = ' " checked="checked" ';
             }
             
-            $content .= "<div style=\"width: 300px; float:left; padding:15px;\">$categories</div>";
+            $content .= "<td style=\"width: 300px; align:top;\">$categories</td>";
+            $content .= "<td style=\"width: 300px; align:top;\"></td>";
             
-            $content .= "<div style=\"width: 300px; float:left; padding:15px; border-left: 1px black solid;\">"
+            $content .= "<td style=\"width: 300px; border-left: 1px black solid;\">"
                     . "<input type=\"checkbox\" name=\"lth_solr_hideonpage\" class=\"lth_solr_hideonpage\" value=\"1\"$checkedHide/>Hide on this page"
-                    . "</div>";
+                    . "</td>";
             
-            $content .= "</div>";
+            $content .= "</tr>";
         }
         
         }
 
     
-        $content .= "</div>";
+        $content .= "</tbody></table>";
+        
         return $content;
     }
     
@@ -582,9 +589,9 @@ class user_sampleflex_addFieldsToFlexForm {
         $categories = '';
         
         $pid = $config['row']['pid'];
+
         $sys_language_uid = $config['row']['sys_language_uid'];
         $introVar = 'lth_solr_intro_' . $pid . '_' . $sys_language_uid;
-        $imageVar = 'lth_solr_hide_' . $pid . '_' . $sys_language_uid . '_i';
         
         //print_r($config);
 
@@ -613,12 +620,6 @@ class user_sampleflex_addFieldsToFlexForm {
                         'sid' : Math.random()
                     },
                     success: function(response, opts) {
-                        //var obj = Ext.decode(response.responseText);
-                        //console.dir(obj);
-                        //console.log(response.responseText);
-                        if(action=='updateText') {
-                            //alert(response.responseText);
-                        }
                         //console.log(response.responseText);
                     },
                     failure: function(response, opts) {
@@ -626,8 +627,89 @@ class user_sampleflex_addFieldsToFlexForm {
                     }
                 });
             }
+            
+            function createEditArea(staffId, obj)
+            {
+                var imageId = TYPO3.jQuery('#'+staffId).find('#img_' + staffId).attr('data-imageId');
+                var staffIntrotext = TYPO3.jQuery('#'+staffId).find('#intro_' + staffId).html();
+                var prevArea = TYPO3.jQuery(obj).parent().parent();
+                var name = TYPO3.jQuery('#name_'+staffId).html();
+                var folderIcon = '<span title=\"Browse for records\" class=\"t3-icon t3-icon-actions t3-icon-actions-insert t3-icon-insert-record\">&nbsp;</span>';
+                var deleteIcon = '<span class=\"t3-icon t3-icon-actions t3-icon-actions-edit t3-icon-edit-delete\">&nbsp;</span>';
+                
+                var editArea = '<tr id=\"'+staffId+'\">';
+                editArea += '<td style=\"align:top;\">' + name + '</td>';
+                editArea += '<td style=\"align:top;\"><textarea class=\"staffIntrotext\" name=\"staffIntrotext\" rows=\"4\" cols=\"50\">'+staffIntrotext+'</textarea></td>';
+                editArea += '<td style=\"align:top;\"><input type=\"text\" name=\"staffTxtImage\" value=\"'+imageId+'\" class=\"staffTxtImage\" />';
+                editArea += '<a class=\"staffImage\" href=\"javascript:\">' + folderIcon + '</a> <a class=\"staffDelete\" href=\"javascript:\">' + deleteIcon + '</a></td>';
+                editArea += '<td><input type=\"button\" id=\"staffSave\" value=\"Save\" /><input type=\"button\" value=\"Cancel\" id=\"staffCancel\" /></td></tr>';
+                TYPO3.jQuery(obj).parent().parent().replaceWith(editArea);
+                
+                TYPO3.jQuery('a.staffImage').click(function(){
+                    setFormValueOpenBrowser('file','staffTxtImage|||jpg,gif,png|');
+                });
+                
+                TYPO3.jQuery('#staffCancel').click(function(){
+                    TYPO3.jQuery(this).parent().parent().replaceWith(prevArea);
+                    
+                    TYPO3.jQuery('.lth_solr_edit_member').click(function() {
+                        createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                    });
+                });
+                
+                TYPO3.jQuery('#staffSave').click(function(){
+                    var imageId = TYPO3.jQuery(this).parent().parent().find('.staffTxtImage').val();
+                    var value = [TYPO3.jQuery(this).parent().parent().find('.staffIntrotext').val(), imageId];
+                    var staffId = TYPO3.jQuery(this).parent().parent().attr('id');
+                    
+                    Ext.Ajax.request({
+                        url: 'ajax.php',
+                        method: 'POST',
+                        dataType: 'json',
+                        params: {
+                            'ajaxID' : 'lth_solr::ajaxControl',
+                            'action' : 'updateIntroAndImage',
+                            'items' : staffId,
+                            'value' : JSON.stringify(value),
+                            'pid' : '$pid',
+                            'sys_language_uid' : $sys_language_uid,
+                            'sid' : Math.random()
+                        },
+                        success: function(data) {
+                            TYPO3.jQuery('#'+staffId).replaceWith(prevArea);
+                            var response = JSON.parse(data.responseText);
+                            TYPO3.jQuery('#intro_' + staffId).html(response.introText);
+                            if(response.identifier) {
+                                TYPO3.jQuery('#img_' + staffId).attr('src', '/fileadmin' + response.identifier);
+                                TYPO3.jQuery('#img_' + staffId).attr('data-imageId', imageId);
+                            } else {
+                                TYPO3.jQuery('#img_' + staffId).attr('src', '/typo3conf/ext/lth_solr/res/placeholder.gif');
+                                TYPO3.jQuery('#img_' + staffId).attr('data-imageId', '');
+                            }
+                            
+                            TYPO3.jQuery('.lth_solr_edit_member').click(function() {
+                                createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                            });
+                        },
+                        failure: function(response, opts) {
+                           console.log('server-side failure with status code ' + response.status);
+                        }
+                    });                    
+                    
+                    TYPO3.jQuery('.lth_solr_edit_member').click(function() {
+                        createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                    });
+                });
+                
+                TYPO3.jQuery('a.staffDelete').click(function() {
+                    var staffId = TYPO3.jQuery(this).parent().parent().attr('id');
+                    TYPO3.jQuery(this).parent().parent().find('.staffTxtImage').val('');
+                    TYPO3.jQuery('#img_'+staffId).attr('src', '/typo3conf/ext/lth_solr/res/placeholder.gif');
+                });
+            }
         
             TYPO3.jQuery(document).ready(function() {
+            
                 TYPO3.jQuery('.lth_solr_categories').click(function() {
                     updateIndex('updateCategories', TYPO3.jQuery(this).parent().parent().attr('id'), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
                 });
@@ -637,16 +719,22 @@ class user_sampleflex_addFieldsToFlexForm {
                     //console.log(TYPO3.jQuery(this).parent().parent().attr('id'));
                 });
     
-                TYPO3.jQuery('#lth_solr_manage_staff').sortable({
+                TYPO3.jQuery('#lth_solr_manage_staff_intro').sortable({
                     placeholder: 'ui-state-highlight',
                     cursor: 'move',
                     update: function( event, ui ) {
                         var IDs = [];
-                        TYPO3.jQuery('#lth_solr_manage_staff').find('.ui-state-default').each(function(){ IDs.push(TYPO3.jQuery(this).attr('id')); });
+                        TYPO3.jQuery('#lth_solr_manage_staff_intro').find('.ui-state-default').each(function(){ IDs.push(TYPO3.jQuery(this).attr('id')); });
                         updateIndex('resort', JSON.stringify(IDs));
                     }
                 }).disableSelection();
+                
+                TYPO3.jQuery('.lth_solr_edit_member').click(function() {
+                    createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                });
             });
+            
+
             </script>
             <style>
             .ui-state-default {
@@ -656,58 +744,45 @@ class user_sampleflex_addFieldsToFlexForm {
                 display: block;
                 clear:both;
             }
-            
+            .lth_solr_manage_staff_intro td {
+                padding:10px;
+            }
+            .staffTxtImage {
+                width:40px;
+            }
             li {
               display:inline;
             }
             </style>";
         
-        $content .= '<div id="lth_solr_manage_staff" class="lth_solr_manage_staff">';
+        $content .= '<table id="lth_solr_manage_staff_intro" class="lth_solr_manage_staff_intro">';
+        //print_r($response);
         if($response) {
-        foreach ($response as $document) {
-            $content .= "<div class=\"ui-state-default\"  id=\"" . $document->id . "\">";
-            $content .= "<div style=\"width:400px; float:left;\">";
+            foreach ($response as $document) {
+                $content .= "<tr id=\"" . $document->id . "\">";
+                $content .= "<td id=\"name_" . $document->id . "\" style=\"width:300px; align:top;\">$document->display_name_t ($document->id)</td>";
+
+                $introVar = 'staff_custom_text_' . $pid . '_s';
+                $intro = $document->$introVar;
+                $content .= "<td style=\"width:400px; align:top;\" id=\"intro_" . $document->id . "\">$intro</td>";
+                
+                //echo $imageVar . $document->$imageVar;
+                if(!$document->image_s) {
+                    $image = '/typo3conf/ext/lth_solr/res/placeholder.gif';
+                } else {
+                    $image = '/fileadmin' . $document->image_s;
+                    $imageId = $document->image_id_s;
+                }
+                
+                $content .= '<td style="width: 100px;"><img src="' . $image . '" id="img_' . $document->id . '" data-imageId="'.$imageId.'" style="width:50px;height:50px;" /></td>';
+                
+                $content .= "<td><input type=\"button\" name=\"Edit\" class=\"lth_solr_edit_member\" value=\"Edit\"></td>";
             
-            $content .= "<ul style=\"\">";
-            
-            $content .= '<li style="width: 100px;">' . $document->id . ': </li>';
-            $content .= '<li style="width: 100px;">' . $document->display_name_t . '</li>';
-            
-            $content .= "</ul>";
-            
-            $content .= "</div>";
-            
-            if($document->lth_solr_intro_t) {
-                $introArray = json_decode($document->lth_solr_intro_t, TRUE);
-                $intro = $introArray[$introVar];
+                $content .= "</tr>";
             }
-                        
-            $content .= "<div style=\"width: 300px; float:left; padding:15px;\">$intro<input type=\"button\" name=\"Edit\" value=\"Edit\"></div>";
-            
-            /*$content .= "<div style=\"width: 300px; float:left; padding:15px; border-left: 1px black solid;\">"
-                    . "<input type=\"checkbox\" name=\"lth_solr_hideonpage\" class=\"lth_solr_hideonpage\" value=\"1\"$checkedHide/>Hide on this page"
-                    . "</div>";*/
-            
-   /*         <form>
-    <input type="hidden" name="hiddenField" />
-</form>
-
-<p>Please edit me...</p>
-
-<script type="text/javascript">
-var replaceWith = $('<input name="temp" type="text" />'),
-    connectWith = $('input[name="hiddenField"]');
-
-$('p').inlineEdit(replaceWith, connectWith);
-</script>*/
-            
-            $content .= "</div>";
         }
-        
-        }
-
     
-        $content .= "</div>";
+        $content .= "</table>";
         return $content;
     }
     
