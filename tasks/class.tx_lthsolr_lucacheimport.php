@@ -288,6 +288,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $username = $row['username'];
             $lth_solr_intro = $row['lth_solr_intro'];
+            $$lth_solr_sort = $row['$lth_solr_sort'];
             if($lth_solr_intro && $lth_solr_intro !== '') {
                 $lth_solr_intro = json_decode($lth_solr_intro, true);
                 foreach($lth_solr_intro as $key => $value) {
@@ -358,7 +359,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             //echo $usergroupArray['pid'];
             //echo $usergroupArray['usergroup'];
             if($usergroupArray[0]) {
-                if($value['exist']) {
+                if($value['exist']===TRUE) {
+                    echo $value['uid'];
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
@@ -374,7 +376,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     $employeeArray[$key]['lth_solr_intro'] = $feUsersArray[$key]['lth_solr_intro'];
                     $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
                 } else {
-                    $insertArray = array(
+                    echo $value['exist'];
+                   /* $insertArray = array(
                         'username' => $value['uid'],
                         'password' => $this->setRandomPassword(),
                         'name' => $value['last_name'] . ', ' . $value['first_name'],
@@ -386,6 +389,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'tstamp' => time()
                     );
                     $GLOBALS['TYPO3_DB']->exec_INSERTquery('fe_users', $insertArray);
+                    */
+                    
                 }
             }
         }
