@@ -318,7 +318,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         //print_r($folderArray);
         foreach($orgArray as $key => $value) {
             $tmpTitle = $value['orgid'] . '__' . $value['name'];
-            if(!array_key_exists($key, $folderArray)) {
+            if(!array_key_exists($tmpTitle, $folderArray)) {
                 $GLOBALS['TYPO3_DB']->exec_INSERTquery('pages', array('title' => $tmpTitle, 'pid' => $grsp, 'doktype' => 254, 'crdate' => time(), 'tstamp' => time()));
             }
         }
