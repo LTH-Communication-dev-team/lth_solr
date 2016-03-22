@@ -261,7 +261,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid, title', 'pages', 'pid = ' . intval($grsp) . ' AND deleted = 0');
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $titleArray = explode('__', $row['title']);
-            $folderArray[$titleArray[0]] = array('uid' => $row['uid'], 'title' => $row['title']);
+            $folderArray[$row['title']] = array('uid' => $row['uid'], 'title' => $row['title']);
         }
         return $folderArray;
     }
@@ -360,7 +360,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             //echo $usergroupArray['usergroup'];
             if($usergroupArray[0]) {
                 if($value['exist']===TRUE) {
-                    echo $value['uid'];
+                    //echo $value['uid'];
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
@@ -376,7 +376,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     $employeeArray[$key]['lth_solr_intro'] = $feUsersArray[$key]['lth_solr_intro'];
                     $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
                 } else {
-                    echo $value['exist'];
+                    //echo $value['exist'];
                    /* $insertArray = array(
                         'username' => $value['uid'],
                         'password' => $this->setRandomPassword(),
