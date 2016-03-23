@@ -48,7 +48,9 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                
         $orgArray = $this->getOrg($con);
         
-        $heritageArray = $this->getHeritage($con);
+        $heritageTempArray = $this->getHeritage($con);
+        $heritageArray = $heritageTempArray[0];
+        $heritageLegacyArray = $heritageTempArray[1];
         
         $categoriesArray = $this->getCategories();
              
@@ -62,7 +64,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         
         $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray);
         
-        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $categoriesArray, $config);
+        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config);
         
         //$executionSucceeded = TRUE;
         
@@ -121,12 +123,14 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             GROUP_CONCAT(V.phone SEPARATOR '###') AS phone, 
             GROUP_CONCAT(V.mobile SEPARATOR '###') AS mobile,
             GROUP_CONCAT(V.orgid SEPARATOR '###') AS orgid,
+            GROUP_CONCAT(ORG.orgid SEPARATOR '###') AS orgid_legacy,
             GROUP_CONCAT(O.name SEPARATOR '###') AS oname,
             GROUP_CONCAT(O.name_en SEPARATOR '###') AS oname_en,
             GROUP_CONCAT(O.maildelivery SEPARATOR '###') AS maildelivery
             FROM lucache_person AS P 
             LEFT JOIN lucache_vrole AS V ON P.primary_uid = V.uid
             LEFT JOIN lucache_vorg AS O ON V.orgid = O.orgid
+            LEFT JOIN lucache_org ORG ON V.orgid = ORG.new_orgid
             GROUP BY V.uid";
         
         $res = mysqli_query($con, $sql) or die("132; ".mysqli_error());
@@ -151,7 +155,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                 'title_en' => utf8_encode($row['title_en']),
                 'phone' => $row['phone'],
                 'mobile' => $row['mobile'],
-                'orgid' => $row['orgid'], 
+                'orgid' => $row['orgid'],
+                'orgid_legacy' => $row['orgid_legacy'],
                 'oname' => utf8_encode($row['oname']),
                 'oname_en' => utf8_encode($row['oname_en']),
                 'maildelivery' => $row['maildelivery']
@@ -198,48 +203,18 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     private function getHeritage($con)
     {
         $heritageArray = array();
+        $heritageLegacyArray = array();
         
-        /*$sql = "SELECT 
-        CONCAT(COALESCE(t1.orgid,''),
-        COALESCE(t2.orgid,''),
-        COALESCE(t3.orgid,''),
-        COALESCE(t4.orgid,''),
-        COALESCE(t5.orgid,''),
-        COALESCE(t6.orgid,''),
-        COALESCE(t7.orgid,''),
-        COALESCE(t8.orgid,''),
-        COALESCE(t9.orgid,''),
-        COALESCE(t10.orgid,'')) AS heritage
-        FROM lucache_vorg AS t1
-        LEFT JOIN lucache_vorg AS t2 ON t2.parent = t1.orgid
-        LEFT JOIN lucache_vorg AS t3 ON t3.parent = t2.orgid
-        LEFT JOIN lucache_vorg AS t4 ON t4.parent = t3.orgid
-        LEFT JOIN lucache_vorg AS t5 ON t5.parent = t4.orgid
-        LEFT JOIN lucache_vorg AS t6 ON t6.parent = t5.orgid
-        LEFT JOIN lucache_vorg AS t7 ON t7.parent = t6.orgid
-        LEFT JOIN lucache_vorg AS t8 ON t8.parent = t7.orgid
-        LEFT JOIN lucache_vorg AS t9 ON t9.parent = t8.orgid
-        LEFT JOIN lucache_vorg AS t10 ON t10.parent = t10.orgid
-        WHERE t1.orgid = 'v1000000'";*/
-        
-        $sql = "SELECT orgid, parent FROM lucache_vorg";
+        $sql = "SELECT orgid, parent, legacy_orgid, legacy_parent FROM lucache_vorg";
         
         $res = mysqli_query($con, $sql);
         
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
-            /*$heritage = $row['heritage'];
-            if($heritage) {
-                $tempArray = explode('v', $heritage);
-                $key = 'v' . array_pop($tempArray);
-                array_shift($tempArray);
-                array_shift($tempArray);
-                $tempArray[] = substr($key, 1);
-                $heritageArray[$key] = $tempArray;
-            }*/
             $heritageArray[$row['orgid']] = $row['parent'];
+            $heritageLegacyArray[$row['legacy_orgid']] = $row['legacy_parent'];
         }
         //$this->debug($heritageArray);
-        return $heritageArray;
+        return array($heritageArray, $heritageLegacyArray);
     }
     
     
@@ -377,7 +352,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
                 } else {
                     //echo $value['exist'];
-                   /* $insertArray = array(
+                    $insertArray = array(
                         'username' => $value['uid'],
                         'password' => $this->setRandomPassword(),
                         'name' => $value['last_name'] . ', ' . $value['first_name'],
@@ -388,9 +363,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'crdate' => time(), 
                         'tstamp' => time()
                     );
-                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('fe_users', $insertArray);
-                    */
-                    
+                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('fe_users', $insertArray);                    
                 }
             }
         }
@@ -398,7 +371,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     }
     
     
-    private function updateSolr($employeeArray, $heritageArray, $categoriesArray, $config)
+    private function updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config)
     {
         //$this->debug($employeeArray);
         try {
@@ -411,6 +384,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                 
                 foreach($employeeArray as $key => $value) {
                     $heritage = array();
+                    $legacy = array();
+                    
                     $orgidArray = explode('###', $value['orgid']);
                     foreach($orgidArray as $key1 => $value1) {
                         $heritage[] = $value1;
@@ -433,10 +408,36 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         $parent = $heritageArray[$parent];
                         if($parent) $heritage[] = $parent;
                     }
+                    
+                    $orgidLegacyArray = explode('###', $value['orgid_legacy']);
+                    foreach($orgidLegacyArray as $key1 => $value1) {
+                        $legacy[] = $value1;
+                        $parent = $heritageLegacyArray[$value1];
+                        if($parent) $legacy[] = $parent;
+                        $parent = $heritageLegacyArray[$parent];
+                        if($parent) $legacy[] = $parent;
+                        $parent = $heritageLegacyArray[$parent];
+                        if($parent) $legacy[] = $parent;
+                        $parent = $heritageLegacyArray[$parent];
+                        if($parent) $legacy[] = $parent;
+                        $parent = $heritageLegacyArray[$parent];
+                        if($parent) $legacy[] = $parent;
+                        $parent = $heritageLegacyArray[$parent];
+                        if($parent) $legacy[] = $parent;
+                        $parent = $heritageLegacyArray[$parent];
+                        if($parent) $legacy[] = $parent;
+                        $parent = $heritageLegacyArray[$parent];
+                        if($parent) $legacy[] = $parent;
+                        $parent = $heritageLegacyArray[$parent];
+                        if($parent) $legacy[] = $parent;
+                    }
+                    
                     array_filter($heritage);
+                    array_filter($legacy);
+                    
                     $heritage = array_unique($heritage);
-                    //$temp = 'v' . implode(',v', $heritage);
-                    //$heritage = explode(',', $temp);
+                    $legacy = array_unique($legacy);
+
                     $display_name_t = $value['first_name'] . ' ' . $value['last_name'];
                     $homepage = $value['homepage'];
                     if(!$homepage || $homepage === '') {
@@ -450,9 +451,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         $standard_category_sv[] = $categoriesArray[$tvalue][0];
                         $standard_category_en[] = $categoriesArray[$tvalue][1];
                     }
-                    //print_r($standard_category_sv);
                     
-                    //array_shift($heritage);
                     $data = array(
                         'id' => $key,
                         'doctype_s' => 'lucat',
@@ -492,6 +491,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'usergroup_txt' => $heritage,
                         'lth_solr_sort_ss' => $value['lth_solr_sort'],
                     );
+                    
+                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username='".$key."'", array('lth_solr_heritage' => implode(',', $heritage), 'lth_solr_legacy_heritage' => implode(',', $legacy)));
                     
                     if(is_array($value['lth_solr_intro'])) {
                         foreach($value['lth_solr_intro'] as $key => $value) {
