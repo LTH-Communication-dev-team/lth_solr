@@ -344,6 +344,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'name' => $value['last_name'] . ', ' . $value['first_name'],
                         'email' => $value['email'],
                         'www' => (string)$value['homepage'],
+                        'hide_on_web' => $value['hide_on_web'],
                         'tstamp' => time()
                     );
                     $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username = '".$value['uid'] . "'", $updateArray);
@@ -360,6 +361,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'www' => (string)$value['homepage'],
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
+                        'hide_on_web' => $value['hide_on_web'],
                         'crdate' => time(), 
                         'tstamp' => time()
                     );
