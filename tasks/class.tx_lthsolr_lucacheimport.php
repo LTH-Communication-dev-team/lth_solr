@@ -123,7 +123,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             GROUP_CONCAT(V.phone SEPARATOR '###') AS phone, 
             GROUP_CONCAT(V.mobile SEPARATOR '###') AS mobile,
             GROUP_CONCAT(V.orgid SEPARATOR '###') AS orgid,
-            GROUP_CONCAT(VORG.orgid SEPARATOR '###') AS orgid_legacy,
+            GROUP_CONCAT(VORG.legacy_orgid SEPARATOR '###') AS orgid_legacy,
             GROUP_CONCAT(O.name SEPARATOR '###') AS oname,
             GROUP_CONCAT(O.name_en SEPARATOR '###') AS oname_en,
             GROUP_CONCAT(O.maildelivery SEPARATOR '###') AS maildelivery
