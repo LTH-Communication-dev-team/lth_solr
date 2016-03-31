@@ -327,8 +327,13 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                 $GLOBALS['TYPO3_DB']->exec_INSERTquery('fe_groups', array(
                     'title' => $tmpTitle,
                     'pid' => $folder['uid'],
-                    'subgroup' => $value['subgroup'],
+                    //'subgroup' => $value['subgroup'],
                     'crdate' => time(), 
+                    'tstamp' => time())
+                );
+            } else {
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('pages', 'title=' . $tmpTitle, array(
+                    'subgroup' => $feGroupsArray[$value['parent']]['uid'],
                     'tstamp' => time())
                 );
             }
