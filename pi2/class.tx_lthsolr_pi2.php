@@ -69,6 +69,11 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $solrId = end($link_array);
             $ip = $_SERVER['REMOTE_ADDR'];
 
+            $syslang = $GLOBALS['TSFE']->config['config']['language'];
+            if(!$syslang) {
+                $syslang = 'en';
+            }
+            
             /*load files needed for datatables*/
             $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";
             //$GLOBALS["TSFE"]->additionalHeaderData["buttons.bootstrap.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/buttons.bootstrap.min.css\" />";
@@ -82,6 +87,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             //$GLOBALS["TSFE"]->additionalHeaderData["handlebars-v4.0.5.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/handlebars/handlebars-v4.0.5.js\"></script>";
 
             //Load main js- and css-files
+            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js\"></script>"; 
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css\" />";
  

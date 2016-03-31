@@ -341,6 +341,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'usergroup' => $usergroupArray[0],
                         'first_name' => $value['first_name'],
                         'last_name' => $value['last_name'],
+                        'title' => $value['title'],
                         'name' => $value['last_name'] . ', ' . $value['first_name'],
                         'email' => $value['email'],
                         'www' => (string)$value['homepage'],
@@ -357,6 +358,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'username' => $value['uid'],
                         'password' => $this->setRandomPassword(),
                         'name' => $value['last_name'] . ', ' . $value['first_name'],
+                        'title' => $value['title'],
                         'email' => $value['email'],
                         'www' => (string)$value['homepage'],
                         'pid' => $usergroupArray[1],
@@ -442,13 +444,14 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
 
                     $display_name_t = $value['first_name'] . ' ' . $value['last_name'];
                     $homepage = $value['homepage'];
-                    if(!$homepage || $homepage === '') {
+                    /*if(!$homepage || $homepage === '') {
                         $homepage = str_replace(' ', '_', $display_name_t);
-                    }
+                    }*/
                     
                     $standard_category_sv = array();
                     $standard_category_en = array();
                     $titleArray = explode('###', $value['title']);
+                    $title_enArray = explode('###', $value['title_en']);
                     foreach($titleArray as $tkey => $tvalue) {
                         $standard_category_sv[] = $categoriesArray[$tvalue][0];
                         $standard_category_en[] = $categoriesArray[$tvalue][1];
@@ -521,6 +524,9 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             } else {
                 echo 'no!!';
             }
+            $update = $client->createUpdate();
+            $update->addCommit();
+            $result = $client->update($update);
         } catch(Exception $e) {
             echo 'Message: ' .$e->getMessage();
             return false;

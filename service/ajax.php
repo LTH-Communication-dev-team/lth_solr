@@ -172,9 +172,6 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
         if($document->$introVar !== '') {
             $intro_t = $document->$introVar;
         }
-
-        $title_txt = fixString($document->title_txt);
-        //$oname_txt = fixString($document->oname_txt);
         
         if($document->image_s) {
             $image = '/fileadmin' . $document->image_s;
@@ -185,17 +182,18 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
         
         $data[] = array(
             ucwords(strtolower($document->first_name_t)) . ' ' . ucwords(strtolower($document->last_name_t)),
-            ucwords(strtolower($title_txt)),
+            $document->title_txt,
+            $document->title_en_txt,
             $document->phone_txt,
             $document->id,
-            fixString($document->email_t),
-            ucwords(strtolower($title_txt)),
-            ucwords(strtolower($oname_txt)),
+            fixString($document->email_t),            
+            $document->oname_txt,
+            $document->oname_en_txt,
             $document->primary_affiliation_t,
             $document->homepage_t,
             $image,
             fixString($intro_t),
-            roomWrap(fixString($document->room_number_s))
+            fixString($document->room_number_s)
         );
     }
     $resArray = array('data' => $data, 'facet' => $facetResult, 'draw' => 1);
