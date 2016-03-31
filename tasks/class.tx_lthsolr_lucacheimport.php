@@ -138,8 +138,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $employeeArray[$row['primary_uid']] = array(
                 'uid' => $row['primary_uid'], 
-                'first_name' => utf8_encode(ucwords($this->toLower($row['first_name']))),
-                'last_name' => utf8_encode(ucwords($this->toLower($row['last_name']))), 
+                'first_name' => utf8_encode(ucwords(strtolower(utf8_encode($row['first_name'])))),
+                'last_name' => utf8_encode(ucwords(strtolower(utf8_encode($row['last_name'])))), 
                 'email' => $row['primary_lu_email'],
                 'primary_affiliation' => $row['primary_affiliation'],
                 'homepage' => $row['homepage'], 
