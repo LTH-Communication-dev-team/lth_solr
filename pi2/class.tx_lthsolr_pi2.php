@@ -74,7 +74,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 $syslang = 'en';
             }
             if($syslang=='se') {
-                $syslang=='sv';
+                $syslang='sv';
             }
             
             /*load files needed for datatables*/
