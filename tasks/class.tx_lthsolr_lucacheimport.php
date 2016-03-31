@@ -138,8 +138,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $employeeArray[$row['primary_uid']] = array(
                 'uid' => $row['primary_uid'], 
-                'first_name' => utf8_encode(ucwords(strtolower($row['first_name']))),
-                'last_name' => utf8_encode(ucwords(strtolower($row['last_name']))), 
+                'first_name' => utf8_encode(ucwords($this->toLower($row['first_name']))),
+                'last_name' => utf8_encode(ucwords($this->toLower($row['last_name']))), 
                 'email' => $row['primary_lu_email'],
                 'primary_affiliation' => $row['primary_affiliation'],
                 'homepage' => $row['homepage'], 
@@ -579,11 +579,10 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     }
     
     
-    private function lucase($string)
-    {
-        if($string) {
-            return ucwords(strtolower($string));
-        }
+    private function toLower($in){
+        $replace = array('å', 'ä', 'ö');
+        $match = array('Å', 'Ä', 'Ö');
+        return str_replace($match, $replace, strtolower($in));
     }
     
     /**
