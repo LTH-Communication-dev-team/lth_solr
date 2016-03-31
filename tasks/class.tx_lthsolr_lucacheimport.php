@@ -128,7 +128,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             GROUP_CONCAT(O.name_en SEPARATOR '###') AS oname_en,
             GROUP_CONCAT(O.maildelivery SEPARATOR '###') AS maildelivery
             FROM lucache_person AS P 
-            LEFT JOIN lucache_vrole AS V ON P.primary_uid = V.uid
+            LEFT JOIN lucache_vrole AS V ON P.id = V.id
             LEFT JOIN lucache_vorg AS O ON V.orgid = O.orgid
             LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid
             GROUP BY V.uid";
