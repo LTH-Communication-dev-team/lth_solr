@@ -262,24 +262,35 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('username, usergroup, image, image_id, lth_solr_cat, lth_solr_sort, lth_solr_intro', 'fe_users', 'deleted = 0');
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $username = $row['username'];
+            $lth_solr_cat = $row['lth_solr_cat'];
             $lth_solr_intro = $row['lth_solr_intro'];
             $$lth_solr_sort = $row['$lth_solr_sort'];
+            
+            if($lth_solr_cat && $lth_solr_cat !== '') {
+                $lth_solr_cat = json_decode($lth_solr_cat, true);
+                foreach($lth_solr_cat as $key => $value) {
+                    $employeeArray[$username]['lth_solr_cat'][$key] = $value;
+                }
+            }
+            
             if($lth_solr_intro && $lth_solr_intro !== '') {
                 $lth_solr_intro = json_decode($lth_solr_intro, true);
                 foreach($lth_solr_intro as $key => $value) {
                     $employeeArray[$username]['lth_solr_intro'][$key] = $value;
                 }
             }
+            
             if($lth_solr_sort && $lth_solr_sort !== '') {
                 $lth_solr_sort = json_decode($lth_solr_sort, true);
                 foreach($lth_solr_sort as $key => $value) {
                     $employeeArray[$username]['lth_solr_sort'][$key] = $value;
                 }
-            }            
+            } 
+            
             $employeeArray[$username]['usergroup'] = $row['usergroup']; 
             $employeeArray[$username]['image'] = $row['image'];
             $employeeArray[$username]['image_id'] = $row['image_id'];
-            $employeeArray[$username]['lth_solr_cat'] = $row['lth_solr_cat']; 
+            //$employeeArray[$username]['lth_solr_cat'] = $row['lth_solr_cat']; 
             $employeeArray[$username]['exist'] = TRUE;
         }
         return $employeeArray;
@@ -498,6 +509,12 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     );
                     
                     $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username='".$key."'", array('lth_solr_heritage' => implode(',', $heritage), 'lth_solr_legacy_heritage' => implode(',', $legacy)));
+
+                    if(is_array($value['lth_solr_cat'])) {
+                        foreach($value['lth_solr_cat'] as $key => $value) {
+                            $data[$key] = $value;
+                        }
+                    }
                     
                     if(is_array($value['lth_solr_intro'])) {
                         foreach($value['lth_solr_intro'] as $key => $value) {
@@ -519,14 +536,11 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     }
                 } 
                 // this executes the query and returns the result
-                $buffer->flush();
+                $buffer->commit();
                 return TRUE;
             } else {
                 echo 'no!!';
             }
-            $update = $client->createUpdate();
-            $update->addCommit();
-            $result = $client->update($update);
         } catch(Exception $e) {
             echo 'Message: ' .$e->getMessage();
             return false;
