@@ -123,23 +123,23 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             GROUP_CONCAT(V.phone SEPARATOR '###') AS phone, 
             GROUP_CONCAT(V.mobile SEPARATOR '###') AS mobile,
             GROUP_CONCAT(V.orgid SEPARATOR '###') AS orgid,
-            GROUP_CONCAT(ORG.orgid SEPARATOR '###') AS orgid_legacy,
+            GROUP_CONCAT(VORG.orgid SEPARATOR '###') AS orgid_legacy,
             GROUP_CONCAT(O.name SEPARATOR '###') AS oname,
             GROUP_CONCAT(O.name_en SEPARATOR '###') AS oname_en,
             GROUP_CONCAT(O.maildelivery SEPARATOR '###') AS maildelivery
             FROM lucache_person AS P 
             LEFT JOIN lucache_vrole AS V ON P.primary_uid = V.uid
             LEFT JOIN lucache_vorg AS O ON V.orgid = O.orgid
-            LEFT JOIN lucache_org ORG ON V.orgid = ORG.new_orgid
+            LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid
             GROUP BY V.uid";
         
-        $res = mysqli_query($con, $sql) or die("132; ".mysqli_error());
+        $res = mysqli_query($con, $sql) or die("136; ".mysqli_error());
 
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $employeeArray[$row['primary_uid']] = array(
                 'uid' => $row['primary_uid'], 
-                'first_name' => utf8_encode($row['first_name']),
-                'last_name' => utf8_encode($row['last_name']), 
+                'first_name' => utf8_encode(lucase($row['first_name'])),
+                'last_name' => utf8_encode(lucase($row['last_name'])), 
                 'email' => $row['primary_lu_email'],
                 'primary_affiliation' => $row['primary_affiliation'],
                 'homepage' => $row['homepage'], 
@@ -575,6 +575,14 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             return array($usergroup, $pid);
         } else {
             return '';
+        }
+    }
+    
+    
+    private function lucase($string)
+    {
+        if($string) {
+            return ucwords(strtolower($string));
         }
     }
     
