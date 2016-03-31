@@ -73,6 +73,9 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             if(!$syslang) {
                 $syslang = 'en';
             }
+            if($syslang=='se') {
+                $syslang=='sv';
+            }
             
             /*load files needed for datatables*/
             $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";
