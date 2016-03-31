@@ -164,19 +164,22 @@ function lthSolrList(lth_solr_lang)
                         var title, title_t = '', title_en_t = '', oname, oname_t = '', oname_en_t = '', phone = '', roomNumber = '';
                         //console.log(aData);
 
-                        for (i = 0; i < aData[1].length; i++) {
-                            if(title_t) {
-                                title_t += ', ';
+                        if(aData[1]) {
+                            for (i = 0; i < aData[1].length; i++) {
+                                if(title_t) {
+                                    title_t += ', ';
+                                }
+                                if(aData[1][i]) title_t += aData[1][i];
                             }
-                            if(aData[1][i]) title_t += aData[1][i];
                         }
-                        for (i = 0; i < aData[2].length; i++) {
-                            if(title_en_t) {
-                                title_en_t += ', ';
+                        if(aData[2]) {
+                            for (i = 0; i < aData[2].length; i++) {
+                                if(title_en_t) {
+                                    title_en_t += ', ';
+                                }
+                                title_en_t += aData[2][i];
                             }
-                            title_en_t += aData[2][i];
                         }
-
                         if(lth_solr_lang == 'en' && title_en_t) {
                             title = title_en_t;
                         } else if(title_t) {

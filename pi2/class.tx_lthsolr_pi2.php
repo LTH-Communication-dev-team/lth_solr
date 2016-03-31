@@ -61,6 +61,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $customCategories = $this->pi_getFFvalue($piFlexForm, "customcategories", "sDEF", $lDef[$index]);
             $categoriesThisPage = $this->pi_getFFvalue($piFlexForm, "categoriesthispage", "sDEF", $lDef[$index]);
+            $introThisPage = $this->pi_getFFvalue($piFlexForm, "introthispage", "sDEF", $lDef[$index]);
             
             $pid = $GLOBALS['TSFE']->page['pid'];
             //$solrId = t3lib_div::_GP('solrid');
@@ -101,9 +102,9 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $facets = '';
             $lu_user = '';
             
-            if($categories === 'custom_category' && $customCategories) {
+            /*if($categories === 'custom_category' && $customCategories) {
                 $customCategories = 'true';
-            }
+            }*/
             
             if(substr($ip, 0, 7) === '130.235' || substr($ip, 0, 7) === '127.0.0') {
                 $content .= "<style>.dt-buttons { display:block;}</style>";

@@ -74,7 +74,7 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
     
     if($categories === 'standard_category') {
         $catVal = 'standard_category_sv_txt';
-    } else {
+    } elseif($categories === 'custom_category') {
         if(!$categoriesThisPage || $categoriesThisPage == '') {
             //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'global', 'crdate' => time()));
             $catVal = 'lth_solr_cat_ss';
@@ -102,7 +102,7 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
     $facetSet = $query->getFacetSet();
     if($facet) {
         $facetArray = json_decode($facet, true);
-                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facet, 'crdate' => time()));
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facet, 'crdate' => time()));
 
         $i=0;
         foreach($facetArray as $key => $value) {
@@ -121,10 +121,10 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
     //$lth_solr_sortorder = 'lth_solr_sort_' . $pageid . '_' . $sys_language_uid . '_i';
     
     $sortArray = array(
-            'lth_solr_sort_' . $pageid . '_i' => 'asc',
-            'last_name_s' => 'asc',
-            'first_name_s' => 'asc'
-        );
+        'lth_solr_sort_' . $pageid . '_i' => 'asc',
+        'last_name_s' => 'asc',
+        'first_name_s' => 'asc'
+    );
     
     //$query->addSort('last_name_s', $query::SORT_ASC);
     //$query->addSort('first_name_s', $query::SORT_ASC);
