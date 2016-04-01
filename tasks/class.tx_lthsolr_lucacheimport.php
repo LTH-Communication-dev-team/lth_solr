@@ -582,9 +582,9 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     private function toUC($in)
     {
         if($in) {
-            $in = str_replace('-', ' - ');
+            $in = str_replace('-', ' - ', $in);
             $in = ucwords($in);
-            $in = str_replace(' - ', '-');
+            $in = str_replace(' - ', '-', $in);
         }
         return $in;
     }
