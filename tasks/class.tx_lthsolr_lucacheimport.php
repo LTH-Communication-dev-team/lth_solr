@@ -584,7 +584,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         if($in) {
             $in = str_replace('-', ' - ', $in);
             //$in = ucwords(utf8_encode($in));
-            $in = mb_convert_case($in, MB_CASE_TITLE, "UTF-8");
+            $in = mb_convert_case(utf8_encode($in), MB_CASE_TITLE, "UTF-8");
             $in = str_replace(' - ', '-', $in);
         }
         return $in;
