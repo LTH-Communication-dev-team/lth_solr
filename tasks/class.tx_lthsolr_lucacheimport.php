@@ -106,8 +106,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         
         $sql = "SELECT 
             P.primary_uid, 
-            P.first_name, 
-            P.last_name, 
+            LCASE(P.first_name) AS first_name, 
+            LCASE(P.last_name) AS last_name, 
             P.primary_affiliation, 
             P.homepage, 
             P.lang, 
@@ -138,8 +138,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $employeeArray[$row['primary_uid']] = array(
                 'uid' => $row['primary_uid'], 
-                'first_name' => utf8_encode(ucwords(strtolower(utf8_encode($row['first_name'])))),
-                'last_name' => utf8_encode(ucwords(strtolower(utf8_encode($row['last_name'])))), 
+                'first_name' => $this->toUC($row['first_name']),
+                'last_name' => $this->toUC($row['last_name']), 
                 'email' => $row['primary_lu_email'],
                 'primary_affiliation' => $row['primary_affiliation'],
                 'homepage' => $row['homepage'], 
@@ -579,10 +579,14 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     }
     
     
-    private function toLower($in){
-        $replace = array('å', 'ä', 'ö');
-        $match = array('Å', 'Ä', 'Ö');
-        return str_replace($match, $replace, strtolower($in));
+    private function toUC($in)
+    {
+        if($in) {
+            $in = str_replace('-', ' - ');
+            $in = ucwords($in);
+            $in = str_replace(' - ', '-');
+        }
+        return $in;
     }
     
     /**
