@@ -361,6 +361,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'name' => $value['last_name'] . ', ' . $value['first_name'],
                         'email' => $value['email'],
                         'www' => (string)$value['homepage'],
+                        'telephone' => $value['phone'],
+                        'roomnumber' => $value['room_number'],
                         'hide_on_web' => $value['hide_on_web'],
                         'tstamp' => time()
                     );
@@ -377,6 +379,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'title' => $value['title'],
                         'email' => $value['email'],
                         'www' => (string)$value['homepage'],
+                        'telephone' => $value['phone'],
+                        'roomnumber' => $value['room_number'],
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
                         'hide_on_web' => $value['hide_on_web'],

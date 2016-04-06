@@ -113,7 +113,7 @@ class lth_solr_ajax {
     
     public function updateCategories($items, $pid, $value, $checked, $sys_language_uid, $categoriesThisPage)
     {
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked, $categoriesThisPage", 'crdate' => time()));
+        // $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked, $categoriesThisPage", 'crdate' => time()));
         require(__DIR__.'/init.php');
         
         $client = new Solarium\Client($config);
