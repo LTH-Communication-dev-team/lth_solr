@@ -351,13 +351,14 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             //echo $usergroupArray['pid'];
             //echo $usergroupArray['usergroup'];
             if($usergroupArray[0]) {
+                if($value['title']) {
+                    $title = str_replace('###', ', ', $value['title']);
+                } else {
+                    $title = '';
+                }                
                 if($value['exist']===TRUE) {
                     //echo $value['uid'];
-                    if($value['title']) {
-                        $title = str_replace('###', '###', $value['title']);
-                    } else {
-                        $title = '';
-                    }
+
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
@@ -382,7 +383,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'username' => $value['uid'],
                         'password' => $this->setRandomPassword(),
                         'name' => $value['last_name'] . ', ' . $value['first_name'],
-                        'title' => $value['title'],
+                        'title' => $title,
                         'email' => $value['email'],
                         'www' => (string)$value['homepage'],
                         'telephone' => $value['phone'],
