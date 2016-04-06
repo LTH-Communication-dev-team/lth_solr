@@ -15,7 +15,8 @@ CREATE TABLE fe_users (
     lth_solr_heritage text DEFAULT '' NOT NULL,
     lth_solr_legacy_heritage text DEFAULT '' NOT NULL,
     image_id tinyint(1) NOT NULL DEFAULT '0',
-    hide_on_web tinyint(1) NOT NULL DEFAULT '0'
+    hide_on_web tinyint(1) NOT NULL DEFAULT '0',
+    title varchar 255 DEFAULT '' NOT NULL
 );
 
 

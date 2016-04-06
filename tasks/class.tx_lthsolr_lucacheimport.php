@@ -343,6 +343,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     
     private function createFeUsers($folderArray, $employeeArray, $feGroupsArray)
     {
+        $title;
         foreach($employeeArray as $key => $value) {
             //echo $value['usergroup'];
             $usergroupArray = $this->getUids($value['orgid'], $feGroupsArray);
@@ -352,12 +353,17 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             if($usergroupArray[0]) {
                 if($value['exist']===TRUE) {
                     //echo $value['uid'];
+                    if($value['title']) {
+                        $title = str_replace('###', '###', $value['title']);
+                    } else {
+                        $title = '';
+                    }
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
                         'first_name' => $value['first_name'],
                         'last_name' => $value['last_name'],
-                        'title' => $value['title'],
+                        'title' => $title,
                         'name' => $value['last_name'] . ', ' . $value['first_name'],
                         'email' => $value['email'],
                         'www' => (string)$value['homepage'],
