@@ -63,7 +63,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         $feGroupsArray = $this->getFeGroups();
         
         $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray);
-        
+
         $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config);
         
         //$executionSucceeded = TRUE;
@@ -221,7 +221,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     private function getCategories()
     {
         $categoriesArray = array();
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("title_sv, name_sv, name_en", "tx_lthsolr_titles t JOIN tx_lthsolr_categories c ON t.category = c.id");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("title_sv, name_sv, name_en", "tx_lthsolr_titles t JOIN tx_lthsolr_categories c ON t.category = c.id","");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $categoriesArray[strtolower($row['title_sv'])] = array(str_replace(' ', '_', $row['name_sv']), str_replace(' ', '_', $row['name_en']));
         }
@@ -268,8 +268,10 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             
             if($lth_solr_cat && $lth_solr_cat !== '') {
                 $lth_solr_cat = json_decode($lth_solr_cat, true);
-                foreach($lth_solr_cat as $key => $value) {
-                    $employeeArray[$username]['lth_solr_cat'][$key] = $value;
+                if($lth_solr_cat) {
+                    foreach($lth_solr_cat as $key => $value) {
+                        $employeeArray[$username]['lth_solr_cat'][$key] = $value;
+                    }
                 }
             }
             
@@ -343,6 +345,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     
     private function createFeUsers($folderArray, $employeeArray, $feGroupsArray)
     {
+        //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $title;
         foreach($employeeArray as $key => $value) {
             //echo $value['usergroup'];
@@ -358,7 +361,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                 }                
                 if($value['exist']===TRUE) {
                     //echo $value['uid'];
-
+                    if(!$value['roomnumber']) $value['roomnumber'] = '';
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
@@ -373,7 +376,11 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'hide_on_web' => $value['hide_on_web'],
                         'tstamp' => time()
                     );
-                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username = '".$value['uid'] . "'", $updateArray);
+                    //echo $value['uid'];
+                    //$this->debug($updateArray);
+                    
+                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username = '" . $value['uid'] . "'", $updateArray);
+                    //echo $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
                     /*$employeeArray[$key]['image'] = $feUsersArray[$key]['image'];
                     $employeeArray[$key]['lth_solr_intro'] = $feUsersArray[$key]['lth_solr_intro'];
                     $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
@@ -383,6 +390,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'username' => $value['uid'],
                         'password' => $this->setRandomPassword(),
                         'name' => $value['last_name'] . ', ' . $value['first_name'],
+                        'first_name' => $value['first_name'],
+                        'last_name' => $value['last_name'],
                         'title' => $title,
                         'email' => $value['email'],
                         'www' => (string)$value['homepage'],
@@ -568,8 +577,9 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     private function getUids($inputString, $feGroupsArray)
     {
         //print_r($feGroupsArray);
+        //echo $inputString;
         if($inputString) {
-            $loopArray = explode(',', $inputString);
+            $loopArray = explode('###', $inputString);
             $resArray = array();
             foreach($loopArray as $key => $value) {
                 //echo $value;$feGroupsArray['usergroup']
