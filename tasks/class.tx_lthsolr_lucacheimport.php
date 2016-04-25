@@ -62,6 +62,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         
         $feGroupsArray = $this->getFeGroups();
         
+        //$this->debug($feGroupsArray);
+        
         $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray);
 
         $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config);
@@ -334,7 +336,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     'tstamp' => time())
                 );
             } else {
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('pages', 'title=' . $tmpTitle, array(
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_groups', "title='$tmpTitle'", array(
                     'subgroup' => $feGroupsArray[$value['parent']]['uid'],
                     'tstamp' => time())
                 );
