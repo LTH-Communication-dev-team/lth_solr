@@ -67,38 +67,57 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
 
                 foreach($pagesArray as $key => $value) {
                     try {
-                        $url = "http://130.235.208.15/index.php?type=77&id=" . $key;
-                        $content = "";
-                        $doc = new DOMDocument();
-                        $doc->load($url);
-                        $title = $doc->getElementsByTagName('title');
-                        $body = $doc->getElementsByTagName('body');
-                        $data = array(
-                            'id' => $key,
-                            'title_t' => $title,
-                            'body_txt' => $body
-                        );
+                        $url = "http://130.235.208.15/index.php?id=" . $key . '&type=77';
+                        // Create DOM from URL or file
+                        $body = file_get_contents($url);
                         
-                        try {
-                            $buffer->createDocument($data);
-                        } catch(Exception $e) {
-                            echo 'Message: ' .$e->getMessage();
+                        $body = strip_tags($body);
+                        
+                        $rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($key);
+                        if($rootLine) $domain = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootLine);
+                        if($domain) {
+                            $pagePath = \TYPO3\CMS\Backend\Utility\BackendUtility::getRecordPath($key);
+                            $fullPath = $this->getFullPath($pagePath, $domain);
                         }
+
+                        /*$title = $doc->getElementsByTagName('title');
+                        $body = $doc->getElementsByTagName('body');*/
+                        $data = array(
+                            'id' => 'page_' . $key,
+                            'type_s' => 'page',
+                            'title_t' => $value,
+                            'body_txt' => $body,
+                            'path_s' => $fullPath
+                        );
+                        //$this->debug($data);
+                        //echo $url;
+                        $buffer->createDocument($data);
                     } catch(Exception $e) {
                         echo 'Message: ' .$e->getMessage();
                     }
 
-                    $buffer->createDocument($data);                    
+                    //$buffer->createDocument($data);                    
                 }
-                $buffer->flush();
+                $buffer->commit();
                 return TRUE;
             }
         } catch(Exception $e) {
             echo 'Message: ' .$e->getMessage();
-            die();
+            //die();
             return false;
         }
 
+    }
+    
+    
+    function getFullPath($pagePath, $domain)
+    {
+        $pagePathArray = explode('/', $pagePath);
+        array_shift($pagePathArray);
+        array_shift($pagePathArray);
+        $pagePath = strtolower(implode('/', $pagePathArray));
+        $fullPath = 'http://' . rtrim($domain,'/') . '/' . ltrim($pagePath, '/$domain');
+        return $fullPath;
     }
     
     
