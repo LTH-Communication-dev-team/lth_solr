@@ -3,9 +3,9 @@
 $config = array(
     'endpoint' => array(
         'localhost' => array(
-            'host' => '130.235.209.247',
+            'host' => 'benny.net.lth.se',
             'port' => 8983,
-            'path' => '/solr/tutti/',
+            'path' => '/solr/lth_all/',
             'timeout' => 5000
         ),
     ),
