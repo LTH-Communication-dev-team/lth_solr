@@ -36,20 +36,23 @@ class user_sampleflex_addFieldsToFlexForm {
 
         $xml = simplexml_load_string($pi_flexform);
         $test = $xml->data->sheet[0]->language;
-        foreach ($test->field as $n) {
-            foreach($n->attributes() as $name => $val) {
-		if ($val == 'customcategories') {
-                    $customcategories = $n->value;
-                } else if($val == 'scope') {
-                    $scope = $n->value;
-                } else if($val == 'addpeople') {
-                    $addpeople = $n->value;
-                } else if($val == 'removepeople') {
-                    $removepeople = $n->value;
-                } else if($val == 'categoriesthispage') {
-                    $categoriesThisPage = $n->value;
-                } else if($val == 'introthispage') {
-                    $introThisPage = $n->value;
+        
+        if($test) {
+            foreach ($test->field as $n) {
+                foreach($n->attributes() as $name => $val) {
+                    if ($val == 'customcategories') {
+                        $customcategories = $n->value;
+                    } else if($val == 'scope') {
+                        $scope = $n->value;
+                    } else if($val == 'addpeople') {
+                        $addpeople = $n->value;
+                    } else if($val == 'removepeople') {
+                        $removepeople = $n->value;
+                    } else if($val == 'categoriesthispage') {
+                        $categoriesThisPage = $n->value;
+                    } else if($val == 'introthispage') {
+                        $introThisPage = $n->value;
+                    }
                 }
             }
         }
@@ -61,7 +64,7 @@ class user_sampleflex_addFieldsToFlexForm {
 	} else if(trim($addpeople)) {
 	    //
 	} else {
-	    return 'You have to save a selection of departments/people!';
+	    return array(null);
 	}
 	
         /*if($customcategories) {
@@ -434,7 +437,7 @@ class user_sampleflex_addFieldsToFlexForm {
         $customcategories = $allResponse[1];
         $categoriesThisPage = $allResponse[3];
 
-        if($categoriesThisPage) {
+        if(intval($categoriesThisPage) === 1) {
             $catVar = 'lth_solr_cat_' . $pid . '_ss';
         } else {
             $catVar = 'lth_solr_cat_ss';
@@ -534,8 +537,10 @@ class user_sampleflex_addFieldsToFlexForm {
                 if(is_array($customcategoriesArray)) {
                     foreach($customcategoriesArray as $key => $value) {
                         $checkedCat = ' ';
-                        if(in_array($value, $document->$catVar)) {
-                            $checkedCat = ' " checked="checked" ';
+                        if($document->$catVar) {
+                            if(in_array($value, $document->$catVar)) {
+                                $checkedCat = ' " checked="checked" ';
+                            }
                         }
                         $content .= "<td><input type=\"checkbox\" name=\"lth_solr_categories\" class=\"lth_solr_categories\" value=\"$value\"$checkedCat/>$value</td>";
                     }
@@ -582,12 +587,12 @@ class user_sampleflex_addFieldsToFlexForm {
 	$response = $allResponse[0];
         $introThisPage = $allResponse[4];
 
-        if(!$introThisPage || $introThisPage == '') {
-            $introVar = 'staff_custom_text_s';
-        } else {
+        if(intval($introThisPage)===1) {
             $introVar = 'staff_custom_text_' . $pid . '_s';
+        } else {
+            $introVar = 'staff_custom_text_s';
         }
-        
+
         // show documents using the resultset iterator
         $content .= "<style>.ui-state-highlight{width:100%; height: 50px; background-color:yellow;}</style>
             <link rel=\"stylesheet\" href=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css\">
@@ -618,11 +623,14 @@ class user_sampleflex_addFieldsToFlexForm {
                 });
             }
             
+            
             function createEditArea(staffId, obj)
             {
+                var prevArea = TYPO3.jQuery(obj).parent().parent();
+                
                 var imageId = TYPO3.jQuery('#'+staffId).find('#img_' + staffId).attr('data-imageId');
                 var staffIntrotext = TYPO3.jQuery('#'+staffId).find('#intro_' + staffId).html();
-                var prevArea = TYPO3.jQuery(obj).parent().parent();
+                
                 var name = TYPO3.jQuery('#name_'+staffId).html();
                 var folderIcon = '<span title=\"Browse for records\" class=\"t3-icon t3-icon-actions t3-icon-actions-insert t3-icon-insert-record\">&nbsp;</span>';
                 var deleteIcon = '<span class=\"t3-icon t3-icon-actions t3-icon-actions-edit t3-icon-edit-delete\">&nbsp;</span>';
@@ -642,7 +650,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 TYPO3.jQuery('#staffCancel').click(function(){
                     TYPO3.jQuery(this).parent().parent().replaceWith(prevArea);
                     
-                    TYPO3.jQuery('.lth_solr_edit_member').click(function() {
+                    TYPO3.jQuery('#lth_solr_edit_member_' + staffId).click(function() {
                         createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
                     });
                 });
@@ -677,7 +685,7 @@ class user_sampleflex_addFieldsToFlexForm {
                                 TYPO3.jQuery('#img_' + staffId).attr('data-imageId', '');
                             }
                             
-                            TYPO3.jQuery('.lth_solr_edit_member').click(function() {
+                            TYPO3.jQuery('#lth_solr_edit_member_' + staffId).click(function() {
                                 createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
                             });
                         },
@@ -686,8 +694,8 @@ class user_sampleflex_addFieldsToFlexForm {
                         }
                     });                    
                     
-                    TYPO3.jQuery('.lth_solr_edit_member').click(function() {
-                        if('#staffIntrotext').length > 0) {
+                    TYPO3.jQuery('#lth_solr_edit_member_' + staffId).click(function() {
+                        if(TYPO3.jQuery('#staffIntrotext').length > 0) {
                             alert('You can only edit one row at the time');
                         } else {
                             createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
@@ -742,6 +750,7 @@ class user_sampleflex_addFieldsToFlexForm {
         
         $content .= '<table id="lth_solr_manage_staff_intro" class="lth_solr_manage_staff_intro">';
         //print_r($response);
+
         if($response) {
             foreach ($response as $document) {
                 $content .= "<tr id=\"" . $document->id . "\">";
@@ -760,7 +769,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 
                 $content .= '<td style="width: 100px;"><img src="' . $image . '" id="img_' . $document->id . '" data-imageId="'.$imageId.'" style="width:50px;height:50px;" /></td>';
                 
-                $content .= "<td><input type=\"button\" name=\"Edit\" class=\"lth_solr_edit_member\" value=\"Edit\"></td>";
+                $content .= "<td><input type=\"button\" name=\"Edit\" id=\"lth_solr_edit_member_" . $document->id . "\" class=\"lth_solr_edit_member\" value=\"Edit\"></td>";
             
                 $content .= "</tr>";
             }

@@ -1,0 +1,361 @@
+GET http://vkans-th0.kansli.lth.se/fileadmin/templates/images/footer-logo-lth-sv.png 404 (Not Found)
+<?xml version="1.0" encoding="UTF-8"?>
+<person-template:GetPersonResponse xmlns:person-template="http://atira.dk/schemas/pure4/wsdl/template/abstractperson/stable" 
+                                   xmlns:core="http://atira.dk/schemas/pure4/model/core/stable" 
+                                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                                   xmlns:stab="http://atira.dk/schemas/pure4/model/template/abstractperson/stable" 
+                                   xmlns:extensions-core="http://atira.dk/schemas/pure4/model/core/extensions/stable" 
+                                   xmlns:organisation-template="http://atira.dk/schemas/pure4/model/template/abstractorganisation/stable" 
+                                   xmlns:extensions-base_uk="http://atira.dk/schemas/pure4/model/base_uk/extensions/stable" requestId="">
+    <core:count>1</core:count>
+    <core:result>
+        <core:content xmlns:stab="http://atira.dk/schemas/pure4/model/base_uk/person/stable" uuid="e884b305-e08e-450f-aec6-8a499e53f38d" xsi:type="stab:UKPersonType">
+            <core:created>2016-03-31T14:08:34.941+02:00</core:created>
+            <core:modified>2016-04-30T20:12:28.029+02:00</core:modified>
+            <core:portalUrl>http://portal.research.lu.se/portal/en/persons/maria-persson(e884b305-e08e-450f-aec6-8a499e53f38d).html</core:portalUrl>
+            <core:family>dk.atira.pure.api.shared.model.person.Person</core:family>
+            <core:type>dk.atira.pure.api.shared.model.person.Person</core:type>
+            <core:keywordGroups>
+                <core:keywordGroup>
+                    <core:configuration>
+                        <core:name>
+                            <core:localizedString locale="sv_SE" formatted="false">UKÃ„ subject classification</core:localizedString>
+                            <core:localizedString locale="en_GB" formatted="false">UKÃ„ subject classification</core:localizedString>
+                        </core:name>
+                        <core:logicalName>uka_full</core:logicalName>
+                        <core:classificationScheme uuid="7ec0a86d-d406-4323-baa2-7f0cf872da4c">
+                            <core:created>2016-03-03T10:39:37.217+01:00</core:created>
+                            <core:modified>2016-03-03T10:42:50.822+01:00</core:modified>
+                            <core:family>dk.atira.pure.api.shared.model.classification.ClassificationScheme</core:family>
+                            <core:type>dk.atira.pure.api.shared.model.classification.ClassificationScheme</core:type>
+                            <core:baseUri>uka_full</core:baseUri>
+                        </core:classificationScheme>
+                        <core:allowUserdefinedKeywords>false</core:allowUserdefinedKeywords>
+                        <core:weight>10</core:weight>
+                    </core:configuration>
+                    <core:keyword id="7550709" state="ACCEPTED" origin="USER_SUPPLIED">
+                        <core:target id="18175">
+                            <core:uri>uka_full/5/502/50201</core:uri>
+                            <core:term>
+                                <core:localizedString locale="sv_SE" formatted="false">Nationalekonomi</core:localizedString>
+                                <core:localizedString locale="en_GB" formatted="false">Economics</core:localizedString>
+                            </core:term>
+                            <core:description/>
+                        </core:target>
+                    </core:keyword>
+                </core:keywordGroup>
+                <core:keywordGroup>
+                    <core:configuration>
+                        <core:name>
+                            <core:localizedString locale="sv_SE" formatted="false">Nyckelord</core:localizedString>
+                            <core:localizedString locale="en_GB" formatted="false">Keywords</core:localizedString>
+                        </core:name>
+                        <core:logicalName>keywordContainers</core:logicalName>
+                        <core:allowUserdefinedKeywords>true</core:allowUserdefinedKeywords>
+                        <core:weight>1</core:weight>
+                    </core:configuration>
+                    <core:keyword id="7550711" state="ACCEPTED" origin="USER_SUPPLIED">
+                        <core:userDefinedKeyword id="7550712" locale="sv_SE">
+                            <core:freeKeyword>International Economics</core:freeKeyword>
+                        </core:userDefinedKeyword>
+                    </core:keyword>
+                </core:keywordGroup>
+            </core:keywordGroups>
+            <stab1:name xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">
+                <core:firstName>Maria</core:firstName>
+                <core:lastName>Persson</core:lastName>
+            </stab1:name>
+            <stab1:education xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">
+                <core:localizedString locale="sv_SE" formatted="false">Docent</core:localizedString>
+                <core:localizedString locale="en_GB" formatted="false">Associate Professor</core:localizedString>
+            </stab1:education>
+            <stab1:gender xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable" xsi:nil="true"/>
+            <stab1:dateOfBirth xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable" xsi:nil="true"/>
+            <stab1:organisationAssociations xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">
+                <stab1:organisationAssociation>
+                    <stab1:address>
+                        <extensions-core:road>Ekonomicentrum, Tycho Brahes vÃ¤g 1</extensions-core:road>
+                        <extensions-core:building>Rm Alfa 1:4091B</extensions-core:building>
+                        <extensions-core:postalCode xsi:nil="true"/>
+                        <extensions-core:city>Lund</extensions-core:city>
+                        <extensions-core:country id="547">
+                            <core:uri>/dk/atira/pure/core/countries/se</core:uri>
+                            <core:term>
+                                <core:localizedString locale="sv_SE" formatted="false">Sverige</core:localizedString>
+                                <core:localizedString locale="en_GB" formatted="false">Sweden</core:localizedString>
+                            </core:term>
+                            <core:description>
+                                <core:localizedString locale="sv_SE" formatted="false">Sverige</core:localizedString>
+                                <core:localizedString locale="en_GB" formatted="false">Sweden</core:localizedString>
+                            </core:description>
+                        </extensions-core:country>
+                    </stab1:address>
+                    <stab1:phone>+46462224670</stab1:phone>
+                    <stab1:email>maria.persson@nek.lu.se</stab1:email>
+                    <stab1:website>http://www.nek.lu.se/en</stab1:website>
+                    <stab1:organisation xmlns:stab="http://atira.dk/schemas/pure4/model/base_uk/organisation/stable" uuid="a91e8aa5-6143-488a-81d9-3169d2e2fad1" xsi:type="stab:UKOrganisationType">
+                        <core:created>2016-03-31T12:23:17.120+02:00</core:created>
+                        <core:modified>2016-05-09T01:30:19.962+02:00</core:modified>
+                        <core:portalUrl>http://portal.research.lu.se/portal/en/organisations-units/nationalekonomiska-institutionen(a91e8aa5-6143-488a-81d9-3169d2e2fad1).html</core:portalUrl>
+                        <core:family>dk.atira.pure.api.shared.model.organisation.Organisation</core:family>
+                        <core:type>dk.atira.pure.api.shared.model.organisation.Organisation</core:type>
+                        <organisation-template:name>
+                            <core:localizedString locale="sv_SE" formatted="false">Nationalekonomiska institutionen</core:localizedString>
+                            <core:localizedString locale="en_GB" formatted="false">Department of Economics</core:localizedString>
+                        </organisation-template:name>
+                        <organisation-template:nameVariant>
+                            <core:classificationDefinedFieldExtension>
+                                <core:value/>
+                                <core:typeClassification id="60">
+                                    <core:uri>/dk/atira/pure/organisation/namevariants/shortname</core:uri>
+                                    <core:term>
+                                        <core:localizedString locale="sv_SE" formatted="false">Kortnamn</core:localizedString>
+                                        <core:localizedString locale="en_GB" formatted="false">Short name</core:localizedString>
+                                    </core:term>
+                                    <core:description/>
+                                </core:typeClassification>
+                            </core:classificationDefinedFieldExtension>
+                            <core:classificationDefinedFieldExtension>
+                                <core:value/>
+                                <core:typeClassification id="62">
+                                    <core:uri>/dk/atira/pure/organisation/namevariants/sortname</core:uri>
+                                    <core:term>
+                                        <core:localizedString locale="sv_SE" formatted="false">Sorteringsbegrepp</core:localizedString>
+                                        <core:localizedString locale="en_GB" formatted="false">Sort name</core:localizedString>
+                                    </core:term>
+                                    <core:description/>
+                                </core:typeClassification>
+                            </core:classificationDefinedFieldExtension>
+                            <core:classificationDefinedFieldExtension>
+                                <core:value/>
+                                <core:typeClassification id="64">
+                                    <core:uri>/dk/atira/pure/organisation/namevariants/webname</core:uri>
+                                    <core:term>
+                                        <core:localizedString locale="sv_SE" formatted="false">BenÃ¤mning pÃ¥ webb</core:localizedString>
+                                        <core:localizedString locale="en_GB" formatted="false">Web name</core:localizedString>
+                                    </core:term>
+                                    <core:description/>
+                                </core:typeClassification>
+                            </core:classificationDefinedFieldExtension>
+                            <core:classificationDefinedFieldExtension>
+                                <core:value/>
+                                <core:typeClassification id="6079">
+                                    <core:uri>/dk/atira/pure/organisation/namevariants/full</core:uri>
+                                    <core:term>
+                                        <core:localizedString locale="sv_SE" formatted="false">FullstÃ¤ndig benÃ¤mning</core:localizedString>
+                                        <core:localizedString locale="en_GB" formatted="false">Full name</core:localizedString>
+                                    </core:term>
+                                    <core:description/>
+                                </core:typeClassification>
+                            </core:classificationDefinedFieldExtension>
+                        </organisation-template:nameVariant>
+                        <organisation-template:typeClassification id="6028">
+                            <core:uri>/dk/atira/pure/organisation/organisationtypes/organisation/department</core:uri>
+                            <core:term>
+                                <core:localizedString locale="sv_SE" formatted="false">institution</core:localizedString>
+                                <core:localizedString locale="en_GB" formatted="false">Department</core:localizedString>
+                            </core:term>
+                            <core:description/>
+                        </organisation-template:typeClassification>
+                        <organisation-template:external>
+                            <extensions-core:source>synchronisedUnifiedOrganisation</extensions-core:source>
+                            <extensions-core:sourceId>v1000029</extensions-core:sourceId>
+                            <extensions-core:external>true</extensions-core:external>
+                            <extensions-core:secondarySource source="synchronisedUnifiedOrganisation" source_id="v1000029"/>
+                        </organisation-template:external>
+                        <organisation-template:limitedVisibility>
+                            <core:visibility>FREE</core:visibility>
+                        </organisation-template:limitedVisibility>
+                    </stab1:organisation>
+                    <stab1:period>
+                        <extensions-core:startDate>2015-09-21+02:00</extensions-core:startDate>
+                    </stab1:period>
+                </stab1:organisationAssociation>
+            </stab1:organisationAssociations>
+            <stab1:profileInformation xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">
+                <extensions-core:customField>
+                    <extensions-core:value>
+                        <core:localizedString locale="sv_SE" formatted="true">&lt;p>Mina forskningsomrÃ¥den Ã¤r internationell handel, utvecklingsekonomi och ekonomisk integration.&lt;/p></core:localizedString>
+                        <core:localizedString locale="en_GB" formatted="true">&lt;p>My research areas are international trade, development and economic integration.&lt;/p></core:localizedString>
+                    </extensions-core:value>
+                    <extensions-core:typeClassification id="4822">
+                        <core:uri>/dk/atira/pure/person/customfields/research</core:uri>
+                        <core:term>
+                            <core:localizedString locale="sv_SE" formatted="false">Forskning</core:localizedString>
+                            <core:localizedString locale="en_GB" formatted="false">Research</core:localizedString>
+                        </core:term>
+                        <core:description/>
+                    </extensions-core:typeClassification>
+                </extensions-core:customField>
+                <extensions-core:customField>
+                    <extensions-core:value>
+                        <core:localizedString locale="sv_SE" formatted="true">&lt;p>Jag undervisar i ekonomisk integration pÃ¥ kandidat- och masternivÃ¥. Ã„r dessutom handledare fÃ¶r ett stort antal kandidat- och masteruppsatser. Â &lt;/p>
+&lt;p>Har tidigare Ã¤ven undervisat i internationell ekonomi (A-nivÃ¥) samt varit Ã¶vningsledare pÃ¥ kurs i mikroekonomisk teori pÃ¥ forskarutbildningsnivÃ¥n.&lt;/p></core:localizedString>
+                        <core:localizedString locale="en_GB" formatted="true"><![CDATA[<p><span>My current teaching is intermediate and master-level economic integration. I am also the supervisor for a large number of bachelors' and masters' level theses.</span></p>
+<p><span>In addition, I have previously taught introductory international economic and been a teaching assistant in PhD level Microeconomic Theory.</span></p>]]></core:localizedString>
+                    </extensions-core:value>
+                    <extensions-core:typeClassification id="4830">
+                        <core:uri>/dk/atira/pure/person/customfields/teaching</core:uri>
+                        <core:term>
+                            <core:localizedString locale="sv_SE" formatted="false">Undervisning</core:localizedString>
+                            <core:localizedString locale="en_GB" formatted="false">Teaching</core:localizedString>
+                        </core:term>
+                        <core:description/>
+                    </extensions-core:typeClassification>
+                </extensions-core:customField>
+            </stab1:profileInformation>
+            <stab1:photos xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">
+                <core:file>
+                    <core:id>7550716</core:id>
+                    <core:fileName>Maria_Persson_LU.jpg</core:fileName>
+                    <core:mimeType>image/jpeg</core:mimeType>
+                    <core:size>14026</core:size>
+                    <core:url>https://lucris.lub.lu.se/ws/files/7550716/Maria_Persson_LU.jpg</core:url>
+                </core:file>
+            </stab1:photos>
+            <stab1:external xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">
+                <extensions-core:source>synchronisedUnifiedPerson</extensions-core:source>
+                <extensions-core:sourceId>nek-mp0@lu.se</extensions-core:sourceId>
+                <extensions-core:external>true</extensions-core:external>
+                <extensions-core:secondarySource source="synchronisedUnifiedPerson" source_id="nek-mp0@lu.se"/>
+            </stab1:external>
+            <stab1:limitedVisibility xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">
+                <core:visibility>FREE</core:visibility>
+            </stab1:limitedVisibility>
+            <stab1:nationality xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable" id="547">
+                <core:uri>/dk/atira/pure/core/countries/se</core:uri>
+                <core:term>
+                    <core:localizedString locale="sv_SE" formatted="false">Sverige</core:localizedString>
+                    <core:localizedString locale="en_GB" formatted="false">Sweden</core:localizedString>
+                </core:term>
+                <core:description>
+                    <core:localizedString locale="sv_SE" formatted="false">Sverige</core:localizedString>
+                    <core:localizedString locale="en_GB" formatted="false">Sweden</core:localizedString>
+                </core:description>
+            </stab1:nationality>
+            <stab:staffOrganisationAssociations>
+                <stab:staffOrganisationAssociation>
+                    <stab1:address xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">
+                        <extensions-core:road>Ekonomicentrum, Tycho Brahes vÃ¤g 1</extensions-core:road>
+                        <extensions-core:building>Rm Alfa 1:4091B</extensions-core:building>
+                        <extensions-core:postalCode xsi:nil="true"/>
+                        <extensions-core:city>Lund</extensions-core:city>
+                        <extensions-core:country id="547">
+                            <core:uri>/dk/atira/pure/core/countries/se</core:uri>
+                            <core:term>
+                                <core:localizedString locale="sv_SE" formatted="false">Sverige</core:localizedString>
+                                <core:localizedString locale="en_GB" formatted="false">Sweden</core:localizedString>
+                            </core:term>
+                            <core:description>
+                                <core:localizedString locale="sv_SE" formatted="false">Sverige</core:localizedString>
+                                <core:localizedString locale="en_GB" formatted="false">Sweden</core:localizedString>
+                            </core:description>
+                        </extensions-core:country>
+                    </stab1:address>
+                    <stab1:phone xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">+46462224670</stab1:phone>
+                    <stab1:email xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">maria.persson@nek.lu.se</stab1:email>
+                    <stab1:website xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">http://www.nek.lu.se/en</stab1:website>
+                    <stab1:organisation xmlns:stab="http://atira.dk/schemas/pure4/model/base_uk/organisation/stable" xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable" uuid="a91e8aa5-6143-488a-81d9-3169d2e2fad1" xsi:type="stab:UKOrganisationType">
+                        <core:created>2016-03-31T12:23:17.120+02:00</core:created>
+                        <core:modified>2016-05-09T01:30:19.962+02:00</core:modified>
+                        <core:portalUrl>http://portal.research.lu.se/portal/en/organisations-units/nationalekonomiska-institutionen(a91e8aa5-6143-488a-81d9-3169d2e2fad1).html</core:portalUrl>
+                        <core:family>dk.atira.pure.api.shared.model.organisation.Organisation</core:family>
+                        <core:type>dk.atira.pure.api.shared.model.organisation.Organisation</core:type>
+                        <organisation-template:name>
+                            <core:localizedString locale="sv_SE" formatted="false">Nationalekonomiska institutionen</core:localizedString>
+                            <core:localizedString locale="en_GB" formatted="false">Department of Economics</core:localizedString>
+                        </organisation-template:name>
+                        <organisation-template:nameVariant>
+                            <core:classificationDefinedFieldExtension>
+                                <core:value/>
+                                <core:typeClassification id="60">
+                                    <core:uri>/dk/atira/pure/organisation/namevariants/shortname</core:uri>
+                                    <core:term>
+                                        <core:localizedString locale="sv_SE" formatted="false">Kortnamn</core:localizedString>
+                                        <core:localizedString locale="en_GB" formatted="false">Short name</core:localizedString>
+                                    </core:term>
+                                    <core:description/>
+                                </core:typeClassification>
+                            </core:classificationDefinedFieldExtension>
+                            <core:classificationDefinedFieldExtension>
+                                <core:value/>
+                                <core:typeClassification id="62">
+                                    <core:uri>/dk/atira/pure/organisation/namevariants/sortname</core:uri>
+                                    <core:term>
+                                        <core:localizedString locale="sv_SE" formatted="false">Sorteringsbegrepp</core:localizedString>
+                                        <core:localizedString locale="en_GB" formatted="false">Sort name</core:localizedString>
+                                    </core:term>
+                                    <core:description/>
+                                </core:typeClassification>
+                            </core:classificationDefinedFieldExtension>
+                            <core:classificationDefinedFieldExtension>
+                                <core:value/>
+                                <core:typeClassification id="64">
+                                    <core:uri>/dk/atira/pure/organisation/namevariants/webname</core:uri>
+                                    <core:term>
+                                        <core:localizedString locale="sv_SE" formatted="false">BenÃ¤mning pÃ¥ webb</core:localizedString>
+                                        <core:localizedString locale="en_GB" formatted="false">Web name</core:localizedString>
+                                    </core:term>
+                                    <core:description/>
+                                </core:typeClassification>
+                            </core:classificationDefinedFieldExtension>
+                            <core:classificationDefinedFieldExtension>
+                                <core:value/>
+                                <core:typeClassification id="6079">
+                                    <core:uri>/dk/atira/pure/organisation/namevariants/full</core:uri>
+                                    <core:term>
+                                        <core:localizedString locale="sv_SE" formatted="false">FullstÃ¤ndig benÃ¤mning</core:localizedString>
+                                        <core:localizedString locale="en_GB" formatted="false">Full name</core:localizedString>
+                                    </core:term>
+                                    <core:description/>
+                                </core:typeClassification>
+                            </core:classificationDefinedFieldExtension>
+                        </organisation-template:nameVariant>
+                        <organisation-template:typeClassification id="6028">
+                            <core:uri>/dk/atira/pure/organisation/organisationtypes/organisation/department</core:uri>
+                            <core:term>
+                                <core:localizedString locale="sv_SE" formatted="false">institution</core:localizedString>
+                                <core:localizedString locale="en_GB" formatted="false">Department</core:localizedString>
+                            </core:term>
+                            <core:description/>
+                        </organisation-template:typeClassification>
+                        <organisation-template:external>
+                            <extensions-core:source>synchronisedUnifiedOrganisation</extensions-core:source>
+                            <extensions-core:sourceId>v1000029</extensions-core:sourceId>
+                            <extensions-core:external>true</extensions-core:external>
+                            <extensions-core:secondarySource source="synchronisedUnifiedOrganisation" source_id="v1000029"/>
+                        </organisation-template:external>
+                        <organisation-template:limitedVisibility>
+                            <core:visibility>FREE</core:visibility>
+                        </organisation-template:limitedVisibility>
+                    </stab1:organisation>
+                    <stab1:period xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">
+                        <extensions-core:startDate>2015-09-21+02:00</extensions-core:startDate>
+                    </stab1:period>
+                    <stab:addressUK>
+                        <extensions-base_uk:address1>Box 7082</extensions-base_uk:address1>
+                        <extensions-base_uk:address3>Lund</extensions-base_uk:address3>
+                        <extensions-base_uk:postalCode>220 07</extensions-base_uk:postalCode>
+                    </stab:addressUK>
+                    <stab:exOfficioRole id="4976">
+                        <core:uri>/dk/atira/pure/person/staff/exofficio/reader</core:uri>
+                        <core:term>
+                            <core:localizedString locale="sv_SE" formatted="false">docent</core:localizedString>
+                            <core:localizedString locale="en_GB" formatted="false">reader</core:localizedString>
+                        </core:term>
+                        <core:description/>
+                    </stab:exOfficioRole>
+                </stab:staffOrganisationAssociation>
+            </stab:staffOrganisationAssociations>
+            <stab:academicQualifications>
+                <stab:academicQualification>
+                    <stab:thesisTitle xsi:nil="true"/>
+                </stab:academicQualification>
+                <stab:academicQualification>
+                    <stab:thesisTitle xsi:nil="true"/>
+                </stab:academicQualification>
+            </stab:academicQualifications>
+        </core:content>
+    </core:result>
+</person-template:GetPersonResponse>
+

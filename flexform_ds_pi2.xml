@@ -112,17 +112,6 @@
                 </config>
              </TCEforms>
          </addpeople>
-
-         <removepeople>
-             <TCEforms>
-             <label>Ta bort personer (en per rad)</label>
-                    <config>
-                        <type>text</type>
-                        <cols>50</cols>
-                        <rows>5</rows>
-                    </config>
-             </TCEforms>
-         </removepeople>
          
          <categories>
              <TCEforms>
@@ -173,7 +162,6 @@
         
         <introthispage>
              <TCEforms>
-                <displayCond>FIELD:categories:=:custom_category</displayCond>
 		<label>Intro-texterna ska bara gälla denna sida (funkar inte just nu!!!)</label>
 		<config>
                     <type>check</type>

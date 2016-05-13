@@ -59,40 +59,24 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             
             //$content = $this->restTest();
             
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/rest.html");
-            $content .= '<input type="hidden" id="lth_solr_type" value="rest" />';
+            $content .= $this->searchBox();
         
             //$this->debug($content);
 	
             return $content;
 	}
-        
-        
-        private function restTest()
+               
+        private function searchBox()
         {
-           /* $client = new SoapClient("https://devel.atira.dk/lund/ws/Pure4WebService/pure4.wsdl");
-            $params = array('uuids.uuid' => '"8b564b09-9963-483b-84f9-3396ec18a67e"',
-                        'rendering' => 'xml_short',
-                        'window.size' => '1',
-                        'state' => 'active');
-                $response = $client->GetPerson($params);
-                
-                
+            $content = '<form action="/" method="post" accept-charset="UTF-8">
+            <div class="form-item form-type-textfield form-item-search" role="application">
+                <input type="text" id="edit-search" name="search">
+                <input type="submit" id="edit-submit" name="op" value="Sök" class="form-submit">
+            </div>
+            </form>';
             
-            $this->debug($pure_array['result']['content']);
-           
-$this->debug(json_decode($json_encode($response), TRUE));
-            
-$pure_json = json_encode($response);
-            $pure_array = json_decode($pure_json, TRUE);
-            return $pure_array;*/
-            //$requestUrl = url_encode('https://devel.atira.dk/lund/ws/rest/person?uuids.uuid=8b564b09-9963-483b-84f9-3396ec18a67e');
-            //$xmlDoc = $this->getXMLDoc($requestUrl);
-            //var_dump($xmlDoc);
-           //echo $xmlDoc;
-            
+            return $content;
         }
-        
         
         private function getXMLDoc($uri)
 	{

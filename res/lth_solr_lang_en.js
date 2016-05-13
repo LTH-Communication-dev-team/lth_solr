@@ -4,7 +4,8 @@ var lth_solr_messages = {
     staff_categories: "Staff categories",
     personal_homepage: "Personal homepage",
     room: "Room",
-    phone: "Phone"
+    phone: "Phone",
+    of: "of"
 };
 
 

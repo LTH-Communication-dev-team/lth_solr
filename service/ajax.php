@@ -19,6 +19,7 @@ $custom_categories = t3lib_div::_GP('custom_categories');
 $categories = t3lib_div::_GP('categories');
 $categoriesThisPage = t3lib_div::_GP('categoriesThisPage');
 $introThisPage = t3lib_div::_GP('introThisPage');
+$addPeople = t3lib_div::_GP('addPeople');
 $sid = t3lib_div::_GP("sid");
 date_default_timezone_set('Europe/Stockholm');
 
@@ -27,8 +28,8 @@ tslib_eidtools::connectDB();
 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $sys_language_uid, 'crdate' => time()));
 
 switch($action) {
-    case 'listEvents':
-        listEvents();
+    case 'searchListShort':
+        $content = searchListShort($query);
         break;
     case 'addEvent':
         addEvent($title, $startDate, $endDate, $startTime, $endTime, $allday, $description, $place);
@@ -40,7 +41,7 @@ switch($action) {
         getEvent($uid);
         break;
     case 'facetSearch':
-        $content = facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage);
+        $content = facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage, $addPeople);
         break;
     case 'detail':
         $content = detail($scope);
@@ -55,16 +56,75 @@ switch($action) {
 
 print $content;
 
-function rest()
+
+function searchListShort($q)
 {
+    require(__DIR__.'/init.php');
+    // create a client instance
+    $client = new Solarium\Client($config);
+
+    // get a select query instance
+    $query = $client->createSelect();
+
+    $query->setQuery('body_txt:*' . $q .'* OR display_name_t:*' . $q . '* OR phone_txt:*' . $q . '*');
     
-    $requestUrl = 'https://devel.atira.dk/lund/ws/rest/person?uuids.uuid=8b564b09-9963-483b-84f9-3396ec18a67e&rendering=xml_long';
-    $xml = file_get_contents($requestUrl);
-    return $xml;
+    // this executes the query and returns the result
+    $response = $client->select($query);
+    
+    // show documents using the resultset iterator
+    
+    foreach ($response as $document) {
+        $id =$document->id;
+        $label = $document->title_t;
+        $value = $document->path_s;
+        
+        if($document->display_name_t) {
+            $label = $document->display_name_t;
+            $value = 'kontakt/' . $id;
+        }        
+        
+        if($document->homepage_t) {
+            $value = $document->homepage_t;
+        }
+                
+        $data[] = array(
+            'id' => $id,
+            'label' => $label,
+            'value' => $value 
+        );
+        //$data[] = array('id' => label' => $document->title_t);
+    }
+    //{id: "Botaurus stellaris", label: "Great Bittern", value: "Great Bittern"}
+    return json_encode($data);
 }
 
 
-function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage)
+function rest()
+{
+    $requestUrl = 'http://portal.research.lu.se/ws/rest/person?email=maria.persson@nek.lu.se&rendering=xml_long';
+    $desciption;
+    $xmlDoc = new DomDocument;
+    $xml = DOMDocument::load($requestUrl);
+
+    if ($xml) {
+        $xp = new DOMXPath($xml);
+                    $xp->registerNamespace('core', 'http://atira.dk/schemas/pure4/model/core/stable');
+                    $xp->registerNamespace('stab1',"http://atira.dk/schemas/pure4/model/template/abstractperson/stable");
+        $items = $xp->query('//core:result/core:content/stab1:profileInformation/extensions-core:customField');
+        if ($items->length) {
+            foreach($items as $item) {
+                $desciption .= $xp->evaluate('string(extensions-core:value)', $item);
+            }
+            //$item = $items->item(0);
+
+            //tx_pure_cache::insertCachedData($name, $key, $this->cacheTime);
+            return $desciption;
+        }
+    }
+}
+
+
+function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage, $addPeople)
 {
     $content = '';
     $data = array();
@@ -81,11 +141,13 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
         } else {
             $catVal = 'lth_solr_cat_' . $pageid . '_ss';
         } 
-        if(!$introThisPage || $introThisPage == '') {
-            $introVar = 'staff_custom_text_s';
-        } else {
-            $introVar = 'staff_custom_text_' . $pageid . '_s';
-        }
+        
+    }
+
+    if(!$introThisPage || $introThisPage == '') {
+        $introVar = 'staff_custom_text_s';
+    } else {
+        $introVar = 'staff_custom_text_' . $pageid . '_s';
     }
         
     $hideVal = 'lth_solr_hide_' . $pageid . '_i';
@@ -95,8 +157,16 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
 
     // get a select query instance
     $query = $client->createSelect();
+    
+    if($addPeople) {
+        $addPeopleArray = explode("\n", $addPeople);
+        $addPeople = '';
+        foreach($addPeopleArray as $key => $value) {
+            $addPeople .= ' OR id:' . $value;
+        }
+    }
             
-    $query->setQuery('doctype_s:"lucat" AND usergroup_txt:'.$scope.' AND hide_on_web_i:0 AND -' . $hideVal . ':[* TO *]');
+    $query->setQuery('(doctype_s:"lucat" AND usergroup_txt:'.$scope.' AND hide_on_web_i:0 AND -' . $hideVal . ':[* TO *])' . $addPeople);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
@@ -153,15 +223,15 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
             }
         } else {
             $facet_title = $response->getFacetSet()->getFacet('title');
-            $facet_ou = $response->getFacetSet()->getFacet('ou');
+            //$facet_ou = $response->getFacetSet()->getFacet('ou');
 
             foreach ($facet_title as $value => $count) {
                 $facetResult['title_sort'][] = array($value, $count);
             }
 
-            foreach ($facet_ou as $value => $count) {
+            /*foreach ($facet_ou as $value => $count) {
                 $facetResult['ou_autocomplete'][] = array($value, $count);
-            }
+            }*/
         }
     }
     
@@ -181,7 +251,9 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
         }
         
         $data[] = array(
-            ucwords(strtolower($document->first_name_t)) . ' ' . ucwords(strtolower($document->last_name_t)),
+            ucwords(strtolower($document->first_name_t)),
+            ucwords(strtolower($document->last_name_t)),
+            //ucwords(strtolower($document->first_name_t)) . ' ' . ucwords(strtolower($document->last_name_t)),
             $document->title_txt,
             $document->title_en_txt,
             $document->phone_txt,
@@ -241,7 +313,7 @@ function detail($scope)
     // get a select query instance
     $query = $client->createSelect();
 
-    $query->setQuery('homepage_t:'.$scope.' AND hide_on_web_i:0');
+    $query->setQuery('id:'.$scope.' AND hide_on_web_i:0');
    
     // this executes the query and returns the result
     $response = $client->select($query);
@@ -264,24 +336,37 @@ function detail($scope)
             $lth_solr_txt = $lth_solr_txtArray['lth_solr_txt_' . $pid . '_' . $sys_language_uid];
         }
         $data = array(
-            ucwords(strtolower($document->first_name_t)) . ' ' . ucwords(strtolower($document->last_name_t)),
-            ucwords(strtolower($document->title_sort)),
+            ucwords(strtolower($document->first_name_t)),
+            ucwords(strtolower($document->last_name_t)),
+            //ucwords(strtolower($document->first_name_t)) . ' ' . ucwords(strtolower($document->last_name_t)),
+            $document->title_txt,
+            $document->title_en_txt,
             $document->phone_txt,
             $document->id,
-            $document->email_t,
-            $document->ou_t,
-            $document->orgid_t,
+            fixString($document->email_t),            
+            $document->oname_txt,
+            $document->oname_en_txt,
             $document->primary_affiliation_t,
             $document->homepage_t,
-            $image_t,
-            $document->room_number_txt,
-            $document->maildelivery_txt,
-            $lth_solr_intro,
-            $lth_solr_txt
+            $image,
+            fixString($intro_t),
+            fixString($document->room_number_s)
         );
     }
-    $resArray = array('data' => $data);
+    $resArray = array('data' => $data, 'lucris' => rest());
     return json_encode($resArray);
+}
+
+function getLucris()
+{
+    $client = new SoapClient("http://portal.research.lu.se/ws/pure4webservice/pure4.wsdl");
+    //http://pure.leuphana.de/ws/Pure4WebService/pure4.wsdl
+    $temp = $client->GetPersonRequest(       
+            //array("typeClassificationUris" => array("uri" => "/dk/atira/pure/activity/activitytypes/appearance/%")
+        //)     
+    );
+    return $temp;
+        
 }
 
 

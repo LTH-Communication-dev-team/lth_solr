@@ -39,22 +39,20 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
     private function getpages()
     {
         
-        $pagesArray = array();
+        //$pagesArray[];
         $unixTimestamp = time();
         
-        $sql = "SELECT uid, title FROM pages WHERE hidden = 0 AND deleted = 0 AND doktype < 200";
+        $sql = "SELECT uid, pid, title, subtitle, nav_title FROM pages WHERE hidden = 0 AND deleted = 0 AND doktype < 200";
 
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-            $pagesArray[$row['uid']] = $row['title'];
+            $pagesArray[] = array('pid' => $row['pid'], 'uid' => $row['uid'], 'title' => $row['title'], 'subtitle' => $row['subtitle'], 'nav_title' => $row['nav_title']);
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
         return $pagesArray;
     }
     
-    
-   
     
     private function updateSolr($pagesArray, $config)
     {
@@ -66,26 +64,40 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
                 $buffer->setBufferSize(250);
 
                 foreach($pagesArray as $key => $value) {
+                    $uid = $value['uid'];
+                    $pid = $value['pid'];
+                    $title = $value['title'];
+                    $subtitle = $value['subtitle'];
+                    $nav_title = $value['nav_title'];
+                    if($nav_title) {
+                        $title = $nav_title;
+                    } elseif($subtitle) {
+                        $title = $subtitle;
+                    }
+                    
                     try {
-                        $url = "http://130.235.208.15/index.php?id=" . $key . '&type=77';
-                        // Create DOM from URL or file
-                        $body = file_get_contents($url);
                         
-                        $body = strip_tags($body);
                         
-                        $rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($key);
+                        
+                        $rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($pid);
                         if($rootLine) $domain = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootLine);
                         if($domain) {
-                            $pagePath = \TYPO3\CMS\Backend\Utility\BackendUtility::getRecordPath($key);
-                            $fullPath = $this->getFullPath($pagePath, $domain);
-                        }
+                            $url = 'http://' . rtrim($domain, '/') . '/index.php?id=' . $uid . '&type=77';
+                            if($url) {
+                                // Create DOM from URL or file
+                                $body = file_get_contents($url);
 
+                                $body = strip_tags($body);
+                            }
+                            $pagePath = \TYPO3\CMS\Backend\Utility\BackendUtility::getRecordPath($uid,'','');
+                        }
+                        if($pagePath) $fullPath = $this->getFullPath($pagePath, $domain);
                         /*$title = $doc->getElementsByTagName('title');
                         $body = $doc->getElementsByTagName('body');*/
                         $data = array(
-                            'id' => 'page_' . $key,
+                            'id' => 'page_' . $uid,
                             'type_s' => 'page',
-                            'title_t' => $value,
+                            'title_t' => $title,
                             'body_txt' => $body,
                             'path_s' => $fullPath
                         );
@@ -113,10 +125,25 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
     function getFullPath($pagePath, $domain)
     {
         $pagePathArray = explode('/', $pagePath);
+        //print_r($pagePathArray);
         array_shift($pagePathArray);
         array_shift($pagePathArray);
+        //array_shift($pagePathArray);
+        //if($cacheCmd) array_shift($pagePathArray);
         $pagePath = strtolower(implode('/', $pagePathArray));
-        $fullPath = 'http://' . rtrim($domain,'/') . '/' . ltrim($pagePath, '/$domain');
+        $pagePath = str_replace('å','aa',$pagePath);
+        $pagePath = str_replace('ä','ae',$pagePath);
+        $pagePath = str_replace('ö','oe',$pagePath);
+        $pagePath = str_replace(' & ','-',$pagePath);
+        $pagePath = str_replace(' - ','-',$pagePath);
+        $pagePath = str_replace(' -','-',$pagePath);
+        $pagePath = str_replace('- ','-',$pagePath);
+        $pagePath = str_replace(' ','-',$pagePath);
+        //$pagePath = str_replace('/','',$pagePath);
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $pagePath, 'crdate' => time()));
+        //echo $pagePath . "--";
+        $fullPath = 'http://' . rtrim($domain,'/') . '/' . trim($pagePath, '/') . '/';
+        //echo $fullPath . "--";
         return $fullPath;
     }
     

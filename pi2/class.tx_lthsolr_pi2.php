@@ -62,12 +62,15 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $customCategories = $this->pi_getFFvalue($piFlexForm, "customcategories", "sDEF", $lDef[$index]);
             $categoriesThisPage = $this->pi_getFFvalue($piFlexForm, "categoriesthispage", "sDEF", $lDef[$index]);
             $introThisPage = $this->pi_getFFvalue($piFlexForm, "introthispage", "sDEF", $lDef[$index]);
+            $addPeople = $this->pi_getFFvalue($piFlexForm, "addpeople", "sDEF", $lDef[$index]);
+            $removePeople = $this->pi_getFFvalue($piFlexForm, "removepeople", "sDEF", $lDef[$index]);
             
             $pid = $GLOBALS['TSFE']->page['pid'];
             //$solrId = t3lib_div::_GP('solrid');
             $link = $_SERVER['PHP_SELF'];
             $link_array = explode('/',$link);
-            $solrId = end($link_array);
+            //$solrId = end($link_array);
+            //$solrId = t3lib_div::_GP("query");
             $ip = $_SERVER['REMOTE_ADDR'];
 
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
@@ -77,6 +80,8 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             if($syslang=='se') {
                 $syslang='sv';
             }
+            
+            $solrId = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('id');
             
             /*load files needed for datatables*/
             $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";
@@ -117,23 +122,24 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/" . $html_template);
             
-            if(!$scope && $solrId) {
+            if($solrId) {
                 $content .= '</div><input type="hidden" id="lth_solr_type" value="detail" />' .
                         '<input type="hidden" id="lth_solr_scope" value="' . $solrId . '" />';
             } else {
-                $content .= '</div><div id="lth_solr_facet_container" style="margin-left:20px;" class="grid-8 omega"></div></div>' .
-                    '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />' .
-                    '<input type="hidden" id="lth_solr_detailpage" value="' . $detailPage . '" />' .
-                    '<input type="hidden" id="sys_language_uid" value="' . $index . '" />' .
-                    '<input type="hidden" id="pid" value="' . $pid . '" />' .
-                    '<input type="hidden" id="lth_solr_type" value="list" />' .
-                    '<input type="hidden" id="lth_solr_categories" value="' . $categories . '" />' .
-                    '<input type="hidden" id="lth_solr_custom_categories" value="' . $customCategories . '" />' .
-                    '<input type="hidden" id="fe_user" value="' . $GLOBALS['TSFE']->fe_user->user . '" />' .
-                    '<input type="hidden" id="lu_user" value="' . $lu_user . '" />' .
-                    '<input type="hidden" id="categoriesThisPage" value="' . $categoriesThisPage . '" />' .
-                    '<input type="hidden" id="introThisPage" value="' . $introThisPage . '" />' .
-                    '<div class="csc-default">&nbsp;</div>';
+                $content .= '</div><div id="lth_solr_facet_container" style="margin-left:20px;" class="grid-8 omega"></div></div> \
+                    <input type="hidden" id="lth_solr_scope" value="' . $scope . '" /> \
+                    <input type="hidden" id="lth_solr_detailpage" value="' . $detailPage . '" /> \
+                    <input type="hidden" id="sys_language_uid" value="' . $index . '" /> \
+                    <input type="hidden" id="pid" value="' . $pid . '" /> \
+                    <input type="hidden" id="lth_solr_type" value="list" /> \
+                    <input type="hidden" id="lth_solr_categories" value="' . $categories . '" /> \
+                    <input type="hidden" id="lth_solr_custom_categories" value="' . $customCategories . '" /> \
+                    <input type="hidden" id="fe_user" value="' . $GLOBALS['TSFE']->fe_user->user . '" /> \
+                    <input type="hidden" id="lu_user" value="' . $lu_user . '" /> \
+                    <input type="hidden" id="categoriesThisPage" value="' . $categoriesThisPage . '" /> \
+                    <input type="hidden" id="introThisPage" value="' . $introThisPage . '" /> \
+                    <input type="hidden" id="addPeople" value="' . $addPeople . '" /> \
+                    <div class="csc-default">&nbsp;</div>';
             }
             
             return $content;
