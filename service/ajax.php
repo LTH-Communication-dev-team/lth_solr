@@ -165,8 +165,8 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
             $addPeople .= ' OR id:' . $value;
         }
     }
-            
-    $query->setQuery('(doctype_s:"lucat" AND usergroup_txt:'.$scope.' AND hide_on_web_i:0 AND -' . $hideVal . ':[* TO *])' . $addPeople);
+    $queryToSet = '(doctype_s:"lucat" AND usergroup_txt:'.$scope.' AND hide_on_web_i:0 AND -' . $hideVal . ':[* TO *])' . $addPeople;
+    $query->setQuery($queryToSet);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();

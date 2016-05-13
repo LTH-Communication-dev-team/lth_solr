@@ -46,8 +46,6 @@ class user_sampleflex_addFieldsToFlexForm {
                         $scope = $n->value;
                     } else if($val == 'addpeople') {
                         $addpeople = $n->value;
-                    } else if($val == 'removepeople') {
-                        $removepeople = $n->value;
                     } else if($val == 'categoriesthispage') {
                         $categoriesThisPage = $n->value;
                     } else if($val == 'introthispage') {
@@ -101,16 +99,6 @@ class user_sampleflex_addFieldsToFlexForm {
                 $queries .= " id:$value";
             }
         }
-	
-	if(trim($removepeople)) {
-	    $removepeople = str_replace(' ', '', $removepeople);
-	    $removepeople = str_replace(',', "\n", $removepeople);
-	    $removepeople = str_replace(':', '', $removepeople);
-	    $removepeopleArray = explode("\n",$removepeople);
-	    foreach($removepeopleArray as $value) {
-		$queries .= " !id:$value";
-	    }
-	}
         
         require(__DIR__.'/pi2/init.php');
 
