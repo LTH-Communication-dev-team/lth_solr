@@ -285,15 +285,19 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             
             if($lth_solr_intro && $lth_solr_intro !== '') {
                 $lth_solr_intro = json_decode($lth_solr_intro, true);
-                foreach($lth_solr_intro as $key => $value) {
-                    $employeeArray[$username]['lth_solr_intro'][$key] = $value;
+                if($lth_solr_intro) {
+                    foreach($lth_solr_intro as $key => $value) {
+                        $employeeArray[$username]['lth_solr_intro'][$key] = $value;
+                    }
                 }
             }
             
             if($lth_solr_sort && $lth_solr_sort !== '') {
                 $lth_solr_sort = json_decode($lth_solr_sort, true);
-                foreach($lth_solr_sort as $key => $value) {
-                    $employeeArray[$username]['lth_solr_sort'][$key] = $value;
+                if($lth_solr_sort) {
+                    foreach($lth_solr_sort as $key => $value) {
+                        $employeeArray[$username]['lth_solr_sort'][$key] = $value;
+                    }
                 }
             } 
             
