@@ -10,21 +10,7 @@ class user_sampleflex_addFieldsToFlexForm {
     
     
     function getSolrData ($config) 
-    {
-	$confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
-    
-	/*if (!$confArr['solrServer']) {
-	    return 'Ange Solr-server';
-	}
-
-	if (!$confArr['solrPort']) {
-	    return 'Ange Solr-port';
-	}
-
-	if (!$confArr['solrPath']) {
-	    return 'Ange Solr-path';
-	}*/
-    
+    {    
         $addpeopleArray = array();
         $addpeople = '';
 
