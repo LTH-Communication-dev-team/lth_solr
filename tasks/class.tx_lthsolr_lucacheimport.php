@@ -27,7 +27,13 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             die(__DIR__);
         }
 
-        $grsp = $config['grsp'];
+        $confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+    
+	if (!$confArr['grsp']) {
+	    return 'Ange General storage';
+	}
+                
+        $grsp = $confArr['grsp'];
 
         tslib_eidtools::connectDB();
 
