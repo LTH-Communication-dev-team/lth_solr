@@ -285,6 +285,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             
             if($lth_solr_intro && $lth_solr_intro !== '') {
                 $lth_solr_intro = json_decode($lth_solr_intro, true);
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($lth_solr_intro,true), 'crdate' => time()));
                 if($lth_solr_intro) {
                     foreach($lth_solr_intro as $key => $value) {
                         $employeeArray[$username]['lth_solr_intro'][$key] = $value;
