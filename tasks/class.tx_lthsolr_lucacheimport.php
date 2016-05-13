@@ -285,9 +285,9 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             
             if($lth_solr_intro && $lth_solr_intro !== '') {
                 $lth_solr_intro = json_decode($lth_solr_intro, true);
-                //foreach($lth_solr_intro as $key => $value) {
-                    $employeeArray[$username]['lth_solr_intro'] = $lth_solr_intro;
-                //}
+                foreach($lth_solr_intro as $key => $value) {
+                    $employeeArray[$username]['lth_solr_intro'][$key] = $value;
+                }
             }
             
             if($lth_solr_sort && $lth_solr_sort !== '') {
@@ -535,7 +535,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         //extra:
                         'image_s' => $value['image'],
                         'image_id_s' => $value['image_id'],
-                        'lth_solr_intro_txt' => $value['lth_solr_intro'],
+                        //'lth_solr_intro_txt' => $value['lth_solr_intro'],
                         //'lth_solr_txt_t' => $value['lth_solr_txt'],
                         'usergroup_txt' => $heritage,
                         'lth_solr_sort_ss' => $value['lth_solr_sort'],
