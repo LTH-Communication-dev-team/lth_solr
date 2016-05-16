@@ -381,31 +381,37 @@ function lthSolrDetail(lth_solr_lang)
                         template = template.replace('###title_t###', titleCase(title));
                         
                         if(d.data[4]) {
-                        for (i = 0; i < d.data[4].length; i++) {
-                            if(phone) {
-                                phone += ', ';
-                            } else {
-                                phone += lth_solr_messages.phone + ': ';
+                            for (i = 0; i < d.data[4].length; i++) {
+                                if(phone) {
+                                    phone += ', ';
+                                } else {
+                                    phone += lth_solr_messages.phone + ': ';
+                                }
+                                phone += d.data[4][i];
                             }
-                            phone += d.data[4][i];
+                            template = template.replace('###phone_t###', phone);
                         }
-                        template = template.replace('###phone_t###', phone);
-                    }
                     
                         template = template.replace(/###email_t###/g, d.data[6]);
                         
-                        for (i = 0; i < d.data[7].length; i++) {
-                            if(oname_t) {
-                                oname_t += ', ';
+                        if(d.data[7]) {
+                            for (i = 0; i < d.data[7].length; i++) {
+                                if(oname_t) {
+                                    oname_t += ', ';
+                                }
+                                oname_t += d.data[7][i];
                             }
-                            oname_t += d.data[7][i];
                         }
-                        for (i = 0; i < d.data[8].length; i++) {
-                            if(oname_en_t) {
-                                oname_en_t += ', ';
+                        
+                        if(d.data[7]) {
+                            for (i = 0; i < d.data[8].length; i++) {
+                                if(oname_en_t) {
+                                    oname_en_t += ', ';
+                                }
+                                oname_en_t += d.data[8][i];
                             }
-                            oname_en_t += d.data[8][i];
                         }
+                        
                         if(lth_solr_lang == 'en' && oname_en_t) {
                             oname = oname_en_t;
                         } else if(oname_t) {
