@@ -5,7 +5,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-error_reporting(E_ALL);
+
 class user_sampleflex_addFieldsToFlexForm {
     
     
@@ -23,7 +23,7 @@ class user_sampleflex_addFieldsToFlexForm {
 echo '23';
         $xml = simplexml_load_string($pi_flexform);
         $test = $xml->data->sheet[0]->language;
-        
+echo '26';        
         if($test) {
             foreach ($test->field as $n) {
                 foreach($n->attributes() as $name => $val) {
