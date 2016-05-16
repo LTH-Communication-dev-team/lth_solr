@@ -24,7 +24,6 @@ class user_sampleflex_addFieldsToFlexForm {
         $test = $xml->data->sheet[0]->language;
       
         if($test) {
-            echo '27b';
             foreach ($test->field as $n) {
                 foreach($n->attributes() as $name => $val) {
                     if ($val == 'customcategories') {
@@ -41,7 +40,6 @@ class user_sampleflex_addFieldsToFlexForm {
                 }
             }
         }
-echo '44b';
 	if(trim($scope) != '') {
 	    $scope = str_replace(' ', '', $scope);
 	    $scope = str_replace(',', "\n", $scope);
@@ -64,8 +62,8 @@ echo '44b';
         $okString = '';
         if($offset=='null' || $offset=='') $offset=0;
         if($limit=='null' || $limit=='') $limit=700;
-echo '67';
-	if($scopeArray) {
+
+        if($scopeArray) {
 	    $i = 0;
 	    foreach($scopeArray as $key => $value) {
 		if($queries or i==0) {
@@ -76,7 +74,7 @@ echo '67';
 		$i++;
 	    }
 	}
-        echo '79';
+
         if(trim($addpeople)) {
             $addpeople = str_replace(' ', '', $addpeople);
             $addpeople = str_replace(',', "\n", $addpeople);
@@ -86,9 +84,9 @@ echo '67';
                 $queries .= " id:$value";
             }
         }
-        echo '89b' . __DIR__.'/pi2/init.php';
+
         require(__DIR__.'/pi2/init.php');
-echo '91';
+
         $client = new Solarium\Client($config);
         $query = $client->createSelect();
         $query->setQuery($queries);
