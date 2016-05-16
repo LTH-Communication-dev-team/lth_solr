@@ -41,7 +41,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 }
             }
         }
-echo '44';
+echo '44'.$scope;
 	if(trim($scope) != '') {
 	    $scope = str_replace(' ', '', $scope);
 	    $scope = str_replace(',', "\n", $scope);
