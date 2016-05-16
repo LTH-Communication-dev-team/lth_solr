@@ -11,6 +11,7 @@ class user_sampleflex_addFieldsToFlexForm {
     
     function getSolrData ($config) 
     {    
+        echo '14';
         $addpeopleArray = array();
         $addpeople = '';
 
