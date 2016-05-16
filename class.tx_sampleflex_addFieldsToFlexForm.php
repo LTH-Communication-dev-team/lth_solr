@@ -41,7 +41,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 }
             }
         }
-echo '44'.$scope.'öö';
+
 	if(trim($scope) != '') {
 	    $scope = str_replace(' ', '', $scope);
 	    $scope = str_replace(',', "\n", $scope);
@@ -88,7 +88,7 @@ echo '44'.$scope.'öö';
         }
         
         require(__DIR__.'/pi2/init.php');
-
+echo '91';
         $client = new Solarium\Client($config);
         $query = $client->createSelect();
         $query->setQuery($queries);
