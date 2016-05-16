@@ -20,13 +20,9 @@ class user_sampleflex_addFieldsToFlexForm {
         $sys_language_uid = $config['row']['sys_language_uid'];
         $catVar = 'lth_solr_cat_' . $pid . '_' . $sys_language_uid . '_ss';
         $hideVar = 'lth_solr_hide_' . $pid . '_' . $sys_language_uid . '_i';
-try {
+echo '23';
         $xml = simplexml_load_string($pi_flexform);
         $test = $xml->data->sheet[0]->language;
-    } catch(Exception $e) {
-        echo 'Message: ' .$e->getMessage();
-    }
-
         
         if($test) {
             foreach ($test->field as $n) {
