@@ -103,6 +103,7 @@ class user_sampleflex_addFieldsToFlexForm {
         $query->setStart($offset)->setRows($limit);
 
         // this executes the query and returns the result
+        die('???');
         $resultset = $client->select($query);
 print_r($resultset);
 die();
