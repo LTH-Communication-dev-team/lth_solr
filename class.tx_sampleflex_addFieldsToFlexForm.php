@@ -87,13 +87,13 @@ class user_sampleflex_addFieldsToFlexForm {
         }
         
         require(__DIR__.'/pi2/init.php');
-
+echo '90';
         $client = new Solarium\Client($config);
-        
+        echo '92';
         $query = $client->createSelect();
-        
+        echo '94';
         $query->setQuery($queries);
-        
+        echo '95';
         //$query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
 
         $query->addSort('lth_solr_sort_' . $pid . '_i', $query::SORT_ASC);
@@ -103,10 +103,8 @@ class user_sampleflex_addFieldsToFlexForm {
         $query->setStart($offset)->setRows($limit);
 
         // this executes the query and returns the result
-        die('???');
         $resultset = $client->select($query);
-print_r($resultset);
-die();
+
 	return array($resultset, $customcategories, $pluginId, $categoriesThisPage, $introThisPage);
     }
     
