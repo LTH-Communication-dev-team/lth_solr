@@ -20,9 +20,13 @@ class user_sampleflex_addFieldsToFlexForm {
         $sys_language_uid = $config['row']['sys_language_uid'];
         $catVar = 'lth_solr_cat_' . $pid . '_' . $sys_language_uid . '_ss';
         $hideVar = 'lth_solr_hide_' . $pid . '_' . $sys_language_uid . '_i';
-
+try {
         $xml = simplexml_load_string($pi_flexform);
         $test = $xml->data->sheet[0]->language;
+    } catch(Exception $e) {
+        echo 'Message: ' .$e->getMessage();
+    }
+
         
         if($test) {
             foreach ($test->field as $n) {
@@ -397,7 +401,7 @@ echo '90';
     
     function manageStaffList($config)
     {
-        print_r($config);
+        //print_r($config);
         $content = '';
         $categories = '';
         
@@ -556,7 +560,7 @@ echo '90';
         $sys_language_uid = $config['row']['sys_language_uid'];
         //$introVar = 'lth_solr_intro_' . $pid . '_' . $sys_language_uid;
         
-        print_r($config);
+        //print_r($config);
 
 	$allResponse = $this->getSolrData($config);
 	$response = $allResponse[0];
