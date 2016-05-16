@@ -41,7 +41,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 }
             }
         }
-echo '44';
+echo '44b';
 	if(trim($scope) != '') {
 	    $scope = str_replace(' ', '', $scope);
 	    $scope = str_replace(',', "\n", $scope);
@@ -64,7 +64,7 @@ echo '44';
         $okString = '';
         if($offset=='null' || $offset=='') $offset=0;
         if($limit=='null' || $limit=='') $limit=700;
-
+echo '67';
 	if($scopeArray) {
 	    $i = 0;
 	    foreach($scopeArray as $key => $value) {
@@ -76,7 +76,7 @@ echo '44';
 		$i++;
 	    }
 	}
-        
+        echo '79';
         if(trim($addpeople)) {
             $addpeople = str_replace(' ', '', $addpeople);
             $addpeople = str_replace(',', "\n", $addpeople);
@@ -86,7 +86,7 @@ echo '44';
                 $queries .= " id:$value";
             }
         }
-        
+        echo '89';
         require(__DIR__.'/pi2/init.php');
 echo '91';
         $client = new Solarium\Client($config);
