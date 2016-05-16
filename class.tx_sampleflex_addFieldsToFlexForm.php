@@ -104,7 +104,8 @@ class user_sampleflex_addFieldsToFlexForm {
 
         // this executes the query and returns the result
         $resultset = $client->select($query);
-
+print_r($resultset);
+die();
 	return array($resultset, $customcategories, $pluginId, $categoriesThisPage, $introThisPage);
     }
     
