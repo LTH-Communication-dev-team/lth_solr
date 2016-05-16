@@ -86,7 +86,7 @@ echo '67';
                 $queries .= " id:$value";
             }
         }
-        echo '89';
+        echo '89b' . __DIR__.'/pi2/init.php';
         require(__DIR__.'/pi2/init.php');
 echo '91';
         $client = new Solarium\Client($config);
