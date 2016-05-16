@@ -24,6 +24,7 @@ class user_sampleflex_addFieldsToFlexForm {
         $test = $xml->data->sheet[0]->language;
       
         if($test) {
+            echo '27';
             foreach ($test->field as $n) {
                 foreach($n->attributes() as $name => $val) {
                     if ($val == 'customcategories') {
@@ -40,7 +41,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 }
             }
         }
-
+echo '44';
 	if(trim($scope) != '') {
 	    $scope = str_replace(' ', '', $scope);
 	    $scope = str_replace(',', "\n", $scope);
@@ -89,11 +90,8 @@ class user_sampleflex_addFieldsToFlexForm {
         require(__DIR__.'/pi2/init.php');
 
         $client = new Solarium\Client($config);
-        echo '92';
         $query = $client->createSelect();
-        echo '94';
         $query->setQuery($queries);
-        echo '95';
         //$query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
 
         $query->addSort('lth_solr_sort_' . $pid . '_i', $query::SORT_ASC);
