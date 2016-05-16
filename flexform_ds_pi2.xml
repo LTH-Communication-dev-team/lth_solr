@@ -153,7 +153,7 @@
         <categoriesthispage>
              <TCEforms>
                 <displayCond>FIELD:categories:=:custom_category</displayCond>
-		<label>Kategorierna ska bara gälla denna sida (funkar inte just nu!!!)</label>
+		<label>Kategorierna ska bara gälla denna sida</label>
 		<config>
                     <type>check</type>
                 </config>
@@ -162,7 +162,7 @@
         
         <introthispage>
              <TCEforms>
-		<label>Intro-texterna ska bara gälla denna sida (funkar inte just nu!!!)</label>
+		<label>Intro-texterna ska bara gälla denna sida</label>
 		<config>
                     <type>check</type>
                 </config>

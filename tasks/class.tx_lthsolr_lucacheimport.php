@@ -287,6 +287,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                 $lth_solr_intro = json_decode($lth_solr_intro, true);
                 if($lth_solr_intro) {
                     foreach($lth_solr_intro as $key => $value) {
+                        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $key.';'.$value, 'crdate' => time()));
                         $employeeArray[$username]['lth_solr_intro'][$key] = $value;
                     }
                 }
@@ -553,9 +554,9 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         }
                     }
                     
-                    if($value['lth_solr_intro']) $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($value['lth_solr_intro'],true), 'crdate' => time()));
                     if(is_array($value['lth_solr_intro'])) {
                         foreach($value['lth_solr_intro'] as $key => $value) {
+                            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $key.';'.$value, 'crdate' => time()));
                             $data[$key] = $value;
                         }
                     }

@@ -380,6 +380,7 @@ function lthSolrDetail(lth_solr_lang)
                         
                         template = template.replace('###title_t###', titleCase(title));
                         
+                        if(d.data[4]) {
                         for (i = 0; i < d.data[4].length; i++) {
                             if(phone) {
                                 phone += ', ';
@@ -389,7 +390,8 @@ function lthSolrDetail(lth_solr_lang)
                             phone += d.data[4][i];
                         }
                         template = template.replace('###phone_t###', phone);
-                        
+                    }
+                    
                         template = template.replace(/###email_t###/g, d.data[6]);
                         
                         for (i = 0; i < d.data[7].length; i++) {
