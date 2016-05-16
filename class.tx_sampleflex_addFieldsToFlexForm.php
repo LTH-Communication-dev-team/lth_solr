@@ -397,7 +397,7 @@ echo '90';
     
     function manageStaffList($config)
     {
-        //print_r($config);
+        print_r($config);
         $content = '';
         $categories = '';
         
@@ -556,7 +556,7 @@ echo '90';
         $sys_language_uid = $config['row']['sys_language_uid'];
         //$introVar = 'lth_solr_intro_' . $pid . '_' . $sys_language_uid;
         
-        //print_r($config);
+        print_r($config);
 
 	$allResponse = $this->getSolrData($config);
 	$response = $allResponse[0];
