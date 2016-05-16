@@ -11,7 +11,6 @@ class user_sampleflex_addFieldsToFlexForm {
     
     function getSolrData ($config) 
     {    
-        echo '14';
         $addpeopleArray = array();
         $addpeople = '';
 
@@ -20,10 +19,10 @@ class user_sampleflex_addFieldsToFlexForm {
         $sys_language_uid = $config['row']['sys_language_uid'];
         $catVar = 'lth_solr_cat_' . $pid . '_' . $sys_language_uid . '_ss';
         $hideVar = 'lth_solr_hide_' . $pid . '_' . $sys_language_uid . '_i';
-echo '23';
+
         $xml = simplexml_load_string($pi_flexform);
         $test = $xml->data->sheet[0]->language;
-echo '26';        
+      
         if($test) {
             foreach ($test->field as $n) {
                 foreach($n->attributes() as $name => $val) {
@@ -88,7 +87,7 @@ echo '26';
         }
         
         require(__DIR__.'/pi2/init.php');
-echo '90';
+
         $client = new Solarium\Client($config);
         echo '92';
         $query = $client->createSelect();
