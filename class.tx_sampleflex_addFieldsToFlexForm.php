@@ -24,7 +24,7 @@ class user_sampleflex_addFieldsToFlexForm {
         $test = $xml->data->sheet[0]->language;
       
         if($test) {
-            echo '27';
+            echo '27b';
             foreach ($test->field as $n) {
                 foreach($n->attributes() as $name => $val) {
                     if ($val == 'customcategories') {
@@ -41,7 +41,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 }
             }
         }
-
+echo '44';
 	if(trim($scope) != '') {
 	    $scope = str_replace(' ', '', $scope);
 	    $scope = str_replace(',', "\n", $scope);
