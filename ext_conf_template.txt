@@ -1,2 +1,7 @@
-# cat=basic/enable; type=string; label=General storage
+solrHost =
+
+solrPw =
+
+solrId =
+
 grsp =

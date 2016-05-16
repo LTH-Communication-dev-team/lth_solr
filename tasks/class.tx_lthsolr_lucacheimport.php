@@ -549,21 +549,20 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username='".$key."'", array('lth_solr_heritage' => implode(',', $heritage), 'lth_solr_legacy_heritage' => implode(',', $legacy)));
 
                     if(is_array($value['lth_solr_cat'])) {
-                        foreach($value['lth_solr_cat'] as $key => $value) {
-                            $data[$key] = $value;
+                        foreach($value['lth_solr_cat'] as $key1 => $value1) {
+                            $data[$key1] = $value1;
                         }
                     }
                     
                     if(is_array($value['lth_solr_intro'])) {
-                        foreach($value['lth_solr_intro'] as $key => $value) {
-                            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $key.';'.$value, 'crdate' => time()));
-                            $data[$key] = $value;
+                        foreach($value['lth_solr_intro'] as $key2 => $value2) {
+                            $data[$key2] = $value2;
                         }
                     }
                     
                     if(is_array($value['lth_solr_sort'])) {
-                        foreach($value['lth_solr_sort'] as $key => $value) {
-                            $data[$key] = $value;
+                        foreach($value['lth_solr_sort'] as $key3 => $value3) {
+                            $data[$key3] = $value3;
                         }
                     }
 
