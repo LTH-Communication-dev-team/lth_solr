@@ -20,6 +20,24 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
 	require(__DIR__.'/init.php');
 
         $pagesArray = array();
+        
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => $settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+    
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    return 'Please make all settings in extension manager';
+	}
 
         tslib_eidtools::connectDB();
         

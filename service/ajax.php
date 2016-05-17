@@ -2,6 +2,26 @@
 // Exit, if script is called directly (must be included via eID in index_ts.php)
 if (!defined ('PATH_typo3conf')) die ('Could not access this script directly!');
 
+require(__DIR__.'/init.php');
+
+$settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+$config = array(
+    'endpoint' => array(
+        'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => $settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+        )
+    )
+);
+
+
+if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+    return 'Please make all settings in extension manager';
+}
+
 $content = '';
 $query = '';
 $action = '';
@@ -29,37 +49,27 @@ tslib_eidtools::connectDB();
 
 switch($action) {
     case 'searchListShort':
-        $content = searchListShort($query);
-        break;
-    case 'addEvent':
-        addEvent($title, $startDate, $endDate, $startTime, $endTime, $allday, $description, $place);
-        break;
-    case 'updateEvent':
-        updateEvent($uid, $title, $startDate, $endDate, $startTime, $endTime, $allday, $description, $place);
-        break;
-    case 'getEvent':
-        getEvent($uid);
+        $content = searchListShort($query, $config);
         break;
     case 'facetSearch':
-        $content = facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage, $addPeople);
+        $content = facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage, $addPeople, $config);
         break;
     case 'detail':
-        $content = detail($scope);
+        $content = detail($scope, $config);
         break;
     case 'rest':
         $content = rest();
         break;    
     default:
-        $content = basicSelect($query);
+        $content = basicSelect($query, $config);
         break;
 }
 
 print $content;
 
 
-function searchListShort($q)
+function searchListShort($q, $config)
 {
-    require(__DIR__.'/init.php');
     // create a client instance
     $client = new Solarium\Client($config);
 
@@ -124,14 +134,12 @@ function rest()
 }
 
 
-function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage, $addPeople)
+function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage, $addPeople, $config)
 {
     $content = '';
     $data = array();
     $facetResult = array();
-    
-    require(__DIR__.'/init.php');
-    
+        
     if($categories === 'standard_category') {
         $catVal = 'standard_category_sv_txt';
     } elseif($categories === 'custom_category') {
@@ -297,14 +305,12 @@ function fixString($input)
 }
 
 
-function detail($scope)
+function detail($scope, $config)
 {
     $content = '';
     $data = array();
     $facetResult = array();
-    
-    require(__DIR__.'/init.php');
-    
+        
     //$catVal = 'lth_solr_cat_' . $pid . '_' . $sys_language_uid . '_ss';
 
     // create a client instance
@@ -370,9 +376,8 @@ function getLucris()
 }
 
 
-function basicSelect($q)
+function basicSelect($q, $config)
 {
-    require(__DIR__.'/init.php');
     
     $resArray = array();
 

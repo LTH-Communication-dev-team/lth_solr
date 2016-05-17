@@ -1,7 +1,18 @@
-solrHost =
-
-solrPw =
-
-solrId =
-
-grsp =
+  # cat=basic/dev/160; type=input; label=Solr Host
+solrHost=
+  # cat=basic/dev/161; type=input; label=Solr Path
+solrPath=
+  # cat=basic/dev/162; type=input; label=Solr Port
+solrPort=
+  # cat=basic/dev/163; type=input; label=Solr Timeout
+solrTimeout=
+  # cat=basic/dev/164; type=input; label=Solr grsp
+grsp=
+  # cat=basic/dev/165; type=input; label=Solr dbhost
+dbhost=
+  # cat=basic/dev/166; type=input; label=Solr db
+db=
+  # cat=basic/dev/167; type=input; label=Solr user
+user=
+  # cat=basic/dev/168; type=input; label=Solr pw
+pw=

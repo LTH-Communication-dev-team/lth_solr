@@ -25,6 +25,25 @@ class tx_lthsolr_falimport extends tx_scheduler_Task {
         /*echo '<pre>';
         print_r($config);
         echo '<pre>'; */ 
+        
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => $settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+    
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    return 'Please make all settings in extension manager';
+	}
+        
         $executionSucceeded = $this->updateSolr($falArray, $config);
         
         return $executionSucceeded;

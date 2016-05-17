@@ -224,43 +224,6 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             return "<ul>$facet</ul>" . $more;
         }
         
-        
-        private function getStaffData($scope, $pageId, $index)
-        {
-            $staffArray = array();
-
-            require(__DIR__.'/init.php');
-
-            $client = new Solarium\Client($config);
-
-            $query = $client->createSelect();
-            
-            //$catVal = 'lth_solr_cat_' . $pageId . '_' . $index . '_ss';
-            //$txtVal = 'lth_solr_txt_' . $pageId . '_' . $index . '_t';
-            
-            //die($catVal);
-            $facetSet = $query->getFacetSet();
-            $facetSet->createFacetField('title')->setField('title_sort');
-            $facetSet->createFacetField('ou')->setField('ou_sort');
-
-            //$query->setFields(array('id','last_name_t','first_name_t', 'email_t', 'ou_t', 'title_t', 'orgid_t', 'primary_affiliation_t', 'homepage_t', 
-            //    'lang_t' => $value['lang'], 'degree_t', 'degree_en_t', 'phone_t', 'hide_on_web_i', 'image_t', 'usergroups_txt', 'title_s'));
-
-            //$query->addSort('lth_solr_sort_' . $pageId . '_' . $index . '_i', $query::SORT_ASC);
-            $query->addSort('last_name_t', $query::SORT_ASC);
-            $query->addSort('first_name_t', $query::SORT_ASC);
-            
-            $query->setQuery('doctype_s:lucat');
-            $query->setQuery('usergroup_txt:'.$scope);
-
-            $response = $client->select($query);
-            
-            $facet_title = $response->getFacetSet()->getFacet('title');
-            $facet_ou = $response->getFacetSet()->getFacet('ou');
-
-            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($result), 'crdate' => time()));
-            return array($response, $facet_title, $facet_ou);
-        }
 }
 
 

@@ -21,26 +21,38 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     {
 	require(__DIR__.'/init.php');
         
-        if (file_exists(__DIR__.'/config.php')) {
+        /*if (file_exists(__DIR__.'/config.php')) {
             require(__DIR__.'/config.php');
         } else {
             die(__DIR__);
-        }
+        }*/
 
-        $confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => $settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
     
-	if (!$confArr['grsp']) {
-	    return 'Ange General storage';
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout'] || !$settings['dbhost'] || !$settings['db'] || !$settings['grsp'] || !$settings['user'] || !$settings['pw']) {
+	    return 'Please make all settings in extension manager';
 	}
                 
-        $grsp = $confArr['grsp'];
+        $grsp = $settings['grsp'];
 
         tslib_eidtools::connectDB();
 
-        $dbhost = "db.ddg.lth.se";
-        $db = "users";
-        $user = "lucache";
-        $pw = "5ipsD3R2XA8wWEhm";
+        $dbhost = $settings['dbhost'];
+        $db = $settings['db'];
+        $user = $settings['user'];
+        $pw = $settings['pw'];
 
         $con = mysqli_connect($dbhost, $user, $pw, $db) or die("39; ".mysqli_error());
        

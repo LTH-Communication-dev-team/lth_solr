@@ -2,6 +2,26 @@
 class lth_solr_ajax {
     
     public function ajaxControl() {
+        
+        require(__DIR__.'/init.php');
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => $settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+        if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+            return 'Please make all settings in extension manager';
+        }
+
         $action = t3lib_div::_GP('action');
         $items = t3lib_div::_GP('items');
         $value = t3lib_div::_GP('value');
@@ -14,16 +34,16 @@ class lth_solr_ajax {
 
         switch($action) {
             case 'updateIntroAndImage':
-		$content = $this->updateIntroAndImage($items, $pid, $value, $checked, $sys_language_uid, $introThisPage);
+		$content = $this->updateIntroAndImage($items, $pid, $value, $checked, $sys_language_uid, $introThisPage, $config);
 		break;	    
             case 'resort':
-		$content = $this->resort($items, $pid, $sys_language_uid);
+		$content = $this->resort($items, $pid, $sys_language_uid, $config);
 		break;
             case 'updateCategories':
-		$content = $this->updateCategories($items, $pid, $value, $checked, $sys_language_uid, $categoriesThisPage);
+		$content = $this->updateCategories($items, $pid, $value, $checked, $sys_language_uid, $categoriesThisPage, $config);
 		break;
             case 'updateHideonpage':
-		$content = $this->updateHideonpage($items, $pid, $value, $checked, $sys_language_uid);
+		$content = $this->updateHideonpage($items, $pid, $value, $checked, $sys_language_uid, $config);
 		break;            
 	    /*case 'updateImage':
 		$content = $this->updateImage($catvalue, $username, $checked, $sys_language_uid, $pluginid, $i);
@@ -37,14 +57,12 @@ class lth_solr_ajax {
         echo json_encode($content);
     }
     
-    public function resort($items, $pid, $sys_language_uid)
+    public function resort($items, $pid, $sys_language_uid, $config)
     {
         $sortVal = 10;
         
         $staffArray = array();
         $staffArray = json_decode($items, true);
-
-        require(__DIR__.'/init.php');
         
         $client = new Solarium\Client($config);
                 
@@ -111,10 +129,9 @@ class lth_solr_ajax {
     }
     
     
-    public function updateCategories($items, $pid, $value, $checked, $sys_language_uid, $categoriesThisPage)
+    public function updateCategories($items, $pid, $value, $checked, $sys_language_uid, $categoriesThisPage, $config)
     {
         // $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked, $categoriesThisPage", 'crdate' => time()));
-        require(__DIR__.'/init.php');
         
         $client = new Solarium\Client($config);
                 
@@ -195,10 +212,9 @@ class lth_solr_ajax {
     }
     
     
-   public function updateHideonpage($items, $pid, $value, $checked, $sys_language_uid)
+   public function updateHideonpage($items, $pid, $value, $checked, $sys_language_uid, $config)
     {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked", 'crdate' => time()));
-        require(__DIR__.'/init.php');
         
         $client = new Solarium\Client($config);
                 
@@ -276,7 +292,7 @@ class lth_solr_ajax {
     }
    
     
-    public function updateIntroAndImage($username, $pid, $value, $checked, $sys_language_uid, $introThisPage)
+    public function updateIntroAndImage($username, $pid, $value, $checked, $sys_language_uid, $introThisPage, $config)
     {
         $valueArray = json_decode($value, true);
         $introText = $valueArray[0];
@@ -287,8 +303,6 @@ class lth_solr_ajax {
 	$identifier = $row['identifier'];
 	$mime_type = $row['mime_type'];
 	$GLOBALS['TYPO3_DB']->sql_free_result($res);
-
-        require(__DIR__.'/init.php');
         
         $client = new Solarium\Client($config);
                 

@@ -85,9 +85,27 @@ class user_sampleflex_addFieldsToFlexForm {
             }
         }
 
-        require(__DIR__.'/pi2/init.php');
+        require(__DIR__.'/service/init.php');
 
-        $client = new Solarium\Client($config);
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => $settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+    
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+
+        $client = new Solarium\Client($sconfig);
         $query = $client->createSelect();
         $query->setQuery($queries);
         //$query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
