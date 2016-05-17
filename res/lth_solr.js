@@ -292,9 +292,9 @@ function lthSolrList(lth_solr_lang)
                         var homePage = aData[10];
                         if(homePage) {
                             homePage = lth_solr_messages.personal_homepage + ': <a href="' + homePage + '">' + homePage + '</a>';
-                        } else {
+                        } /*else {
                             homePage = '<a href="/testarea/staff-list/presentation_single_person_left?solrid='+aData[5]+'">Läs mer om ' + display_name_t + '</a>';
-                        }
+                        }*/
                         template = template.replace('###homepage_t###', homePage);
                         
                         template = template.replace('###image_t###', aData[11]);
@@ -429,7 +429,6 @@ function lthSolrDetail(lth_solr_lang)
                             homePage = '<a href="/testarea/staff-list/presentation_single_person_left?query='+d.data[5]+'">Läs mer om ' + display_name_t + '</a>';
                         }*/
                         template = template.replace('###homepage_t###', homePage);
-                        
                         template = template.replace('###image_t###', d.data[11]);
                         template = template.replace('###lth_solr_intro###', d.data[12]);
                         

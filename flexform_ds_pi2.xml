@@ -169,14 +169,6 @@
             </TCEforms>
         </introthispage>
 
-         <hide_search>
-             <TCEforms>
-                <label>Göm sökrutan</label>
-                <config>
-                <type>check</type>
-                </config>
-             </TCEforms>
-        </hide_search>
          </el>
      </ROOT>
 </sDEF>
