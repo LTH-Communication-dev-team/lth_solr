@@ -293,7 +293,7 @@ function lthSolrList(lth_solr_lang)
                         if(homePage) {
                             homePage = lth_solr_messages.personal_homepage + ': <a href="' + homePage + '">' + homePage + '</a>';
                         } else {
-                            homePage = '<a href="/testarea/staff-list/presentation_single_person_left?query='+aData[5]+'">Läs mer om ' + display_name_t + '</a>';
+                            homePage = '<a href="/testarea/staff-list/presentation_single_person_left?solrid='+aData[5]+'">Läs mer om ' + display_name_t + '</a>';
                         }
                         template = template.replace('###homepage_t###', homePage);
                         
@@ -353,6 +353,7 @@ function lthSolrDetail(lth_solr_lang)
                 var display_name_t = d.data[0] + ' ' + d.data[1];
                         
                         template = template.replace(/###display_name_t###/g, display_name_t);
+                        $('article header h1').text(display_name_t).show();
                         var title, title_t = '', title_en_t = '', oname, oname_t = '', oname_en_t = '', phone = '', roomNumber = '';
                         //console.log(d.data);
 
@@ -424,9 +425,9 @@ function lthSolrDetail(lth_solr_lang)
                         var homePage = d.data[10];
                         if(homePage) {
                             homePage = lth_solr_messages.personal_homepage + ': <a href="' + homePage + '">' + homePage + '</a>';
-                        } else {
+                        } /*else {
                             homePage = '<a href="/testarea/staff-list/presentation_single_person_left?query='+d.data[5]+'">Läs mer om ' + display_name_t + '</a>';
-                        }
+                        }*/
                         template = template.replace('###homepage_t###', homePage);
                         
                         template = template.replace('###image_t###', d.data[11]);
