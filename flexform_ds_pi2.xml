@@ -208,7 +208,7 @@
                 </TCEforms>
             </dynField>
  
-            <imagefolder>
+          <!--  <imagefolder>
                 <TCEforms>
                    <label>Mapp i fileadmin med bilder på personer (lucat-id.jpg) (kans-th0.jpg)</label>
                    <config>
@@ -229,7 +229,7 @@
                        <autoSizeMax>40</autoSizeMax>
                    </config>
                 </TCEforms>    
-           </imagefolder>
+           </imagefolder> -->
         </el>
     </ROOT>
 </manageStaffList>

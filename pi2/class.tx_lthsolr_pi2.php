@@ -146,7 +146,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
 	}
         
         
-        private function printStaffList($data, $html_template, $pageId, $sl)
+      /*  private function printStaffList($data, $html_template, $pageId, $sl)
         {
                 // Get the template
             $cObj = t3lib_div::makeInstance('tslib_cObj');
@@ -191,11 +191,6 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 $content .= $cObj->substituteMarkerArray($subpart, $markerArray);
             }
             
-            /*
-             * foreach ($facet as $value => $count) {
-    echo $value . ' [' . $count . ']<br/>';
-}
-             */
 
 
             //$content .= '</div>';
@@ -222,7 +217,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 $i++;
             }
             return "<ul>$facet</ul>" . $more;
-        }
+        }*/
         
 }
 
