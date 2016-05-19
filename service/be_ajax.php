@@ -311,7 +311,7 @@ class lth_solr_ajax {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(50);
         
-        if($introThisPage) {
+        if(intval($introThisPage)===1) {
             $introVar = 'staff_custom_text_' . $pid . '_s';
         } else {
             $introVar = 'staff_custom_text_s';
