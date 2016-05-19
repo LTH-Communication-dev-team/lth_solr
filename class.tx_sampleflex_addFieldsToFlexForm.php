@@ -657,6 +657,7 @@ class user_sampleflex_addFieldsToFlexForm {
                             'action' : 'updateIntroAndImage',
                             'items' : staffId,
                             'value' : JSON.stringify(value),
+                            'introThisPage' : '$introThisPage',
                             'pid' : '$pid',
                             'sys_language_uid' : $sys_language_uid,
                             'sid' : Math.random()
