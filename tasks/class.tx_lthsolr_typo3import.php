@@ -116,6 +116,7 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
                             'id' => 'page_' . $uid,
                             'type_s' => 'page',
                             'title_t' => $title,
+                            'teaser_txt' => substr($body, 0, 200),
                             'body_txt' => $body,
                             'path_s' => $fullPath
                         );

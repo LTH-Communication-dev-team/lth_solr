@@ -50,21 +50,29 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             $this->pi_loadLL();
             
                 //Load main js- and css-files
-            $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js\"></script>"; 
-            $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css\" />";
+            $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
+            $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
              
-            $id = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('id');
+            $query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
 		
             $content = '';
             
-            //$content = $this->restTest();
+            $content = $this->widget($query);
             
-            $content .= $this->searchBox();
+            //$content .= $this->searchBox();
         
             //$this->debug($content);
 	
             return $content;
 	}
+        
+        
+        private function widget($query)
+        {
+            $content = '<form><input type="hidden" id="query" name="query" value="' . $query . '" /><input type="button" onclick="solrwidget();" name="send" value="Search" /><div id="solrsearchresult"></div></form>';
+            return $content;
+        }
+        
                
         private function searchBox()
         {

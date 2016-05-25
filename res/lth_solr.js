@@ -13,12 +13,79 @@ $(document).ready(function() {
         lthSolrDetail(lth_solr_lang);
     }
 
+    if($('#query').val()) {
+        solrwidget($('#query').val());
+    }
     //if($('#fe_user').val()) {
         //$('#lth_solr_facet_container').append('<div id="lth_solr_helper"><a href="/testarea/kommunikation-och-samverkan/t3reg">Edit image and short text</a></div>');
     /*} else if($('#lu_user').val()) {
         $('#lth_solr_facet_container').append('<div id="lth_solr_helper">Use the link above to the right to login and edit image and text.</div>');
     }*/
 });
+
+
+function solrwidget(query)
+{
+    /*
+     * solr = {sid: 'sid-d86c248d60b4072f018c',q:'',p:1, url:'search'};         
+                d = new Date();
+                function async_load(){
+                    var s = document.createElement('script');
+                    s.type = 'text/javascript';
+                    s.async = true;
+                    s.src = 'http://solr.search.lu.se:8899/loader.js?'+ d.getTime();
+                    var x = document.getElementsByTagName('script')[0];
+                    console.log(s);
+                    x.parentNode.insertBefore(s,x);
+                }
+                if(window.attachEvent) {
+                    window.attachEvent('onload', async_load);
+                } else {
+                    window.addEventListener('load', async_load, false);
+                }
+     */
+    if(query) {
+        widget(query);
+       /* return false;
+        d = new Date();
+        $.ajax({
+            type : "GET",
+            url : 'http://connector.search.lu.se:8181/solr/sr/130.235.208.15/sid-d86c248d60b4072f018c/' + query + '/customsites/1/undefined?' + d.getTime() + '-sid-d86c248d60b4072f018c',
+            //url: 'http://connector.search.lu.se:8181/solr/ac/130.235.208.15/sid-d86c248d60b4072f018c/' + query + '/customsites',
+
+            //contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            beforeSend: function () {
+                $('#solrsearchresult').html(d.getTime());
+            },
+            complete: function(d) {
+
+                 console.log(d.responseText);
+                //if(d) {                                 
+                    $('#solrsearchresult').html(d.responseText);
+                //}
+            },
+            failure: function(errMsg) {
+                console.log(errMsg);
+            }
+        });*/
+    }
+}
+
+function widget(query)
+{
+    console.log('???');
+    solr = {sid: 'sid-d86c248d60b4072f018c',q:query,p:1, url:'search'};         
+                d = new Date();
+                //function async_load(){
+                    var s = document.createElement('script');
+                    s.type = 'text/javascript';
+                    s.async = true;
+                    s.src = 'http://solr.search.lu.se:8899/loader.js?'+ d.getTime();
+                    var x = document.getElementsByTagName('script')[0];
+                    x.parentNode.insertBefore(s,x);
+                //}
+}
 
 
 function lthSolrList(lth_solr_lang)
