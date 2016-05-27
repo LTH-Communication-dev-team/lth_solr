@@ -273,7 +273,8 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
             $document->homepage_t,
             $image,
             fixString($intro_t),
-            fixString($document->room_number_s)
+            fixString($document->room_number_s),
+            $document->mobile_txt
         );
     }
     $resArray = array('data' => $data, 'facet' => $facetResult, 'draw' => 1);

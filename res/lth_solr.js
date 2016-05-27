@@ -308,14 +308,28 @@ function lthSolrList(lth_solr_lang)
                         
                         template = template.replace('###title_t###', titleCase(title));
                         
-                        for (i = 0; i < aData[4].length; i++) {
-                            if(phone) {
-                                phone += ', ';
-                            } else {
-                                phone += lth_solr_messages.phone + ': ';
+                        if(aData[4]) {
+                            for (i = 0; i < aData[4].length; i++) {
+                                if(phone) {
+                                    phone += ', ';
+                                } else {
+                                    phone += lth_solr_messages.phone + ': ';
+                                }
+                                phone += aData[4][i];
                             }
-                            phone += aData[4][i];
                         }
+                        
+                        if(aData[14]) {
+                            for (i = 0; i < aData[14].length; i++) {
+                                if(phone) {
+                                    phone += ', ';
+                                } else {
+                                    phone += lth_solr_messages.phone + ': ';
+                                }
+                                phone += aData[14][i];
+                            }
+                        }
+                        
                         template = template.replace('###phone_t###', phone);
                         
                         template = template.replace(/###email_t###/g, aData[6]);
