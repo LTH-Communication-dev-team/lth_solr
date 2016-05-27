@@ -255,31 +255,16 @@ function lthSolrList(lth_solr_lang)
                     //"bDestroy": true,
                     dom : 'lBfrtip',
                     lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-                    buttons : [
-                    {
-                        extend: 'copyHtml5',
-                        exportOptions: {
-                            columns: exportArray
-                        }
-                    },
-                    {
-                        extend: 'excelHtml5',
-                        exportOptions: {
-                            columns: exportArray
-                        }
-                    },
-                    {
-                        extend: 'csvHtml5',
-                        exportOptions: {
-                            columns: exportArray
-                        }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        exportOptions: {
-                            columns: exportArray
-                        }
-                    }
+                    buttons: [
+                        {
+                            extend: 'collection',
+                            text: 'Export',
+                            buttons: [
+                                'excel',
+                                'csv'
+                            ]
+                        }//,
+                        //'colvis'
                     ],
                     initComplete: function () {
                         var info = '&nbsp;' + lth_solr_messages.of + '&nbsp;' + d.data.length;
