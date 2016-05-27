@@ -54,10 +54,11 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
              
             $query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
-		
+            $tab = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tab');
+            
             $content = '';
             
-            $content = $this->widget($query);
+            $content = $this->widget($query, $tab);
             
             //$content .= $this->searchBox();
         
@@ -67,9 +68,16 @@ class tx_lthsolr_pi1 extends tslib_pibase {
 	}
         
         
-        private function widget($query)
+        private function widget($query, $tab)
         {
-            $content = '<form><input type="hidden" id="query" name="query" value="' . $query . '" /><input type="button" onclick="solrwidget();" name="send" value="Search" /><div id="solrsearchresult"></div></form>';
+            $content = '';
+            if($tab == 'all') {
+            $content = '<style>#solrtab-all, #solrtab-customsites { display:none !important;}</style>';
+            }
+            $content .= 
+                   // . '<input type="button" onclick="widget(\'tomas\');" name="send" value="Search" />'
+                    '<div id="solrsearchresult" style=""><form><input type="hidden" id="query" name="query" value="' . $query . '" /></form></div>'
+                    . '';
             return $content;
         }
         

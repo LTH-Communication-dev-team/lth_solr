@@ -60,7 +60,7 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
         //$pagesArray[];
         $unixTimestamp = time();
         
-        $sql = "SELECT uid, pid, title, subtitle, nav_title FROM pages WHERE hidden = 0 AND deleted = 0 AND doktype < 200";
+        $sql = "SELECT uid, pid, title, subtitle, nav_title FROM pages WHERE hidden = 0 AND deleted = 0 AND doktype < 200 AND uid = 6";
 
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
@@ -71,15 +71,68 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
         return $pagesArray;
     }
     
+       private function updateSolr($pagesArray, $config)
+    {
+           try {
+           $host = $config['endpoint']['localhost']['host'];
+           $hostArray = explode('@',$host);
+        $url = 'http://' . $hostArray[1] . ':8983/solr/lth_all/update/extract?omitHeader=false&wt=json&json.nl=flat&commit=true&uprefix=attr_&fmap.content=text&literal.id=1695&stream.url=' . urlencode('http://www.lth.se/index.php?id=5');
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERPWD, 'admin:pfe22FVf');
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        $output = curl_exec($ch);
+        $info = curl_getinfo($ch);
+        curl_close($ch);
+        echo $url;
+return TRUE;
+    } catch(Exception $e) {
+        echo 'Message: ' .$e->getMessage();
+    }
+
+       }
+       
+    private function updateSolrt($pagesArray, $config)
+    {
+        $client = new Solarium\Client($config);
+
+        // get an extract query instance and add settings
+        $query = $client->createExtract();
+        $query->addFieldMapping('content', 'text');
+        $query->setUprefix('attr_');
+        $query->setFile('http://vkans-th0.kansli.lth.se/fileadmin/arkitekt.pdf');
+        $query->setCommit(true);
+        $query->setOmitHeader(false);
+
+        // add document
+        $doc = $query->createDocument();
+        $doc->id = 'extract-test';
+        $query->setDocument($doc);
+
+        // this executes the query and returns the result
+        $result = $client->extract($query);
+
+        echo '<b>Extract query executed</b><br/>';
+        echo 'Query status: ' . $result->getStatus(). '<br/>';
+        echo 'Query time: ' . $result->getQueryTime();
+    }
     
-    private function updateSolr($pagesArray, $config)
+    private function updateSolrs($pagesArray, $config)
     {
         try {
             if(count($pagesArray) > 0) {
+                //curl http://localhost:8983/solr/update/extract?literal.id=rem1&uprefix=attr_&fmap.content=body&commit=true" -F stream.url=http://fakesite.com
+
                 //create a client instance
                 $client = new Solarium\Client($config);
-                $buffer = $client->getPlugin('bufferedadd');
-                $buffer->setBufferSize(250);
+                //$buffer = $client->getPlugin('bufferedadd');
+                //$buffer->setBufferSize(250);
+                // get an extract query instance and add settings
+                $query = $client->createExtract();
+                $query->addFieldMapping('content', 'text');
+                $query->setUprefix('attr_');
 
                 foreach($pagesArray as $key => $value) {
                     $uid = $value['uid'];
@@ -94,8 +147,39 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
                     }
                     
                     try {
-                        
-                        
+                        $rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($pid);
+                        if($rootLine) $domain = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootLine);
+                        if($domain) {
+                            $url = 'http://' . rtrim($domain, '/') . '/index.php?id=' . $uid . '&type=77';
+                            /*if($url) {
+                                // Create DOM from URL or file
+                                $body = file_get_contents($url);
+
+                                $body = strip_tags($body);
+                            }*/
+                            //$pagePath = \TYPO3\CMS\Backend\Utility\BackendUtility::getRecordPath($uid,'','');
+                        }
+                        /*if($pagePath) {
+                            $fullPath = $this->getFullPath($pagePath, $domain);
+                        }*/
+//stream.url
+                        $query->setFile($url);
+                        $query->setCommit(true);
+                        $query->setOmitHeader(false);
+
+                        // add document
+                        $doc = $query->createDocument();
+                        $doc->id = 'page-'.$uid;
+                        $doc->some = 'more fields';
+                        $query->setDocument($doc);
+
+                        // this executes the query and returns the result
+                        $result = $client->extract($query);
+
+                        echo '<b>Extract query executed</b><br/>';
+                        echo 'Query status: ' . $result->getStatus(). '<br/>';
+                        echo 'Query time: ' . $result->getQueryTime();
+                        /*
                         
                         $rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($pid);
                         if($rootLine) $domain = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootLine);
@@ -110,8 +194,8 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
                             $pagePath = \TYPO3\CMS\Backend\Utility\BackendUtility::getRecordPath($uid,'','');
                         }
                         if($pagePath) $fullPath = $this->getFullPath($pagePath, $domain);
-                        /*$title = $doc->getElementsByTagName('title');
-                        $body = $doc->getElementsByTagName('body');*/
+                        //$title = $doc->getElementsByTagName('title');
+                        //$body = $doc->getElementsByTagName('body');
                         $data = array(
                             'id' => 'page_' . $uid,
                             'type_s' => 'page',
@@ -122,14 +206,14 @@ class tx_lthsolr_typo3import extends tx_scheduler_Task {
                         );
                         //$this->debug($data);
                         //echo $url;
-                        $buffer->createDocument($data);
+                        $buffer->createDocument($data);*/
                     } catch(Exception $e) {
                         echo 'Message: ' .$e->getMessage();
                     }
 
                     //$buffer->createDocument($data);                    
                 }
-                $buffer->commit();
+                //$buffer->commit();
                 return TRUE;
             }
         } catch(Exception $e) {

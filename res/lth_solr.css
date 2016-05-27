@@ -36,6 +36,28 @@ and open the template in the editor.
     width: 197px;
 }
 
-article header h1 {
-    display:none;
+.search-wrapper {
+     padding-top: 30px !important;
+}
+
+.solr-search-widget.search {
+    width: 910px !important;
+    background-color: #ffffff !important;
+   
+}
+
+#search-content {
+    border: 1px solid brown;
+}
+
+#solrtab-customsites {
+   /* background-color: #dedede !important;*/
+}
+
+.solr-search-widget .main-results {
+    width: 620px !important;
+}
+
+.solr-search-widget .sidebar {
+    margin-top: 30px !important;
 }

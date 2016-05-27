@@ -14,7 +14,7 @@ $(document).ready(function() {
     }
 
     if($('#query').val()) {
-        solrwidget($('#query').val());
+        widget($('#query').val());
     }
     //if($('#fe_user').val()) {
         //$('#lth_solr_facet_container').append('<div id="lth_solr_helper"><a href="/testarea/kommunikation-och-samverkan/t3reg">Edit image and short text</a></div>');
@@ -74,7 +74,7 @@ function solrwidget(query)
 
 function widget(query)
 {
-    console.log('???');
+    console.log(query);
     solr = {sid: 'sid-d86c248d60b4072f018c',q:query,p:1, url:'search'};         
                 d = new Date();
                 //function async_load(){
