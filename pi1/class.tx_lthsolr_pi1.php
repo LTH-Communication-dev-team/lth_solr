@@ -72,7 +72,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
         {
             $content = '';
             if($tab == 'all') {
-            $content = '<style>#solrtab-all, #solrtab-customsites { display:none !important;}</style>';
+                $content = '<style>#solrtab-all, #solrtab-customsites { display:none !important;}</style>';
             }
             $content .= 
                    // . '<input type="button" onclick="widget(\'tomas\');" name="send" value="Search" />'
