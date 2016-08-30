@@ -38,12 +38,20 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['tx_lthsolr_fali
 	'additionalFields' => '',
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['tx_lthsolr_newsimport'] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['tx_lthsolr_lucrisimport'] = array(
 	'extension'        => $_EXTKEY,
-	'title'            => 'News Import',
+	'title'            => 'Lucris Import',
 	'description'      => '',
 	'additionalFields' => '',
 );
+
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['tx_lthsolr_lucris_adduuid'] = array(
+	'extension'        => $_EXTKEY,
+	'title'            => 'Lucris Add uuid',
+	'description'      => '',
+	'additionalFields' => '',
+);
+
 t3lib_extMgm::addPItoST43($_EXTKEY, 'pi1/class.tx_lthsolr_pi1.php', '_pi1', 'list_type', 1);
 
 t3lib_extMgm::addPItoST43($_EXTKEY, 'pi2/class.tx_lthsolr_pi2.php', '_pi2', 'list_type', 1);

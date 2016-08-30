@@ -48,6 +48,9 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             $this->conf = $conf;
             $this->pi_setPiVarDefaults();
             $this->pi_loadLL();
+
+            $staffDetailPage = $this->conf["staffDetailPage"];
+            $siteDetailPage = $this->conf["siteDetailPage"];
             
                 //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
@@ -58,9 +61,11 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             
             $content = '';
             
-            $content = $this->widget($query, $tab);
+            //$content = $this->widget($query, $tab);
             
-            //$content .= $this->searchBox();
+            $content .= $this->searchBox($query);
+            
+            $content .= $this->searchResult($query);
         
             //$this->debug($content);
 	
@@ -68,26 +73,38 @@ class tx_lthsolr_pi1 extends tslib_pibase {
 	}
         
         
+        private function searchResult($query)
+        {
+            $content = '';
+            $content .= 
+                   // . '<input type="button" onclick="widget(\'tomas\');" name="send" value="Search" />'
+                    '<div id="solrsearchresult" class="item-list"><form><input type="hidden" id="query" name="query" value="' . $query . '" /></form></div>'
+                    . '';
+            return $content;
+        }
+        
+        
         private function widget($query, $tab)
         {
             $content = '';
             if($tab == 'all') {
-                $content = '<style>#solrtab-all, #solrtab-customsites { display:none !important;}</style>';
+                $content = '<style>#solrtab-customsites { display:none !important;}</style>';
             }
             $content .= 
                    // . '<input type="button" onclick="widget(\'tomas\');" name="send" value="Search" />'
-                    '<div id="solrsearchresult" style=""><form><input type="hidden" id="query" name="query" value="' . $query . '" /></form></div>'
+                    '<div id="solrsearchresult" style=""></div>'
                     . '';
             return $content;
         }
         
                
-        private function searchBox()
+        private function searchBox($query)
         {
-            $content = '<form action="/" method="post" accept-charset="UTF-8">
+            $content = '<form action="" method="post" accept-charset="UTF-8">
             <div class="form-item form-type-textfield form-item-search" role="application">
-                <input type="text" id="edit-search" name="search">
-                <input type="submit" id="edit-submit" name="op" value="Sök" class="form-submit">
+                <input type="text" id="searchSiteMain" name="search" value="' . $query . '" />
+                <input type="submit" id="edit-submit" name="op" value="Sök" class="form-submit" />
+                <input type="hidden" id="query" name="query" value="' . $query . '" />
             </div>
             </form>';
             

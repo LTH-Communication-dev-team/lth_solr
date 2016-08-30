@@ -81,7 +81,11 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 $syslang='sv';
             }
             
-            $solrId = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('solrid');
+            $action = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('action');
+            $query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
+            if($action=='detail' && $query) {
+                $solrId = $query;
+            }
             
             /*load files needed for datatables*/
             $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";

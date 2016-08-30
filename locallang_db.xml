@@ -9,6 +9,7 @@
 			<label index="tx_dam.tx_lthsolr_indexed">LTH Solr indexed</label>
 			<label index="tt_content.list_type_pi1">LTH Solr</label>
                         <label index="tt_content.list_type_pi2">Staff List</label>
+                        <label index="tt_content.list_type_pi3">Distributed search</label>
 		</languageKey>
 	</data>
 </T3locallang>

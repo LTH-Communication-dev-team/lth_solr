@@ -10,6 +10,7 @@ t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_pi2', 'FILE:EXT:lth_solr/flexform_ds
 
 
 t3lib_div::loadTCA('tt_content');
+
 $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi1'] = 'layout,select_key,pages';
 
 t3lib_extMgm::addPlugin(array(

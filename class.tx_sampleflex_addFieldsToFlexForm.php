@@ -67,7 +67,8 @@ class user_sampleflex_addFieldsToFlexForm {
 	    $i = 0;
 	    foreach($scopeArray as $key => $value) {
 		if($queries or i==0) {
-		    $queries = "usergroup_txt:$value";
+		    //$queries = "usergroup_txt:$value";
+                    $queries = "usergroup:$value";
 		} else {
 		    $queries .= " $value";
 		}
@@ -111,8 +112,8 @@ class user_sampleflex_addFieldsToFlexForm {
         //$query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
 
         $query->addSort('lth_solr_sort_' . $pid . '_i', $query::SORT_ASC);
-        $query->addSort('last_name_t', $query::SORT_ASC);
-        $query->addSort('first_name_t', $query::SORT_ASC);
+        $query->addSort('last_name_sort', $query::SORT_ASC);
+        $query->addSort('first_name_sort', $query::SORT_ASC);
         
         $query->setStart($offset)->setRows($limit);
 
@@ -516,7 +517,7 @@ class user_sampleflex_addFieldsToFlexForm {
         if($response) {
         foreach ($response as $document) {
             $content .= '<tr class="selection" id="edit_' . $document->id . '">';
-            $content .= '<td style="width:300px; align:top;">'  . $document->display_name_t . ' (' . $document->id . ')</td>';
+            $content .= '<td style="width:300px; align:top;">'  . $document->display_name . ' (' . $document->id . ')</td>';
             
             $categories = '';
             //print_r( $document->$catVar);

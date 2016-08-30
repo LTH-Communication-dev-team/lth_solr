@@ -27,6 +27,9 @@ $query = '';
 $action = '';
 $sid = '';
 
+$term = htmlspecialchars(t3lib_div::_GP("term"));
+$peopleOffset = htmlspecialchars(t3lib_div::_GP("peopleOffset"));
+$documentsOffset = htmlspecialchars(t3lib_div::_GP("documentsOffset"));
 $query = htmlspecialchars(t3lib_div::_GP("query"));
 $action = htmlspecialchars(t3lib_div::_GP("action"));
 $scope = htmlspecialchars(t3lib_div::_GP("scope"));
@@ -49,7 +52,22 @@ tslib_eidtools::connectDB();
 
 switch($action) {
     case 'searchListShort':
-        $content = searchListShort($query, $config);
+        $content = searchListShort($term, $config);
+        break;
+    case 'searchShort':
+        $content = searchShort($term, $config);
+        break;
+    case 'searchLong':
+        $content = searchLong($term, $config);
+        break;
+    case 'searchMorePeople':
+        $content = searchMore($term, 'people', $peopleOffset, $documentsOffset, $config);
+        break;
+    case 'searchMoreDocuments':
+        $content = searchMore($term, 'documents', $peopleOffset, $documentsOffset, $config);
+        break;
+    case 'searchSiteShort':
+        $content = searchSiteShort($term, $config);
         break;
     case 'facetSearch':
         $content = facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_length, $categories, $custom_categories, $categoriesThisPage, $introThisPage, $addPeople, $config);
@@ -68,23 +86,223 @@ switch($action) {
 print $content;
 
 
-function searchListShort($q, $config)
+function searchShort($term, $config)
 {
-    // create a client instance
     $client = new Solarium\Client($config);
 
-    // get a select query instance
     $query = $client->createSelect();
 
-    $query->setQuery('body_txt:*' . $q .'* OR display_name_t:*' . $q . '* OR phone_txt:*' . $q . '*');
+    $groupComponent = $query->getGrouping();
+    $groupComponent->addQuery('display_name:*' . $term . '* OR phone:*' . $term . '* OR email:*' . $term . '*');
+    $groupComponent->addQuery('content:*' . $term . '*');
+    $groupComponent->setSort('last_name_sort asc');
+    $groupComponent->setLimit(5);    
+    $resultset = $client->select($query);
+    $groups = $resultset->getGrouping();
+    foreach ($groups as $groupKey => $group) {
+        foreach ($group as $document) {        
+            $id = $document->id;
+            $doktype = $document->doctype;
+            if($doktype === 'lucat') {
+                $label = fixArray($document->display_name);
+            } else {
+                $label = fixArray($document->title);
+            }
+            $value = $document->id;
+            $data[] = array(
+                'id' => $id,
+                'label' => $label,
+                'value' => $value 
+            );
+        }
+    }
+    return json_encode($data);
+}
+
+
+function searchLong($term, $config)
+{
+    $people;
+    $documents;
+    $facet;
+    $doktype;
+    $display_name;
+    $phone;
+    $email;
+    $title;
+    $id;
+    $url;
+    $introText;
     
-    // this executes the query and returns the result
+    $client = new Solarium\Client($config);
+    $query = $client->createSelect();
+
+    $groupComponent = $query->getGrouping();
+    $groupComponent->addQuery('display_name:*' . $term . '* OR phone:*' . $term . '* OR email:' . $term);
+    $groupComponent->addQuery('content:*' . $term . '*');
+    $groupComponent->setSort('last_name_sort asc');
+    $groupComponent->setLimit(5);
+    $resultset = $client->select($query);
+    
+    $groups = $resultset->getGrouping();
+    
+    foreach ($groups as $groupKey => $group) {
+        $numfound = $group->getNumFound();
+        foreach ($group as $document) {
+            $id = $document->id;
+            $doktype = $document->doctype;
+            if($doktype === 'lucat') {
+                $peopleNumFound = $numfound;
+                $display_name = $document->display_name;
+                $email = $document->email;
+                $phone = fixArray($document->phone);
+                $image = $document->image;
+                $oname = fixArray($document->oname);
+                $title = fixArray($document->title);
+                $room_number = $document->room_number;
+                if($room_number) $room_number = " (Rum $room_number)";
+                $people .= '<li>';
+                if($image) $people .= '<img class="align_left" src="' . $image . '" style="width:100px;height:100px;" />';
+                $people .= "<h3>$display_name</h3>";
+                $people .= "<p>$oname$room_number, $title</p>";
+                $people .= "<p>";
+                if($email) $people .= "<a href=\"mailto:$email\">$email</a><br />";
+                if($phone) $people .= "Telefon: $phone<br />";
+                if($homepage) $people .= $homepage;
+                $people .= "</p>";
+                $people .= "</li>";
+            } else {
+                $documentsNumFound = $numfound;
+                $content = $document->content;
+                if (is_array($content)) {
+                    $content = implode(' ', $content);
+                }
+                $title = $document->title;
+                preg_match("/ltharticlebegin(.*)ltharticleend/s",$content, $results);
+                $introText = substr($results[1], 0, 200);
+                $url = $document->url;
+                $documents .= '<li><h3><a href="' . $url . '">' . fixArray($title) . '</a></h3><p>' . $introText . '</p><p>' . $url . '</p></li>';
+            }
+        }
+    }
+    if($people && $peopleNumFound > 5) {
+        $people .= "<li id=\"morePeople\"><a href=\"#\" onclick=\"searchResult('$term', 'searchMorePeople', 5, 5); return false;\">Visa fler</a></li>";
+    }
+    if($documents && $documentsNumFound > 5) {
+        $documents .= "<li id=\"moreDocuments\"><a href=\"#\" onclick=\"searchResult('$term', 'searchMoreDocuments', 5, 5); return false;\">Visa fler</a></li>";
+    }
+    return json_encode(array('people' => $people, 'peopleNumFound' => $peopleNumFound, 'documents' => $documents, 'documentsNumFound' => $documentsNumFound, 'facet' => $facet));
+}
+
+
+function searchMore($term, $type, $peopleOffset, $documentsOffset, $config)
+{
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+
+    if($type==='people') {
+        $query->setQuery('display_name:*' . $term . '* OR phone:*' . $term . '* OR email:' . $term);
+        $query->setStart($peopleOffset)->setRows(10);
+    } else {
+        $query->setQuery('content:*' . $term . '*');
+        $query->setStart($documentsOffset)->setRows(10);
+    }
+    
+    $sortArray = array(
+        'last_name_sort' => 'asc',
+        'first_name_sort' => 'asc'
+    );
+    
+    $query->addSorts($sortArray);
+
+    $response = $client->select($query);
+    if($type==='people') {
+        $peopleNumFound = $response->getNumFound();
+    } else {
+        $documentsNumFound = $response->getNumFound();
+    }
+        
+    foreach ($response as $document) {
+        $id = $document->id;
+        $doktype = $document->doctype;
+        if($doktype === 'lucat') {
+            $display_name = $document->display_name;
+            $email = $document->email;
+            $phone = fixArray($document->phone);
+            $image = $document->image;
+            $oname = fixArray($document->oname);
+            $title = fixArray($document->title);
+            $room_number = $document->room_number;
+            if($room_number) $room_number = " (Rum $room_number)";
+            $people .= '<li>';
+            if($image) $people .= '<img class="align_left" src="' . $image . '" style="width:100px;height:100px;" />';
+            $people .= "<h3>$display_name</h3>";
+            $people .= "<p>$oname$room_number, $title</p>";
+            $people .= "<p>";
+            if($email) $people .= "<a href=\"mailto:$email\">$email</a><br />";
+            if($phone) $people .= "Telefon: $phone<br />";
+            if($homepage) $people .= $homepage;
+            $people .= "</p>";
+            $people .= "</li>";
+        } else {
+            $content = $document->content;
+            if (is_array($content)) {
+                $content = implode(' ', $content);
+            }
+            $title = $document->title;
+            preg_match("/ltharticlebegin(.*)ltharticleend/s",$content, $results);
+            $introText = substr($results[1], 0, 200);
+            $url = $document->url;
+            $documents .= '<li><h3><a href="' . $url . '">' . fixArray($title) . '</a></h3><p>' . $introText . '</p><p>' . $url . '</p></li>';
+        }
+    }
+    return json_encode(array('people' => $people, 'peopleNumFound' => $peopleNumFound, 'documents' => $documents, 'documentsNumFound' => $documentsNumFound, 'facet' => $facet));
+}
+
+
+function searchSiteShort($term, $config)
+{
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+
+    $query->setQuery('content:*' . $term .'* OR title:*' . $term . '* AND -doctype:[* TO *]');
+    
     $response = $client->select($query);
     
-    // show documents using the resultset iterator
-    
+    $numfound = $response->getNumFound();
+        
     foreach ($response as $document) {
         $id =$document->id;
+        $label = $document->title;
+        $value = $document->url;
+                
+        $data[] = array(
+            'id' => $id,
+            'label' => $label,
+            'value' => $value 
+        );
+    }
+    return json_encode($data);
+}
+
+
+function searchListShort($term, $config)
+{
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+
+    //$query->setQuery('body_txt:*' . $term .'* OR display_name_t:*' . $term . '* OR phone_txt:*' . $term . '*');
+    $query->setQuery('content:*' . $term .'* OR title:*' . $term . '* OR display_name:*' . $term . '* OR phone:*' . $term . '* OR email:*' . $term . '*');
+    
+    $response = $client->select($query);
+    
+    $numfound = $response->getNumFound();
+        
+    foreach ($response as $document) {
+        /*$id =$document->id;
         $label = $document->title_t;
         $value = $document->path_s;
         
@@ -101,11 +319,41 @@ function searchListShort($q, $config)
             'id' => $id,
             'label' => $label,
             'value' => $value 
+        );*/
+
+        // the documents are also iterable, to get all fields
+        $id = $document->id;
+        $label = $document->display_name . ' ' . fixArray($document->phone);// . ' ' . $document->mobile;// . ' ' . $document->email;
+        if($document->homepage) {
+            $value = urlencode($document->homepage);
+        } else {
+            $value = $document->id;
+        }
+                
+        $data[] = array(
+            'id' => $id,
+            'label' => $label,
+            'value' => $value 
         );
-        //$data[] = array('id' => label' => $document->title_t);
+
     }
     //{id: "Botaurus stellaris", label: "Great Bittern", value: "Great Bittern"}
     return json_encode($data);
+}
+
+
+function fixArray($inputArray)
+{
+    if($doctype==='lucat') {
+        return false;
+    }
+    if($inputArray) {
+        if(is_array($inputArray)) {
+            $inputArray = array_unique($inputArray);
+            $inputArray = implode(', ', $inputArray);
+        }
+    }
+    return $inputArray;
 }
 
 
@@ -141,7 +389,8 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
     $facetResult = array();
         
     if($categories === 'standard_category') {
-        $catVal = 'standard_category_sv_txt';
+        //$catVal = 'standard_category_sv_txt';
+        $catVal = 'standard_category_sv';
     } elseif($categories === 'custom_category') {
         if(!$categoriesThisPage || $categoriesThisPage == '') {
             //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'global', 'crdate' => time()));
@@ -173,7 +422,8 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
             $addPeople .= ' OR id:' . $value;
         }
     }
-    $queryToSet = '(doctype_s:"lucat" AND usergroup_txt:'.$scope.' AND hide_on_web_i:0 AND -' . $hideVal . ':[* TO *])' . $addPeople;
+    //$queryToSet = '(doctype_s:"lucat" AND usergroup_txt:'.$scope.' AND hide_on_web_i:0 AND -' . $hideVal . ':[* TO *])' . $addPeople;
+    $queryToSet = '(doctype:"lucat" AND usergroup:'.$scope.' AND hide_on_web:0 AND -' . $hideVal . ':[* TO *])' . $addPeople;
     $query->setQuery($queryToSet);
     
     // get the facetset component
@@ -199,9 +449,12 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
     //$lth_solr_sortorder = 'lth_solr_sort_' . $pageid . '_' . $sys_language_uid . '_i';
     
     $sortArray = array(
-        'lth_solr_sort_' . $pageid . '_i' => 'asc',
+        /*'lth_solr_sort_' . $pageid . '_i' => 'asc',
         'last_name_s' => 'asc',
-        'first_name_s' => 'asc'
+        'first_name_s' => 'asc'*/
+        'lth_solr_sort_' . $pageid . '_i' => 'asc',
+        'last_name_sort' => 'asc',
+        'first_name_sort' => 'asc'
     );
     
     //$query->addSort('last_name_s', $query::SORT_ASC);
@@ -259,9 +512,8 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
         }
         
         $data[] = array(
-            ucwords(strtolower($document->first_name_t)),
+            /*ucwords(strtolower($document->first_name_t)),
             ucwords(strtolower($document->last_name_t)),
-            //ucwords(strtolower($document->first_name_t)) . ' ' . ucwords(strtolower($document->last_name_t)),
             $document->title_txt,
             $document->title_en_txt,
             $document->phone_txt,
@@ -274,7 +526,23 @@ function facetSearch($facet, $pageid, $pid, $sys_language_uid, $scope, $table_le
             $image,
             fixString($intro_t),
             fixString($document->room_number_s),
-            $document->mobile_txt
+            $document->mobile_txt*/
+            ucwords(strtolower($document->first_name)),
+            ucwords(strtolower($document->last_name)),
+            $document->title,
+            $document->title_en,
+            $document->phone,
+            $document->id,
+            fixString($document->email),            
+            $document->oname,
+            $document->oname_en,
+            $document->primary_affiliation,
+            $document->homepage,
+            $image,
+            fixString($intro_t),
+            fixString($document->room_number),
+            $document->mobile,
+            $document->uuid
         );
     }
     $resArray = array('data' => $data, 'facet' => $facetResult, 'draw' => 1);
@@ -309,7 +577,8 @@ function fixString($input)
 function detail($scope, $config)
 {
     $content = '';
-    $data = array();
+    $personData = array();
+    $publicationData = array();
     $facetResult = array();
         
     //$catVal = 'lth_solr_cat_' . $pid . '_' . $sys_language_uid . '_ss';
@@ -320,47 +589,67 @@ function detail($scope, $config)
     // get a select query instance
     $query = $client->createSelect();
 
-    $query->setQuery('id:'.$scope.' AND hide_on_web_i:0');
-   
+    //$query->setQuery('id:'.$scope.' AND hide_on_web_i:0');
+    //$query->setQuery('id:'.$scope.' AND hide_on_web:0');
+    $query->setQuery('uuid:'.$scope.' OR personAssociation:'.$scope);
+    
+    $query->addParam('rows', 150);
+       
     // this executes the query and returns the result
     $response = $client->select($query);
 
     // show documents using the resultset iterator
     foreach ($response as $document) {
-        if($document->image_t != NULL) {
-            $image_t = 'uploads/pics/' . $document->image_t;
-        } else {
-            $image_t = 'typo3conf/ext/lth_solr/res/placeholder.gif';
+
+        if($document->doctype == 'lucat') {
+            if($document->image_t != NULL) {
+                $image_t = 'uploads/pics/' . $document->image_t;
+            } else {
+                $image_t = 'typo3conf/ext/lth_solr/res/placeholder.gif';
+            }
+            //$lth_solr_intro = $document->lth_solr_intro_t;
+            $lth_solr_intro = $document->lth_solr_intro;
+            //$lth_solr_txt = $document->lth_solr_txt_t;
+            $lth_solr_txt = $document->lth_solr_txt;
+            if($lth_solr_intro !== '') {
+                $lth_solr_introArray = json_decode($lth_solr_intro, true);
+                $lth_solr_intro = $lth_solr_introArray['lth_solr_intro_' . $pid . '_' . $sys_language_uid];
+            }
+            if($lth_solr_txt !== '') {
+                $lth_solr_txtArray = json_decode($lth_solr_txt, true);
+                $lth_solr_txt = $lth_solr_txtArray['lth_solr_txt_' . $pid . '_' . $sys_language_uid];
+            }
+        
+            $personData = array(
+                ucwords(strtolower($document->first_name)),
+                ucwords(strtolower($document->last_name)),
+                $document->title,
+                $document->title_en,
+                $document->phone,
+                $document->id,
+                fixString($document->email),            
+                $document->oname,
+                $document->oname_en,
+                $document->primary_affiliation,
+                $document->homepage,
+                $image,
+                fixString($intro),
+                fixString($document->room_number)            
+            );
+        } else if($document->doctype == 'publication') {
+            $publicationData[] = array(
+                fixString($document->title),
+                fixString($document->publicationType),
+                fixString($document->portalUrl),
+                fixString($document->publicationDate),
+                //fixString($document->person),
+                fixString($document->abstract_en),
+                fixString($document->abstract_sv)
+            );
         }
-        $lth_solr_intro = $document->lth_solr_intro_t;
-        $lth_solr_txt = $document->lth_solr_txt_t;
-        if($lth_solr_intro !== '') {
-            $lth_solr_introArray = json_decode($lth_solr_intro, true);
-            $lth_solr_intro = $lth_solr_introArray['lth_solr_intro_' . $pid . '_' . $sys_language_uid];
-        }
-        if($lth_solr_txt !== '') {
-            $lth_solr_txtArray = json_decode($lth_solr_txt, true);
-            $lth_solr_txt = $lth_solr_txtArray['lth_solr_txt_' . $pid . '_' . $sys_language_uid];
-        }
-        $data = array(
-            ucwords(strtolower($document->first_name_t)),
-            ucwords(strtolower($document->last_name_t)),
-            //ucwords(strtolower($document->first_name_t)) . ' ' . ucwords(strtolower($document->last_name_t)),
-            $document->title_txt,
-            $document->title_en_txt,
-            $document->phone_txt,
-            $document->id,
-            fixString($document->email_t),            
-            $document->oname_txt,
-            $document->oname_en_txt,
-            $document->primary_affiliation_t,
-            $document->homepage_t,
-            $image,
-            fixString($intro_t),
-            fixString($document->room_number_s)
-        );
+        
     }
-    $resArray = array('data' => $data, 'lucris' => rest());
+    $resArray = array('personData' => $personData, 'publicationData' => $publicationData);
     return json_encode($resArray);
 }
 
