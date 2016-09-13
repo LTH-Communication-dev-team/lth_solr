@@ -422,7 +422,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     $title = '';
                 }                
                 if($value['exist']===TRUE) {
-                    //echo $value['uid'];
+                    echo $value['primary_uid'];
                     if(!$value['roomnumber']) $value['roomnumber'] = '';
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
