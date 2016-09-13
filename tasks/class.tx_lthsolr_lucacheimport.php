@@ -407,10 +407,9 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     
     private function createFeUsers($folderArray, $employeeArray, $feGroupsArray)
     {
-        echo '410';
         $title;
         foreach($employeeArray as $key => $value) {
-            echo '413';
+            echo $value['orgid'];
             //echo $value['usergroup'];
             $usergroupArray = $this->getUids($value['orgid'], $feGroupsArray);
             //echo $value['usergroup'];
