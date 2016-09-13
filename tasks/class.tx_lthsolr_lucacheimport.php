@@ -151,6 +151,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             FROM lucache_person AS P 
             LEFT JOIN lucache_vrole AS V ON P.id = V.id
             LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid
+            WHERE primary_affiliation = 'employee' 
             GROUP BY P.id, V.orgid 
             ORDER BY P.id, V.orgid";
         
