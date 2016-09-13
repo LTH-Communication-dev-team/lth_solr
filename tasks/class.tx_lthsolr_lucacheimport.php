@@ -407,9 +407,10 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     
     private function createFeUsers($folderArray, $employeeArray, $feGroupsArray)
     {
-        //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
+        echo '410';
         $title;
         foreach($employeeArray as $key => $value) {
+            echo $value['primary_uid'];
             //echo $value['usergroup'];
             $usergroupArray = $this->getUids($value['orgid'], $feGroupsArray);
             //echo $value['usergroup'];
@@ -422,7 +423,6 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     $title = '';
                 }                
                 if($value['exist']===TRUE) {
-                    echo $value['primary_uid'];
                     if(!$value['roomnumber']) $value['roomnumber'] = '';
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
