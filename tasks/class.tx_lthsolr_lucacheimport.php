@@ -409,21 +409,18 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     {
         $title;
         foreach($employeeArray as $key => $value) {
-            echo $value['orgid'];
             //echo $value['usergroup'];
             $usergroupArray = $this->getUids($value['orgid'], $feGroupsArray);
             //echo $value['usergroup'];
             //echo $usergroupArray['pid'];
             //echo $usergroupArray['usergroup'];
             if($usergroupArray[0]) {
-                echo '420';
                 if($value['title']) {
                     $title = str_replace('###', ', ', $value['title']);
                 } else {
                     $title = '';
                 }                
                 if($value['exist']===TRUE) {
-                    echo $value['primary_uid'];
                     if(!$value['roomnumber']) $value['roomnumber'] = '';
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
@@ -448,7 +445,6 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     $employeeArray[$key]['lth_solr_intro'] = $feUsersArray[$key]['lth_solr_intro'];
                     $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
                 } else {
-                    echo '450' . $value['primary_uid'];
                     $insertArray = array(
                         'username' => $value['primary_uid'],
                         'password' => $this->setRandomPassword(),
@@ -467,9 +463,9 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'tstamp' => time()
                     );
                     //$this->debug($insertArray);
-                    $GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
+                    //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
                     $GLOBALS['TYPO3_DB']->exec_INSERTquery('fe_users', $insertArray);
-                    echo $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
+                    //echo $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
                 }
             }
         }
