@@ -615,6 +615,7 @@ class user_sampleflex_addFieldsToFlexForm {
             
             function createEditArea(staffId, obj)
             {
+                //console.log(TYPO3.jQuery('#'+staffId).find('#img_' + staffId).attr('data-imageId'));
                 var prevArea = TYPO3.jQuery(obj).parent().parent();
                 
                 var imageId = TYPO3.jQuery('#'+staffId).find('#img_' + staffId).attr('data-imageId');
@@ -640,7 +641,11 @@ class user_sampleflex_addFieldsToFlexForm {
                     TYPO3.jQuery(this).parent().parent().replaceWith(prevArea);
                     
                     TYPO3.jQuery('#lth_solr_edit_member_' + staffId).click(function() {
-                        createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                        if(TYPO3.jQuery('.staffIntrotext').length > 0) {
+                            alert('You can only edit one row at the time');
+                        } else {
+                            createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                        }
                     });
                 });
                 
@@ -671,12 +676,16 @@ class user_sampleflex_addFieldsToFlexForm {
                                 TYPO3.jQuery('#img_' + staffId).attr('src', '/fileadmin' + response.identifier);
                                 TYPO3.jQuery('#img_' + staffId).attr('data-imageId', imageId);
                             } else {
-                                TYPO3.jQuery('#img_' + staffId).attr('src', '/typo3conf/ext/lth_solr/res/placeholder.gif');
+                                TYPO3.jQuery('#img_' + staffId).attr('src', '/typo3conf/ext/lth_solr/res/placeholder_noframe.gif');
                                 TYPO3.jQuery('#img_' + staffId).attr('data-imageId', '');
                             }
                             
                             TYPO3.jQuery('#lth_solr_edit_member_' + staffId).click(function() {
-                                createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                                if(TYPO3.jQuery('.staffIntrotext').length > 0) {
+                                    alert('You can only edit one row at the time');
+                                } else {
+                                    createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                                }
                             });
                         },
                         failure: function(response, opts) {
@@ -685,7 +694,7 @@ class user_sampleflex_addFieldsToFlexForm {
                     });                    
                     
                     TYPO3.jQuery('#lth_solr_edit_member_' + staffId).click(function() {
-                        if(TYPO3.jQuery('#staffIntrotext').length > 0) {
+                        if(TYPO3.jQuery('.staffIntrotext').length > 0) {
                             alert('You can only edit one row at the time');
                         } else {
                             createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
@@ -713,7 +722,11 @@ class user_sampleflex_addFieldsToFlexForm {
                 }).disableSelection();
                 
                 TYPO3.jQuery('.lth_solr_edit_member').click(function() {
-                    createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                    if(TYPO3.jQuery('.staffIntrotext').length > 0) {
+                        alert('You can only edit one row at the time');
+                    } else {
+                        createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                    }
                 });
             });
             
@@ -744,17 +757,18 @@ class user_sampleflex_addFieldsToFlexForm {
         if($response) {
             foreach ($response as $document) {
                 $content .= "<tr id=\"" . $document->id . "\">";
-                $content .= "<td id=\"name_" . $document->id . "\" style=\"width:300px; align:top;\">$document->display_name_t ($document->id)</td>";
+                $content .= "<td id=\"name_" . $document->id . "\" style=\"width:300px; align:top;\">$document->display_name ($document->id)</td>";
 
                 $intro = $document->$introVar;
                 $content .= "<td style=\"width:400px; align:top;\" id=\"intro_" . $document->id . "\">$intro</td>";
                 
                 //echo $imageVar . $document->$imageVar;
-                if(!$document->image_s) {
-                    $image = '/typo3conf/ext/lth_solr/res/placeholder.gif';
+                if(!$document->image) {
+                    $image = '/typo3conf/ext/lth_solr/res/placeholder_noframe.gif';
+                    $imageId = '';
                 } else {
-                    $image = '/fileadmin' . $document->image_s;
-                    $imageId = $document->image_id_s;
+                    $image = '/fileadmin' . $document->image;
+                    $imageId = $document->image_id;
                 }
                 
                 $content .= '<td style="width: 100px;"><img src="' . $image . '" id="img_' . $document->id . '" data-imageId="'.$imageId.'" style="width:50px;height:50px;" /></td>';
@@ -766,6 +780,153 @@ class user_sampleflex_addFieldsToFlexForm {
         }
     
         $content .= "</table>";
+        return $content;
+    }
+    
+    
+    function manageStaffRedirects($config)
+    {
+        //print_r($config);
+        $content = '';
+        $categories = '';
+        
+        $pid = $config['row']['pid'];
+        $sys_language_uid = $config['row']['sys_language_uid'];
+        
+        
+        //print_r($config);
+
+	$allResponse = $this->getSolrData($config);
+	$response = $allResponse[0];
+        $customcategories = $allResponse[1];
+        $categoriesThisPage = $allResponse[3];
+
+        if(intval($categoriesThisPage) === 1) {
+            $catVar = 'lth_solr_cat_' . $pid . '_ss';
+        } else {
+            $catVar = 'lth_solr_cat_ss';
+        }
+        $hideVar = 'lth_solr_hide_' . $pid . '_i';
+        
+        // show documents using the resultset iterator
+        $content .= "<style>.ui-state-highlight{width:100%; height: 50px; background-color:yellow;}</style>
+            <link rel=\"stylesheet\" href=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css\">
+            <script src=\"/typo3conf/ext/lth_solr/res/jquery.sortable.js\"></script>
+            <script language=\"javascript\">
+            
+            function createEditRedirectArea(staffId, obj)
+            {
+                //console.log(TYPO3.jQuery(obj).parent().prev().html());
+                //console.log(TYPO3.jQuery('#'+staffId).find('#img_' + staffId).attr('data-imageId'));
+                var prevArea = TYPO3.jQuery(obj).parent().parent();
+                                
+                var name = TYPO3.jQuery(obj).parent().prev().prev().html();
+                var redirectTo = '?uuid='+TYPO3.jQuery(obj).parent().prev().html();
+                //var deleteIcon = '<span class=\"t3-icon t3-icon-actions t3-icon-actions-edit t3-icon-edit-delete\">&nbsp;</span>';
+                
+                var editArea = '<tr id=\"'+staffId+'\">';
+                editArea += '<td style=\"align:top;\">' + name + '</td>';
+                editArea += '<td style=\"align:top;\">Source: <input type=\"text\" name=\"staffTxtSource\" value=\"\" class=\"staffTxtSource\" /></td>';
+                editArea += '<td style=\"align:top;\">Redirect to: <input type=\"text\" name=\"staffTxtRedirectto\" value=\"'+redirectTo+'\" class=\"staffTxtRedirectto\" /></td>';
+                editArea += '<td><input type=\"button\" id=\"staffRedirectSave\" value=\"Save\" /><input type=\"button\" value=\"Cancel\" id=\"staffRedirectCancel\" /></td></tr>';
+                TYPO3.jQuery(obj).parent().parent().replaceWith(editArea);
+                         
+                TYPO3.jQuery('#staffRedirectCancel').click(function(){
+                    TYPO3.jQuery(this).parent().parent().replaceWith(prevArea);
+                    TYPO3.jQuery('#lth_solr_edit_' + staffId).click(function() {
+                        if(TYPO3.jQuery('.staffTxtSource').length > 0) {
+                            alert('You can only edit one row at the time');
+                        } else {
+                            createEditRedirectArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                        }
+                    });
+                });
+                
+                TYPO3.jQuery('#staffRedirectSave').click(function(){
+                    var value = [TYPO3.jQuery(this).parent().parent().find('.staffTxtSource').val(),TYPO3.jQuery(this).parent().parent().find('.staffTxtRedirectto').val()];
+                    var staffId = TYPO3.jQuery(this).parent().parent().attr('id');
+                    
+                    Ext.Ajax.request({
+                        url: 'ajax.php',
+                        method: 'POST',
+                        dataType: 'json',
+                        params: {
+                            'ajaxID' : 'lth_solr::ajaxControl',
+                            'action' : 'updateRedirect',
+                            'items' : staffId,
+                            'value' : JSON.stringify(value),
+                            'pid' : '$pid',
+                            'sys_language_uid' : $sys_language_uid,
+                            'sid' : Math.random()
+                        },
+                        success: function(data) {
+                            TYPO3.jQuery('#'+staffId).replaceWith(prevArea);
+                            var response = JSON.parse(data.responseText);
+                            
+                            TYPO3.jQuery('#lth_solr_edit_' + staffId).click(function() {
+                                if(TYPO3.jQuery('.staffRedirect').length > 0) {
+                                    alert('You can only edit one row at the time');
+                                } else {
+                                    createEditRedirectArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                                }
+                            });
+                        },
+                        failure: function(response, opts) {
+                           console.log('server-side failure with status code ' + response.status);
+                        }
+                    });                    
+                });
+            }
+            
+        
+            TYPO3.jQuery(document).ready(function() {
+                TYPO3.jQuery('.lth_solr_edit_redirect').click(function() {
+                    if(TYPO3.jQuery('.staffRedirect').length > 0) {
+                        alert('You can only edit one row at the time');
+                    } else {
+                        createEditRedirectArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
+                    }
+                });
+                
+            });
+            
+            </script>
+            <style>
+            .ui-state-default {
+                border: 1px black dotted;
+                height: 50px;
+                width: 100%;
+                display: block;
+                clear:both;
+            }
+            #lth_solr_manage_staff_list td {
+                padding:10px;
+            }
+            li {
+                display:inline;
+            }
+            .lth_solr_categories {
+                padding-left:10px;
+            }
+            .staffTxtRedirectto {
+                width:400px;
+            }
+            </style>";
+        
+        $content .= '<table id="lth_solr_manage_redirects class="lth_solr_manage_redirects"><tbody class="selections">';
+        if($response) {
+            foreach ($response as $document) {
+                $content .= '<tr class="selection" id="redirect_' . $document->id . '">';
+                $content .= '<td style="width:300px; align:top;">'  . $document->display_name . ' (' . $document->id . ')</td>';
+                $content .= '<td style="display:none;">'  . $document->uuid . '</td>';
+                $content .= "<td><input type=\"button\" name=\"Edit\" id=\"lth_solr_edit_redirect_" . $document->id . "\" class=\"lth_solr_edit_redirect\" value=\"Edit\"></td>";
+
+                $content .= "</tr>";
+            }
+        }
+    
+        $content .= "</tbody></table>";
+        
         return $content;
     }
     

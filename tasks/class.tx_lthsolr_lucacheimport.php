@@ -138,6 +138,71 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             NOT P.has_primary_vrole AS hide_on_web,
             V.update_flag,
             V.guid,
+            GROUP_CONCAT(V.room_number) AS room_number,
+            GROUP_CONCAT(V.title) AS title,
+            GROUP_CONCAT(V.title_en) AS title_en,
+            GROUP_CONCAT(V.phone) AS phone,
+            GROUP_CONCAT(V.mobile) AS mobile,
+            V.orgid AS orgid,
+            VORG.legacy_orgid AS orgid_legacy,
+            VORG.name AS oname,
+            VORG.name_en AS oname_en,
+            VORG.maildelivery AS maildelivery
+            FROM lucache_person AS P 
+            LEFT JOIN lucache_vrole AS V ON P.id = V.id
+            LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid
+            GROUP BY P.id, V.orgid 
+            ORDER BY P.id, V.orgid";
+        
+        $res = mysqli_query($con, $sql) or die("157; ".mysqli_error());
+
+        while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
+            $primary_uid = $row['primary_uid'];
+            $employeeArray[$primary_uid]['id'] = $row['id'];
+            $employeeArray[$primary_uid]['primary_uid'] = $primary_uid;
+            $employeeArray[$primary_uid]['first_name'] = $this->toUC($row['first_name']);
+            $employeeArray[$primary_uid]['last_name'] = $this->toUC($row['last_name']);
+            $employeeArray[$primary_uid]['email'] = $row['primary_lu_email'];
+            $employeeArray[$primary_uid]['primary_affiliation'] = $row['primary_affiliation'];
+            $employeeArray[$primary_uid]['homepage'] = $row['homepage'];
+            $employeeArray[$primary_uid]['lang'] = $row['lang'];
+            $employeeArray[$primary_uid]['degree'] = utf8_encode($row['degree']);
+            $employeeArray[$primary_uid]['degree_en'] = utf8_encode($row['degree_en']);
+            $employeeArray[$primary_uid]['hide_on_web'] = $row['hide_on_web'];
+            $employeeArray[$primary_uid]['update_flag'] = $row['update_flag'];
+            $employeeArray[$primary_uid]['guid'] = $row['guid'];
+            
+                //arrays:
+            $employeeArray[$primary_uid]['room_number'][] = $row['room_number'];
+            $employeeArray[$primary_uid]['title'][] = utf8_encode($row['title']);
+            $employeeArray[$primary_uid]['title_en'][] = utf8_encode($row['title_en']);
+            $employeeArray[$primary_uid]['phone'][] = $row['phone'];
+            $employeeArray[$primary_uid]['mobile'][] = $row['mobile'];
+            $employeeArray[$primary_uid]['orgid'][] = $row['orgid'];
+            $employeeArray[$primary_uid]['orgid_legacy'][] = $row['orgid_legacy'];
+            $employeeArray[$primary_uid]['oname'][] = utf8_encode($row['oname']);
+            $employeeArray[$primary_uid]['oname_en'][] = utf8_encode($row['oname_en']);
+            $employeeArray[$primary_uid]['maildelivery'][] = $row['maildelivery'];
+
+        }
+        return $employeeArray;
+    }
+    
+    /*
+     * $sql = "SELECT 
+            P.id,
+            P.primary_uid, 
+            LCASE(P.first_name) AS first_name, 
+            LCASE(P.last_name) AS last_name, 
+            P.primary_affiliation, 
+            P.homepage, 
+            P.lang, 
+            P.degree, 
+            P.degree_en,
+            P.primary_lu_email,
+            NOT P.has_primary_vrole AS hide_on_web,
+            V.update_flag,
+            V.guid,
             V.room_number,
             GROUP_CONCAT(V.title SEPARATOR '###') AS title,
             GROUP_CONCAT(V.title_en SEPARATOR '###') AS title_en,
@@ -153,39 +218,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             LEFT JOIN lucache_vorg AS O ON V.orgid = O.orgid
             LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid
             GROUP BY V.uid";
-        
-        $res = mysqli_query($con, $sql) or die("156; ".mysqli_error());
-
-        while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
-            $employeeArray[$row['primary_uid']] = array(
-                'id' => $row['id'], 
-                'primary_uid' => $row['primary_uid'], 
-                'first_name' => $this->toUC($row['first_name']),
-                'last_name' => $this->toUC($row['last_name']), 
-                'email' => $row['primary_lu_email'],
-                'primary_affiliation' => $row['primary_affiliation'],
-                'homepage' => $row['homepage'], 
-                'lang' => $row['lang'], 
-                'degree' => utf8_encode($row['degree']), 
-                'degree_en' => utf8_encode($row['degree_en']),
-                'hide_on_web' => $row['hide_on_web'],
-                'update_flag' => $row['update_flag'],
-                'guid' => $row['guid'],
-                'room_number' => $row['room_number'],
-                //arrays:
-                'title' => utf8_encode($row['title']),
-                'title_en' => utf8_encode($row['title_en']),
-                'phone' => $row['phone'],
-                'mobile' => $row['mobile'],
-                'orgid' => $row['orgid'],
-                'orgid_legacy' => $row['orgid_legacy'],
-                'oname' => utf8_encode($row['oname']),
-                'oname_en' => utf8_encode($row['oname_en']),
-                'maildelivery' => $row['maildelivery']
-            );
-        }
-        return $employeeArray;
-    }
+     */
     
     
     private function getOrg($con)
@@ -458,32 +491,63 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                 foreach($employeeArray as $key => $value) {
                     if($value['id']) {
                         $heritage = array();
+                        $heritage2 = array();
                         $legacy = array();
 
-                        $orgidArray = explode('###', $value['orgid']);
+                        //$orgidArray = explode('###', $value['orgid']);
+                        $orgidArray = $value['orgid'];
                         foreach($orgidArray as $key1 => $value1) {
                             $heritage[] = $value1;
+                            $heritage2[$value1] = $value1;
                             $parent = $heritageArray[$value1];
-                            if($parent) $heritage[] = $parent;
+                            if($parent) { 
+                                $heritage[] = $parent;
+                                $heritage2[$value1] .= ',' . $parent;
+                            }
                             $parent = $heritageArray[$parent];
-                            if($parent) $heritage[] = $parent;
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritage2[$value1] .= ',' . $parent;
+                            }
                             $parent = $heritageArray[$parent];
-                            if($parent) $heritage[] = $parent;
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritage2[$value1] .= ',' . $parent;
+                            }
                             $parent = $heritageArray[$parent];
-                            if($parent) $heritage[] = $parent;
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritage2[$value1] .= ',' . $parent;
+                            }
                             $parent = $heritageArray[$parent];
-                            if($parent) $heritage[] = $parent;
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritage2[$value1] .= ',' . $parent;
+                            }
                             $parent = $heritageArray[$parent];
-                            if($parent) $heritage[] = $parent;
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritage2[$value1] .= ',' . $parent;
+                            }
                             $parent = $heritageArray[$parent];
-                            if($parent) $heritage[] = $parent;
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritage2[$value1] .= ',' . $parent;
+                            }
                             $parent = $heritageArray[$parent];
-                            if($parent) $heritage[] = $parent;
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritage2[$value1] .= ',' . $parent;
+                            }
                             $parent = $heritageArray[$parent];
-                            if($parent) $heritage[] = $parent;
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritage2[$value1] .= ',' . $parent;
+                            }
                         }
 
-                        $orgidLegacyArray = explode('###', $value['orgid_legacy']);
+                        //$orgidLegacyArray = explode('###', $value['orgid_legacy']);
+                        $orgidLegacyArray = $value['orgid_legacy'];
                         foreach($orgidLegacyArray as $key1 => $value1) {
                             $legacy[] = $value1;
                             $parent = $heritageLegacyArray[$value1];
@@ -520,8 +584,10 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
 
                         $standard_category_sv = array();
                         $standard_category_en = array();
-                        $titleArray = explode('###', $value['title']);
-                        $title_enArray = explode('###', $value['title_en']);
+                        //$titleArray = explode('###', $value['title']);
+                        $titleArray = $value['title'];
+                        //$title_enArray = explode('###', $value['title_en']);
+                        $title_enArray = $value['title_en'];
                         foreach($titleArray as $tkey => $tvalue) {
                             $standard_category_sv[] = $categoriesArray[$tvalue][0];
                             $standard_category_en[] = $categoriesArray[$tvalue][1];
@@ -590,19 +656,20 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                             //arrays:
                             'title' => $titleArray,
                             'title_en' => $title_enArray,
-                            'phone' => $this->fixArray(explode('###', $value['phone'])),
-                            'mobile' => $this->fixArray(explode('###', $value['mobile'])),
+                            'phone' => $value['phone'],
+                            'mobile' => $value['mobile'],
                             'room_number' => $value['room_number'],
-                            'orgid' => $this->fixArray(explode('###', $value['orgid'])),
-                            'oname' => $this->fixArray(explode('###', $value['oname'])),
-                            'oname_en' => $this->fixArray(explode('###', $value['oname_en'])),
-                            'maildelivery' => $this->fixArray(explode('###', $value['maildelivery'])),
+                            'orgid' => $value['orgid'],
+                            'oname' => $value['oname'],
+                            'oname_en' => $value['oname_en'],
+                            'maildelivery' => $value['maildelivery'],
                             //extra:
                             'image' => $value['image'],
                             'image_id' => $value['image_id'],
                             //'ltholr_intro_txt' => $value['lth_solr_intro'],
                             //'lth_solr_txt_t' => $value['lth_solr_txt'],
                             'usergroup' => $heritage,
+                            'heritage2' => $heritage2,
                             'boost' => '1.0',
                             'date' => $current_date,
                             'tstamp' => $current_date,

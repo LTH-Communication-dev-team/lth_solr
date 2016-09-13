@@ -1,20 +1,20 @@
 <table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
-    <thead><tr><th>Name</th></tr></thead>
+    <thead><tr><th></th></tr></thead>
     <tbody id="table_data_container">
         
     </tbody>
 </table>
 
 <script id="solrTemplate" type="text/x-jquery-templ">
-    <div class="">
-        <img class="align_left" src="###image_t###" style="width:100px;height:100px;" />
+    <div id="###id###" class="">
+        <img class="align_left" src="###image_t###" style="width:80px;height:100px;margin-left:10px;" />
         <h3>###display_name_t###</h3>
         <p>###title_t###, ###oname_t### ###room_number_s###</p>
         <p>
             <a href="mailto:###email_t###">###email_t###</a>
             ###phone_t###<br>
         </p>
-        <p>###lth_solr_intro###</p>
-        <p>###homepage_t###</p>
+        <p style="margin-left:90px;">###lth_solr_intro###</p>
+        <p style="margin-left:90px;">###homepage_t###</p>
     </div>
 </script>

@@ -61,3 +61,12 @@ and open the template in the editor.
 .solr-search-widget .sidebar {
     margin-top: 30px !important;
 }
+
+td.details-control {
+    background: url('details_open.png') no-repeat center center;
+    cursor: pointer;
+}
+
+tr.details td.details-control {
+    background: url('details_close.png') no-repeat center center;
+}

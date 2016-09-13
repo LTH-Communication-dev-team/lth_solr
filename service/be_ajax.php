@@ -45,10 +45,10 @@ class lth_solr_ajax {
             case 'updateHideonpage':
 		$content = $this->updateHideonpage($items, $pid, $value, $checked, $sys_language_uid, $config);
 		break;            
-	    /*case 'updateImage':
-		$content = $this->updateImage($catvalue, $username, $checked, $sys_language_uid, $pluginid, $i);
+	    case 'updateRedirect':
+		$content = $this->updateRedirect($items, $pid, $value, $config);
 		break;
-	    case 'updateText':
+	    /*case 'updateText':
 		$content = $this->updateText($catvalue, $username, $checked, $sys_language_uid, $pluginid, $i);
 		break;
              */
@@ -332,11 +332,11 @@ class lth_solr_ajax {
                 
             }
             if($identifier) {
-                $data['image_s'] = $identifier;
-                $data['image_id_s'] = $imageId;
+                $data['image'] = $identifier;
+                $data['image_id'] = $imageId;
             } else {
-                $data['image_s'] = '';
-                $data['image_id_s'] = '';                
+                $data['image'] = '';
+                $data['image_id'] = '';                
             }
             if($introText) {
                 $data[$introVar] = $introText;
@@ -392,84 +392,23 @@ class lth_solr_ajax {
         $returnArray['identifier'] = $identifier;
         return $returnArray;
     }
-
     
-    /*function updateText($strSave, $username, $checked, $sys_language, $pluginId, $i)
+    
+    function updateRedirect($items, $pid, $value, $config)
     {
-	$confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['institutioner']);
-    
-	if (!$confArr['solrServer']) {
-	    return 'Ange Solr-server';
-	}
-
-	if (!$confArr['solrPort']) {
-	    return 'Ange Solr-port';
-	}
-
-	if (!$confArr['solrPath']) {
-	    return 'Ange Solr-path';
-	}
-
-	$scheme = 'http';
-	
-	$solr = t3lib_div::makeInstance('tx_solr_ConnectionManager')->getConnection($confArr['solrServer'], $confArr['solrPort'], $confArr['solrPath'], $scheme);
-
-        $query = "id:$username";
-        $results = false;
-        $limit = 1;
- 
-        if (get_magic_quotes_gpc() == 1) {
-            $query = stripslashes($query);
-        }
+        $value = json_decode($value);
+        $url = $value[0];
+        $destination = $value[1];
         
-        try {
-            $response = $solr->search($query, 0, $limit);
+        if($url && $destination) {
+            $url = rtrim(ltrim($url,'/'),'/') . '/';
+            $updateInsertArray = array('url_hash' => hexdec(substr(md5($url), 0, 7)), 'url' => $url, 'destination' => $destination, 'last_referer' => '', 'has_moved' => 1, 'tstamp' => time());
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("url", "tx_realurl_redirects", "url='" . addslashes($url) . "'");
+            if($GLOBALS['TYPO3_DB']->sql_num_rows($res) > 0) {
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery("tx_realurl_redirects", "url='" . addslashes($url) . "'", $updateInsertArray);
+            } else {
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery("tx_realurl_redirects", $updateInsertArray); 
+            }     
         }
-        catch(Exception $e) {
-            return '180:' . $e->getMessage();
-            exit();
-        }
-        
-        if(isset($response->response->docs[0])) {
- 
-            //$docs = array();
-            foreach($response->response->docs as $document) {
-                $doc = array();
-                foreach($document as $field => $value) {
-                    $doc[$field] = $value;
-                }
-
-                $doc['staff_custom_text_'.$pluginId . '_s'] = $strSave;
-                
-                unset($doc['_version_']);
-                unset($doc['alphaNameSort']);
-            }
-
-	    $part = new Apache_Solr_Document();
-
-	    foreach ( $doc as $key => $value ) {
-		if ( is_array( $value ) ) {
-		    foreach ( $value as $data ) {
-			$part->setMultiValue( $key, $data );
-		    }
-		}
-		else {
-		    $part->$key = $value;
-		}
-	    }
-
-            try {
-                $solr->addDocument($part);
-                $solr->commit();
-                $solr->optimize();
-                $response = 'updateText done!';
-            }
-            catch ( Exception $e ) {
-                $response = $e->getMessage();
-            }
-        } else {
-            $response = "Kein Eintrag gefunden";
-        }
-	return $response;
-    }*/
+    }
 }

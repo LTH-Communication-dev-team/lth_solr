@@ -64,7 +64,12 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $introThisPage = $this->pi_getFFvalue($piFlexForm, "introthispage", "sDEF", $lDef[$index]);
             $addPeople = $this->pi_getFFvalue($piFlexForm, "addpeople", "sDEF", $lDef[$index]);
             $removePeople = $this->pi_getFFvalue($piFlexForm, "removepeople", "sDEF", $lDef[$index]);
-            
+            $detailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
+                array(
+                    'parameter' => $detailPage,
+                    'forceAbsoluteUrl' => true,
+                )
+            );
             $pid = $GLOBALS['TSFE']->page['pid'];
             //$solrId = t3lib_div::_GP('solrid');
             $link = $_SERVER['PHP_SELF'];
@@ -87,12 +92,13 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 $solrId = $query;
             }
             
+            
             /*load files needed for datatables*/
             $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";
             //$GLOBALS["TSFE"]->additionalHeaderData["buttons.bootstrap.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/buttons.bootstrap.min.css\" />";
             $GLOBALS["TSFE"]->additionalHeaderData["buttons.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/buttons.dataTables.min.css\" />";
             $GLOBALS["TSFE"]->additionalFooterData["jquery.dataTables.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/jquery.dataTables.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["dataTables.buttons.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.buttons.min.js\"></script>";
+            $GLOBALS["TSFE"]->additionalFooterData["dataTables.buttons.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.buttons.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["jszip.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["pdfmake.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["vfs_fonts.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js\"></script>";
@@ -127,15 +133,15 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/" . $html_template);
             
             if($solrId) {
-                $content .= '</div><input type="hidden" id="lth_solr_type" value="detail" />' .
-                        '<input type="hidden" id="lth_solr_scope" value="' . $solrId . '" />';
+                $content .= '</div><input type="hidden" id="lth_solr_action" value="showStaff" />' .
+                    '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />';
             } else {
                 $content .= '</div><div id="lth_solr_facet_container" style="margin-left:20px;" class="grid-8 omega"></div></div>
                     <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-                    <input type="hidden" id="lth_solr_detailpage" value="' . $detailPage . '" />
-                    <input type="hidden" id="sys_language_uid" value="' . $index . '" />
+                    <input type="hidden" id="lth_solr_detailpage" value="' . $detailUrl . '" />
+                    <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
                     <input type="hidden" id="pid" value="' . $pid . '" />
-                    <input type="hidden" id="lth_solr_type" value="list" />
+                    <input type="hidden" id="lth_solr_action" value="listStaff" />
                     <input type="hidden" id="lth_solr_categories" value="' . $categories . '" />
                     <input type="hidden" id="lth_solr_custom_categories" value="' . $customCategories . '" />
                     <input type="hidden" id="fe_user" value="' . $GLOBALS['TSFE']->fe_user->user . '" />

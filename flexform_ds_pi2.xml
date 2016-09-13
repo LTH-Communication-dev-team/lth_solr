@@ -234,7 +234,23 @@
     </ROOT>
 </manageStaffList>
 
-
+<manageStaffRedirects>
+    <ROOT>
+        <TCEforms>
+            <sheetTitle>Manage Staff Redirects</sheetTitle>
+        </TCEforms>
+        <el>
+            <dynField>
+                <TCEforms>
+                    <config>
+                        <type>user</type>
+                        <userFunc>user_sampleflex_addFieldsToFlexForm->manageStaffRedirects</userFunc>
+                    </config>
+                </TCEforms>
+            </dynField>
+        </el>
+    </ROOT>
+</manageStaffRedirects>
 
 </sheets>
 </T3DataStructure>

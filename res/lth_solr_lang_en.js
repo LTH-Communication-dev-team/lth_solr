@@ -5,7 +5,8 @@ var lth_solr_messages = {
     personal_homepage: "Personal homepage",
     room: "Room",
     phone: "Phone",
-    of: "of"
+    of: "of",
+    namelabel: "Name"
 };
 
 

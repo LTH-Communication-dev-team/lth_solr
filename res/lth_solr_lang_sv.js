@@ -5,7 +5,8 @@ var lth_solr_messages = {
     personal_homepage: "Personlig hemsida",
     room: "Rum",
     phone: "Telefon",
-    of: "av"
+    of: "av",
+    namelabel: "Namn"
 };
 
 

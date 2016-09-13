@@ -44,15 +44,21 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
         $current_date = gmDate("Y-m-d\TH:i:s\Z");
       
-        
-        
+        //$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops);
+        //$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops);
+        $this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops);
+        return TRUE;
+    }
+    
+    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops)
+    {
         
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //publications
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         //for($i = 0; $i < $numberofloops; $i++) {
-        for($i = 0; $i < 100; $i++) {
+        for($i = 0; $i < 150; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
             
             $startrecord = $i * $maximumrecords;
@@ -86,13 +92,15 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $organisationId = array();
                 $organisationName_en = array();
                 $organisationName_sv = array();
-                $externalOrganisations = array();
+                $externalOrganisationsName = array();
+                $externalOrganisationsId = array();
                 $keyword_en = array();
                 $keyword_sv = array();
                 $userDefinedKeyword = array();
                 $language_en = array();
                 $language_sv = array();
                 $pages;
+                $numberOfPages;
                 $volume;
                 $journalNumber;
                 $publicationStatus;
@@ -148,10 +156,6 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 }
                 
                 //Organisations
-                //                  foreach($content->children('publication-base_uk',true)->organisations->children('organisation-template',true)->association->
-                           // children('organisation-template',true)->organisation->children('organisation-template')->name->children('core')->localizedString as $localizedString) {
-
-
                 if($content->children('publication-base_uk',true)->organisations->children('organisation-template',true)->association) {
                     foreach($content->children('publication-base_uk',true)->organisations->children('organisation-template',true)->association as $association) {
                         $organisationId[] = $association->children('organisation-template',true)->organisation->attributes();
@@ -169,10 +173,13 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     }
                 }
                 
-                //External organizations
+                //External organisations
                 if($content->children('publication-base_uk',true)->associatedExternalOrganisations) {
-                    foreach($content->children('publication-base_uk',true)->associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name as $name) {
-                        $externalOrganisations[] = (string)$name;
+                    foreach($content->children('publication-base_uk',true)->associatedExternalOrganisations as $associatedExternalOrganisations) {
+                       $externalOrganisationsId[] = $associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->attributes();
+                        if($associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name) {
+                            $externalOrganisationsName[] = (string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name;
+                        }
                     }
                 }
                 
@@ -204,6 +211,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                         }
                     }
                 }
+                
+                //numberOfPages
+                $numberOfPages = (string)$content->children('publication-base_uk',true)->numberOfPages;
                 
                 //Pages
                 $pages = (string)$content->children('publication-base_uk',true)->pages;
@@ -258,12 +268,14 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'organisationId' => $organisationId,
                     'organisationName_en' => array_unique($organisationName_en),
                     'organisationName_sv' => array_unique($organisationName_sv),
-                    'externalOrganisations' => $externalOrganisations,
+                    'externalOrganisationsName' => $externalOrganisationsName,
+                    'externalOrganisationsId' => $externalOrganisationsId,
                     'keyword_en' => $keyword_en,
                     'keyword_sv' => $keyword_sv,
                     'userDefinedKeyword' => $userDefinedKeyword,
                     'language_en' => $language_en,
                     'language_sv' => $language_sv,
+                    'numberOfPages' => $numberOfPages,
                     'pages' => $pages,
                     'volume' => $volume,
                     'journalNumber' => $journalNumber,
@@ -291,24 +303,26 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
         }
         $buffer->commit();
+        return TRUE;
+    }
         
         
-        
-        
+    function getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops)
+    {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //organisations
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
+
         $numberofloops = 1;
-        $maximumrecords = 200;
+        $maximumrecords = 20;
         $i = 0;
         for($i = 0; $i < $numberofloops; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
-            
+
             $startrecord = $i * $maximumrecords;
             if($startrecord > 0) $startrecord++;
 
-            $xmlpath = "http://portal.research.lu.se/ws/rest/organisation?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id";
+            $xmlpath = "http://portal.research.lu.se/ws/rest/organisation?window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long&orderBy.property=id";
 
             try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
@@ -321,23 +335,26 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 return "no items";
             }
 
-            $numberofloops = ceil($xml->children('core', true)->count / 200);
+            $numberofloops = ceil($xml->children('core', true)->count / 20);
 
             foreach($xml->xpath('//core:result//core:content') as $content) {
                 $id;
                 $portalUrl;
                 $name_en;
                 $name_sv;
+                $organisationId = array();
+                $organisationName_en = array();
+                $organisationName_sv = array();
                 $typeClassification_en;
                 $typeClassification_sv;
                 $sourceId;
-                
+
                 //id
                 $id = (string)$content->attributes();
-                
+
                 //portalUrl
                 $portalUrl = (string)$content->children('core',true)->portalUrl;
-                
+
                 //name
                 if($content->children('stab1',true)->name) {
                     foreach($content->children('stab1',true)->name->children('core',true)->localizedString as $name) {
@@ -350,6 +367,23 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     }
                 }
                 
+                //organisation
+                if($content->children('stab1',true)->organisations) {
+                    foreach($content->children('stab1',true)->organisations->children('stab1',true)->organisation as $organisation) {
+                        $organisationId[] = (string)$organisation->attributes();
+                        if($organisation->children('stab1',true)->name) {
+                            foreach($organisation->children('stab1',true)->name->children('core',true) as $localizedString) {
+                                if($localizedString->attributes()->locale == 'en_GB') {
+                                    $organisationName_en[] = (string)$localizedString;
+                                }
+                                if($localizedString->attributes()->locale == 'sv_SE') {
+                                    $organisationName_sv[] = (string)$localizedString;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 //typeClassification
                 if($content->children('stab1',true)->typeClassification) {
                     foreach($content->children('stab1',true)->typeClassification->children('core',true)->term->children('core',true)->localizedString as $typeClassification) {
@@ -361,16 +395,19 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                         }
                     }
                 }
-                
+
                 //sourceId
                 $sourceId = (string)$content->children('stab1',true)->external->children('extensions-core',true)->sourceId;
-                
+
                 $data = array(
                     'id' => $id,
                     'doctype' => 'organisation',
                     'portalUrl' => $portalUrl,
                     'name_en' => $name_en,
                     'name_sv' => $name_sv,
+                    'organisationId' => $organisationId,
+                    'organisationName_en' => $organisationName_en,
+                    'organisationName_sv' => $organisationName_sv,
                     'typeClassification_en' => $typeClassification_en,
                     'typeClassification_sv' => $typeClassification_sv,
                     'sourceId' => $sourceId,
@@ -384,7 +421,141 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             }
         }
         $buffer->commit();
+        return TRUE;
+    }
 
+    
+    function getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops)
+    {
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //upmprojects
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        $numberofloops = 1;
+        $maximumrecords = 20;
+        $i = 0;
+        for($i = 0; $i < $numberofloops; $i++) {
+            //echo $i.':'. $numberofloops . '<br />';
+
+            $startrecord = $i * $maximumrecords;
+            if($startrecord > 0) $startrecord++;
+
+            $xmlpath = "http://portal.research.lu.se/ws/rest/upmprojects?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+
+            try {
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
+                $xml = new SimpleXMLElement($xmlpath, null, true);
+            } catch(Exception $e) {
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
+            }
+
+            if($xml->children('core', true)->count == 0) {
+                return "no items";
+            }
+
+            $numberofloops = ceil($xml->children('core', true)->count / 20);
+
+            foreach($xml->xpath('//core:result//core:content') as $content) {
+                $id;
+                $portalUrl;
+                $title_en;
+                $title_sv;
+                $organisationId = array();
+                $organisationName_en = array();
+                $organisationName_sv = array();
+                $participants = array();
+                $participantId = array();
+                $descriptions_en = array();
+                $descriptions_sv = array();
+
+                //id
+                $id = (string)$content->attributes();
+
+                //portalUrl
+                $portalUrl = (string)$content->children('core',true)->portalUrl;
+
+                //title
+                if($content->children('stab',true)->title) {
+                    foreach($content->children('stab',true)->title->children('core',true)->localizedString as $title) {
+                        if($title->attributes()->locale == 'en_GB') {
+                            $title_en = (string)$title;
+                        }
+                        if($title->attributes()->locale == 'sv_SE') {
+                            $title_sv = (string)$title;
+                        }
+                    }
+                }
+                
+                //descriptions
+                if($content->children('stab',true)->descriptions) {
+                    foreach($content->children('stab',true)->descriptions as $descriptions) {
+                        if($descriptions->children('extensions-core',true)->classificationDefinedField->children('extensions-core',true)->value) {
+                            foreach($descriptions->children('extensions-core',true)->classificationDefinedField->children('extensions-core',true)->value->children('core',true)->localizedString as $localizedString) {
+                                if($localizedString->attributes()->locale == 'en_GB') {
+                                    $descriptions_en[] = (string)$localizedString;
+                                }
+                                if($localizedString->attributes()->locale == 'sv_SE') {
+                                    $descriptions_sv[] = (string)$localizedString;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                //participants
+                if($content->children('stab',true)->participants) {
+                    foreach($content->children('stab',true)->participants->children('stab',true)->participantAssociation as $participantAssociation) {
+                        if($participantAssociation->children('person-template',true)->person) {
+                            $participantId[] = (string)$participantAssociation->children('person-template',true)->person->attributes();
+                            $participants[] = $participantAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName . ' ' . 
+                                    $participantAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                        }
+                    }
+                }
+
+                //organisations
+                if($content->children('stab',true)->organisations) {
+                    foreach($content->children('stab',true)->organisations->children('organisation-template',true)->organisation as $organisation) {
+                        $organisationId[] = (string)$organisation->attributes();
+                        if($organisation->children('organisation-template',true)->name) {
+                            foreach($organisation->children('organisation-template',true)->name->children('core',true) as $localizedString) {
+                                if($localizedString->attributes()->locale == 'en_GB') {
+                                    $organisationName_en[] = (string)$localizedString;
+                                }
+                                if($localizedString->attributes()->locale == 'sv_SE') {
+                                    $organisationName_sv[] = (string)$localizedString;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //sourceId
+                $sourceId = (string)$content->children('stab1',true)->external->children('extensions-core',true)->sourceId;
+
+                $data = array(
+                    'id' => $id,
+                    'doctype' => 'upmproject',
+                    'portalUrl' => $portalUrl,
+                    'title_en' => $title_en,
+                    'title_sv' => $title_sv,
+                    'organisationId' => $organisationId,
+                    'organisationName_en' => $organisationName_en,
+                    'organisationName_sv' => $organisationName_sv,
+                    'participants' => $participants,
+                    'participantId' => $participantId,
+                    'descriptions_en' => $descriptions_en,
+                    'descriptions_sv' => $descriptions_sv,
+                    'boost' => '1.0',
+                    'date' => $current_date,
+                    'tstamp' => $current_date,
+                    'digest' => md5($id)
+                );
+                //$this->debug($data);
+                $buffer->createDocument($data);
+            }
+        }
+        $buffer->commit();
         return TRUE;
     }
     
