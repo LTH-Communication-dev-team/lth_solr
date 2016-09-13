@@ -732,14 +732,14 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     }
     
     
-    private function getUids($inputString, $feGroupsArray)
+    private function getUids($inputArray, $feGroupsArray)
     {
         //print_r($feGroupsArray);
         //echo $inputString;
-        if($inputString) {
-            $loopArray = explode('###', $inputString);
+        if($inputArray) {
+            //$loopArray = explode('###', $inputString);
             $resArray = array();
-            foreach($loopArray as $key => $value) {
+            foreach($inputArray as $key => $value) {
                 //echo $value;$feGroupsArray['usergroup']
                 $group = $feGroupsArray[$value];
                 
