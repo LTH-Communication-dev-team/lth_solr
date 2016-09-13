@@ -447,6 +447,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     $employeeArray[$key]['lth_solr_intro'] = $feUsersArray[$key]['lth_solr_intro'];
                     $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
                 } else {
+                    echo '450' . $value['primary_uid'];
                     $insertArray = array(
                         'username' => $value['primary_uid'],
                         'password' => $this->setRandomPassword(),
