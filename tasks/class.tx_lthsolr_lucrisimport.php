@@ -58,7 +58,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         //for($i = 0; $i < $numberofloops; $i++) {
-        for($i = 0; $i < 150; $i++) {
+        for($i = 0; $i < 500; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
             
             $startrecord = $i * $maximumrecords;
