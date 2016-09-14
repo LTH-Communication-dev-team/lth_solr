@@ -219,7 +219,7 @@ function listStaff()
                     ],
                     data : d.data,
                     sPaginationType : "full_numbers",
-                    aaSorting: [[1,'asc'], [0,'asc']],
+                    aaSorting: [],//[[1,'asc'], [0,'asc']],
                     pageLength : 25,
                     //"bJQueryUI": true,
                     //"bDestroy": true,
@@ -311,18 +311,11 @@ function listStaff()
                                     if(aData[7]) oname_t = aData[7][i];
                                     if(aData[8]) oname_en_t = aData[8][i];
                                     if(aData[4]) phone = aData[4][i];
-                                    if(aData[14]) phone += aData[14][i];                                }
-                            }
-                        }
-                        
-                        if(aData[16]) {
-                            for (i = 0; i < aData[16].length; i++) {
-                                
-                                if(aData[16][i] === scope) {
-                                    
+                                    if(aData[14]) phone += aData[14][i];
                                 }
                             }
                         }
+                        
                         if(syslang == 'en' && title_en_t) {
                             title = title_en_t;
                         } else if(title_t) {
@@ -380,7 +373,7 @@ function listStaff()
                     }
                 });
                 
-                $('#lthsolr_table').on( 'click', 'tr', function () {
+                $('#lthsolr_table tbody').on( 'click', 'tr', function () {
                     var lth_solr_detailpage = $('#lth_solr_detailpage').val();
                     if ( $(this).hasClass('selected') ) {
                         $(this).removeClass('selected');
@@ -877,7 +870,7 @@ function createFacetClick(table)
             pageid : $('body').attr('id'),
             scope : $('#lth_solr_scope').val(),
             sys_language_uid : $('#sys_language_uid').val(),
-            action : 'facetSearch',
+            action : 'listStaff',
             custom_categories : $('#custom_categories').val(),
             facet : JSON.stringify(facet),
             sid : Math.random(),

@@ -196,7 +196,7 @@
 <manageStaffList>
     <ROOT>
         <TCEforms>
-            <sheetTitle>Manage Staff-Categories and Hide-on-this-page</sheetTitle>
+            <sheetTitle>Manage Staff-Categories, Hide-on-this-page and sorting</sheetTitle>
         </TCEforms>
         <el>
             <dynField>

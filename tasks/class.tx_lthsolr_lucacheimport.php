@@ -269,7 +269,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             $heritageArray[$row['orgid']] = $row['parent'];
             $heritageLegacyArray[$row['legacy_orgid']] = $row['legacy_parent'];
         }
-        //$this->debug($heritageArray);
+        //$this->debug($heritageLegacyArray);
         return array($heritageArray, $heritageLegacyArray);
     }
     

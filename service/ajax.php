@@ -669,7 +669,6 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
         } else {
             $catVal = 'lth_solr_cat_' . $pageid . '_ss';
         } 
-        
     }
 
     if(!$introThisPage || $introThisPage == '') {
@@ -686,15 +685,37 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
     // get a select query instance
     $query = $client->createSelect();
     
+    if($scope) {
+        $scopeArray = explode("\n", $scope);
+        $scope = '';
+        foreach($scopeArray as $key => $value) {
+            if($scope) {
+                $scope .= ' OR ';
+            } else {
+                $scope .= ' AND usergroup:';
+            }
+            $scope .= '"' . $value . '"';
+        }
+    }
+    
     if($addPeople) {
         $addPeopleArray = explode("\n", $addPeople);
         $addPeople = '';
         foreach($addPeopleArray as $key => $value) {
-            $addPeople .= ' OR id:' . $value;
+            if($addPeople) {
+                $addPeople .= ' OR ';
+            } else if($scope) {
+                $addPeople .= ' OR (id:';
+            } else {
+                $addPeople .= ' AND (id:';
+            }
+            $addPeople .= $value;
         }
+        $addPeople .= ')';
     }
     //$queryToSet = '(doctype_s:"lucat" AND usergroup_txt:'.$scope.' AND hide_on_web_i:0 AND -' . $hideVal . ':[* TO *])' . $addPeople;
-    $queryToSet = '(doctype:"lucat" AND usergroup:'.$scope.' AND hide_on_web:0 AND -' . $hideVal . ':[* TO *])' . $addPeople;
+    $queryToSet = '(doctype:"lucat"'.$scope.' AND hide_on_web:0 AND -' . $hideVal . ':[* TO *])' . $addPeople;
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
     $query->setQuery($queryToSet);
     
     // get the facetset component
@@ -703,12 +724,18 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
         $facetArray = json_decode($facet, true);
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facet, 'crdate' => time()));
 
-        $i=0;
+        $facetQuery = '';
         foreach($facetArray as $key => $value) {
             $facetTempArray = explode('###', $value);
-            $query->addFilterQuery(array('key' => $i, 'query' => $facetTempArray[0] . ':"' . $facetTempArray[1] . '"', 'tag'=>'inner'));
-            $i++;
+            if($facetQuery) {
+                $facetQuery .= ' OR ';
+            } else {
+                $facetQuery .= $facetTempArray[0] . ':';
+            }
+            $facetQuery .= '"' . $facetTempArray[1] . '"';
         }
+        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facetQuery, 'crdate' => time()));
+        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
     } else if($categories === 'standard_category') {
         $facetSet->createFacetField('standard')->setField($catVal);
     } else if($custom_categories) {
@@ -716,13 +743,8 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
     } else {
         $facetSet->createFacetField('title')->setField('title_sort');
     }
-    
-    //$lth_solr_sortorder = 'lth_solr_sort_' . $pageid . '_' . $sys_language_uid . '_i';
-    
+        
     $sortArray = array(
-        /*'lth_solr_sort_' . $pageid . '_i' => 'asc',
-        'last_name_s' => 'asc',
-        'first_name_s' => 'asc'*/
         'lth_solr_sort_' . $pageid . '_i' => 'asc',
         'last_name_sort' => 'asc',
         'first_name_sort' => 'asc'
@@ -730,7 +752,6 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
     
     //$query->addSort('last_name_s', $query::SORT_ASC);
     //$query->addSort('first_name_s', $query::SORT_ASC);
-    
     $query->addSorts($sortArray);
     
     $query->addParam('rows', 15000);
