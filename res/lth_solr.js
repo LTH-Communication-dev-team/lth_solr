@@ -573,7 +573,7 @@ function listPublications()
             dt.$('tr.selected').removeClass('selected');
             $(this).addClass('selected');
             var id = dt.row( this ).id();
-            window.location.href = lth_solr_detailpage + '?uuid=' + id;
+            window.location.href = lth_solr_detailpage + '?no_cache=1&uuid=' + id;
         }
     });
 }
@@ -626,7 +626,7 @@ function listProjects()
             dt.$('tr.selected').removeClass('selected');
             $(this).addClass('selected');
             var id = dt.row( this ).id();
-            window.location.href = lth_solr_detailpage + '?uuid=' + id;
+            window.location.href = lth_solr_detailpage + '?no_cache=1&uuid=' + id;
         }
     });
 }

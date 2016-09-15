@@ -381,7 +381,7 @@ function showPublication($term, $syslang, $config)
             $i=0;
             foreach ($authorNameArray as $key => $authorName) {
                 if($authors) $authors .= ', ';
-                $authors .= '<a href="testarea/solr/staff/detail/?uuid=' . $authorIdArray[$i] . '">' . $authorName . '</a>';
+                $authors .= '<a href="testarea/solr/staff/detail/?uuid=' . $authorIdArray[$i] . '">' . ucwords(strtolower($authorName)) . '</a>';
                 $i++;
             }
             
