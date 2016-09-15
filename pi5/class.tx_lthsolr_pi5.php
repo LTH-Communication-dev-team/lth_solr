@@ -50,7 +50,7 @@ class tx_lthsolr_pi5 extends tslib_pibase {
             $this->pi_loadLL();
             
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
-            
+            echo $uuid;
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
             if(!$syslang) {
                 $syslang = 'en';
