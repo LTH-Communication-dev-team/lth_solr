@@ -43,6 +43,7 @@ $categories = t3lib_div::_GP('categories');
 $categoriesThisPage = t3lib_div::_GP('categoriesThisPage');
 $introThisPage = t3lib_div::_GP('introThisPage');
 $addPeople = t3lib_div::_GP('addPeople');
+$detailPage = t3lib_div::_GP('detailPage');
 $sid = t3lib_div::_GP("sid");
 date_default_timezone_set('Europe/Stockholm');
 
@@ -70,7 +71,7 @@ switch($action) {
         $content = listPublications($scope, $syslang, $config);
         break;
     case 'showPublication':
-        $content = showPublication($scope, $syslang, $config);
+        $content = showPublication($scope, $syslang, $config, $detailPage);
         break;
     case 'listProjects':
         $content = listProjects($scope, $syslang, $config);
@@ -329,7 +330,7 @@ function listPublications($term, $syslang, $config)
 }
 
 
-function showPublication($term, $syslang, $config)
+function showPublication($term, $syslang, $config, $detailPage)
 {
     $client = new Solarium\Client($config);
 
@@ -381,7 +382,7 @@ function showPublication($term, $syslang, $config)
             $i=0;
             foreach ($authorNameArray as $key => $authorName) {
                 if($authors) $authors .= ', ';
-                $authors .= '<a href="testarea/solr/staff/detail/?uuid=' . $authorIdArray[$i] . '">' . ucwords(strtolower($authorName)) . '</a>';
+                $authors .= '<a href="' . $detailPage . '?no_cache=1&uuid=' . $authorIdArray[$i] . '">' . ucwords(strtolower($authorName)) . '</a>';
                 $i++;
             }
             

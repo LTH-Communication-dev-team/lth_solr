@@ -589,6 +589,7 @@ function showPublication()
             action : 'showPublication',
             scope : $('#lth_solr_uuid').val(),
             syslang : $('#lth_solr_syslang').val(),
+            detailPage: $('#lth_solr_detailpage').val(),
             sid : Math.random(),
         },
         //contentType: "application/json; charset=utf-8",

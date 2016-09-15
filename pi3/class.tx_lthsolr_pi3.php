@@ -95,7 +95,7 @@ class tx_lthsolr_pi3 extends tslib_pibase {
             $content = '';
 
             if($uuid) {
-                $content .= $this->showPublication($uuid, $syslang);
+                $content .= $this->showPublication($uuid, $detailUrl, $syslang);
             } else {
                 $content .= $this->listPublications($scope, $detailUrl, $syslang);
             }
@@ -106,9 +106,10 @@ class tx_lthsolr_pi3 extends tslib_pibase {
 	}
         
         
-        private function showPublication($uuid, $syslang)
+        private function showPublication($uuid, $detailUrl, $syslang)
         {
             $content = '<div id="lth_solr_container" ></div>
+                <input type="hidden" id="lth_solr_detailpage" value="' . $detailUrl . '" />
                     <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
                     <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
                     <input type="hidden" id="lth_solr_action" value="showPublication" />';
