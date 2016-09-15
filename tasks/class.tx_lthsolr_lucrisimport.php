@@ -33,7 +33,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         );
 
     
-	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout'] || !$settings['solrLucrisId'] || !$settings['solrLucrisPw']) {
 	    return 'Please make all settings in extension manager';
 	}
 
@@ -44,13 +44,13 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
         $current_date = gmDate("Y-m-d\TH:i:s\Z");
       
-        //$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops);
-        //$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops);
-        $this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops);
+        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
+        $this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
+        $this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
         return TRUE;
     }
     
-    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops)
+    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings)
     {
         
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,8 +63,11 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             
             $startrecord = $i * $maximumrecords;
             if($startrecord > 0) $startrecord++;
+            
+            $lucrisId = $settings['solrLucrisId'];
+            $lucrisPw = $settings['solrLucrisPw'];
 
-            $xmlpath = "http://portal.research.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
 
             try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
@@ -307,7 +310,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
         
         
-    function getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops)
+    function getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings)
     {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //organisations
@@ -322,7 +325,10 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $startrecord = $i * $maximumrecords;
             if($startrecord > 0) $startrecord++;
 
-            $xmlpath = "http://portal.research.lu.se/ws/rest/organisation?window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long&orderBy.property=id";
+            $lucrisId = $settings['solrLucrisId'];
+            $lucrisPw = $settings['solrLucrisPw'];
+
+            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/organisation?window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long&orderBy.property=id";
 
             try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
@@ -425,7 +431,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
 
     
-    function getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops)
+    function getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings)
     {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //upmprojects
@@ -440,7 +446,10 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $startrecord = $i * $maximumrecords;
             if($startrecord > 0) $startrecord++;
 
-            $xmlpath = "http://portal.research.lu.se/ws/rest/upmprojects?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            $lucrisId = $settings['solrLucrisId'];
+            $lucrisPw = $settings['solrLucrisPw'];
+
+            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/upmprojects?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
 
             try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));

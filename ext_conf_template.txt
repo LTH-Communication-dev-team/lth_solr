@@ -16,3 +16,7 @@ db=
 user=
   # cat=basic/dev/168; type=input; label=Solr pw
 pw=
+  # cat=basic/dev/169; type=input; label=Lucris Id
+solrLucrisId=
+  # cat=basic/dev/170; type=input; label=Lucris pw
+solrLucrisPw=
