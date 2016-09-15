@@ -51,13 +51,16 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
         
         // get an update query instance
         $update = $client->createUpdate();
+        
+        $lucrisId = $settings['solrLucrisId'];
+        $lucrisPw = $settings['solrLucrisPw'];
 
         for($i = 0; $i < $numberofloops; $i++) {
             
             $startrecord = $i * $maximumrecords;
             if($startrecord > 0) $startrecord++;
 
-            $xmlpath = "http://portal.research.lu.se/ws/rest/person?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id";
+            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/person?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id";
 
             try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
