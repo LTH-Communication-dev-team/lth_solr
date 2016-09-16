@@ -382,7 +382,7 @@ function showPublication($term, $syslang, $config, $detailPage)
             $i=0;
             foreach ($authorNameArray as $key => $authorName) {
                 if($authors) $authors .= ', ';
-                $authors .= '<a href="' . $detailPage . '?no_cache=1&uuid=' . $authorIdArray[$i] . '">' . ucwords(strtolower($authorName)) . '</a>';
+                $authors .= '<a href="' . $detailPage . '?no_cache=1&uuid=' . $authorIdArray[$i] . '">' . mb_convert_case(strtolower($authorName), MB_CASE_TITLE, "UTF-8") . '</a>';
                 $i++;
             }
             
@@ -820,8 +820,8 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
             fixString($intro_t),
             fixString($document->room_number_s),
             $document->mobile_txt*/
-            ucwords(strtolower($document->first_name)),
-            ucwords(strtolower($document->last_name)),
+            mb_convert_case(strtolower($document->first_name), MB_CASE_TITLE, "UTF-8"),
+            mb_convert_case(strtolower($document->last_name), MB_CASE_TITLE, "UTF-8"),
             $document->title,
             $document->title_en,
             $document->phone,

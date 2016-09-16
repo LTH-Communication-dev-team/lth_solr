@@ -56,7 +56,7 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
         $lucrisPw = $settings['solrLucrisPw'];
 
         for($i = 0; $i < $numberofloops; $i++) {
-            
+
             $startrecord = $i * $maximumrecords;
             if($startrecord > 0) $startrecord++;
 
@@ -83,7 +83,7 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
                 $ii++;
                 $sourceId = $content->children('stab1',true)->external->children('extensions-core',true)->sourceId;
                 $uuid = (string)$content->attributes();
-                
+echo $uuid;
                 if($sourceId && $uuid) {
                     $sourceIdArray = explode('@', $sourceId);
                     $sourceId = $sourceIdArray[0];
