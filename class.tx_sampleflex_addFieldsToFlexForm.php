@@ -771,7 +771,7 @@ class user_sampleflex_addFieldsToFlexForm {
                     $imageId = $document->image_id;
                 }
                 
-                $content .= '<td style="width: 100px;"><img src="' . $image . '" id="img_' . $document->id . '" data-imageId="'.$imageId.'" style="width:80px;height:100px;" /></td>';
+                $content .= '<td style="width: 100px;"><img src="' . $image . '" id="img_' . $document->id . '" data-imageId="'.$imageId.'" style="width:40px;height:50px;" /></td>';
                 
                 $content .= "<td><input type=\"button\" name=\"Edit\" id=\"lth_solr_edit_member_" . $document->id . "\" class=\"lth_solr_edit_member\" value=\"Edit\"></td>";
             

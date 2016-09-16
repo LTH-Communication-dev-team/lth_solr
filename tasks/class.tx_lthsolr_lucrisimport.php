@@ -469,6 +469,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $portalUrl;
                 $title_en;
                 $title_sv;
+                $startDate;
+                $endDate;
+                $status;
                 $organisationId = array();
                 $organisationName_en = array();
                 $organisationName_sv = array();
@@ -493,6 +496,17 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $title_sv = (string)$title;
                         }
                     }
+                }
+                
+                //startEndDate
+                if($content->children('stab',true)->startEndDate) {
+                    $startDate = $content->children('stab',true)->startEndDate->children('extension-core', true)->startDate;
+                    $endDate = $content->children('stab',true)->startEndDate->children('extension-core', true)->endDate;
+                }
+
+                //status
+                if($content->children('stab',true)->status) {
+                    $status = $content->children('stab',true)->status;
                 }
                 
                 //descriptions
@@ -548,6 +562,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'portalUrl' => $portalUrl,
                     'title_en' => $title_en,
                     'title_sv' => $title_sv,
+                    'startDate' => $startDate,
+                    'endDate' => $endDate,
+                    'status' => $status,
                     'organisationId' => $organisationId,
                     'organisationName_en' => $organisationName_en,
                     'organisationName_sv' => $organisationName_sv,
