@@ -353,7 +353,7 @@ function listStaff()
                         template = template.replace('###primary_affiliation_t###', aData[9]);
                         
                         if(aData[10]) {
-                            homePage = lth_solr_messages.personal_homepage + ': <a href="' + aData[10] + '">' + aData[10] + '</a>';
+                            homePage = lth_solr_messages.personal_homepage + ': <a data-homepage="' + aData[10] + '" href="' + aData[10] + '">' + aData[10] + '</a>';
                         } else if(aData[15]) {
                             homePage = '<a href="' + window.location.href + 'presentation_single_person_right?query='+aData[15]+'&action=detail&sid='+Math.random()+'">Läs mer om ' + display_name_t + '</a>';
                         }
@@ -382,7 +382,11 @@ function listStaff()
                         $(this).addClass('selected');
                         var id = $(this).find('div').attr('id');
                         //console.log(id);
-                        window.location.href = lth_solr_detailpage + '?no_cache=1&uuid=' + id;
+                        if($(this).find('[data-homepage]').attr('href')) {
+                            window.location.href = $(this).find('[data-homepage]').attr('href');
+                        } else {
+                            window.location.href = lth_solr_detailpage + '?no_cache=1&uuid=' + id;
+                        }
                     }
                 });
                 

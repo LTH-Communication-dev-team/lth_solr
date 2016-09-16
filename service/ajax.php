@@ -735,7 +735,7 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
             }
             $facetQuery .= '"' . $facetTempArray[1] . '"';
         }
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facetQuery, 'crdate' => time()));
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facetQuery, 'crdate' => time()));
         $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
     } else if($categories === 'standard_category') {
         $facetSet->createFacetField('standard')->setField($catVal);
