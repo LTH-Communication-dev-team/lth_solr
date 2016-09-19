@@ -64,6 +64,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $introThisPage = $this->pi_getFFvalue($piFlexForm, "introthispage", "sDEF", $lDef[$index]);
             $addPeople = $this->pi_getFFvalue($piFlexForm, "addpeople", "sDEF", $lDef[$index]);
             $removePeople = $this->pi_getFFvalue($piFlexForm, "removepeople", "sDEF", $lDef[$index]);
+            $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             $detailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
                 array(
                     'parameter' => $detailPage,
@@ -149,6 +150,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                     <input type="hidden" id="categoriesThisPage" value="' . $categoriesThisPage . '" />
                     <input type="hidden" id="introThisPage" value="' . $introThisPage . '" />
                     <input type="hidden" id="addPeople" value="' . $addPeople . '" />
+                    <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />    
                     <div class="csc-default">&nbsp;</div>';
             }
             

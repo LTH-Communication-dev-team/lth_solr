@@ -58,24 +58,6 @@
              </TCEforms>
          </html_template>
 
-         <!-- <luppage>
-             <TCEforms>
-                <label>Page with LUP (ajax_lup)</label>
-                <config>
-                    <type>group</type>
-                    <internal_type>db</internal_type>
-                    <allowed>pages</allowed>
-                    <size>1</size>
-                    <maxitems>1</maxitems>
-                    <minitems>0</minitems>
-                    <show_thumbs>0</show_thumbs>
-                </config>
-             </TCEforms>
-         </luppage>
-         
--->
-
-         
          <detailpage>
              <TCEforms>
                 <label>Page with details</label>
@@ -149,6 +131,38 @@
 		</config>
             </TCEforms>
         </customcategories>
+        
+        <noItemsToShow>
+             <TCEforms>
+                <label>No of items to show</label>
+                <config>
+                <type>select</type>
+                <items type="array">
+                <numIndex index="0" type="array">
+                <numIndex index="0">10</numIndex>
+                <numIndex index="1">10</numIndex>
+                </numIndex>
+                <numIndex index="1" type="array">
+                <numIndex index="0">25</numIndex>
+                <numIndex index="1">25</numIndex>
+                </numIndex>
+                <numIndex index="2" type="array">
+                <numIndex index="0">50</numIndex>
+                <numIndex index="1">50</numIndex>
+                </numIndex>
+                <numIndex index="3" type="array">
+                <numIndex index="0">All</numIndex>
+                <numIndex index="1">-1</numIndex>
+                </numIndex>
+                </items>
+                <maxitems>1</maxitems>
+                <size>1</size>
+                <default>25</default>
+                <selectedListStyle>width:200px</selectedListStyle>
+                <itemListStyle>width:200px</itemListStyle>
+                </config>
+             </TCEforms>
+         </noItemsToShow>
         
         <categoriesthispage>
              <TCEforms>

@@ -220,7 +220,7 @@ function listStaff()
                     data : d.data,
                     sPaginationType : "full_numbers",
                     aaSorting: [],//[[1,'asc'], [0,'asc']],
-                    pageLength : 25,
+                    pageLength : parseInt($('#lth_solr_no_items').val()),
                     //"bJQueryUI": true,
                     //"bDestroy": true,
                     dom : 'lBfrtip',
@@ -558,7 +558,11 @@ function format ( d ) {
 
 function listPublications()
 {
+    var syslang = $('#lth_solr_syslang').val();
     var dt = $('#lthsolr_table').DataTable({
+        language: {
+            url: 'typo3conf/ext/lth_solr/res/datatables_' + syslang + '.json'
+        },
         //"processing": true,
         //"serverSide": true,
         "ajax": "index.php?eID=lth_solr&action=listPublications&table_length=10&scope=" + $('#lth_solr_scope').val() + "&sys_language_uid=" + $('#sys_language_uid').val() + "&sid=" +  Math.random(),
@@ -614,13 +618,20 @@ function showPublication()
 
 function listProjects()
 {
+    var syslang = $('#lth_solr_syslang').val();
     var dt = $('#lthsolr_table').DataTable({
+        language: {
+            url: 'typo3conf/ext/lth_solr/res/datatables_' + syslang + '.json'
+        },        
         //"processing": true,
         //"serverSide": true,
         "ajax": "index.php?eID=lth_solr&action=listProjects&table_length=10&scope=" + $('#lth_solr_scope').val() + "&sys_language_uid=" + $('#sys_language_uid').val() + "&sid=" +  Math.random(),
         "columns": [
             { "data": "title" },
-            { "data": "participants" }
+            { "data": "participants" },
+            { "data": "projectStartDate" },
+            { "data": "projectEndDate" },
+            { "data": "projectStatus" }
         ]
     });
     $('#lthsolr_table').on( 'click', 'tr', function () {
@@ -795,7 +806,7 @@ function showStaff()
                 $('#lthsolr_person_table tbody').html(template);
             }
 
-            if(d.publicationData) {
+            if(d.publicationData.length > 0) {
                 var dpu = $('#lthsolr_publication_table').DataTable({
                     //"processing": true,
                     //"serverSide": true,
@@ -817,9 +828,12 @@ function showStaff()
                         window.location.href = '/testarea/solr/publications/detail?uuid=' + id;
                     }
                 });
+            } else {
+                $('#lthsolr_publication_table').prev().remove();
+                $('#lthsolr_publication_table').remove();
             }
             
-            if(d.projectData) {
+            if(d.projectData.length > 0) {
                 var dpa = $('#lthsolr_project_table').DataTable({
                     //"processing": true,
                     //"serverSide": true,
@@ -839,6 +853,9 @@ function showStaff()
                         window.location.href = '/testarea/solr/projects/detail?uuid=' + id;
                     }
                 });
+            } else {
+                $('#lthsolr_project_table').prev().remove();
+                $('#lthsolr_project_table').remove();
             }
             
         },

@@ -95,9 +95,9 @@ class tx_lthsolr_pi4 extends tslib_pibase {
             $content = '';
                                 
             if($uuid) {
-                $content .= $this->showProject($uuid);
+                $content .= $this->showProject($uuid, $syslang);
             } else {
-                $content .= $this->listProjects($scope, $detailUrl);
+                $content .= $this->listProjects($scope, $detailUrl, $syslang);
             }
         
             //$this->debug($content);
@@ -106,26 +106,28 @@ class tx_lthsolr_pi4 extends tslib_pibase {
 	}
         
         
-        private function showProject($uuid)
+        private function showProject($uuid, $syslang)
         {
             $content = '<div id="lth_solr_container" ></div>
                     <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
-                    <input type="hidden" id="lth_solr_action" value="showProject" />';
+                    <input type="hidden" id="lth_solr_action" value="showProject" />
+                    <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />';
             return $content;
         }
         
         
-        private function listProjects($scope, $detailUrl)
+        private function listProjects($scope, $detailUrl, $syslang)
         {
             $content = '<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
-                <thead><tr><th></th><th>Title</th></tr></thead>
+                <thead><tr><th>Title</th><th>Participants</th><th>Start date</th><th>End date</th><th>Status</th></tr></thead>
                 <tbody id="table_data_container">
                 </tbody>
             </table>';
             $content .= '<div id="lth_solr_facet_container" style="margin-left:20px;" class="grid-8 omega"></div>
                     <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
                     <input type="hidden" id="lth_solr_detailpage" value="' . $detailUrl . '" />
-                    <input type="hidden" id="lth_solr_action" value="listProjects" />';
+                    <input type="hidden" id="lth_solr_action" value="listProjects" />
+                    <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />';
             return $content;
         }
         

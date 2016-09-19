@@ -44,8 +44,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
         $current_date = gmDate("Y-m-d\TH:i:s\Z");
       
-        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
-        $this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
+        #$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
+        #$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
         $this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
         return TRUE;
     }
@@ -500,8 +500,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 
                 //startEndDate
                 if($content->children('stab',true)->startEndDate) {
-                    $startDate = $content->children('stab',true)->startEndDate->children('extension-core', true)->startDate;
-                    $endDate = $content->children('stab',true)->startEndDate->children('extension-core', true)->endDate;
+                    $startDate = $content->children('stab',true)->startEndDate->children('extensions-core', true)->startDate;
+                    $endDate = $content->children('stab',true)->startEndDate->children('extensions-core', true)->endDate;
                 }
 
                 //status
@@ -562,9 +562,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'portalUrl' => $portalUrl,
                     'title_en' => $title_en,
                     'title_sv' => $title_sv,
-                    'startDate' => $startDate,
-                    'endDate' => $endDate,
-                    'status' => $status,
+                    'projectStartDate' => $this->makeGmDate($startDate),
+                    'projectEndDate' => $this->makeGmDate($endDate),
+                    'projectStatus' => $status,
                     'organisationId' => $organisationId,
                     'organisationName_en' => $organisationName_en,
                     'organisationName_sv' => $organisationName_sv,
@@ -583,6 +583,15 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         }
         $buffer->commit();
         return TRUE;
+    }
+    
+    
+    private function makeGmDate($input)
+    {
+        if($input) {
+            $input = gmDate("Y-m-d\TH:i:s\Z", strtotime($input));
+        }
+        return $input;
     }
     
     private function debug($input)

@@ -481,7 +481,10 @@ function listProjects($term, $syslang, $config)
  */
             'DT_RowId' => $document->id,
             'title' => fixArray($document->title_en),
-            'participants' => ucwords(strtolower(fixArray($document->participants)))
+            'participants' => ucwords(strtolower(fixArray($document->participants))),
+            'projectStartDate' => substr($document->projectStartDate,0,10).'',
+            'projectEndDate' => substr($document->projectEndDate,0,10).'',
+            'projectStatus' => ucwords($document->projectStatus)
         );
     }
     $resArray = array('data' => $data, 'draw'=> 1, 'recordsTotal'=> $numfound, 'recordsFiltered'=> $numfound, 'facet' => $facetResult, 'draw' => 1);
@@ -551,8 +554,8 @@ function showProject($term, $syslang, $config)
             }
             
             $content .= "<table>";
-            $content .= "<tr><th>Participants</th><td>$participants</td></tr>";
             $content .= "<tr><th>Description</th><td>$description</td></tr>";
+            $content .= "<tr><th>Participants</th><td>$participants</td></tr>";
             $content .= "</table>";
     }
     $resArray = array('data' => $content, 'title' => $title);
