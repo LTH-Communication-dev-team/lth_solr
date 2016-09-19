@@ -588,10 +588,13 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     
     private function makeGmDate($input)
     {
-        if($input) {
+        if($input && $input != '') {
             $input = gmDate("Y-m-d\TH:i:s\Z", strtotime($input));
+            return $input;
+        } else {
+            return null;
         }
-        return $input;
+        
     }
     
     private function debug($input)
