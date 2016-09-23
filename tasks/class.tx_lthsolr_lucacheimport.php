@@ -661,6 +661,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                             'orgid' => $value['orgid'],
                             'oname' => $value['oname'],
                             'oname_en' => $value['oname_en'],
+                            'oname_sort' => $value['oname'],
+                            'oname_sort_en' => $value['oname_en'],
                             'maildelivery' => $value['maildelivery'],
                             //extra:
                             'image' => $value['image'],

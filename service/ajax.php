@@ -27,7 +27,7 @@ $query = '';
 $action = '';
 $sid = '';
 
-$term = htmlspecialchars(t3lib_div::_GP("term"));
+$term = t3lib_div::_GP("term");
 $peopleOffset = htmlspecialchars(t3lib_div::_GP("peopleOffset"));
 $documentsOffset = htmlspecialchars(t3lib_div::_GP("documentsOffset"));
 $query = htmlspecialchars(t3lib_div::_GP("query"));
@@ -101,29 +101,42 @@ function searchShort($term, $config)
     $client = new Solarium\Client($config);
 
     $query = $client->createSelect();
+    
+    $term = trim($term);
 
     $groupComponent = $query->getGrouping();
-    $groupComponent->addQuery('display_name:*' . $term . '* OR phone:*' . $term . '* OR email:*' . $term . '*');
-    $groupComponent->addQuery('content:*' . $term . '*');
+    $groupComponent->addQuery('display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '"');
+    $groupComponent->addQuery('content:*' . str_replace(' ','\\ ',$term) . '*');
     $groupComponent->setSort('last_name_sort asc');
     $groupComponent->setLimit(5);    
     $resultset = $client->select($query);
     $groups = $resultset->getGrouping();
     foreach ($groups as $groupKey => $group) {
         foreach ($group as $document) {        
-            $id = $document->id;
+            
             $doktype = $document->doctype;
+            
             if($doktype === 'lucat') {
+                $id = $document->uuid;
+                $value = $document->uuid;
                 $label = fixArray($document->display_name);
+                $data[] = array(
+                    'id' => $id,
+                    'label' => $label,
+                    'value' => $value 
+                );
             } else {
+                $id = $document->id;
+                $value = $document->id;
                 $label = fixArray($document->title);
+                    $data[] = array(
+                    'id' => $id,
+                    'label' => $label,
+                    'value' => $value 
+                );
             }
-            $value = $document->id;
-            $data[] = array(
-                'id' => $id,
-                'label' => $label,
-                'value' => $value 
-            );
+            
+            
         }
     }
     return json_encode($data);
@@ -144,12 +157,16 @@ function searchLong($term, $config)
     $url;
     $introText;
     
+    $facetResult = array();
+    
     $client = new Solarium\Client($config);
     $query = $client->createSelect();
+    
+    $term = trim($term);
 
     $groupComponent = $query->getGrouping();
-    $groupComponent->addQuery('display_name:*' . $term . '* OR phone:*' . $term . '* OR email:' . $term);
-    $groupComponent->addQuery('content:*' . $term . '*');
+    $groupComponent->addQuery('display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '"');
+    $groupComponent->addQuery('content:' . $term);
     $groupComponent->setSort('last_name_sort asc');
     $groupComponent->setLimit(5);
     $resultset = $client->select($query);
@@ -168,9 +185,10 @@ function searchLong($term, $config)
                 $phone = fixArray($document->phone);
                 //$image = $document->image;
                 $oname = fixArray($document->oname);
+                $facetResult[] = fixArray($document->oname);
                 $title = fixArray($document->title);
                 $room_number = $document->room_number;
-                if($room_number) $room_number = " (Rum $room_number)";
+                if($room_number) $room_number = " (Rum " . fixArray($room_number) . ")";
                 $people .= '<li>';
                 /*if($image) $people .= '<img class="align_left" src="' . $image . '" style="width:100px;height:100px;" />';
                 $people .= "<h3>$display_name</h3>";
@@ -198,13 +216,22 @@ function searchLong($term, $config)
             }
         }
     }
+
     if($people && $peopleNumFound > 5) {
-        $people .= "<li id=\"morePeople\"><a href=\"#\" onclick=\"searchResult('$term', 'searchMorePeople', 5, 5); return false;\">Visa fler</a></li>";
+        $people .= "<li id=\"morePeople\"><a href=\"#\" onclick=\"searchLong('$term', 'searchMorePeople', 5, 5); return false;\">Visa fler</a></li>";
     }
     if($documents && $documentsNumFound > 5) {
-        $documents .= "<li id=\"moreDocuments\"><a href=\"#\" onclick=\"searchResult('$term', 'searchMoreDocuments', 5, 5); return false;\">Visa fler</a></li>";
+        $documents .= "<li id=\"moreDocuments\"><a href=\"#\" onclick=\"searchLong('$term', 'searchMoreDocuments', 5, 5); return false;\">Visa fler</a></li>";
     }
-    return json_encode(array('people' => $people, 'peopleNumFound' => $peopleNumFound, 'documents' => $documents, 'documentsNumFound' => $documentsNumFound, 'facet' => $facet));
+    $facetResult = array_unique($facetResult);
+
+    return json_encode(array('people' => $people, 'peopleNumFound' => $peopleNumFound, 'documents' => removeInvalidChars($documents), 'documentsNumFound' => $documentsNumFound, 'facet' => $facetResult));
+}
+
+
+function removeInvalidChars( $text) {
+    $regex = '/( [\x00-\x7F] | [\xC0-\xDF][\x80-\xBF] | [\xE0-\xEF][\x80-\xBF]{2} | [\xF0-\xF7][\x80-\xBF]{3} ) | ./x';
+    return preg_replace($regex, '$1', $text);
 }
 
 
@@ -395,13 +422,15 @@ function showPublication($term, $syslang, $config, $detailPage)
                 $i++;
             }
             
-            $externalOrganisationsNameArray = $document->externalOrganisationsName;
-            $externalOrganisationsIdArray = $document->externalOrganisationsId;
-            $i=0;
-            foreach($externalOrganisationsNameArray as $key => $externalOrganisationsName) {
-                if($externalOrganisations) $externalOrganisations .= ', ';
-                $externalOrganisations .= '<a href="' . $externalOrganisationsIdArray[$i] . '">' . $externalOrganisationsName . '</a>';
-                $i++;
+            if($document->externalOrganisationsName) {
+                $externalOrganisationsNameArray = $document->externalOrganisationsName;
+                $externalOrganisationsIdArray = $document->externalOrganisationsId;
+                $i=0;
+                foreach($externalOrganisationsNameArray as $key => $externalOrganisationsName) {
+                    if($externalOrganisations) $externalOrganisations .= ', ';
+                    $externalOrganisations .= '<a href="' . $externalOrganisationsIdArray[$i] . '">' . $externalOrganisationsName . '</a>';
+                    $i++;
+                }
             }
             
             $publicationType = fixArray($document->$publicationTypeHolder);
@@ -484,7 +513,7 @@ function listProjects($term, $syslang, $config)
             'participants' => ucwords(strtolower(fixArray($document->participants))),
             'projectStartDate' => substr($document->projectStartDate,0,10).'',
             'projectEndDate' => substr($document->projectEndDate,0,10).'',
-            'projectStatus' => ucwords($document->projectStatus)
+            'projectStatus' => ucwords(strtolower(str_replace('_',' ',$document->projectStatus)))
         );
     }
     $resArray = array('data' => $data, 'draw'=> 1, 'recordsTotal'=> $numfound, 'recordsFiltered'=> $numfound, 'facet' => $facetResult, 'draw' => 1);
@@ -836,7 +865,7 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
             $document->homepage,
             $image,
             $intro_t,
-            array_unique($document->room_number),
+            fixRoomNumber($document->room_number),
             $document->mobile,
             $document->uuid,
             $document->orgid,
@@ -849,13 +878,12 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
 }
 
 
-function roomWrap($input)
+function fixRoomNumber($input)
 {
-    if(input=='') {
-        return '';
-    } else {
-        return " (Rum $input)";
+    if(is_array($input)) {
+        $input = array_unique($input);
     }
+    return $input;
 }
 
 

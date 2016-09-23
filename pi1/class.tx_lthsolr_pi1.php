@@ -52,10 +52,19 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             $staffDetailPage = $this->conf["staffDetailPage"];
             $siteDetailPage = $this->conf["siteDetailPage"];
             
+            $syslang = $GLOBALS['TSFE']->config['config']['language'];
+            if(!$syslang) {
+                $syslang = 'en';
+            }
+            if($syslang=='se') {
+                $syslang='sv';
+            }
+            
                 //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
-             
+            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
+
             $query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
             $tab = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tab');
             
@@ -78,8 +87,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             $content = '';
             $content .= 
                    // . '<input type="button" onclick="widget(\'tomas\');" name="send" value="Search" />'
-                    '<div id="solrsearchresult" class="item-list"><form><input type="hidden" id="query" name="query" value="' . $query . '" /></form></div>'
-                    . '';
+                    '<div id="solrsearchresult" class="item-list grid-18"></div><div id="lth_solr_facet_container" style="margin-left:20px;" class="grid-8 omega"></div>';
             return $content;
         }
         
@@ -102,6 +110,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
         {
             $content = '<form action="" method="post" accept-charset="UTF-8">
             <div class="form-item form-type-textfield form-item-search" role="application">
+            <input type="hidden" id="query" name="query" value="' . $query . '" />
                 <input type="text" id="searchSiteMain" name="search" value="' . $query . '" />
                 <input type="submit" id="edit-submit" name="op" value="Sök" class="form-submit" />
                 <input type="hidden" id="query" name="query" value="' . $query . '" />

@@ -8,7 +8,7 @@ $(document).ready(function() {
 
     if($('#query').val()) {
         //widget($('#query').val());
-        searchResult($('#query').val(), 'searchLong', 0, 0);
+        searchLong($('#query').val(), 'searchLong', 0, 0);
     }
     
     if($('#lth_solr_action').val() == 'listStaff') {
@@ -304,14 +304,24 @@ function listStaff()
                         
                         if(aData[17]) {
                             for (i = 0; i < aData[17].length; i++) {
-                                //console.log(display_name_t + aData[17][i]);
+                                //console.log(aData[4]+';'+i);
                                 if(inArray(scope, aData[17][i].split(','))) {
                                     if(aData[2]) title_t = aData[2][i];
                                     if(aData[3]) title_en_t = aData[3][i];
                                     if(aData[7]) oname_t = aData[7][i];
                                     if(aData[8]) oname_en_t = aData[8][i];
-                                    if(aData[4]) phone = aData[4][i];
-                                    if(aData[14]) phone += aData[14][i];
+                                    if(aData[4]) {
+                                        phone = aData[4][i];
+                                        if(!phone) {
+                                            phone = aData[4][0];
+                                        }
+                                    }
+                                    if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
+                                    if(aData[14]) {
+                                        if(phone) phone += ', ';
+                                        phone += aData[14][i];
+                                    }
+                                    
                                 }
                             }
                         }
@@ -425,9 +435,9 @@ function showMore()
 }
 
 
-function searchResult(term, action, peopleOffset, documentsOffset)
+function searchLong(term, action, peopleOffset, documentsOffset)
 {
-    console.log(peopleOffset + ',' + documentsOffset);
+    //console.log(peopleOffset + ',' + documentsOffset);
     $.ajax({
         type : 'POST',
         url : 'index.php',
@@ -469,6 +479,27 @@ function searchResult(term, action, peopleOffset, documentsOffset)
 
             if(peopleOffset == 0 && documentsOffset == 0) $('#solrsearchresult').html('');
             
+            if(d.facet) {
+                $.each( d.facet, function( key, value ) {
+                    //console.log(value);
+                    //$.each( value, function( key1, value1 ) {
+                        if(i > 5) {
+                            maxClass = ' class="maxlist-hidden"';
+                            more = '<p class="maxlist-more"><a href="#">' + lth_solr_messages.show_all + '</a></p>';
+                        }
+
+                       // if(parseInt(value[1]) > 0) {
+                            content += '<li' + maxClass + '>' + value;
+                            content += '<input type="checkbox" class="lth_solr_facet" name="lth_solr_facet" value="' + value + '"></li>';
+                       // }
+                        i++;
+                    //});
+
+                });
+                $('#lth_solr_facet_container').append('<div class="item-list"><ul><li><b>' + lth_solr_messages.staff_categories + '</b></li>' + content + '</ul>' + more + '</div>');
+                    i=0;
+            }
+            
             if(d.people) {
                 if(peopleOffset > 0) {
                     $('#morePeople').before(d.people);
@@ -491,32 +522,9 @@ function searchResult(term, action, peopleOffset, documentsOffset)
                         $('#moreDocuments').html('');
                     }
                 } else {
+                    //console.log(decodeURI(d.documents));
                     $('#solrsearchresult').append('<ul><li><h2>DOCUMENTS</h2>(' + d.documentsNumFound + ' hits)</li>' + d.documents + '</ul>');
                 }
-            }
-
-            if(d.facet) {
-                $.each( d.facet, function( key, value ) {
-                    $.each( value, function( key1, value1 ) {
-                        if(i > 5) {
-                            maxClass = ' class="maxlist-hidden"';
-                            more = '<p class="maxlist-more"><a href="#">' + lth_solr_messages.show_all + '</a></p>';
-                        }
-
-                        facet = value1[0];
-                        count = value1[1];
-                        if(parseInt(value1[1]) > 0) {
-                            content += '<li' + maxClass + '>' + facet.split('$').shift().capitalize().replace(/_/g, ' ') + ' [' + count + '] ';
-                            content += '<input type="checkbox" class="lth_solr_facet" name="lth_solr_facet" value="' + key.split('$').shift() + '###' + facet.split('$').shift() + '"></li>';
-                        }
-                        i++;
-                    });
-                    $('#lth_solr_facet_container').append('<div class="item-list"><ul><li><b>' + lth_solr_messages.staff_categories + '</b></li>' + content + '</ul>' + more + '</div>');
-                    i=0;
-                    maxClass='';
-                    more='';
-                    content = '';
-                });
             }
         },
         failure: function(errMsg) {
@@ -573,7 +581,7 @@ function listPublications()
             { "data": "publicationDateYear" }
         ]
     });
-    $('#lthsolr_table').on( 'click', 'tr', function () {
+    $('#lthsolr_table tbody').on( 'click', 'tr', function () {
         var lth_solr_detailpage = $('#lth_solr_detailpage').val();
         if ( $(this).hasClass('selected') ) {
             $(this).removeClass('selected');
@@ -634,7 +642,7 @@ function listProjects()
             { "data": "projectStatus" }
         ]
     });
-    $('#lthsolr_table').on( 'click', 'tr', function () {
+    $('#lthsolr_table tbody').on( 'click', 'tr', function () {
         var lth_solr_detailpage = $('#lth_solr_detailpage').val();
         if ( $(this).hasClass('selected') ) {
             $(this).removeClass('selected');

@@ -44,9 +44,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
         $current_date = gmDate("Y-m-d\TH:i:s\Z");
       
-        #$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
+        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
         #$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
-        $this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
+        #$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
         return TRUE;
     }
     
@@ -58,7 +58,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         //for($i = 0; $i < $numberofloops; $i++) {
-        for($i = 0; $i < 500; $i++) {
+        for($i = 0; $i < 2500; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
             
             $startrecord = $i * $maximumrecords;
