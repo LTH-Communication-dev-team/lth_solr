@@ -32,6 +32,12 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             )
         );
 
+        $dbhost = $settings['dbhost'];
+        $db = $settings['db'];
+        $user = $settings['user'];
+        $pw = $settings['pw'];
+
+        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("40; ".mysqli_error());
     
 	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout'] || !$settings['solrLucrisId'] || !$settings['solrLucrisPw']) {
 	    return 'Please make all settings in extension manager';
@@ -43,14 +49,17 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         $buffer->setBufferSize(200);
 
         $current_date = gmDate("Y-m-d\TH:i:s\Z");
+        
+        $heritageArray = $this->getHeritage($con);
       
-        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
+        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray);
         #$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
         #$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
         return TRUE;
     }
     
-    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings)
+    
+    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray)
     {
         
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,8 +76,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $lucrisId = $settings['solrLucrisId'];
             $lucrisPw = $settings['solrLucrisPw'];
 
-            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
-
+            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?uuids.uuid=defd3bac-a445-4938-b263-a44b59077039&rendering=xml_long";
+            
             try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
                 $xml = new SimpleXMLElement($xmlpath, null, true);
@@ -85,6 +95,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             foreach($xml->xpath('//core:result//core:content') as $content) {
                 $id;
                 $portalUrl;
+                $created;
+                $modified;
                 $title;
                 $abstract_en;
                 $abstract_sv;
@@ -114,16 +126,57 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $doi;
                 $publicationType_en;
                 $publicationType_sv;
+                $organisationSourceId = array();
+                $hertitage = array();
+                $keywords_uka_en = array();
+                $keywords_uka_sv = array();
+                $keywords_user = array();
+                $document_url = array();
+                $document_title = array();
+                $document_limitedVisibility = array();
+                $hostPublicationTitle;
+                $publisher;
+                $event_en;
+                $event_sv;
+                $event_city;
+                $event_country_en;
+                $event_country_sv;
                 
                 //id
                 $id = (string)$content->attributes();
-                
+
                 //portalUrl
                 $portalUrl = (string)$content->children('core',true)->portalUrl;
                 
+                //created
+                $created = (string)$content->children('core',true)->created;
+                
+                //modified
+                $modified = (string)$content->children('core',true)->modified;
+
+                //keywords
+                if($content->children('core',true)->keywordGroups) {
+                    foreach($content->children('core',true)->keywordGroups->children('core',true)->keywordGroup as $keywordGroup) {
+                        if($keywordGroup->children('core',true)->configuration->children('core')->logicalName == 'uka_full') {
+                            foreach($keywordGroup->children('core',true)->keyword->children('core',true)->target->children('core')->term->children('core',true)->localizedString as $localizedString) {
+                                if($localizedString->attributes()->locale == 'en_GB') {
+                                    $keywords_uka_en[] = (string)$localizedString;
+                                }
+                                if($localizedString->attributes()->locale == 'sv_SE') {
+                                    $keywords_uka_sv[] = (string)$localizedString;
+                                }
+                            }
+                        } else if($keywordGroup->children('core',true)->configuration->children('core')->logicalName == 'keywordContainers') {
+                            foreach($keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword As $userDefinedKeyword) {
+                                $keywords_user[] = (string)$userDefinedKeyword->children('core',true)->freeKeyword;
+                            }
+                        }
+                    }
+                }
+
                 //title
                 $title = (string)$content->children('publication-base_uk',true)->title;
-                        
+
                 //abstract
                 if($content->children('publication-base_uk',true)->abstract) {
                     foreach($content->children('publication-base_uk',true)->abstract->children('core',true)->localizedString as $abstract) {
@@ -135,19 +188,28 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                         }
                     }
                 }
-                                
+
+                //documents
+                if($content->children('publication-base_uk',true)->documents) {
+                    foreach($content->children('publication-base_uk',true)->documents->children('extension-core',true)->document as $document) {
+                        $document_url[] = (string)$document->children('core',true)->url;
+                        $document_title[] = (string)$document->children('core',true)->title;
+                        $document_limitedVisibility[] = (string)$document->children('core',true)->limitedVisibility;
+                    }
+                }
+                die('200');
                 //Authors
                 if($content->children('publication-base_uk',true)->persons) {
                     foreach($content->children('publication-base_uk',true)->persons->children('person-template',true)->personAssociation as $personAssociation) {
-                        $authorIdTemp = $personAssociation->children('person-template',true)->person->attributes();
-                        $authorIdTemp .= $personAssociation->children('person-template',true)->externalPerson->attributes();
                         if($personAssociation->children('person-template',true)->person) {
-                            $authorNameTemp = $personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
-                            $authorNameTemp .= ' ' . $personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                            $authorIdTemp = (string)$personAssociation->children('person-template',true)->person->attributes();
+                            $authorNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
+                            $authorNameTemp .= ' ' . (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
                         }
                         if($personAssociation->children('person-template',true)->externalPerson) {
-                            $authorNameTemp = $personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
-                            $authorNameTemp .= ' ' . $personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
+                            $authorIdTemp = (string)$personAssociation->children('person-template',true)->externalPerson->attributes();
+                            $authorNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
+                            $authorNameTemp .= ' ' . (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
                         }
                         if($authorIdTemp) {
                             $authorId[] = (string)$authorIdTemp;
@@ -157,11 +219,12 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                         }
                     }
                 }
-                
+
                 //Organisations
-                if($content->children('publication-base_uk',true)->organisations->children('organisation-template',true)->association) {
+                if($content->children('publication-base_uk',true)->organisations && 
+                        $content->children('publication-base_uk',true)->organisations->children('organisation-template',true)->association) {
                     foreach($content->children('publication-base_uk',true)->organisations->children('organisation-template',true)->association as $association) {
-                        $organisationId[] = $association->children('organisation-template',true)->organisation->attributes();
+                        $organisationId[] = (string)$association->children('organisation-template',true)->organisation->attributes();
                         foreach($association->children('organisation-template',true)->organisation->children('organisation-template',true)->name->children('core',true)->localizedString as $localizedString) {
                             //
                             //core:localizedString
@@ -173,19 +236,64 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                                 $organisationName_sv[] = (string)$localizedString;
                             }
                         }
+                        $organisationSourceId[] = (string)$association->children('organisation-template',true)->organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
                     }
                 }
                 
+                foreach($organisationSourceId as $key1 => $value1) {
+                    $heritage[] = $value1;
+                    $parent = $heritageArray[$value1];
+                    if($parent) { 
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                }
+
+                array_filter($heritage);
+
+                $organisationSourceId = array_unique($heritage);
+
                 //External organisations
-                if($content->children('publication-base_uk',true)->associatedExternalOrganisations) {
-                    foreach($content->children('publication-base_uk',true)->associatedExternalOrganisations as $associatedExternalOrganisations) {
-                       $externalOrganisationsId[] = $associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->attributes();
+                if($content->children('stab',true)->associatedExternalOrganisations && $content->children('stab',true)->associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation) {
+                    foreach($content->children('stab',true)->associatedExternalOrganisations as $associatedExternalOrganisations) {
+                       $externalOrganisationsId[] = (string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->attributes();
                         if($associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name) {
                             $externalOrganisationsName[] = (string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name;
                         }
                     }
                 }
-                
+
                 //keywords (research areas
                 if($content->children('core',true)->keywordGroups && $content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->target) {
                     foreach($content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->target->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
@@ -196,13 +304,15 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $keyword_sv[] = (string)$localizedString;
                         }
                     }
-                    
-                    //userDefinedKeywords
-                    foreach($content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->target->children('core',true)->userDefinedKeyword->children('core',true)->freekeyWord as $freekeyWord) {
-                        $userDefinedKeyword[] = (string)$freekeyWord;
+                }
+
+                //userDefinedKeywords
+                if($content->children('core',true)->keywordGroups && $content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword && $content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword) {
+                    foreach($content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword->children('core',true)->freeKeyword as $freeKeyword) {
+                        $userDefinedKeyword[] = (string)$freeKeyword;
                     }
                 }
-                
+
                 //Language
                 if($content->children('publication-base_uk',true)->language) {
                     foreach($content->children('publication-base_uk',true)->language->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
@@ -214,7 +324,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                         }
                     }
                 }
-                
+
                 //numberOfPages
                 $numberOfPages = (string)$content->children('publication-base_uk',true)->numberOfPages;
                 
@@ -228,7 +338,38 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $journalNumber = (string)$content->children('publication-base_uk',true)->journalNumber;
                 
                 //publicationStatus
-                $publicationStatus =(string)$content->children('publication-base_uk',true)->publicationStatus;
+                $publicationStatus = (string)$content->children('publication-base_uk',true)->publicationStatus;
+                
+                //hostPublicationTitle
+                $hostPublicationTitle = (string)$content->children('publication-base_uk',true)->hostPublicationTitle;
+                    
+                //publishers
+                if($content->children('publication-base_uk',true)->associatedPublishers) {
+                    foreach($content->children('publication-base_uk',true)->associatedPublishers->children('publisher-template',true)->publisher as $publisher) {
+                        $publisher = (string)$publisher->children('publisher-template',true)->name;
+                    }
+                }
+                
+                //event
+                if($content->children('stab',true)->event) {
+                    foreach($content->children('stab',true)->event->children('event-template',true)->title->children('core',true)->localizedString as $localizedString) {
+                        if($localizedString->attributes()->locale == 'en_GB') {
+                            $event_en = (string)$localizedString;
+                        }
+                        if($localizedString->attributes()->locale == 'sv_SE') {
+                            $event_sv = (string)$localizedString;
+                        }
+                    }
+                    $event_city = $content->children('stab',true)->event->children('event-template',true)->city;
+                    foreach($content->children('stab',true)->event->children('event-template',true)->country->children('core',true)->localizedString as $localizedString) {
+                        if($localizedString->attributes()->locale == 'en_GB') {
+                            $event_country_en = (string)$localizedString;
+                        }
+                        if($localizedString->attributes()->locale == 'sv_SE') {
+                            $event_country_sv = (string)$localizedString;
+                        }
+                    }
+                }
                 
                 //Publication- year, month, day
                 if($content->children('publication-base_uk',true)->publicationDate) {
@@ -269,13 +410,14 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'authorId' => $authorId,
                     'authorName' => array_unique($authorName),
                     'organisationId' => $organisationId,
-                    'organisationName_en' => array_unique($organisationName_en),
-                    'organisationName_sv' => array_unique($organisationName_sv),
+                    'organisationName_en' => $organisationName_en,
+                    'organisationName_sv' => $organisationName_sv,
                     'externalOrganisationsName' => $externalOrganisationsName,
                     'externalOrganisationsId' => $externalOrganisationsId,
-                    'keyword_en' => $keyword_en,
-                    'keyword_sv' => $keyword_sv,
-                    'userDefinedKeyword' => $userDefinedKeyword,
+                    'organisationSourceId' => $organisationSourceId,
+                    //'keyword_en' => $keyword_en,
+                    //'keyword_sv' => $keyword_sv,
+                    //'userDefinedKeyword' => $userDefinedKeyword,
                     'language_en' => $language_en,
                     'language_sv' => $language_sv,
                     'numberOfPages' => $numberOfPages,
@@ -287,29 +429,48 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'publicationDateMonth' => $publicationDateMonth,
                     'publicationDateDay' => $publicationDateDay,
                     'peerReview' => $peerReview,
+                    'keywords_uka_en' => $keywords_uka_en,
+                    'keywords_uka_sv' => $keywords_uka_sv,
+                    'keywords_user' => $keywords_user,
+                    'document_url' => $document_url,
+                    'document_title' => $document_title,
+                    'document_limitedVisibility' => $document_limitedVisibility,
+                    'hostPublicationTitle' => $hostPublicationTitle,
+                    'publisher' => $publisher,
+                    'event_en' => $event_en,
+                    'event_sv' => $event_sv,
+                    'event_city' => $event_city,
+                    'event_country_en' => $event_country_en,
+                    'event_country_sv' => $event_country_sv,
                     'doi' => $doi,
                     'publicationType_en' => $publicationType_en,
                     'publicationType_sv' => $publicationType_sv,
                     'boost' => '1.0',
-                    'date' => $current_date,
-                    'tstamp' => $current_date,
+                    'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
+                    'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
                     'digest' => md5($id),
                     
                 );
-                //$this->debug($data);
-                $buffer->createDocument($data);
-
-                // add the document and a commit command to the update query
-                //$update->addDocument($doc);
-                // this executes the query and returns the result
+                $this->debug($data);
+               // $buffer->createDocument($data);
             }
 
         }
-        $buffer->commit();
+        //$buffer->commit();
         return TRUE;
     }
         
+    
+    public function toString($input)
+    {
+        try {
+            return (string) $input;
+        } catch (Exception $exception) {
+            return '';
+        }
+    }
         
+    
     function getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings)
     {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -346,6 +507,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             foreach($xml->xpath('//core:result//core:content') as $content) {
                 $id;
                 $portalUrl;
+                $created;
+                $modified;
                 $name_en;
                 $name_sv;
                 $organisationId = array();
@@ -360,6 +523,12 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
                 //portalUrl
                 $portalUrl = (string)$content->children('core',true)->portalUrl;
+                
+                //created
+                $created = (string)$content->children('core',true)->created;
+                
+                //modified
+                $modified = (string)$content->children('core',true)->modified;
 
                 //name
                 if($content->children('stab1',true)->name) {
@@ -418,8 +587,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'typeClassification_sv' => $typeClassification_sv,
                     'sourceId' => $sourceId,
                     'boost' => '1.0',
-                    'date' => $current_date,
-                    'tstamp' => $current_date,
+                    'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
+                    'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
                     'digest' => md5($id)
                 );
                 //$this->debug($data);
@@ -467,6 +636,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             foreach($xml->xpath('//core:result//core:content') as $content) {
                 $id;
                 $portalUrl;
+                $created;
+                $modified;
                 $title_en;
                 $title_sv;
                 $startDate;
@@ -485,7 +656,13 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
                 //portalUrl
                 $portalUrl = (string)$content->children('core',true)->portalUrl;
-
+                
+                //created
+                $created = (string)$content->children('core',true)->created;
+                
+                //modified
+                $modified = (string)$content->children('core',true)->modified;
+                
                 //title
                 if($content->children('stab',true)->title) {
                     foreach($content->children('stab',true)->title->children('core',true)->localizedString as $title) {
@@ -573,8 +750,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'descriptions_en' => $descriptions_en,
                     'descriptions_sv' => $descriptions_sv,
                     'boost' => '1.0',
-                    'date' => $current_date,
-                    'tstamp' => $current_date,
+                    'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
+                    'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
                     'digest' => md5($id)
                 );
                 //$this->debug($data);
@@ -583,6 +760,21 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         }
         $buffer->commit();
         return TRUE;
+    }
+    
+    
+    private function getHeritage($con)
+    {
+        $heritageArray = array();
+        
+        $sql = "SELECT orgid, parent FROM lucache_vorg";
+        
+        $res = mysqli_query($con, $sql);
+        
+        while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
+            $heritageArray[$row['orgid']] = $row['parent'];
+        }
+        return array($heritageArray);
     }
     
     

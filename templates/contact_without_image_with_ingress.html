@@ -1,19 +1,19 @@
-<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
+<!--<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
     <thead><tr><th></th></tr></thead>
     <tbody id="table_data_container">
         
     </tbody>
-</table>
+</table>-->
 
 <script id="solrTemplate" type="text/x-jquery-templ">
-    <div class="">
+    <div id="###id###" class="lthsolr_row">
         <h2>###display_name_t###</h2>
         <p>###title_t###, ###oname_t### ###room_number_s###</p>
         <p>
             <a href="email_t">###email_t###</a><br>
             Telefon: ###phone_t###<br>
         </p>
+    ###homepage_t###
+    ###lth_solr_intro###
     </div>
-    <p>###lth_solr_intro###</p>
-    <p>###homepage_t###</p>
 </script>

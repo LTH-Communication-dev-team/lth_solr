@@ -48,18 +48,16 @@ class lth_solr_ajax {
 	    case 'updateRedirect':
 		$content = $this->updateRedirect($items, $pid, $value, $config);
 		break;
-	    /*case 'updateText':
-		$content = $this->updateText($catvalue, $username, $checked, $sys_language_uid, $pluginid, $i);
-		break;
-             */
 	}
         
         echo json_encode($content);
     }
     
+    
     public function resort($items, $pid, $sys_language_uid, $config)
     {
         $sortVal = 10;
+        $lth_solr_sort = '';
         
         $staffArray = array();
         $staffArray = json_decode($items, true);
@@ -96,21 +94,19 @@ class lth_solr_ajax {
                         //echo $fieldValue;
                         $data[$field] = $fieldValue;
                    }
-                   
                 }
-                
             }
             $data[$sortVar] = $sortVal;
             $buffer->createDocument($data);
             
-            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_sort", "fe_users", "username='$value'  AND lth_solr_sort != ''");
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_sort", "fe_users", "username='$value'");
             while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                $sortArray = $row['lth_solr_sort'];
+                $lth_solr_sort = $row['lth_solr_sort'];
             }
             $GLOBALS['TYPO3_DB']->sql_free_result($res);
 
-            if($sortArray) {
-                $sortArray = json_decode($sortArray, true);
+            if($lth_solr_sort) {
+                $sortArray = json_decode($lth_solr_sort, true);
             } 
             $sortArray[$sortVar] = $sortVal;
 

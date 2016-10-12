@@ -7,14 +7,6 @@ and open the template in the editor.
     Created on : 2015-sep-17, 21:04:25
     Author     : kans-th0
 */
-.grid-23 {
-}
-.grid-15 {
-}
-.grid-8 {
-}
-
-
 .dt-buttons {
     clear:both;
 }
@@ -32,8 +24,7 @@ and open the template in the editor.
 }
 
 #lth_solr_facet_container {
-    margin-top:30px;
-    width: 197px;
+    margin-top:10px;
 }
 
 .search-wrapper {
@@ -69,4 +60,47 @@ td.details-control {
 
 tr.details td.details-control {
     background: url('details_close.png') no-repeat center center;
+}
+
+.lthsolr_row {
+    clear:both;
+    margin-top:15px;
+    margin-bottom:10px;
+    padding-bottom:10px;
+    cursor: pointer;
+    border-bottom:1px solid #dedede
+}
+
+.lthsolr_publication_row, .lthsolr_project_row {
+    border-bottom: 1px solid #dedede;
+    margin-top:15px;
+    cursor: pointer;
+}
+
+.lthsolr_filter {
+    width: 200px;
+    height: 25px;
+}
+
+.item-list li {
+    float:left;
+}
+
+#lthsolr_staff_container {
+    clear:both;
+    max-width:500px;
+}
+
+#lthsolr_staff_header {
+    padding-top:7px;
+    clear:both;
+}
+
+.lth_solr_facet {
+    margin-right: 10px !important;
+}
+
+/* DESKTOP CHANGES */
+@media all and (min-width: 641px) {
+  .lthsolr_image_template p, .lthsolr_image_template h3 {margin-left:80px !important}
 }

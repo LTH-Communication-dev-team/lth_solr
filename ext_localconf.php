@@ -3,6 +3,12 @@ if (!defined('TYPO3_MODE')) {
 	die ('Access denied.');
 }
 
+\TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
+    'lth.' . $_EXTKEY
+);
+
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'][] = 'LTH\\lth_solr\\Hooks\\ProcessCmdmap';
+
 // Add AJAX support
 $TYPO3_CONF_VARS['FE']['eID_include']['lth_solr'] = 'EXT:lth_solr/service/ajax.php';
 
@@ -61,5 +67,3 @@ t3lib_extMgm::addPItoST43($_EXTKEY, 'pi3/class.tx_lthsolr_pi3.php', '_pi3', 'lis
 t3lib_extMgm::addPItoST43($_EXTKEY, 'pi4/class.tx_lthsolr_pi4.php', '_pi4', 'list_type', 1);
 
 t3lib_extMgm::addPItoST43($_EXTKEY, 'pi5/class.tx_lthsolr_pi5.php', '_pi5', 'list_type', 1);
-
-$TYPO3_CONF_VARS['EXTCONF']['t3registration']['beforeUpdateUser'][] = 'EXT:lth_solr/hooks/class.lth_solr_hooks.php:lth_solr_hooks->beforeUpdateUser';

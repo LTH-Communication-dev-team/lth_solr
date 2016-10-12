@@ -6,7 +6,14 @@ var lth_solr_messages = {
     room: "Room",
     phone: "Phone",
     of: "of",
-    namelabel: "Name"
+    namelabel: "Name",
+    authors: "Authors",
+    organisations: "Organisations",
+    language: "Original languages",
+    pages: "Pages",
+    numberOfPages: "Number of pages",
+    publicationStatus: "State",
+    peerReview: "Per-reviewed"
 };
 
 

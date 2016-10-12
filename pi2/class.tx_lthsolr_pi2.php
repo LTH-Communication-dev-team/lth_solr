@@ -57,6 +57,14 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $lDef = array_keys($sDef);
             $html_template = $this->pi_getFFvalue($piFlexForm, "html_template", "sDEF", $lDef[$index]);
             $scope = $this->pi_getFFvalue($piFlexForm, "scope", "sDEF", $lDef[$index]);
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($scope)");
+            while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                $title[] = explode('__', $row['title'])[0];
+            }
+            if($title) {
+                $scope = implode(',', $title);
+            }
+            $GLOBALS['TYPO3_DB']->sql_free_result($res);
             $detailPage = $this->pi_getFFvalue($piFlexForm, "detailpage", "sDEF", $lDef[$index]);
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $customCategories = $this->pi_getFFvalue($piFlexForm, "customcategories", "sDEF", $lDef[$index]);
@@ -93,10 +101,9 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 $solrId = $query;
             }
             
-            
-            /*load files needed for datatables*/
+            /*load files needed for datatables
             $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";
-            //$GLOBALS["TSFE"]->additionalHeaderData["buttons.bootstrap.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/buttons.bootstrap.min.css\" />";
+            $GLOBALS["TSFE"]->additionalHeaderData["responsive.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/responsive.dataTables.min.css\" />";
             $GLOBALS["TSFE"]->additionalHeaderData["buttons.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/buttons.dataTables.min.css\" />";
             $GLOBALS["TSFE"]->additionalFooterData["jquery.dataTables.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/jquery.dataTables.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["dataTables.buttons.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.buttons.js\"></script>";
@@ -104,8 +111,8 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $GLOBALS["TSFE"]->additionalFooterData["pdfmake.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["vfs_fonts.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["buttons.html5.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/buttons.html5.min.js\"></script>";
-            //$GLOBALS["TSFE"]->additionalHeaderData["handlebars-v4.0.5.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/handlebars/handlebars-v4.0.5.js\"></script>";
-
+            $GLOBALS["TSFE"]->additionalFooterData["dataTables.responsive.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.responsive.min.js\"></script>";
+*/          
             //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js\"></script>"; 
@@ -122,24 +129,31 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 $customCategories = 'true';
             }*/
             
-            if(substr($ip, 0, 7) === '130.235' || substr($ip, 0, 7) === '127.0.0') {
+            /*if(substr($ip, 0, 7) === '130.235' || substr($ip, 0, 7) === '127.0.0') {
                 $content .= "<style>.dt-buttons { display:block;}</style>";
                 $lu_user = 'ja';
             } else {
                 $content .= "<style>.dt-buttons { display:none;}</style>";
-            }
+            }*/
 
-            $content .= '<div class="grid-31 alpha omega"><div class="grid-22 alpha">';
+            //$content .= '<div class="grid-31 alpha omega">';
+                        
+            $content .= '<div style="clear:both;"><input type="text" class="lthsolr_filter" name="lthsolr_filter" placeholder="Filter" value="" /></div>';
+            $content .= '<div class="lth_solr_facet_container"></div>';
             
+            $content .= '<div id="lthsolr_staff_header"></div>';
+            
+            $content .= '<div id="lthsolr_staff_container"></div>';
+                        
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/" . $html_template);
             
             if($solrId) {
-                $content .= '</div><input type="hidden" id="lth_solr_action" value="showStaff" />' .
+                $content .= '<input type="hidden" id="lth_solr_action" value="showStaff" />' .
                     '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />';
             } else {
-                $content .= '</div><div id="lth_solr_facet_container" style="margin-left:20px;" class="grid-8 omega"></div></div>
+                $content .= '
                     <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-                    <input type="hidden" id="lth_solr_detailpage" value="' . $detailUrl . '" />
+                    <input type="hidden" id="lth_solr_staffdetailpage" value="' . $detailUrl . '" />
                     <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
                     <input type="hidden" id="pid" value="' . $pid . '" />
                     <input type="hidden" id="lth_solr_action" value="listStaff" />
@@ -151,7 +165,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                     <input type="hidden" id="introThisPage" value="' . $introThisPage . '" />
                     <input type="hidden" id="addPeople" value="' . $addPeople . '" />
                     <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />    
-                    <div class="csc-default">&nbsp;</div>';
+                    <div style="clear:both"></div>';
             }
             
             return $content;

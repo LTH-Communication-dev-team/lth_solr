@@ -59,7 +59,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         $employeeArray = $this->getEmployee($con);
 
         $folderArray = $this->getFolderStructure($grsp);
-
+        
         $feGroupsArray = $this->getFeGroups();
 
         $employeeArray = $this->getFeUsers($employeeArray);
@@ -71,7 +71,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         $heritageLegacyArray = $heritageTempArray[1];
         
         $categoriesArray = $this->getCategories();
-             
+
         $this->createFolderStructure($grsp, $folderArray, $orgArray);
         
         $folderArray = $this->getFolderStructure($grsp);
@@ -147,9 +147,13 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             VORG.legacy_orgid AS orgid_legacy,
             VORG.name AS oname,
             VORG.name_en AS oname_en,
-            VORG.maildelivery AS maildelivery
+            VORG.maildelivery AS maildelivery,
+            VORG.phone AS ophone,
+	    VORG.street AS ostreet,
+            VORG.city AS ocity,
+            VORG.postal_address AS opostal_address
             FROM lucache_person AS P 
-            LEFT JOIN lucache_vrole AS V ON P.id = V.id
+            LEFT JOIN lucache_vrole AS V ON P.id = V.id AND V.primary_role = 1 
             LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid
             WHERE primary_affiliation = 'employee' 
             GROUP BY P.id, V.orgid 
@@ -172,8 +176,12 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             $employeeArray[$primary_uid]['hide_on_web'] = $row['hide_on_web'];
             $employeeArray[$primary_uid]['update_flag'] = $row['update_flag'];
             $employeeArray[$primary_uid]['guid'] = $row['guid'];
-            
-                //arrays:
+            $employeeArray[$primary_uid]['ophone'] = $row['ophone'];
+	    $employeeArray[$primary_uid]['ostreet'] = utf8_encode($row['ostreet']);
+            $employeeArray[$primary_uid]['ocity'] = utf8_encode($row['ocity']);
+            $employeeArray[$primary_uid]['opostal_address'] = utf8_encode($row['opostal_address']);
+
+            //arrays:
             $employeeArray[$primary_uid]['room_number'][] = $row['room_number'];
             $employeeArray[$primary_uid]['title'][] = utf8_encode($row['title']);
             $employeeArray[$primary_uid]['title_en'][] = utf8_encode($row['title_en']);
@@ -292,7 +300,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid, title', 'pages', 'pid = ' . intval($grsp) . ' AND deleted = 0');
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $titleArray = explode('__', $row['title']);
-            $folderArray[$row['title']] = array('uid' => $row['uid'], 'title' => $row['title']);
+            $folderArray[$titleArray[0]] = array('uid' => $row['uid'], 'title' => $row['title']);
         }
         return $folderArray;
     }
@@ -369,7 +377,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         //print_r($folderArray);
         foreach($orgArray as $key => $value) {
             $tmpTitle = $value['orgid'] . '__' . $value['name'];
-            if(!array_key_exists($tmpTitle, $folderArray)) {
+            if(!array_key_exists($value['orgid'], $folderArray)) {
                 $GLOBALS['TYPO3_DB']->exec_INSERTquery('pages', array('title' => $tmpTitle, 'pid' => $grsp, 'doktype' => 254, 'crdate' => time(), 'tstamp' => time()));
             }
         }
@@ -387,15 +395,16 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             //print_r($feGroupsArray);
             if(!array_key_exists($value['orgid'], $feGroupsArray)) {
                 $folder = $folderArray[$value['orgid']];
-                
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('fe_groups', array(
-                    'title' => $tmpTitle,
-                    'pid' => $folder['uid'],
-                    //'subgroup' => $value['subgroup'],
-                    'crdate' => time(), 
-                    'tstamp' => time())
-                );
-            } else {
+                if($folder['uid']){
+                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('fe_groups', array(
+                        'title' => $tmpTitle,
+                        'pid' => $folder['uid'],
+                        //'subgroup' => $value['subgroup'],
+                        'crdate' => time(), 
+                        'tstamp' => time())
+                    );
+                }
+            } else if($folder['uid']) {
                 $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_groups', "title='$tmpTitle'", array(
                     'subgroup' => $feGroupsArray[$value['parent']]['uid'],
                     'tstamp' => time())
@@ -407,20 +416,44 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     
     private function createFeUsers($folderArray, $employeeArray, $feGroupsArray)
     {
+        //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $title;
         foreach($employeeArray as $key => $value) {
-            //echo $value['usergroup'];
+            $title = '';
+            $phone = '';
+            $room_number = '';
+            
+            if(is_array($value['title'])) {
+                $title = implode(',', array_unique($value['title']));
+            }
+            if(is_array($value['phone'])) {
+                $phone = implode(',', array_unique($value['phone']));
+            }
+            if(is_array($value['room_number'])) {
+                $room_number = implode(',', array_unique($value['room_number']));
+            } 
+            
+            
+            
             $usergroupArray = $this->getUids($value['orgid'], $feGroupsArray);
             //echo $value['usergroup'];
             //echo $usergroupArray['pid'];
             //echo $usergroupArray['usergroup'];
             if($usergroupArray[0]) {
-                if($value['title']) {
-                    $title = str_replace('###', ', ', $value['title']);
-                } else {
-                    $title = '';
-                }                
-                if($value['exist']===TRUE) {
+                $ugFe = $value['usergroup'];
+                if($ugFe) {
+                    $ugFeArray = explode(',', $ugFe);
+                    foreach($ugFeArray as $keyF =>$valueF) {
+                        if($valueF != $usergroupArray[0]) {
+                            $employeeArray[$key]['extra_orgid'][] = explode('__', $this->getGroupName($valueF))[0];
+                        }
+                    }
+                    array_push($ugFeArray, $usergroupArray[0]);
+                    $ugFeArray = array_unique($ugFeArray);
+                    $usergroupArray[0] = implode(',', $ugFeArray);
+                }
+                
+                if($value['exist']===TRUE && $usergroupArray[1]) {
                     if(!$value['roomnumber']) $value['roomnumber'] = '';
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
@@ -431,20 +464,20 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'name' => $value['last_name'] . ', ' . $value['first_name'],
                         'email' => $value['email'],
                         'www' => (string)$value['homepage'],
-                        'telephone' => $value['phone'],
-                        'roomnumber' => $value['room_number'],
+                        'telephone' => $phone,
+                        'roomnumber' => $room_number,
                         'hide_on_web' => $value['hide_on_web'],
                         'tstamp' => time()
                     );
-                    //echo $value['uid'];
+                    //echo $value['primary_uid'];
                     //$this->debug($updateArray);
-                    
+                    //echo '443';
                     $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username = '" . $value['primary_uid'] . "'", $updateArray);
                     //echo $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
                     /*$employeeArray[$key]['image'] = $feUsersArray[$key]['image'];
                     $employeeArray[$key]['lth_solr_intro'] = $feUsersArray[$key]['lth_solr_intro'];
                     $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
-                } else {
+                } else if($usergroupArray[1]) {
                     $insertArray = array(
                         'username' => $value['primary_uid'],
                         'password' => $this->setRandomPassword(),
@@ -454,8 +487,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         'title' => $title.'',
                         'email' => $value['email'].'',
                         'www' => (string)$value['homepage'].'',
-                        'telephone' => $value['phone'].'',
-                        'roomnumber' => $value['room_number'].'',
+                        'telephone' => $phone.'',
+                        'roomnumber' => $room_number.'',
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
                         'hide_on_web' => $value['hide_on_web'],
@@ -466,6 +499,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                     //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
                     $GLOBALS['TYPO3_DB']->exec_INSERTquery('fe_users', $insertArray);
                     //echo $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
+                    //echo '471';
                 }
             }
         }
@@ -574,6 +608,10 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
 
                         $heritage = array_unique($heritage);
                         $legacy = array_unique($legacy);
+                        
+                        if($value['extra_orgid']) {
+                            $value['orgid'] = array_unique(array_merge($value['orgid'], $value['extra_orgid']));
+                        }
 
                         $display_name_t = $value['first_name'] . ' ' . $value['last_name'];
                         $homepage = $value['homepage'];
@@ -591,6 +629,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                             $standard_category_sv[] = $categoriesArray[$tvalue][0];
                             $standard_category_en[] = $categoriesArray[$tvalue][1];
                         }
+
                         //echo $value['id'].',';
                         $data = array(
                             /*'id' => $key,
@@ -647,8 +686,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                             'degree_en' => $value['degree_en'],                        
                             'hide_on_web' => intval($value['hide_on_web']),
                             'update_flag' => intval($value['update_flag']),
-                            'title_sort' => $this->fixArray(explode('###', $value['title'])),
-                            'ou_sort' => $this->fixArray(explode('###', $value['oname'])),
+                            'title_sort' => $titleArray,
+                            //'ou_sort' => $this->fixArray(explode('###', $value['oname'])),
                             'guid' => $value['guid'],
                             'standard_category_sv' => $standard_category_sv,
                             'standard_category_en' => $standard_category_en,
@@ -664,13 +703,17 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                             'oname_sort' => $value['oname'],
                             'oname_sort_en' => $value['oname_en'],
                             'maildelivery' => $value['maildelivery'],
+                            'ophone' => $value['ophone'],
+                            'ostreet' => $value['ostreet'],
+                            'ocity' => $value['ocity'],
+                            'opostal_address' => $value['opostal_address'],
                             //extra:
                             'image' => $value['image'],
                             'image_id' => $value['image_id'],
                             //'ltholr_intro_txt' => $value['lth_solr_intro'],
                             //'lth_solr_txt_t' => $value['lth_solr_txt'],
-                            'usergroup' => $heritage,
-                            'heritage2' => $heritage2,
+                            //'usergroup' => $value['orgid'],
+                            'heritage' => $heritage,
                             'boost' => '1.0',
                             'date' => $current_date,
                             'tstamp' => $current_date,
@@ -753,6 +796,15 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         } else {
             return '';
         }
+    }
+    
+    
+    private function getGroupName($uid)
+    {
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups','uid=' . intval($uid));
+        $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        return $row['title'];
     }
     
     

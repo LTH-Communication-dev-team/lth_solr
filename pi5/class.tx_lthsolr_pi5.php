@@ -49,6 +49,27 @@ class tx_lthsolr_pi5 extends tslib_pibase {
             $this->pi_setPiVarDefaults();
             $this->pi_loadLL();
             
+            $this->pi_initPIflexForm();
+            $piFlexForm = $this->cObj->data["pi_flexform"];
+            $index = $GLOBALS["TSFE"]->sys_language_uid;
+            $sDef = current($piFlexForm["data"]);       
+            $lDef = array_keys($sDef);
+            $publicationDetailPage = $this->pi_getFFvalue($piFlexForm, "publicationDetailPage", "sDEF", $lDef[$index]);
+            $publicationDetailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
+                array(
+                    'parameter' => $publicationDetailPage,
+                    'forceAbsoluteUrl' => true,
+                )
+            );
+            $projectDetailPage = $this->pi_getFFvalue($piFlexForm, "projectDetailPage", "sDEF", $lDef[$index]);
+            $projectDetailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
+                array(
+                    'parameter' => $projectDetailPage,
+                    'forceAbsoluteUrl' => true,
+                )
+            );
+            $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
+            
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
 
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
@@ -59,16 +80,18 @@ class tx_lthsolr_pi5 extends tslib_pibase {
                 $syslang='sv';
             }
             
-            //load files needed for datatables
+            /*load files needed for datatables
             $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";
+            $GLOBALS["TSFE"]->additionalHeaderData["responsive.dataTables.min"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/responsive.dataTables.min.css\" />";
             $GLOBALS["TSFE"]->additionalHeaderData["buttons.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/buttons.dataTables.min.css\" />";
             $GLOBALS["TSFE"]->additionalFooterData["jquery.dataTables.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/jquery.dataTables.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["dataTables.buttons.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.buttons.min.js\"></script>";
+            $GLOBALS["TSFE"]->additionalFooterData["dataTables.buttons.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.buttons.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["jszip.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["pdfmake.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["vfs_fonts.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["buttons.html5.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/buttons.html5.min.js\"></script>";
-
+            $GLOBALS["TSFE"]->additionalFooterData["dataTables.responsive.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.responsive.min.js\"></script>";
+            */
             
             //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
@@ -77,7 +100,7 @@ class tx_lthsolr_pi5 extends tslib_pibase {
              
             $content = '';
                                 
-            $content .= $this->showStaff($uuid);
+            $content .= $this->showStaff($uuid, $noItemsToShow, $publicationDetailUrl, $projectDetailUrl, $syslang);
         
             //$this->debug($content);
 	
@@ -85,33 +108,29 @@ class tx_lthsolr_pi5 extends tslib_pibase {
 	}
         
         
-        private function showStaff($uuid)
+        private function showStaff($uuid, $noItemsToShow, $publicationDetailUrl, $projectDetailUrl, $syslang)
         {
-            $content = '<table id="lthsolr_person_table" border="1"  class="display" cellspacing="0" cellpadding="0" width="100%">
-                <tbody id="">
-                    <tr><th style="width:100px;">Name</th><td style="width:400px;">###display_name###</td><td rowspan="6" style="width:200px;">###image###</td></tr>
-                    <tr><th>Title</th><td>###title###</td></tr>
-                    <tr><th>Email</th><td>###email###</td></tr>
-                    <tr><th>Phone</th><td>###phone###</td></tr>
-                    <tr><th>oname</th><td>###oname###</td></tr>
-                    <tr><th>Homepage</th><td>###homepage###</td></tr>
-                </tbody>
-                </table>';
+            //Staff
+            $content .= '<div id="lthsolr_staff_container"></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_with_image_and_ingress_and_adress.html");
             
-            $content .= '<h2>Publications</h2><table id="lthsolr_publication_table" class="display" cellspacing="0" cellpadding="0" width="100%">
-                <thead><tr><th>Title</th><th>Author</th><th>Type</th><th>Year</th></tr></thead>
-                <tbody id="">
-                </tbody></table>';
+            //Publications
+            $content .= '<div id="lthsolr_publications_container"><div id="lthsolr_publications_header"></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple.html");
             
-            $content .= '<h2>Projects</h2><table id="lthsolr_project_table" class="display" cellspacing="0" cellpadding="0" width="100%">
-                <thead><tr><th>Title</th><th>Participants</th></tr></thead>
-                <tbody id="">
-                </tbody>
-            </table>';
-
-            $content .= '<div id="lth_solr_container" ></div>
-                    <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
-                    <input type="hidden" id="lth_solr_action" value="showStaff" />';
+            //Projects
+            $content .= '<div id="lthsolr_projects_container"><div id="lthsolr_projects_header"></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_simple.html");
+            
+            //hidden fields
+            $content .= '
+                <input type="hidden" id="lth_solr_publicationdetailpage" value="' . $publicationDetailUrl . '" />
+                <input type="hidden" id="lth_solr_projectdetailpage" value="' . $projectDetailUrl . '" />
+                <input type="hidden" id="lth_solr_scope" value="' . $uuid . '" />
+                <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
+                <input type="hidden" id="lth_solr_action" value="showStaff" />
+                <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
+            
             return $content;
         }
         

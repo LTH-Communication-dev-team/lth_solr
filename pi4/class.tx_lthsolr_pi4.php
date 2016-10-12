@@ -56,6 +56,7 @@ class tx_lthsolr_pi4 extends tslib_pibase {
             $lDef = array_keys($sDef);
             $scope = $this->pi_getFFvalue($piFlexForm, "scope", "sDEF", $lDef[$index]);
             $detailPage = $this->pi_getFFvalue($piFlexForm, "detailpage", "sDEF", $lDef[$index]);
+            $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             $detailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
                 array(
                     'parameter' => $detailPage,
@@ -73,15 +74,19 @@ class tx_lthsolr_pi4 extends tslib_pibase {
                 $syslang='sv';
             }
             
-            //load files needed for datatables
+            /*load files needed for datatables
             $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";
+            $GLOBALS["TSFE"]->additionalHeaderData["responsive.dataTables.min"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/responsive.dataTables.min.css\" />";
             $GLOBALS["TSFE"]->additionalHeaderData["buttons.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/buttons.dataTables.min.css\" />";
             $GLOBALS["TSFE"]->additionalFooterData["jquery.dataTables.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/jquery.dataTables.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["dataTables.buttons.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.buttons.min.js\"></script>";
+            $GLOBALS["TSFE"]->additionalFooterData["dataTables.buttons.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.buttons.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["jszip.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["pdfmake.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["vfs_fonts.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js\"></script>";
             $GLOBALS["TSFE"]->additionalFooterData["buttons.html5.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/buttons.html5.min.js\"></script>";
+            $GLOBALS["TSFE"]->additionalFooterData["dataTables.responsive.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.responsive.min.js\"></script>";
+*/
+            
             //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
@@ -97,7 +102,7 @@ class tx_lthsolr_pi4 extends tslib_pibase {
             if($uuid) {
                 $content .= $this->showProject($uuid, $syslang);
             } else {
-                $content .= $this->listProjects($scope, $detailUrl, $syslang);
+                $content .= $this->listProjects($scope, $detailUrl, $syslang, $noItemsToShow);
             }
         
             //$this->debug($content);
@@ -108,26 +113,26 @@ class tx_lthsolr_pi4 extends tslib_pibase {
         
         private function showProject($uuid, $syslang)
         {
-            $content = '<div id="lth_solr_container" ></div>
-                    <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
+            $content = '<div id="lth_solr_projects_container"><div id="lthsolr_projects_header"></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_presentation.html");
+            
+            $content = '<input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
                     <input type="hidden" id="lth_solr_action" value="showProject" />
                     <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />';
             return $content;
         }
         
         
-        private function listProjects($scope, $detailUrl, $syslang)
+        private function listProjects($scope, $detailUrl, $syslang, $noItemsToShow)
         {
-            $content = '<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
-                <thead><tr><th>Title</th><th>Participants</th><th>Start date</th><th>End date</th><th>Status</th></tr></thead>
-                <tbody id="table_data_container">
-                </tbody>
-            </table>';
-            $content .= '<div id="lth_solr_facet_container" style="margin-left:20px;" class="grid-8 omega"></div>
-                    <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-                    <input type="hidden" id="lth_solr_detailpage" value="' . $detailUrl . '" />
+            $content = '<div id="lth_solr_projects_container" ></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_simple.html");
+            
+            $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+                    <input type="hidden" id="lth_solr_projectdetailpage" value="' . $detailUrl . '" />
                     <input type="hidden" id="lth_solr_action" value="listProjects" />
-                    <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />';
+                    <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
+                    <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
             return $content;
         }
         
