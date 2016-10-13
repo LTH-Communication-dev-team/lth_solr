@@ -69,7 +69,7 @@ switch($action) {
         $content = searchMore($term, 'documents', $peopleOffset, $documentsOffset, $config);
         break;
     case 'listPublications':
-        $content = listPublications($scope, $syslang, $config, $table_length, $table_start);
+        $content = listPublications($scope, $syslang, $config, $table_length, $table_start, $pageid);
         break;
     case 'showPublication':
         $content = showPublication($scope, $syslang, $config, $detailPage);
@@ -303,17 +303,23 @@ function searchMore($term, $type, $peopleOffset, $documentsOffset, $config)
 }
 
 
-function listPublications($term, $syslang, $config, $table_length, $table_start)
+function listPublications($term, $syslang, $config, $table_length, $table_start, $pageid)
 {
     $client = new Solarium\Client($config);
 
     $query = $client->createSelect();
+    
+    $hideVal = 'lth_solr_hide_' . $pageid . '_i';
 
-    $query->setQuery('doctype:publication AND (organisationId:'.$term.' OR authorId:'.$term.')');
+    $query->setQuery('doctype:publication AND -' . $hideVal . ':[* TO *] AND (organisationId:'.$term.' OR authorId:'.$term.')');
     //$query->addParam('rows', 1500);
     $query->setStart($table_start)->setRows($table_length);
-    
-    $query->addSort('publicationDateYear', $query::SORT_DESC);
+
+    $sortArray = array(
+        'lth_solr_sort_' . $pageid . '_i' => 'asc',
+        'publicationDateYear' => 'asc'
+    );
+    $query->addSorts($sortArray);
 
     $response = $client->select($query);
     

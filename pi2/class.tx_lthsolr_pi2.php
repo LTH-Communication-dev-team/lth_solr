@@ -57,6 +57,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $lDef = array_keys($sDef);
             $html_template = $this->pi_getFFvalue($piFlexForm, "html_template", "sDEF", $lDef[$index]);
             $scope = $this->pi_getFFvalue($piFlexForm, "scope", "sDEF", $lDef[$index]);
+            if($scope) {
             $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($scope)");
             while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                 $title[] = explode('__', $row['title'])[0];
@@ -65,6 +66,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 $scope = implode(',', $title);
             }
             $GLOBALS['TYPO3_DB']->sql_free_result($res);
+            }
             $detailPage = $this->pi_getFFvalue($piFlexForm, "detailpage", "sDEF", $lDef[$index]);
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $customCategories = $this->pi_getFFvalue($piFlexForm, "customcategories", "sDEF", $lDef[$index]);

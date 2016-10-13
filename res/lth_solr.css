@@ -86,7 +86,7 @@ tr.details td.details-control {
     float:left;
 }
 
-#lthsolr_staff_container {
+#lthsolr_staff_container, #lthsolr_publications_container {
     clear:both;
     max-width:500px;
 }

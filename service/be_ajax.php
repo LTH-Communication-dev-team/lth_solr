@@ -48,6 +48,12 @@ class lth_solr_ajax {
 	    case 'updateRedirect':
 		$content = $this->updateRedirect($items, $pid, $value, $config);
 		break;
+            case 'hidePublication':
+                $content = $this->hidePublication($items, $pid, $value, $checked, $sys_language_uid, $config);
+                break;
+            case 'resortPublications':
+                $content = $this->resortPublications($items, $pid, $sys_language_uid, $config);
+                break;
 	}
         
         echo json_encode($content);
@@ -208,7 +214,78 @@ class lth_solr_ajax {
     }
     
     
-   public function updateHideonpage($items, $pid, $value, $checked, $sys_language_uid, $config)
+    public function hidePublication($items, $pid, $value, $checked, $sys_language_uid, $config)
+    {
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $items. $pid. $value. $checked, 'crdate' => time()));
+        $client = new Solarium\Client($config);
+        
+        $hideVar = 'lth_solr_hide_' . $pid . '_i';
+
+        $update = $client->createUpdate();
+        
+        ${"doc"} = $update->createDocument();
+                        
+        ${"doc"}->setKey('id', $items);
+
+        if($checked === 'true') {
+            ${"doc"}->addField($hideVar, 1);
+            ${"doc"}->setFieldModifier($hideVar, 'set');
+        } else {
+            ${"doc"}->addField($hideVar, 0);
+            ${"doc"}->setFieldModifier($hideVar, 'set');
+        }
+        $docArray[] = ${"doc"};
+
+        $update->addDocuments($docArray);
+        $update->addCommit();
+        $result = $client->update($update);
+    }
+    
+    
+    public function resortPublications($items, $pid, $sys_language_uid, $config)
+    {
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $items. $pid, 'crdate' => time()));
+        $sortVal = 10;
+        $lth_solr_sort = '';
+        
+        $publicationsArray = array();
+        $publicationsArray = json_decode($items, true);
+        
+        $client = new Solarium\Client($config);
+                
+        $query = $client->createSelect();
+        
+        $buffer = $client->getPlugin('bufferedadd');
+        $buffer->setBufferSize(50);
+        
+        $sortVar = 'lth_solr_sort_' . $pid . '_i';
+
+        foreach($publicationsArray as $key => $value) {
+            $data = array();
+            
+            $sortVal = $sortVal + 1;
+            $query->setQuery('id:'.$value);
+
+            $response = $client->select($query);
+            foreach ($response as $document) {
+                foreach ($document as $field => $fieldValue) {
+                    if($field != 'score') {
+                        $data[$field] = $fieldValue;
+                   }
+                }
+            }
+            $data[$sortVar] = $sortVal;
+            $buffer->createDocument($data);
+        }
+        
+        $buffer->flush();
+        $update = $client->createUpdate();
+        $update->addCommit();
+        $result = $client->update($update);
+    }
+    
+    
+    public function updateHideonpage($items, $pid, $value, $checked, $sys_language_uid, $config)
     {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked", 'crdate' => time()));
         

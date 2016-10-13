@@ -68,8 +68,8 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
             $startrecord = $i * $maximumrecords;
             if($startrecord > 0) $startrecord++;
 
-            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/person?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id";
-            //&rendering=xml_long
+            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/person?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            //
 
             try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));

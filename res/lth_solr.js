@@ -13,7 +13,7 @@ $(document).ready(function() {
     
     if($('#lth_solr_action').val() == 'listStaff') {
         listStaff(0);
-    } else if($('#lth_solr_action').val() == 'showStaff') {
+    } else if($('#lth_solr_detail_action').val() == 'showStaff') {
         showStaff();
     } else if($('#lth_solr_action').val() == 'listPublications') {
         listPublications(0);

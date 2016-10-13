@@ -10,7 +10,7 @@
          </TCEforms>
          <type>array</type>
          <el>
-            <scope>
+            <fe_groups>
                 <TCEforms type="array">
                  <label>Välj en eller flera användargrupper</label>
                  <config>
@@ -26,7 +26,26 @@
                    <foreign_table>fe_groups</foreign_table>
                  </config>
                 </TCEforms>
-              </scope>
+              </fe_groups>
+              
+              <fe_users>
+                <TCEforms type="array">
+                 <label>Välj en användare</label>
+                 <config>
+                   <type>select</type>
+                   <size>1</size>
+                   <maxitems>1</maxitems>
+                   <items type="array">
+                     <numIndex index="0" type="array">
+                       <numIndex index="0"></numIndex>
+                       <numIndex index="1"></numIndex>
+                     </numIndex>
+                   </items>
+                   <foreign_table>fe_users</foreign_table>
+                   <foreign_table_where>ORDER BY username ASC</foreign_table_where>
+                 </config>
+                </TCEforms>
+            </fe_users>
             
             <detailPage>
                 <TCEforms>
@@ -107,6 +126,24 @@
          </el>
      </ROOT>
 </sDEF>
+
+<managePublications>
+    <ROOT>
+        <TCEforms>
+            <sheetTitle>Manage Publications</sheetTitle>
+        </TCEforms>
+        <el>
+            <dynField>
+                <TCEforms>
+                    <config>
+                        <type>user</type>
+                        <userFunc>user_sampleflex_addFieldsToFlexForm->managePublications</userFunc>
+                    </config>
+                </TCEforms>
+            </dynField>
+        </el>
+    </ROOT>
+</managePublications>
 
 </sheets>
 </T3DataStructure>

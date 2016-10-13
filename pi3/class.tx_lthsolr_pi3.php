@@ -54,15 +54,22 @@ class tx_lthsolr_pi3 extends tslib_pibase {
             $index = $GLOBALS["TSFE"]->sys_language_uid;
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
-            $scope = $this->pi_getFFvalue($piFlexForm, "scope", "sDEF", $lDef[$index]);
-            if($scope) {
-                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($scope)");
+            $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
+            $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
+
+            if($fe_groups) {
+                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($fe_groups)");
                 while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                     $title[] = explode('__', $row['title'])[0];
                 }
                 if($title) {
                     $scope = implode(',', $title);
                 }
+                $GLOBALS['TYPO3_DB']->sql_free_result($res);
+            } else if($fe_users) {
+                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid = " . intval($fe_users));
+                $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+                $scope = $row['lth_solr_uuid'];
                 $GLOBALS['TYPO3_DB']->sql_free_result($res);
             }
             

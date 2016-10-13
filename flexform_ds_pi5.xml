@@ -10,16 +10,62 @@
          </TCEforms>
          <type>array</type>
          <el>
-            <scope>
+             
+            <showStaff>
                 <TCEforms>
-                    <label>Urval på institutioner, avdelningar och personer (en per rad). OBS LUCRIS interna uuid</label>
+                    <label>Visa</label>
                     <config>
-                        <type>text</type>
-                        <cols>50</cols>
-                        <rows>5</rows>
+                        <type>check</type>
+                        <items type="array">
+                            <numIndex index="0" type="array">
+                                    <numIndex index="0">Show staff</numIndex>
+                            </numIndex>
+                        </items> 
                     </config>
                 </TCEforms>
-            </scope>
+            </showStaff>
+            <showPublications>
+                <TCEforms>
+                    <config>
+                        <type>check</type>
+                        <items type="array">
+                            <numIndex index="0" type="array">
+                                    <numIndex index="0">Show publications</numIndex>
+                            </numIndex>
+                        </items> 
+                    </config>
+                </TCEforms>
+            </showPublications>
+            <showProjects>
+                <TCEforms>
+                    <config>
+                        <type>check</type>
+                        <items type="array">
+                            <numIndex index="0" type="array">
+                                    <numIndex index="0">Show projects</numIndex>
+                            </numIndex>
+                        </items> 
+                    </config>
+                </TCEforms>
+            </showProjects>
+            <fe_users>
+                <TCEforms type="array">
+                 <label>Välj en användare</label>
+                 <config>
+                   <type>select</type>
+                   <size>1</size>
+                   <maxitems>1</maxitems>
+                   <items type="array">
+                     <numIndex index="0" type="array">
+                       <numIndex index="0"></numIndex>
+                       <numIndex index="1"></numIndex>
+                     </numIndex>
+                   </items>
+                   <foreign_table>fe_users</foreign_table>
+                   <foreign_table_where>ORDER BY username ASC</foreign_table_where>
+                 </config>
+                </TCEforms>
+            </fe_users>
             
             <publicationDetailPage>
                 <TCEforms>

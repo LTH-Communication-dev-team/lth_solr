@@ -27,15 +27,15 @@ class user_sampleflex_addFieldsToFlexForm {
             foreach ($test->field as $n) {
                 foreach($n->attributes() as $name => $val) {
                     if ($val == 'customcategories') {
-                        $customcategories = $n->value;
+                        $customcategories = (string)$n->value;
                     } else if($val == 'scope') {
-                        $scope = $n->value;
+                        $scope = (string)$n->value;
                     } else if($val == 'addpeople') {
-                        $addpeople = $n->value;
+                        $addpeople = (string)$n->value;
                     } else if($val == 'categoriesthispage') {
-                        $categoriesThisPage = $n->value;
+                        $categoriesThisPage = (string)$n->value;
                     } else if($val == 'introthispage') {
-                        $introThisPage = $n->value;
+                        $introThisPage = (string)$n->value;
                     }
                 }
             }
@@ -148,7 +148,6 @@ class user_sampleflex_addFieldsToFlexForm {
         }
         $hideVar = 'lth_solr_hide_' . $pid . '_i';
         
-        // show documents using the resultset iterator
         $content .= "<style>.ui-state-highlight{width:100%; height: 50px; background-color:yellow;}</style>
             <link rel=\"stylesheet\" href=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css\">
             <script src=\"/typo3conf/ext/lth_solr/res/jquery.sortable.js\"></script>
@@ -233,40 +232,40 @@ class user_sampleflex_addFieldsToFlexForm {
         
         $content .= '<table id="lth_solr_manage_staff_list" class="lth_solr_manage_staff_list"><tbody class="selections">';
         if($response) {
-        foreach ($response as $document) {
-            $content .= '<tr class="selection" id="edit_' . $document->id . '">';
-            $content .= '<td style="width:300px; align:top;">'  . $document->display_name . ' (' . $document->id . ')</td>';
-            
-            $categories = '';
-            //print_r( $document->$catVar);
-            if($customcategories) {
-                $customcategoriesArray = explode("\n", $customcategories);
-                if(is_array($customcategoriesArray)) {
-                    foreach($customcategoriesArray as $key => $value) {
-                        $checkedCat = ' ';
-                        if($document->$catVar) {
-                            if(in_array($value, $document->$catVar)) {
-                                $checkedCat = ' " checked="checked" ';
+            foreach ($response as $document) {
+                $content .= '<tr class="selection" id="edit_' . $document->id . '">';
+                $content .= '<td style="width:300px; align:top;">'  . $document->display_name . ' (' . $document->id . ')</td>';
+
+                $categories = '';
+                //print_r( $document->$catVar);
+                if($customcategories) {
+                    $customcategoriesArray = explode("\n", $customcategories);
+                    if(is_array($customcategoriesArray)) {
+                        foreach($customcategoriesArray as $key => $value) {
+                            $checkedCat = ' ';
+                            if($document->$catVar) {
+                                if(in_array($value, $document->$catVar)) {
+                                    $checkedCat = ' " checked="checked" ';
+                                }
                             }
+                            $content .= "<td><input type=\"checkbox\" name=\"lth_solr_categories\" class=\"lth_solr_categories\" value=\"$value\"$checkedCat/>$value</td>";
                         }
-                        $content .= "<td><input type=\"checkbox\" name=\"lth_solr_categories\" class=\"lth_solr_categories\" value=\"$value\"$checkedCat/>$value</td>";
                     }
                 }
+
+                $checkedHide = ' ';
+                if($document->$hideVar) {
+                    $checkedHide = ' " checked="checked" ';
+                }
+
+                //$content .= "<td style=\"width: 500px; align:top;\">$categories</td>";
+
+                $content .= "<td style=\"width: 150px;padding-left:90px;\">"
+                        . "<input type=\"checkbox\" name=\"lth_solr_hideonpage\" class=\"lth_solr_hideonpage\" value=\"1\"$checkedHide/>Hide on this page"
+                        . "</td>";
+
+                $content .= "</tr>";
             }
-            
-            $checkedHide = ' ';
-            if($document->$hideVar) {
-                $checkedHide = ' " checked="checked" ';
-            }
-            
-            //$content .= "<td style=\"width: 500px; align:top;\">$categories</td>";
-            
-            $content .= "<td style=\"width: 150px;padding-left:90px;\">"
-                    . "<input type=\"checkbox\" name=\"lth_solr_hideonpage\" class=\"lth_solr_hideonpage\" value=\"1\"$checkedHide/>Hide on this page"
-                    . "</td>";
-            
-            $content .= "</tr>";
-        }
         
         }
 
@@ -642,6 +641,188 @@ class user_sampleflex_addFieldsToFlexForm {
         $content .= "</tbody></table>";
         
         return $content;
+    }
+    
+    function managePublications($config)
+    {
+        //print_r($config);
+        $content = '';
+        $categories = '';
+        
+        $pid = $config['row']['pid'];
+        $sys_language_uid = $config['row']['sys_language_uid'];
+        
+        $hideVar = 'lth_solr_hide_' . $pid . '_i';
+        
+         $content .= "<style>.ui-state-highlight{width:100%; height: 50px; background-color:yellow;}</style>
+            <link rel=\"stylesheet\" href=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css\">
+            <script src=\"/typo3conf/ext/lth_solr/res/jquery.sortable.js\"></script>
+            <script language=\"javascript\">
+            
+                function updateIndex(action, items, value, checked) {
+                    //console.log(items);
+                    Ext.Ajax.request({
+                        url: 'ajax.php',
+                        method: 'POST',
+                        params: {
+                            'ajaxID' : 'lth_solr::ajaxControl',
+                            'action' : action,
+                            'items' : items,
+                            'value' : value,
+                            'checked' : checked,
+                            'pid' : '$pid',
+                            'sys_language_uid' : $sys_language_uid,
+                            'sid' : Math.random()
+                        },
+                        success: function(response, opts) {
+                            //var obj = Ext.decode(response.responseText);
+                            //console.dir(obj);
+                            //console.log(response.responseText);
+                            if(action=='updateText') {
+                                //alert(response.responseText);
+                            }
+                            //console.log(response.responseText);
+                        },
+                        failure: function(response, opts) {
+                           console.log('server-side failure with status code ' + response.status);
+                        }
+                    });
+                }
+                
+                TYPO3.jQuery(document).ready(function() {
+
+                    TYPO3.jQuery('.lth_solr_hidepublication').click(function() {
+                        updateIndex('hidePublication', TYPO3.jQuery(this).parent().parent().attr('id').replace('publication_',''), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
+                        //console.log('???');
+                    });
+
+                    TYPO3.jQuery('.pubselections').sortable({
+                        placeholder: 'ui-state-highlight',
+                        cursor: 'move',
+                        update: function( event, ui ) {
+                            var IDs = [];
+                            TYPO3.jQuery('#lth_solr_manage_publications').find('.pubselection').each(function(){ IDs.push(TYPO3.jQuery(this).attr('id').replace('publication_','')); });
+                            updateIndex('resortPublications', JSON.stringify(IDs));
+                            //console.log('!!!');
+                        }
+                    }).disableSelection();
+
+                });
+            
+            </script>
+            <style>
+            .ui-state-default {
+                border: 1px black dotted;
+                height: 50px;
+                width: 100%;
+                display: block;
+                clear:both;
+            }
+            #lth_solr_manage_staff_list td {
+                padding:10px;
+            }
+            li {
+                display:inline;
+            }
+            .lth_solr_categories {
+                padding-left:10px;
+            }
+            .selection {
+                cursor: pointer;
+            }
+            .lth_solr_manage_publications td {
+                border-bottom:1px solid #dedede;padding:10px;
+            }
+            </style>";
+         
+        require(__DIR__.'/service/init.php');
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => $settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $pi_flexform = $config['row']['pi_flexform'];
+        $xml = simplexml_load_string($pi_flexform);
+        $test = $xml->data->sheet[0]->language;
+      
+        if($test) {
+            foreach ($test->field as $n) {
+                foreach($n->attributes() as $name => $val) {
+                    if ($val == 'fe_groups') {
+                        $fe_groups = (string)$n->value;
+                    } else if($val == 'fe_users') {
+                        $fe_users = (string)$n->value;
+                    }
+                }
+            }
+        }
+
+        if($fe_groups) {
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($fe_groups)");
+            while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                $title[] = explode('__', $row['title'])[0];
+            }
+            if($title) {
+                $scope = implode(',', $title);
+            }
+            $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        } else if($fe_users) {
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid = " . intval($fe_users));
+            $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+            $scope = $row['lth_solr_uuid'];
+            $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        } else {
+            return 'Please add a group or user!';
+        }
+
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        $query->addSort('lth_solr_sort_' . $pid . '_i', $query::SORT_ASC);
+        $query->addSort('publicationDateYear', $query::SORT_DESC);
+        $query->setQuery('doctype:publication AND (organisationId:'.$scope.' OR authorId:'.$scope.')');
+        $query->setStart(0)->setRows(1000);
+        $response = $client->select($query);
+        
+        $content .= '<table id="lth_solr_manage_publications" class="lth_solr_manage_publications"><tbody class="pubselections">';
+        
+        if($response) {
+            foreach ($response as $document) {
+                $content .= '<tr class="pubselection" id="publication_' . $document->id . '">';
+                $content .= '<td style="width:600px; align:top;">'  . implode(',',$document->title) . ' (' . $document->id . ')</td>';
+
+                $checkedHide = ' ';
+                if($document->$hideVar) {
+                    $checkedHide = ' " checked="checked" ';
+                }
+
+                //$content .= "<td style=\"width: 500px; align:top;\">$categories</td>";
+
+                $content .= "<td style=\"width: 150px;padding-left:90px;\">"
+                        . "<input type=\"checkbox\" name=\"lth_solr_hidepublication\" class=\"lth_solr_hidepublication\" value=\"1\"$checkedHide/>Hide on this page"
+                        . "</td>";
+
+                $content .= "</tr>";
+            }
+        
+        }
+
+        $content .= "</tbody></table>";
+        
+        return $content;
+        
     }
 	
    
