@@ -78,7 +78,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
         },
         beforeSend: function () {
             if((facet || query || noQuery) && (!more)) {
-                $('#lthsolr_staff_container div:not(:first)').remove().append('<img id="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
+                $('#lthsolr_staff_container div').remove().append('<img id="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
             }
             //$('#lthsolr_all').remove();
             $('#lthsolr_more').replaceWith('<img id="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
