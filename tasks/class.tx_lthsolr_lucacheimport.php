@@ -322,12 +322,13 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     
     private function getFeUsers($employeeArray)
     {
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT username, usergroup, image, image_id, lth_solr_cat, lth_solr_sort, lth_solr_intro', 'fe_users', 'deleted = 0');
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT username, usergroup, image, image_id, lth_solr_cat, lth_solr_sort, lth_solr_intro, lth_solr_uuid', 'fe_users', 'deleted = 0');
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $username = $row['username'];
             $lth_solr_cat = $row['lth_solr_cat'];
             $lth_solr_intro = $row['lth_solr_intro'];
             $lth_solr_sort = $row['$lth_solr_sort'];
+            $lth_solr_uuid = $row['lth_solr_uuid'];
             
             if(array_key_exists($username, $employeeArray)) {
                 if($lth_solr_cat && $lth_solr_cat !== '') {
@@ -357,13 +358,14 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         }
                     }
                 }
-            }
             
-            $employeeArray[$username]['usergroup'] = $row['usergroup']; 
-            $employeeArray[$username]['image'] = $row['image'];
-            $employeeArray[$username]['image_id'] = $row['image_id'];
-            //$employeeArray[$username]['lth_solr_cat'] = $row['lth_solr_cat']; 
-            $employeeArray[$username]['exist'] = TRUE;
+                $employeeArray[$username]['usergroup'] = $row['usergroup']; 
+                $employeeArray[$username]['image'] = $row['image'];
+                $employeeArray[$username]['image_id'] = $row['image_id'];
+                $employeeArray[$username]['lth_solr_uuid'] = $row['lth_solr_uuid']; 
+                $employeeArray[$username]['exist'] = TRUE;
+                
+            }
         }
         return $employeeArray;
     }
@@ -714,6 +716,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                             //'lth_solr_txt_t' => $value['lth_solr_txt'],
                             //'usergroup' => $value['orgid'],
                             'heritage' => $heritage,
+                            'uuid' => $value['lth_solr_uuid'],
                             'boost' => '1.0',
                             'date' => $current_date,
                             'tstamp' => $current_date,
