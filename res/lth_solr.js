@@ -50,7 +50,8 @@ function listStaff(tableStart, facet, query, noQuery, more)
     var syslang = $('#lth_solr_syslang').val();
     var scope = $('#lth_solr_scope').val();
     var tableLength = $('#lth_solr_no_items').val();
-
+    var lth_solr_detailpage = $('#lth_solr_staffdetailpage').val();
+    
     $.ajax({
         type : 'POST',
         url : 'index.php',
@@ -175,8 +176,8 @@ function listStaff(tableStart, facet, query, noQuery, more)
 
                     if(aData[10]) {
                         homePage = lth_solr_messages.personal_homepage + ': <a data-homepage="' + aData[10] + '" href="' + aData[10] + '">' + aData[10] + '</a>';
-                    } else if(aData[15]) {
-                        homePage = '<a href="' + window.location.href + 'presentation_single_person_right?query='+aData[15]+'&action=detail&sid='+Math.random()+'">Läs mer om ' + display_name_t + '</a>';
+                    } else if(aData[15] && lth_solr_detailpage) {
+                        homePage = lth_solr_messages.read_more_about + ' ' + display_name_t + '</a>';
                     }
                     template = template.replace('###homepage_t###', '<p>' + homePage + '</p>');
 
@@ -197,14 +198,13 @@ function listStaff(tableStart, facet, query, noQuery, more)
                 });
                 $('#lthsolr_loader').remove();
                 
-                $('#lthsolr_staff_header').html('1-' + maxLength(parseInt(tableStart) + parseInt(tableLength),parseInt(d.numFound)) + ' of ' + d.numFound);
+                $('#lthsolr_staff_header').html('1-' + maxLength(parseInt(tableStart) + parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound);
                 if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
                     $('#lthsolr_staff_container').append('<div style="margin-top:20px;" id="lthsolr_more"><a href="javascript:" onclick="listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'.lthsolr_filter\').val().trim(),false,true);">NEXT ' + tableLength + ' of ' + d.numFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'.lthsolr_filter\').val().trim(),false,true);">Show all ' + d.numFound + '</a></div>');
                 }
             }
             
             $('.lthsolr_row').on( 'click', function () {
-                var lth_solr_detailpage = $('#lth_solr_staffdetailpage').val();
                 if(lth_solr_detailpage) {
                     var id = $(this).attr('id');
                     //console.log(id);
@@ -752,12 +752,14 @@ function showStaff()
 
                     template = template.replace('###primary_affiliation_t###', aData[9]);
 
-                    if(aData[10]) {
+                    /*if(aData[10]) {
                         homePage = lth_solr_messages.personal_homepage + ': <a data-homepage="' + aData[10] + '" href="' + aData[10] + '">' + aData[10] + '</a>';
                     } else if(aData[15]) {
-                        homePage = '<a href="' + window.location.href + 'presentation_single_person_right?query='+aData[15]+'&action=detail&sid='+Math.random()+'">Läs mer om ' + display_name_t + '</a>';
+                        homePage = lth_solr_messages.read_more_about + ' ' + display_name_t;
                     }
                     template = template.replace('###homepage_t###', '<p>' + homePage + '</p>');
+                    */
+                    template = template.replace('###homepage_t###', '');
 
                     //template = template.replace('###image_t###', '<div style="height: 100px"><img style="max-height: 100%; max-width: 100%" src="' + aData[11] + '" /></div>');
                     var image = '';

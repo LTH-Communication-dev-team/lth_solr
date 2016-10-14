@@ -13,7 +13,8 @@ var lth_solr_messages = {
     pages: "Pages",
     numberOfPages: "Number of pages",
     publicationStatus: "State",
-    peerReview: "Per-reviewed"
+    peerReview: "Per-reviewed",
+    read_more_about: "Read more about"
 };
 
 

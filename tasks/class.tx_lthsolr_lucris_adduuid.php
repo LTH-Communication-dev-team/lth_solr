@@ -133,7 +133,8 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
                             ${"doc" . $ii}->addField('lucrisphoto', (string)$photo);
                             ${"doc" . $ii}->setFieldModifier('lucrisphoto', 'set');
                         } else {
-                            ${"doc" . $ii}->removeField('lucrisphoto');
+                            ${"doc" . $ii}->addField('lucrisphoto', '');
+                            ${"doc" . $ii}->setFieldModifier('lucrisphoto', 'set');
                         }
 
                         // add the documents and a commit command to the update query
