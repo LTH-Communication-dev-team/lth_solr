@@ -45,21 +45,31 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
         // create a client instance
         $client = new Solarium\Client($config);
+        $query = $client->createSelect();
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(200);
 
         $current_date = gmDate("Y-m-d\TH:i:s\Z");
         
         $heritageArray = $this->getHeritage($con);
-      
-        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray);
-        #$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
-        #$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings);
+        
+        //Get last modified
+        $query->setQuery('doctype:publication');
+        $query->addSort('tstamp', $query::SORT_DESC);
+        $query->setStart(0)->setRows(1);
+        $response = $client->select($query);
+        foreach ($response as $document) {
+            $lastModified = $document->tstamp;
+        }
+        //echo $lastModified;
+        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $lastModified);
+        #$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
+        #$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
         return TRUE;
     }
     
     
-    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray)
+    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $lastModified)
     {
         
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +77,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //modifiedDate.toDate 
         //for($i = 0; $i < $numberofloops; $i++) {
-        for($i = 0; $i < 2500; $i++) {
+        for($i = 0; $i < $numberofloops; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
             
             $startrecord = $i * $maximumrecords;
@@ -76,8 +86,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $lucrisId = $settings['solrLucrisId'];
             $lucrisPw = $settings['solrLucrisPw'];
 
-            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
-            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?uuids.uuid=defd3bac-a445-4938-b263-a44b59077039&rendering=xml_long";
+            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?uuids.uuid=defd3bac-a445-4938-b263-a44b59077039&rendering=xml_long";
             
             try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
@@ -197,7 +207,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                         $document_limitedVisibility[] = (string)$document->children('core',true)->limitedVisibility;
                     }
                 }
-                die('200');
+
                 //Authors
                 if($content->children('publication-base_uk',true)->persons) {
                     foreach($content->children('publication-base_uk',true)->persons->children('person-template',true)->personAssociation as $personAssociation) {
@@ -280,9 +290,10 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     }
                 }
 
-                array_filter($heritage);
-
-                $organisationSourceId = array_unique($heritage);
+                if($heritage) {
+                    array_filter($heritage);
+                    $organisationSourceId = array_unique($heritage);
+                }
 
                 //External organisations
                 if($content->children('stab',true)->associatedExternalOrganisations && $content->children('stab',true)->associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation) {
@@ -361,12 +372,14 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                         }
                     }
                     $event_city = $content->children('stab',true)->event->children('event-template',true)->city;
-                    foreach($content->children('stab',true)->event->children('event-template',true)->country->children('core',true)->localizedString as $localizedString) {
-                        if($localizedString->attributes()->locale == 'en_GB') {
-                            $event_country_en = (string)$localizedString;
-                        }
-                        if($localizedString->attributes()->locale == 'sv_SE') {
-                            $event_country_sv = (string)$localizedString;
+                    if($content->children('stab',true)->event->children('event-template',true)->country) {
+                        foreach($content->children('stab',true)->event->children('event-template',true)->country->children('core',true)->localizedString as $localizedString) {
+                            if($localizedString->attributes()->locale == 'en_GB') {
+                                $event_country_en = (string)$localizedString;
+                            }
+                            if($localizedString->attributes()->locale == 'sv_SE') {
+                                $event_country_sv = (string)$localizedString;
+                            }
                         }
                     }
                 }
@@ -402,61 +415,60 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 
                 $data = array(
                     'id' => $id,
-                    'doctype' => 'publication',
-                    'portalUrl' => $portalUrl,
-                    'title' => $title,
-                    'abstract_en' => $abstract_en,
+                     'abstract_en' => $abstract_en,
                     'abstract_sv' => $abstract_sv,
                     'authorId' => $authorId,
-                    'authorName' => array_unique($authorName),
-                    'organisationId' => $organisationId,
-                    'organisationName_en' => $organisationName_en,
-                    'organisationName_sv' => $organisationName_sv,
+                    'authorName' => array_unique($authorName),                   
+                    'doctype' => 'publication',
+                      'document_url' => $document_url,
+                      'document_title' => $document_title,
+                      'document_limitedVisibility' => $document_limitedVisibility,                    
                     'externalOrganisationsName' => $externalOrganisationsName,
                     'externalOrganisationsId' => $externalOrganisationsId,
-                    'organisationSourceId' => $organisationSourceId,
-                    //'keyword_en' => $keyword_en,
-                    //'keyword_sv' => $keyword_sv,
-                    //'userDefinedKeyword' => $userDefinedKeyword,
-                    'language_en' => $language_en,
-                    'language_sv' => $language_sv,
-                    'numberOfPages' => $numberOfPages,
-                    'pages' => $pages,
-                    'volume' => $volume,
-                    'journalNumber' => $journalNumber,
-                    'publicationStatus' => $publicationStatus,
-                    'publicationDateYear' => $publicationDateYear,
-                    'publicationDateMonth' => $publicationDateMonth,
-                    'publicationDateDay' => $publicationDateDay,
-                    'peerReview' => $peerReview,
-                    'keywords_uka_en' => $keywords_uka_en,
-                    'keywords_uka_sv' => $keywords_uka_sv,
-                    'keywords_user' => $keywords_user,
-                    'document_url' => $document_url,
-                    'document_title' => $document_title,
-                    'document_limitedVisibility' => $document_limitedVisibility,
-                    'hostPublicationTitle' => $hostPublicationTitle,
-                    'publisher' => $publisher,
                     'event_en' => $event_en,
                     'event_sv' => $event_sv,
                     'event_city' => $event_city,
                     'event_country_en' => $event_country_en,
                     'event_country_sv' => $event_country_sv,
-                    'doi' => $doi,
+                      'hostPublicationTitle' => $hostPublicationTitle,
+                    'journalNumber' => $journalNumber,
+                      'keywords_uka_en' => $keywords_uka_en,
+                      'keywords_uka_sv' => $keywords_uka_sv,
+                      'keywords_user' => $keywords_user,
+                    'language_en' => $language_en,
+                    'language_sv' => $language_sv,
+                    'numberOfPages' => $numberOfPages,
+                    'organisationId' => $organisationId,
+                    'organisationName_en' => $organisationName_en,
+                    'organisationName_sv' => $organisationName_sv,
+                    'organisationSourceId' => $organisationSourceId, 
+                    'pages' => $pages,
+                    'peerReview' => $peerReview,
+                    'portalUrl' => $portalUrl,
+                    'publicationStatus' => $publicationStatus,
+                    'publicationDateYear' => $publicationDateYear,
+                    'publicationDateMonth' => $publicationDateMonth,
+                    'publicationDateDay' => $publicationDateDay,
                     'publicationType_en' => $publicationType_en,
                     'publicationType_sv' => $publicationType_sv,
+                      'publisher' => $publisher,
+                    'title' => $title,
+                    'volume' => $volume,
+                    'doi' => $doi,
                     'boost' => '1.0',
                     'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
                     'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
                     'digest' => md5($id),
-                    
+                    //'keyword_en' => $keyword_en,
+                    //'keyword_sv' => $keyword_sv,
+                    //'userDefinedKeyword' => $userDefinedKeyword,
                 );
-                $this->debug($data);
-               // $buffer->createDocument($data);
+                //$this->debug($data);
+                $buffer->createDocument($data);
             }
 
         }
-        //$buffer->commit();
+        $buffer->commit();
         return TRUE;
     }
         
@@ -471,7 +483,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
         
     
-    function getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings)
+    function getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified)
     {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //organisations
@@ -600,7 +612,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
 
     
-    function getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings)
+    function getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified)
     {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //upmprojects

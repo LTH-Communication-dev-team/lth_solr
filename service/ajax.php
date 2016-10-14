@@ -730,10 +730,8 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
         
     $hideVal = 'lth_solr_hide_' . $pageid . '_i';
 
-    // create a client instance
     $client = new Solarium\Client($config);
 
-    // get a select query instance
     $query = $client->createSelect();
     
     if($scope) {

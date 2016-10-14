@@ -36,7 +36,7 @@
                 <numIndex index="0">Kontaktuppgifter (enkel)</numIndex>
                 <numIndex index="1">contact_simple.html</numIndex>
                 </numIndex>
-                <numIndex index="5" type="array">
+               <!-- <numIndex index="5" type="array">
                 <numIndex index="0">Presentationssida för en enskild person vänster</numIndex>
                 <numIndex index="1">presentation_single_person_left.html</numIndex>
                 </numIndex>
@@ -47,7 +47,7 @@
                 <numIndex index="7" type="array">
                 <numIndex index="0">Kontaktsida för en enskild person</numIndex>
                 <numIndex index="1">contact_single_person.html</numIndex>
-                </numIndex>
+                </numIndex> -->
                 </items>
                 <maxitems>1</maxitems>
                 <size>1</size>
