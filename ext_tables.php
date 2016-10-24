@@ -20,7 +20,7 @@ $TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi5']='pi_fle
 $TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi6']='pi_flexform'; //New
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPiFlexFormValue($_EXTKEY.'_pi6', 'FILE:EXT:lth_solr/flexform_ds_pi6.xml'); //New
 
-t3lib_div::loadTCA('tt_content');
+\TYPO3\CMS\Core\Utility\GeneralUtility::loadTCA('tt_content');
 
 $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi1'] = 'layout,select_key,pages';
 
