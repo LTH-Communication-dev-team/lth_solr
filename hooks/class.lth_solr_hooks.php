@@ -248,7 +248,7 @@ class lth_solr_hooks {
 
         if (!$pObj->conf['extra.']['disabledSaltedPassword'] && isset($params['user']['password']) && strlen($params['user']['password'])) {
             $password = $params['user']['password']; // plain-text password
-            if (t3lib_extMgm::isLoaded('saltedpasswords')) {
+            if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('saltedpasswords')) {
                 if (tx_saltedpasswords_div::isUsageEnabled('FE')) {
                     $objSalt = tx_saltedpasswords_salts_factory::getSaltingInstance(NULL);
                     if (is_object($objSalt)) {
