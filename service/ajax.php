@@ -69,7 +69,7 @@ switch($action) {
         $content = searchMore($term, 'documents', $peopleOffset, $documentsOffset, $config);
         break;
     case 'listPublications':
-        $content = listPublications($scope, $syslang, $config, $table_length, $table_start, $pageid);
+        $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $categories, $query);
         break;
     case 'showPublication':
         $content = showPublication($scope, $syslang, $config, $detailPage);
@@ -303,21 +303,44 @@ function searchMore($term, $type, $peopleOffset, $documentsOffset, $config)
 }
 
 
-function listPublications($term, $syslang, $config, $table_length, $table_start, $pageid)
+function listPublications($facet, $term, $syslang, $config, $table_length, $table_start, $pageid, $categories, $filterQuery)
 {
     $client = new Solarium\Client($config);
 
     $query = $client->createSelect();
     
     $hideVal = 'lth_solr_hide_' . $pageid . '_i';
+    
+    if($filterQuery) {
+        $filterQuery = ' AND (title_sort:*' . $filterQuery . '*)';
+    }
 
-    $query->setQuery('doctype:publication AND -' . $hideVal . ':[* TO *] AND (organisationId:'.$term.' OR authorId:'.$term.')');
+    $query->setQuery('doctype:publication AND -' . $hideVal . ':[* TO *] AND (organisationSourceId  :'.$term.' OR authorId:'.$term.')' . $filterQuery);
     //$query->addParam('rows', 1500);
     $query->setStart($table_start)->setRows($table_length);
+    
+    // get the facetset component
+    $facetSet = $query->getFacetSet();
+    if($facet) {
+        $facetArray = json_decode($facet, true);
+
+        $facetQuery = '';
+        foreach($facetArray as $key => $value) {
+            $facetTempArray = explode('###', $value);
+            if($facetQuery) {
+                $facetQuery .= ' OR ';
+            }
+            $facetQuery .= $facetTempArray[0] . ':' . $facetTempArray[1] . '';
+        }
+
+        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
+    } else if($categories) {
+        $facetSet->createFacetField('standard')->setField('standard_category_' . $syslang);
+    }
 
     $sortArray = array(
         'lth_solr_sort_' . $pageid . '_i' => 'asc',
-        'publicationDateYear' => 'asc'
+        'publicationDateYear' => 'desc'
     );
     $query->addSorts($sortArray);
 
@@ -325,38 +348,19 @@ function listPublications($term, $syslang, $config, $table_length, $table_start,
     
     $numFound = $response->getNumFound();
     
+    $categoryType = "standard_category_$syslang";
     $publicationType = "publicationType_$syslang";
+    
+    // display facet query count
+    if(!$facet && $categories) {
+        $facet_standard = $response->getFacetSet()->getFacet('standard');
+        foreach ($facet_standard as $value => $count) {
+            $facetResult[$categoryType][] = array($value, $count);
+        }
+    }
         
     foreach ($response as $document) {     
         $data[] = array(
-        /*            'id' => $id,
-        'portalUrl' => $portalUrl,
-        'title' => $title,
-        'abstract_en' => $abstract_en,
-        'abstract_sv' => $abstract_sv,
-        'authorId' => $authorId,
-        'authorName' => array_unique($authorName),
-        'organisationId' => $organisationId,
-        'organisationName_en' => array_unique($organisationName_en),
-        'organisationName_sv' => array_unique($organisationName_sv),
-        'externalOrganisations' => $externalOrganisations,
-        'keyword_en' => $keyword_en,
-        'keyword_sv' => $keyword_sv,
-        'userDefinedKeyword' => $userDefinedKeyword,
-        'language_en' => $language_en,
-        'language_sv' => $language_sv,
-        'pages' => $pages,
-        'volume' => $volume,
-        'journalNumber' => $journalNumber,
-        'publicationStatus' => $publicationStatus,
-        'publicationDateYear' => $publicationDateYear,
-        'publicationDateMonth' => $publicationDateMonth,
-        'publicationDateDay' => $publicationDateDay,
-        'peerReview' => $peerReview,
-        'doi' => $doi,
-        'publicationType_en' => $publicationType_en,
-        'publicationType_sv' => $publicationType_sv,
-            */
             $document->id,
             fixArray($document->title),
             ucwords(strtolower(fixArray($document->authorName))),
@@ -389,35 +393,7 @@ function showPublication($term, $syslang, $config, $detailPage)
     $staffDetailPage = $detailPageArray[0];
     $projectDetailPage = $detailPageArray[1];
         
-    foreach ($response as $document) {     
-        /*            'id' => $id,
-        'portalUrl' => $portalUrl,
-        'title' => $title,
-        'abstract_en' => $abstract_en,
-        'abstract_sv' => $abstract_sv,
-        'authorId' => $authorId,
-        'authorName' => array_unique($authorName),
-        'organisationId' => $organisationId,
-        'organisationName_en' => array_unique($organisationName_en),
-        'organisationName_sv' => array_unique($organisationName_sv),
-        'externalOrganisations' => $externalOrganisations,
-        'keyword_en' => $keyword_en,
-        'keyword_sv' => $keyword_sv,
-        'userDefinedKeyword' => $userDefinedKeyword,
-        'language_en' => $language_en,
-        'language_sv' => $language_sv,
-        'pages' => $pages,
-        'volume' => $volume,
-        'journalNumber' => $journalNumber,
-        'publicationStatus' => $publicationStatus,
-        'publicationDateYear' => $publicationDateYear,
-        'publicationDateMonth' => $publicationDateMonth,
-        'publicationDateDay' => $publicationDateDay,
-        'peerReview' => $peerReview,
-        'doi' => $doi,
-        'publicationType_en' => $publicationType_en,
-        'publicationType_sv' => $publicationType_sv,
-            */
+    foreach ($response as $document) {
         $id = $document->id;
         $title = fixArray($document->title);
         $authorNameArray = $document->authorName;

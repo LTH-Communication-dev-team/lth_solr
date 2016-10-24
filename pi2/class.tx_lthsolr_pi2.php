@@ -58,10 +58,10 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $html_template = $this->pi_getFFvalue($piFlexForm, "html_template", "sDEF", $lDef[$index]);
             $scope = $this->pi_getFFvalue($piFlexForm, "scope", "sDEF", $lDef[$index]);
             if($scope) {
-            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($scope)");
-            while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                $title[] = explode('__', $row['title'])[0];
-            }
+                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($scope)");
+                while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                    $title[] = explode('__', $row['title'])[0];
+                }
             if($title) {
                 $scope = implode(',', $title);
             }
@@ -140,7 +140,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
 
             //$content .= '<div class="grid-31 alpha omega">';
                         
-            $content .= '<div style="clear:both;"><input type="text" class="lthsolr_filter" name="lthsolr_filter" placeholder="Filter" value="" /></div>';
+            $content .= '<div style="clear:both;"><input type="text" id="lthsolr_staff_filter" class="lthsolr_filter" name="lthsolr_filter" placeholder="Filter" value="" /></div>';
             $content .= '<div class="lth_solr_facet_container"></div>';
             
             $content .= '<div id="lthsolr_staff_header"></div>';

@@ -67,3 +67,5 @@ t3lib_extMgm::addPItoST43($_EXTKEY, 'pi3/class.tx_lthsolr_pi3.php', '_pi3', 'lis
 t3lib_extMgm::addPItoST43($_EXTKEY, 'pi4/class.tx_lthsolr_pi4.php', '_pi4', 'list_type', 1);
 
 t3lib_extMgm::addPItoST43($_EXTKEY, 'pi5/class.tx_lthsolr_pi5.php', '_pi5', 'list_type', 1);
+
+t3lib_extMgm::addPItoST43($_EXTKEY, 'pi5/class.tx_lthsolr_pi6.php', '_pi6', 'list_type', 1);

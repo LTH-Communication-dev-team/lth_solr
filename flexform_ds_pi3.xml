@@ -92,6 +92,15 @@
                 </TCEforms>
             </projectDetailPage>
             
+            <categories>
+                <TCEforms>
+                   <label>Use categories</label>
+                   <config>
+                       <type>check</type>
+                   </config>
+               </TCEforms>
+           </categories>
+            
             <noItemsToShow>
                 <TCEforms>
                     <label>No of items to show</label>

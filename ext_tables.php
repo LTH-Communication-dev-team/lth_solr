@@ -17,6 +17,9 @@ t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_pi4', 'FILE:EXT:lth_solr/flexform_ds
 $TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi5']='pi_flexform'; //New
 t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_pi5', 'FILE:EXT:lth_solr/flexform_ds_pi5.xml'); //New
 
+$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi6']='pi_flexform'; //New
+t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_pi6', 'FILE:EXT:lth_solr/flexform_ds_pi6.xml'); //New
+
 t3lib_div::loadTCA('tt_content');
 
 $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi1'] = 'layout,select_key,pages';
@@ -50,5 +53,11 @@ t3lib_extMgm::addPlugin(array(
 t3lib_extMgm::addPlugin(array(
 	'LLL:EXT:lth_solr/locallang_db.xml:tt_content.list_type_pi5',
 	$_EXTKEY . '_pi5',
+	t3lib_extMgm::extRelPath($_EXTKEY) . 'ext_icon.gif'
+),'list_type');
+
+t3lib_extMgm::addPlugin(array(
+	'LLL:EXT:lth_solr/locallang_db.xml:tt_content.list_type_pi6',
+	$_EXTKEY . '_pi6',
 	t3lib_extMgm::extRelPath($_EXTKEY) . 'ext_icon.gif'
 ),'list_type');

@@ -56,9 +56,10 @@ class tx_lthsolr_pi3 extends tslib_pibase {
             $lDef = array_keys($sDef);
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
+            $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
 
             if($fe_groups) {
-                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($fe_groups)");
+                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
                 while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                     $title[] = explode('__', $row['title'])[0];
                 }
@@ -128,7 +129,7 @@ class tx_lthsolr_pi3 extends tslib_pibase {
             if($uuid) {
                 $content .= $this->showPublication($uuid, $staffDetailPage, $projectDetailPage, $syslang);
             } else {
-                $content .= $this->listPublications($scope, $detailPage, $syslang, $noItemsToShow);
+                $content .= $this->listPublications($scope, $detailPage, $syslang, $noItemsToShow, $categories);
             }
         
             //$this->debug($content);
@@ -154,18 +155,20 @@ class tx_lthsolr_pi3 extends tslib_pibase {
         }
         
         
-        private function listPublications($scope, $detailPage, $syslang, $noItemsToShow)
+        private function listPublications($scope, $detailPage, $syslang, $noItemsToShow, $categories)
         {
             /*$content = '<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
                 <thead><tr><th>Title</th><th>Author</th><th>Type</th><th>Year</th></tr></thead>
                 <tbody id="table_data_container">
                 </tbody>
             </table>';*/
-            $content .= '<div style="clear:both;margin-top:20px;margin-bottom:20px;">Filter: <input type="text" id="lthsolr_filter" name="lthsolr_filter" value="" /></div>';
-
-            $content .= '<div id="lth_solr_facet_container"></div>';
+            $content .= '<div style="clear:both;margin-top:20px;margin-bottom:20px;">Filter: <input type="text" id="lthsolr_publications_filter" class="lthsolr_filter" name="lthsolr_filter" value="" /></div>';
             
-            $content .= '<div id="lthsolr_publications_container"><div id="lthsolr_publications_header"></div></div>';
+            $content .= '<div class="lth_solr_facet_container"></div>';
+            
+            $content .= '<div id="lthsolr_publications_header"></div>';
+            
+            $content .= '<div id="lthsolr_publications_container"></div>';
             
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple.html");
             
@@ -174,6 +177,7 @@ class tx_lthsolr_pi3 extends tslib_pibase {
                     <input type="hidden" id="lth_solr_publicationdetailpage" value="' . $detailPage . '" />
                     <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />    
                     <input type="hidden" id="lth_solr_action" value="listPublications" />
+                    <input type="hidden" id="lth_solr_categories" value="' . $categories . '" />
                     <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
             return $content;
         }

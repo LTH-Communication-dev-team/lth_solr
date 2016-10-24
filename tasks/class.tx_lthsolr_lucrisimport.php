@@ -53,34 +53,286 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         
         $heritageArray = $this->getHeritage($con);
         
-        //Get last modified
+        /*Get last modified
         $query->setQuery('doctype:publication');
         $query->addSort('tstamp', $query::SORT_DESC);
-        $query->setStart(0)->setRows(1);
+        $query->setStart(0)->setRows(200000);
         $response = $client->select($query);
+        $idArray = array();
         foreach ($response as $document) {
-            $lastModified = $document->tstamp;
-        }
+            $idArray[] = $document->id;
+        }*/
+        $startFromHere = 8891982;
         //echo $lastModified;
-        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $lastModified);
-        #$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
-        #$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
+        //$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
+        //$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
+        //$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
+        //$this->getStudentPapers($config, $client, $buffer, 100, 1, $startFromHere, $heritageArray);
+        $this->standardCat($config, $client);
         return TRUE;
     }
     
     
-    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $lastModified)
+    function standardCat($config, $client)
     {
+        $numberofloops = 1;
         
+        // create a client instance
+        $client = new Solarium\Client($config);
+        $query = $client->createSelect();
+        $update = $client->createUpdate();
+        
+        for($i = 0; $i < $numberofloops; $i++) {
+            $startrecord = $i * 1000;
+            $query->setQuery('doctype:publication');
+            $query->setStart($startrecord)->setRows(1000);
+            $response = $client->select($query);
+            $numFound = $response->getNumFound();
+            
+            $numberofloops = ceil($numFound / 1000);
+            
+            //if($startrecord > 0) $startrecord++;
+            
+            
+            $ii = 0;
+            $docArray = array();
+            foreach ($response as $document) {
+                $ii++;
+                $id = $document->id;
+                if($document->title) {
+                    if(is_array($document->title)) {
+                        $title = $document->title[0];
+                    }
+                }
+                //echo $title;
+                $publicationType_en = $document->publicationType_en;
+                $publicationType_sv = $document->publicationType_sv;
+                //echo $publicationType_en[0] . $publicationType_sv[0];
+                ${"doc" . $ii} = $update->createDocument();
+                ${"doc" . $ii}->setKey('id', $id);
+                ${"doc" . $ii}->addField('standard_category_en', str_replace(' ', '_', $publicationType_en[0]));
+                ${"doc" . $ii}->setFieldModifier('standard_category_en', 'set');
+                ${"doc" . $ii}->addField('standard_category_sv', str_replace(' ', '_', $publicationType_sv[0]));
+                ${"doc" . $ii}->setFieldModifier('standard_category_sv', 'set');
+                //${"doc" . $ii}->addField('id_sort', $id);
+                //${"doc" . $ii}->setFieldModifier('id_sort', 'set');
+                ${"doc" . $ii}->addField('title_sort', $title);
+                ${"doc" . $ii}->setFieldModifier('title_sort', 'set');
+                $docArray[] = ${"doc" . $ii};
+            }
+            $update->addDocuments($docArray);
+            $update->addCommit();
+            $result = $client->update($update);
+        }
+        
+        return TRUE;
+    }
+    
+    
+    function getStudentPapers($config, $client, $buffer, $maximumRecords, $numberOfLoops, $startFromHere, $heritageArray)
+    {
+
+        for($i = 0; $i < 500; $i++) {
+            //echo $i.':'. $numberofloops . '<br />';
+            
+            $startRecord = ($i * $maximumRecords);
+            if($startrecord > 0) $startrecord++;
+            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            $xmlpath = "https://lup.lub.lu.se/student-papers/sru?version=1.1&operation=searchRetrieve&query=submissionStatus%20exact%20public%20AND%20id%3E$startFromHere&startRecord=$startRecord&maximumRecords=$maximumRecords&sortKeys=id";
+            
+            //echo $xmlpath;
+            
+            try {
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
+                $xml = new SimpleXMLElement($xmlpath, null, true);
+            } catch(Exception $e) {
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
+            }
+            //$this->debug($xml);
+
+            if($xml->records->record) {
+                foreach($xml->records->record as $content) {
+                    $id;
+                    $created;
+
+                    $modified;
+                    $genre;
+                    $title;
+                    $authorName = array();
+                    $supervisorName = array();
+                    $organisationName_en = array();
+                    $organisationName_sv = array();
+                    $organisationSourceId = array();
+                    $abstract_en;
+                    $abstract_sv;
+                    $document_url;
+                    $document_type;
+                    $document_size;
+                    $document_limitedVisibility;
+                    $publicationDateYear;
+                    $language_en;
+                    $created;
+                    $modified;
+                    $language_sv;
+                    $keywords_user = array();
+
+                    $id = (string)$content->recordData->mods->recordInfo->recordIdentifier;
+
+                    $created = (string)$content->recordData->mods->recordInfo->recordCreationDate;
+
+                    $modified = (string)$content->recordData->mods->recordInfo->recordChangeDate;
+
+                    $genre = (string)$content->recordData->mods->genre;
+
+                    $title = (string)$content->recordData->mods->titleInfo->title;
+
+                    //name
+                    foreach($content->recordData->mods->name as $name) {
+                        $nameTemp = '';
+                        foreach($name->namePart as $namePart) {
+                            if($nameTemp) $nameTemp .= ' ';
+                            $nameTemp .= $namePart;
+                        }
+                        if($name->role->roleTerm == 'author') {
+                            $authorName[] = (string)$nameTemp;
+                        } else if($name->role->roleTerm == 'supervisor') {
+                            $supervisorName[] = (string)$nameTemp;  //NY FÄLTTYP!!!!!!!!!!!!!!!!!
+                        } else if($name->role->roleTerm == 'department') {
+                            $organisationName_en[] = (string)$nameTemp;
+                            $organisationName_sv[] = (string)$nameTemp;
+                            $organisationSourceId[] = (string)$name->identifier;
+                        }
+                    }
+
+                    foreach($organisationSourceId as $key1 => $value1) {
+                        $heritage[] = $value1;
+                        $parent = $heritageArray[$value1];
+                        if($parent) { 
+                            $heritage[] = $parent;
+                        }
+                        $parent = $heritageArray[$parent];
+                        if($parent) {
+                            $heritage[] = $parent;
+                        }
+                        $parent = $heritageArray[$parent];
+                        if($parent) {
+                            $heritage[] = $parent;
+                        }
+                        $parent = $heritageArray[$parent];
+                        if($parent) {
+                            $heritage[] = $parent;
+                        }
+                        $parent = $heritageArray[$parent];
+                        if($parent) {
+                            $heritage[] = $parent;
+                        }
+                        $parent = $heritageArray[$parent];
+                        if($parent) {
+                            $heritage[] = $parent;
+                        }
+                        $parent = $heritageArray[$parent];
+                        if($parent) {
+                            $heritage[] = $parent;
+                        }
+                        $parent = $heritageArray[$parent];
+                        if($parent) {
+                            $heritage[] = $parent;
+                        }
+                        $parent = $heritageArray[$parent];
+                        if($parent) {
+                            $heritage[] = $parent;
+                        }
+                    }
+
+                    if($heritage) {
+                        array_filter($heritage);
+                        $organisationSourceId = array_unique($heritage);
+                    }
+
+                    //abstract
+                    foreach($content->recordData->mods->abstract as $abstract) {
+                        if($abstract['lang'] == 'eng') {
+                            $abstract_en = (string)$abstract;
+                        } else if($abstract['lang'] == 'swe') {
+                            $abstract_sv = (string)$abstract;
+                        }
+                    }
+
+                    //document_url
+                    $document_url = (string)$content->recordData->mods->relatedItem->location->url;
+
+                    $document_type = (string)$content->recordData->mods->relatedItem->physicalDescription->internetMediaType; //NY FÄLTTYP!!!!!!!!!!!!!!!!!
+
+                    if($content->recordData->mods->relatedItem->note['type'] == 'fileSize') {
+                        $document_size = (string)$content->recordData->mods->relatedItem->note; //NY FÄLTTYP!!!!!!!!!!!!!!!!!
+                    }
+
+                    //document_limitedVisibility
+                    if($content->recordData->mods->relatedItem->accessCondition['type'] == 'restrictionOnAccess') {
+                        $document_limitedVisibility = (string)$content->recordData->mods->relatedItem->accessCondition;
+                    }
+
+                    //publicationDateYear
+                    $publicationDateYear = (string)$content->recordData->mods->originInfo->dateIssued;
+
+                    //language
+                    $language_en = (string)$content->recordData->mods->language->languageTerm;
+                    $language_sv = (string)$content->recordData->mods->language->languageTerm;
+
+                    //keywords
+                    foreach($content->recordData->mods->subject->topic as $topic) {
+                        $keywords_user[] = (string)$topic;
+                    }
+
+                    $data = array(
+                        'id' => $id,
+                        'genre' => $genre,
+                        'title' => $title,
+                        'title_sort' => $title,
+                        'authorName' => array_unique($authorName),
+                        'supervisorName' => $supervisorName,
+                        'organisationName_en' => $organisationName_en,
+                        'organisationName_sv' => $organisationName_sv,
+                        'organisationSourceId' => $organisationSourceId,
+                        'abstract_en' => $abstract_en,
+                        'abstract_sv' => $abstract_sv, 
+                        'doctype' => 'studentPaper',
+                        'document_url' => $document_url,
+                        'document_type' => $document_type,
+                        'document_size' => $document_size,
+                        'document_limitedVisibility' => $document_limitedVisibility,                    
+                        'publicationDateYear' => $publicationDateYear,
+                        'language_en' => $language_en,
+                        'language_sv' => $language_sv,
+                        'keywords_user' => $keywords_user,                    
+                        'boost' => '1.0',
+                        'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
+                        'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
+                        'digest' => md5($id)
+                    );
+                    //$this->debug($data);
+                    $buffer->createDocument($data);
+                }
+            }
+        }
+        $buffer->commit();
+        return TRUE;
+    }
+    
+    
+    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere)
+    {
+        $heritageArray = $heritageArray[0];
+        //$this->debug($heritageArray[0]);
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //publications
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//modifiedDate.toDate 
+
         //for($i = 0; $i < $numberofloops; $i++) {
-        for($i = 0; $i < $numberofloops; $i++) {
+        for($i = 0; $i < 500; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
             
-            $startrecord = $i * $maximumrecords;
+            $startrecord = $startFromHere + ($i * $maximumrecords);
             if($startrecord > 0) $startrecord++;
             
             $lucrisId = $settings['solrLucrisId'];
@@ -107,7 +359,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $portalUrl;
                 $created;
                 $modified;
-                $title;
+                $document_title;
                 $abstract_en;
                 $abstract_sv;
                 $authorIdTemp;
@@ -136,6 +388,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $doi;
                 $publicationType_en;
                 $publicationType_sv;
+                $standard_category_sv;
+                $standard_category_en;
                 $organisationSourceId = array();
                 $hertitage = array();
                 $keywords_uka_en = array();
@@ -151,6 +405,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $event_city;
                 $event_country_en;
                 $event_country_sv;
+                $heritage = array();
                 
                 //id
                 $id = (string)$content->attributes();
@@ -249,10 +504,11 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                         $organisationSourceId[] = (string)$association->children('organisation-template',true)->organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
                     }
                 }
-                
+
                 foreach($organisationSourceId as $key1 => $value1) {
                     $heritage[] = $value1;
                     $parent = $heritageArray[$value1];
+
                     if($parent) { 
                         $heritage[] = $parent;
                     }
@@ -415,14 +671,14 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 
                 $data = array(
                     'id' => $id,
-                     'abstract_en' => $abstract_en,
+                    'abstract_en' => $abstract_en,
                     'abstract_sv' => $abstract_sv,
                     'authorId' => $authorId,
                     'authorName' => array_unique($authorName),                   
                     'doctype' => 'publication',
-                      'document_url' => $document_url,
-                      'document_title' => $document_title,
-                      'document_limitedVisibility' => $document_limitedVisibility,                    
+                    'document_url' => $document_url,
+                    'document_title' => $document_title,
+                    'document_limitedVisibility' => $document_limitedVisibility,                    
                     'externalOrganisationsName' => $externalOrganisationsName,
                     'externalOrganisationsId' => $externalOrganisationsId,
                     'event_en' => $event_en,
@@ -430,11 +686,11 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'event_city' => $event_city,
                     'event_country_en' => $event_country_en,
                     'event_country_sv' => $event_country_sv,
-                      'hostPublicationTitle' => $hostPublicationTitle,
+                    'hostPublicationTitle' => $hostPublicationTitle,
                     'journalNumber' => $journalNumber,
-                      'keywords_uka_en' => $keywords_uka_en,
-                      'keywords_uka_sv' => $keywords_uka_sv,
-                      'keywords_user' => $keywords_user,
+                    'keywords_uka_en' => $keywords_uka_en,
+                    'keywords_uka_sv' => $keywords_uka_sv,
+                    'keywords_user' => $keywords_user,
                     'language_en' => $language_en,
                     'language_sv' => $language_sv,
                     'numberOfPages' => $numberOfPages,
@@ -451,9 +707,11 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'publicationDateDay' => $publicationDateDay,
                     'publicationType_en' => $publicationType_en,
                     'publicationType_sv' => $publicationType_sv,
-                      'publisher' => $publisher,
+                    'publisher' => $publisher,
                     'title' => $title,
                     'volume' => $volume,
+                    'standard_category_en' => $publicationType_en,
+                    'standard_category_sv' => $publicationType_sv,
                     'doi' => $doi,
                     'boost' => '1.0',
                     'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
@@ -787,6 +1045,60 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $heritageArray[$row['orgid']] = $row['parent'];
         }
         return array($heritageArray);
+    }
+    
+    
+    private function getcategories()
+    {
+     /*
+        $categoriyArray = array(
+            'Bidrag till tidskrift' = array(
+                'Artikel i vetenskaplig tidskrift',
+                'Letter',
+                'Debatt/notis/ledare',
+                'Recension av bok/film/utställning etc.',
+                'Special- / temanummer av tidskrift (redaktör)',
+                'Publicerat konferensabstrakt'),
+            'Kapitel i bok/rapport/konferenshandling' = array(
+                'Kapitel i bok',
+                'Bidrag till encyklopedi/referensverk',
+                'Kapitel i rapport',
+                'Förord till konferenspublikation',
+                'Konferenspaper i proceeding',
+                'För-/efterord'),
+            'Bok/rapport' = array(
+                'Bok',
+                'Antologi (redaktör)',
+                'Textkritisk utgåva',
+                'Rapport',
+                'Konferenspublikation (redaktör)'),
+            '!!Contribution to specialist publication or newspaper' = array(
+                'Artikel',
+                'Dagstidnings- /Nyhetsartikel',
+                'Recension av bok/film/utställning etc.',
+                'Arbetsdokument',
+                'Working paper'),
+            'Bidrag till konferens' = array(
+                'Konferenspaper, ej i proceeding',
+                'Poster',
+                'Konferensabstrakt',
+                'Annan'),
+            'Icke-textmässig form' = array(
+                'Konstnärligt arbete',
+                'Kurerad/ producerad utställning/ event',
+                'Webbpublikation/bloggpost/site'),
+            'Avhandling' = array(
+                'Doktorsavhandling (monografi)',
+                'Doktorsavhandling (sammanläggning)',
+                'Licentiatavhandling',
+                'Masteruppsats',
+                'Doctoral Thesis (artistic)'),
+            'Patent' = array(
+                'Patent'),
+            'Annat bidrag' = array(
+                'Annan')
+        )
+         */
     }
     
     

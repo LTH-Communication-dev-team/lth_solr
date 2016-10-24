@@ -771,7 +771,7 @@ class user_sampleflex_addFieldsToFlexForm {
         }
 
         if($fe_groups) {
-            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($fe_groups)");
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode("|",$fe_groups)[0].")");
             while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                 $title[] = explode('__', $row['title'])[0];
             }
@@ -792,7 +792,7 @@ class user_sampleflex_addFieldsToFlexForm {
         $query = $client->createSelect();
         $query->addSort('lth_solr_sort_' . $pid . '_i', $query::SORT_ASC);
         $query->addSort('publicationDateYear', $query::SORT_DESC);
-        $query->setQuery('doctype:publication AND (organisationId:'.$scope.' OR authorId:'.$scope.')');
+        $query->setQuery('doctype:publication AND (organisationSourceId:'.$scope.' OR authorId:'.$scope.')');
         $query->setStart(0)->setRows(1000);
         $response = $client->select($query);
         
@@ -800,8 +800,12 @@ class user_sampleflex_addFieldsToFlexForm {
         
         if($response) {
             foreach ($response as $document) {
+                $title = '';
+                if($document->title) {
+                    $title = implode(',',$document->title);
+                }
                 $content .= '<tr class="pubselection" id="publication_' . $document->id . '">';
-                $content .= '<td style="width:600px; align:top;">'  . implode(',',$document->title) . ' (' . $document->id . ')</td>';
+                $content .= '<td style="width:600px; align:top;">'  . $title . ' (' . $document->id . ')</td>';
 
                 $checkedHide = ' ';
                 if($document->$hideVar) {
