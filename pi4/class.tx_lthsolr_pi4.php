@@ -153,10 +153,10 @@ class tx_lthsolr_pi4 extends tslib_pibase {
         private function getXMLDoc($uri)
 	{
             $xmlDoc = new DOMDocument('1.0', 'UTF-8');
-            $success = $xmlDoc->loadXML(t3lib_div::getURL($uri));
+            $success = $xmlDoc->loadXML(\TYPO3\CMS\Core\Utility\GeneralUtility::getURL($uri));
 		if(!$success)
 		{
-			t3lib_div::devlog(microtime(). 'XML is not loaded. Is it valid xml? Check url.', 'pure', 2,  array('url' => $uri));
+			\TYPO3\CMS\Core\Utility\GeneralUtility::devlog(microtime(). 'XML is not loaded. Is it valid xml? Check url.', 'pure', 2,  array('url' => $uri));
 			return null;
 		}
 

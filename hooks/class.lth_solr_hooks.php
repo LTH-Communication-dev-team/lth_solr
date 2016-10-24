@@ -71,7 +71,7 @@ class lth_solr_hooks {
         $uid = $GLOBALS['TSFE']->fe_user->user['uid'];
         $pid = $GLOBALS['TSFE']->page['pid'];
         $sl = $GLOBALS['TSFE']->sys_language_uid;
-        $tx_t3registration_pi1Array = t3lib_div::_GP('tx_t3registration_pi1');
+        $tx_t3registration_pi1Array = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tx_t3registration_pi1');
         $lth_solr_intro = $tx_t3registration_pi1Array['lthsolrintro'];
         $lth_solr_txt = $tx_t3registration_pi1Array['lthsolrtxt'];
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $lth_solr_post, 'crdate' => time()));
@@ -200,7 +200,7 @@ class lth_solr_hooks {
         $field['name'] = $pObj->conf['extra.']['passwordTwiceField'];
         $field['label'] = ($pObj->conf['extra.']['passwordTwiceFieldLabel']) ? $pObj->pi_getLL($pObj->conf['extra.']['passwordTwiceFieldLabel']) : $field['label'];
         if(is_array($pObj->conf['extra.']['passwordTwice.']['field.'])) {
-            $field = t3lib_div::array_merge_recursive_overrule($field,$pObj->removeDotFromArray($pObj->conf['extra.']['passwordTwice.']['field.']));
+            $field = \TYPO3\CMS\Core\Utility\GeneralUtility::array_merge_recursive_overrule($field,$pObj->removeDotFromArray($pObj->conf['extra.']['passwordTwice.']['field.']));
         }
         return $field;
     }
@@ -253,7 +253,7 @@ class lth_solr_hooks {
                     $objSalt = tx_saltedpasswords_salts_factory::getSaltingInstance(NULL);
                     if (is_object($objSalt)) {
                         $isMD5 = preg_match('/[0-9abcdef]{32,32}/', $password);
-                        $isSaltedHash = t3lib_div::inList('$1$,$2$,$2a,$P$', substr($password, 0, 3));
+                        $isSaltedHash = \TYPO3\CMS\Core\Utility\GeneralUtility::inList('$1$,$2$,$2a,$P$', substr($password, 0, 3));
 
                         if ($isMD5) {
                             $password = 'M' . $objSalt->getHashedPassword($password);
@@ -284,12 +284,12 @@ class lth_solr_hooks {
                 $params['hiddenArray']['paramsFromUrl'] = '<input type="hidden" name="tx_t3registration_pi1[paramsFromUrl]" value="' . $pObj->piVars['paramsFromUrl'] . '" />';
             } else {
                 $paramsWhitelist = (isset($pObj->conf['extra.']['saveParamsFromUrl.']['list']) || isset($pObj->conf['extra.']['saveParamsFromUrl.']['list.'])) ? $pObj->cObj->stdWrap($pObj->conf['extra.']['saveParamsFromUrl.']['list'], $pObj->conf['extra.']['saveParamsFromUrl.']['list.']) : '';
-                $paramsList = explode('&', urldecode(t3lib_div::getIndpEnv('QUERY_STRING')));
+                $paramsList = explode('&', urldecode(\TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('QUERY_STRING')));
                 $paramToSave = array();
                 if (is_array($paramsList) && count($paramsList)) {
                     foreach ($paramsList as $item) {
                         $tempSingleParam = explode('=', $item);
-                        if (t3lib_div::inList($paramsWhitelist, $tempSingleParam[0])) {
+                        if (\TYPO3\CMS\Core\Utility\GeneralUtility::inList($paramsWhitelist, $tempSingleParam[0])) {
 							$found = true;
                             $paramToSave[] = htmlentities(strip_tags($item));
                         }
@@ -340,7 +340,7 @@ class lth_solr_hooks {
                     $paramsList = explode(',', unserialize($row['params']));
                     foreach ($paramsList as $item) {
                         $tempSingleParam = explode('=', $item);
-                        if (t3lib_div::inList($paramsWhitelist, $tempSingleParam[0])) {
+                        if (\TYPO3\CMS\Core\Utility\GeneralUtility::inList($paramsWhitelist, $tempSingleParam[0])) {
                             $urlParameters[$tempSingleParam[0]] = $tempSingleParam[1];
                         }
                     }
@@ -351,7 +351,7 @@ class lth_solr_hooks {
                         $redirectId = (isset($pObj->conf['extra.']['saveParamsFromUrl.']['redirectPage'])) ? $pObj->conf['extra.']['saveParamsFromUrl.']['redirectPage'] : $GLOBALS['TSFE']->id;
                     }
                     $GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_md5params', 'md5hash=' . $GLOBALS['TYPO3_DB']->fullQuoteStr(substr(md5($params['user']['uid'] . $GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey']), 0, 20), 'cache_md5params'));
-                    header('Location: ' . t3lib_div::locationHeaderUrl($pObj->pi_getPageLink($redirectId, '', $urlParameters)));
+                    header('Location: ' . \TYPO3\CMS\Core\Utility\GeneralUtility::locationHeaderUrl($pObj->pi_getPageLink($redirectId, '', $urlParameters)));
                     exit();
                 }
             }

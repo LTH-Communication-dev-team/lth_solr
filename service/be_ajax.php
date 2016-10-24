@@ -22,15 +22,15 @@ class lth_solr_ajax {
             return 'Please make all settings in extension manager';
         }
 
-        $action = t3lib_div::_GP('action');
-        $items = t3lib_div::_GP('items');
-        $value = t3lib_div::_GP('value');
-        $checked = t3lib_div::_GP('checked');
-        $pid = t3lib_div::_GP('pid');
-        $sys_language_uid = t3lib_div::_GP('sys_language_uid');
-        $categoriesThisPage = t3lib_div::_GP('categoriesThisPage');
-        $introThisPage = t3lib_div::_GP('introThisPage');
-        $sid = t3lib_div::_GP('sid');
+        $action = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('action');
+        $items = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('items');
+        $value = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('value');
+        $checked = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('checked');
+        $pid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('pid');
+        $sys_language_uid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sys_language_uid');
+        $categoriesThisPage = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('categoriesThisPage');
+        $introThisPage = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('introThisPage');
+        $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sid');
 
         switch($action) {
             case 'updateIntroAndImage':

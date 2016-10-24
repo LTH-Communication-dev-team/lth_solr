@@ -24,7 +24,7 @@ class tx_lthsolr_lupimport extends tx_scheduler_Task {
 	
 	tslib_eidtools::connectDB();
 
-	$solr = t3lib_div::makeInstance('tx_solr_ConnectionManager')->getConnection($host, $port, $path, $scheme);
+	$solr = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('tx_solr_ConnectionManager')->getConnection($host, $port, $path, $scheme);
   
 	if ( ! $solr->ping() ) {
 	  echo 'Solr service not responding.';

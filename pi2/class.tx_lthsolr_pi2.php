@@ -82,11 +82,11 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 )
             );
             $pid = $GLOBALS['TSFE']->page['pid'];
-            //$solrId = t3lib_div::_GP('solrid');
+            //$solrId = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('solrid');
             $link = $_SERVER['PHP_SELF'];
             $link_array = explode('/',$link);
             //$solrId = end($link_array);
-            //$solrId = t3lib_div::_GP("query");
+            //$solrId = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("query");
             $ip = $_SERVER['REMOTE_ADDR'];
 
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
@@ -177,7 +177,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
       /*  private function printStaffList($data, $html_template, $pageId, $sl)
         {
                 // Get the template
-            $cObj = t3lib_div::makeInstance('tslib_cObj');
+            $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('tslib_cObj');
             $templateHtml = $cObj->fileResource("typo3conf/ext/lth_solr/templates/$html_template");
             // Extract subparts from the template
             $subpart = $cObj->getSubpart($templateHtml, '###TEMPLATE###');
