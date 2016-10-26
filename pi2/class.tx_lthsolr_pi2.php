@@ -62,17 +62,17 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                     $title[] = explode('__', $row['title'])[0];
                 }
-            if($title) {
-                $scope = implode(',', $title);
-            }
-            $GLOBALS['TYPO3_DB']->sql_free_result($res);
+                if($title) {
+                    $scope = implode(',', $title);
+                }
+                $GLOBALS['TYPO3_DB']->sql_free_result($res);
             }
             $detailPage = $this->pi_getFFvalue($piFlexForm, "detailpage", "sDEF", $lDef[$index]);
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $customCategories = $this->pi_getFFvalue($piFlexForm, "customcategories", "sDEF", $lDef[$index]);
             $categoriesThisPage = $this->pi_getFFvalue($piFlexForm, "categoriesthispage", "sDEF", $lDef[$index]);
             $introThisPage = $this->pi_getFFvalue($piFlexForm, "introthispage", "sDEF", $lDef[$index]);
-            $addPeople = $this->pi_getFFvalue($piFlexForm, "addpeople", "sDEF", $lDef[$index]);
+            //$addPeople = $this->pi_getFFvalue($piFlexForm, "addpeople", "sDEF", $lDef[$index]);
             $removePeople = $this->pi_getFFvalue($piFlexForm, "removepeople", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             $detailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
@@ -165,7 +165,6 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                     <input type="hidden" id="lu_user" value="' . $lu_user . '" />
                     <input type="hidden" id="categoriesThisPage" value="' . $categoriesThisPage . '" />
                     <input type="hidden" id="introThisPage" value="' . $introThisPage . '" />
-                    <input type="hidden" id="addPeople" value="' . $addPeople . '" />
                     <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />    
                     <div style="clear:both"></div>';
             }

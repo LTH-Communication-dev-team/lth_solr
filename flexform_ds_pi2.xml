@@ -91,7 +91,7 @@
            </TCEforms>
          </scope>
 
-        <addpeople>
+        <!-- <addpeople>
             <TCEforms>
                <label>Lägg till personer (en per rad)</label>
                <config>
@@ -100,7 +100,7 @@
                    <rows>5</rows>
                </config>
             </TCEforms>
-        </addpeople>
+        </addpeople> -->
          
          <categories>
              <TCEforms>

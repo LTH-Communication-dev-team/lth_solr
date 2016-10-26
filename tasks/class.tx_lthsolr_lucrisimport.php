@@ -62,13 +62,13 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         foreach ($response as $document) {
             $idArray[] = $document->id;
         }*/
-        $startFromHere = 8891982;
+        $startFromHere = 4678933;
         //echo $lastModified;
         //$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
         //$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
         //$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
-        //$this->getStudentPapers($config, $client, $buffer, 100, 1, $startFromHere, $heritageArray);
-        $this->standardCat($config, $client);
+        $this->getStudentPapers($config, $client, $buffer, 100, 1, $startFromHere, $heritageArray);
+        //$this->standardCat($config, $client);
         return TRUE;
     }
     
@@ -84,7 +84,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         
         for($i = 0; $i < $numberofloops; $i++) {
             $startrecord = $i * 1000;
-            $query->setQuery('doctype:publication');
+            $query->setQuery('doctype:publication AND -title_sort:[* TO *]');
             $query->setStart($startrecord)->setRows(1000);
             $response = $client->select($query);
             $numFound = $response->getNumFound();
@@ -131,17 +131,17 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     
     function getStudentPapers($config, $client, $buffer, $maximumRecords, $numberOfLoops, $startFromHere, $heritageArray)
     {
-
+        $heritageArray = $heritageArray[0];
         for($i = 0; $i < 500; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
             
             $startRecord = ($i * $maximumRecords);
-            if($startrecord > 0) $startrecord++;
+            if($startRecord > 0) $startRecord++;
             //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
             $xmlpath = "https://lup.lub.lu.se/student-papers/sru?version=1.1&operation=searchRetrieve&query=submissionStatus%20exact%20public%20AND%20id%3E$startFromHere&startRecord=$startRecord&maximumRecords=$maximumRecords&sortKeys=id";
             
             //echo $xmlpath;
-            
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $startrecord, 'crdate' => time()));
             try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
                 $xml = new SimpleXMLElement($xmlpath, null, true);
@@ -175,6 +175,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     $modified;
                     $language_sv;
                     $keywords_user = array();
+                    $heritage = array();
 
                     $id = (string)$content->recordData->mods->recordInfo->recordIdentifier;
 
@@ -316,6 +317,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             }
         }
         $buffer->commit();
+        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $id, 'crdate' => time()));
         return TRUE;
     }
     
