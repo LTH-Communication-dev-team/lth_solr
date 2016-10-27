@@ -82,7 +82,8 @@ function listStaff(tableStart, facet, query, noQuery, more)
             alert(st + " : " + err);
         },
         beforeSend: function () {
-            if((facet || query || noQuery) && (!more)) {
+            //if((facet || query || noQuery) && (!more)) {
+            if(!more) {
                 $('#lthsolr_staff_container div').remove().append('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
             }
             //$('#lthsolr_all').remove();
@@ -400,9 +401,7 @@ function listPublications(tableStart, facet, query, noQuery, more)
     var lth_solr_detailpage = $('#lth_solr_publicationdetailpage').val();
     var i = 0;
     var maxClass = '';
-    var more = '';
     var count = '';
-    var facet = '';
     var content = '';
     
     $.ajax({
@@ -430,7 +429,7 @@ function listPublications(tableStart, facet, query, noQuery, more)
         },
         beforeSend: function () {
             //   console.log(facet + ',' + query + ',' + noQuery + ', ' + more);
-            if((facet || facet === null || query || noQuery) && (!more)) {
+            if(!more) {
                 $('#lthsolr_publications_container div').remove().append('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
             }
 

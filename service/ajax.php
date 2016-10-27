@@ -326,10 +326,11 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
     }
     
     if($selection == 'coming_dissertations') {
-        $selection = ' AND type:thesis AND award:'.$currentDate;
+        $selection = ' AND publicationType_en:Doctoral Thesis*';
     }
+    // AND award:['.$currentDate . ' TO *]
 
-    $query->setQuery('doctype:publication AND -' . $hideVal . ':[* TO *] AND (organisationSourceId  :'.$term.' OR authorId:'.$term.')' . $filterQuery);
+    $query->setQuery('doctype:publication AND -' . $hideVal . ':[* TO *] AND (organisationSourceId  :'.$term.' OR authorId:'.$term.')' . $selection . $filterQuery);
     //$query->addParam('rows', 1500);
     $query->setStart($table_start)->setRows($table_length);
     
