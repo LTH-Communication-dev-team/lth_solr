@@ -62,13 +62,14 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         foreach ($response as $document) {
             $idArray[] = $document->id;
         }*/
-        $startFromHere = 4678933;
+        $startFromHere = 0;
         //echo $lastModified;
         //$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
         //$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
         //$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
-        $this->getStudentPapers($config, $client, $buffer, 100, 1, $startFromHere, $heritageArray);
+        //$this->getStudentPapers($config, $client, $buffer, 100, 1, $startFromHere, $heritageArray);
         //$this->standardCat($config, $client);
+        $this->getType($config, $client, $settings, $startFromHere);
         return TRUE;
     }
     
@@ -358,6 +359,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
             foreach($xml->xpath('//core:result//core:content') as $content) {
                 $id;
+                $type;
                 $portalUrl;
                 $created;
                 $modified;
@@ -414,6 +416,12 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
                 //portalUrl
                 $portalUrl = (string)$content->children('core',true)->portalUrl;
+                
+                //type
+                $type = (string)$content->children('core',true)->type;
+                if($type) {
+                    $type = (string)array_pop(explode('.', $type));
+                }
                 
                 //created
                 $created = (string)$content->children('core',true)->created;
@@ -673,6 +681,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 
                 $data = array(
                     'id' => $id,
+                    'type' => $type,
                     'abstract_en' => $abstract_en,
                     'abstract_sv' => $abstract_sv,
                     'authorId' => $authorId,
@@ -732,6 +741,70 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         return TRUE;
     }
         
+    
+    function getType($config, $client, $settings, $startFromHere)
+    {
+       
+        $ii = 0;
+        $docArray = array();
+        
+        $update = $client->createUpdate();
+            
+        for($i = 0; $i < 500; $i++) {
+            //echo $i.':'. $numberofloops . '<br />';
+            
+            $startrecord = $startFromHere + ($i * 100);
+            if($startrecord > 0) $startrecord++;
+            
+            $lucrisId = $settings['solrLucrisId'];
+            $lucrisPw = $settings['solrLucrisPw'];
+
+            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=100&window.offset=$startrecord&orderBy.property=id";
+            //die($xmlpath);
+            try {
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
+                $xml = new SimpleXMLElement($xmlpath, null, true);
+            } catch(Exception $e) {
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
+            }
+
+            if($xml->children('core', true)->count == 0) {
+                return "no items";
+            }
+
+            foreach($xml->xpath('//core:result//core:content') as $content) {
+                $ii++;
+                //id
+                $id = (string)$content->attributes();
+                
+                //type
+                $type = (string)$content->children('core',true)->type;
+                if($type) {
+                    $type = (string)array_pop(explode('.', $type));
+                }
+                
+                if($id && $type) {
+                   
+                    ${"doc" . $ii} = $update->createDocument();
+
+                    ${"doc" . $ii}->setKey('id', $id);
+
+                    ${"doc" . $ii}->addField('type', $type);
+                    ${"doc" . $ii}->setFieldModifier('type', 'set');
+
+                    // add the documents and a commit command to the update query
+                    $docArray[] = ${"doc" . $ii};
+                }
+            }
+            $update->addDocuments($docArray);
+            $update->addCommit();
+            $result = $client->update($update);
+
+        }
+
+        return TRUE;
+    }
+     
     
     public function toString($input)
     {

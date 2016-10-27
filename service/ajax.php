@@ -46,6 +46,7 @@ $introThisPage = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('introThisPage');
 $addPeople = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('addPeople');
 $detailPage = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('detailPage');
 $papertype = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('papertype');
+$selection = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('selection');
 $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("sid");
 date_default_timezone_set('Europe/Stockholm');
 
@@ -70,7 +71,7 @@ switch($action) {
         $content = searchMore($term, 'documents', $peopleOffset, $documentsOffset, $config);
         break;
     case 'listPublications':
-        $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $categories, $query);
+        $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $categories, $query, $selection);
         break;
     case 'listStudentPapers':
         $content = listStudentpapers($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $categories, $query, $papertype);
@@ -310,8 +311,10 @@ function searchMore($term, $type, $peopleOffset, $documentsOffset, $config)
 }
 
 
-function listPublications($facet, $term, $syslang, $config, $table_length, $table_start, $pageid, $categories, $filterQuery)
+function listPublications($facet, $term, $syslang, $config, $table_length, $table_start, $pageid, $categories, $filterQuery, $selection)
 {
+    $currentDate = gmDate("Y-m-d\TH:i:s\Z");
+    
     $client = new Solarium\Client($config);
 
     $query = $client->createSelect();
@@ -320,6 +323,10 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
     
     if($filterQuery) {
         $filterQuery = ' AND (title_sort:*' . $filterQuery . '*)';
+    }
+    
+    if($selection == 'coming_dissertations') {
+        $selection = ' AND type:thesis AND award:'.$currentDate;
     }
 
     $query->setQuery('doctype:publication AND -' . $hideVal . ':[* TO *] AND (organisationSourceId  :'.$term.' OR authorId:'.$term.')' . $filterQuery);
@@ -504,7 +511,12 @@ function listStudentPapers($facet, $term, $syslang, $config, $table_length, $tab
     }
     
     if($papertype) {
-        $papertype = ' AND (genre:studentPublications' . $papertype . ')';
+        $paperTypeArray = explode(',', $papertype);
+        foreach($paperTypeArray as $key => $value) {
+            if($papertype) $papertype .= ' OR ';
+            $papertype .= 'genre:studentPublications' . $value;
+        }
+        $papertype = ' AND (' . $papertype . ')';
     }
 
     $query->setQuery('doctype:studentPaper AND (organisationSourceId  :'.$term.')' . $papertype . $filterQuery);
@@ -846,7 +858,7 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
         $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
     } else if($categories === 'standard_category') {
         $facetSet->createFacetField('standard')->setField($catVal);
-    } else if($categories === 'custom_categories') {
+    } else if($categories === 'custom_category') {
         $facetSet->createFacetField('custom')->setField($catVal);
     } /*else {
         $facetSet->createFacetField('title')->setField('title_sort');
@@ -877,7 +889,7 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
             foreach ($facet_standard as $value => $count) {
                 $facetResult[$catVal][] = array($value, $count);
             }
-        } else if($categories === 'custom_categories') {
+        } else if($categories === 'custom_category') {
             $facet_custom = $response->getFacetSet()->getFacet('custom');
             foreach ($facet_custom as $value => $count) {
                 $facetResult[$catVal][] = array($value, $count);

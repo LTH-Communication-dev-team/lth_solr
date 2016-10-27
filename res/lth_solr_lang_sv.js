@@ -14,7 +14,10 @@ var lth_solr_messages = {
     numberOfPages: "Sidantal",
     publicationStatus: "Status",
     peerReview: "Referentgranskning",
-    read_more_about: "Läs mer om"
+    read_more_about: "Läs mer om",
+    more: "Mer",
+    close: "Stäng",
+    next: "Nästa"
 };
 
 

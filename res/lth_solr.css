@@ -23,8 +23,14 @@ and open the template in the editor.
     list-style:none !important;
 }
 
-#lth_solr_facet_container {
-    margin-top:10px;
+.lth_solr_facet_container {
+    margin-bottom:10px;
+}
+
+.lth_solr_filter_container {
+    padding:8px 8px 2px 8px;
+    margin-bottom:15px;
+    background-color:#dedede;
 }
 
 .search-wrapper {
@@ -102,6 +108,10 @@ tr.details td.details-control {
 
 .maxlist-more {
     clear: both;
+}
+
+.maxlist-more a {
+    text-decoration:none;
 }
 
 .lthsolr_loader {

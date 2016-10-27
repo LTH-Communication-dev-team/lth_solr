@@ -54,9 +54,11 @@ class tx_lthsolr_pi3 extends tslib_pibase {
             $index = $GLOBALS["TSFE"]->sys_language_uid;
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
+            $selection = $this->pi_getFFvalue($piFlexForm, "selection", "sDEF", $lDef[$index]);
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
+            $hideFilter = $this->pi_getFFvalue($piFlexForm, "hideFilter", "sDEF", $lDef[$index]);
 
             if($fe_groups) {
                 $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
@@ -98,21 +100,8 @@ class tx_lthsolr_pi3 extends tslib_pibase {
             if($syslang=='se') {
                 $syslang='sv';
             }
-            
+
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
-            
-            /*load files needed for datatables
-            $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";
-            $GLOBALS["TSFE"]->additionalHeaderData["responsive.dataTables.min"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/responsive.dataTables.min.css\" />";
-            $GLOBALS["TSFE"]->additionalHeaderData["buttons.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/buttons.dataTables.min.css\" />";
-            $GLOBALS["TSFE"]->additionalFooterData["jquery.dataTables.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/jquery.dataTables.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["dataTables.buttons.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.buttons.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["jszip.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["pdfmake.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["vfs_fonts.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["buttons.html5.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/buttons.html5.min.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["dataTables.responsive.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.responsive.min.js\"></script>";
-*/
             
             //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
@@ -129,7 +118,7 @@ class tx_lthsolr_pi3 extends tslib_pibase {
             if($uuid) {
                 $content .= $this->showPublication($uuid, $staffDetailPage, $projectDetailPage, $syslang);
             } else {
-                $content .= $this->listPublications($scope, $detailPage, $syslang, $noItemsToShow, $categories);
+                $content .= $this->listPublications($scope, $detailPage, $syslang, $noItemsToShow, $categories, $hideFilter, $selection);
             }
         
             //$this->debug($content);
@@ -144,6 +133,8 @@ class tx_lthsolr_pi3 extends tslib_pibase {
             
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_presentation.html");
             
+            $content = str_replace('###more###', $this->pi_getLL("more"), $content);
+            
             $content .= '
                 <input type="hidden" id="lth_solr_staffdetailpage" value="' . $staffDetailPage . '" />
                 <input type="hidden" id="lth_solr_projectdetailpage" value="' . $projectDetailPage . '" />
@@ -155,16 +146,18 @@ class tx_lthsolr_pi3 extends tslib_pibase {
         }
         
         
-        private function listPublications($scope, $detailPage, $syslang, $noItemsToShow, $categories)
+        private function listPublications($scope, $detailPage, $syslang, $noItemsToShow, $categories, $hideFilter, $selection)
         {
-            /*$content = '<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
-                <thead><tr><th>Title</th><th>Author</th><th>Type</th><th>Year</th></tr></thead>
-                <tbody id="table_data_container">
-                </tbody>
-            </table>';*/
-            $content .= '<div style="clear:both;margin-top:20px;margin-bottom:20px;">Filter: <input type="text" id="lthsolr_publications_filter" class="lthsolr_filter" name="lthsolr_filter" value="" /></div>';
+            $content .= '<div class="lth_solr_filter_container">';
+            
+            $content .= '<div style="font-weight:bold;">' . $this->pi_getLL("filter") . '</div>';
+              
+            $content .= '<div style="clear:both;margin-top:10px;">';
+            if(!$hideFilter) $content .= '<input type="text" id="lthsolr_publications_filter" class="lthsolr_filter" placeholder="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
+            $content .= '</div>';
             
             $content .= '<div class="lth_solr_facet_container"></div>';
+            $content .= '</div>';
             
             $content .= '<div id="lthsolr_publications_header"></div>';
             
@@ -178,7 +171,9 @@ class tx_lthsolr_pi3 extends tslib_pibase {
                     <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />    
                     <input type="hidden" id="lth_solr_action" value="listPublications" />
                     <input type="hidden" id="lth_solr_categories" value="' . $categories . '" />
+                    <input type="hidden" id="lth_solr_selection" value="' . $selection . '" />    
                     <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
+            
             return $content;
         }
         

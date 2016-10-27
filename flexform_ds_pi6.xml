@@ -18,47 +18,47 @@
                                 <type>select</type>
                                 <items type="array"> 
                                     <numIndex index="0" type="array">
-                                        <numIndex index="0">Professional qualifications (4 Years - )</numIndex>
+                                        <numIndex index="0">Professional qualifications (4 Years - ) - H3</numIndex>
                                         <numIndex index="1">H3</numIndex>
                                     </numIndex>
                                     <numIndex index="1" type="array">
-                                             <numIndex index="0"> Master's Degree (Two Years)</numIndex>
+                                             <numIndex index="0"> Master's Degree (Two Years) - H2</numIndex>
                                              <numIndex index="1">H2</numIndex>
                                     </numIndex>
                                     <numIndex index="2" type="array">
-                                             <numIndex index="0">Bachelor Degree</numIndex>
+                                             <numIndex index="0">Bachelor Degree - M2</numIndex>
                                              <numIndex index="1">M2</numIndex>
                                     </numIndex>
                                     <numIndex index="3" type="array">
-                                             <numIndex index="0">University Diploma</numIndex>
+                                             <numIndex index="0">University Diploma - M1</numIndex>
                                              <numIndex index="1">M1</numIndex>
                                     </numIndex>
                                     <numIndex index="4" type="array">
-                                             <numIndex index="0">Miscellaneous, Projetcs etc.</numIndex>
+                                             <numIndex index="0">Miscellaneous, Projetcs etc. - L3</numIndex>
                                              <numIndex index="1">L3</numIndex>
                                     </numIndex>
                                     <numIndex index="5" type="array">
-                                             <numIndex index="0">Master's Degree (One Year)</numIndex>
+                                             <numIndex index="0">Master's Degree (One Year) - H1</numIndex>
                                              <numIndex index="1">H1</numIndex>
                                     </numIndex>
                                     <numIndex index="6" type="array">
-                                             <numIndex index="0">2nd term paper (old degree order)</numIndex>
+                                             <numIndex index="0">2nd term paper (old degree order) - L2</numIndex>
                                              <numIndex index="1">L2</numIndex>
                                     </numIndex>
                                     <numIndex index="7" type="array">
-                                             <numIndex index="0">Professional qualifications ( - 4 Years)</numIndex>
+                                             <numIndex index="0">Professional qualifications ( - 4 Years) - M3</numIndex>
                                              <numIndex index="1">M3</numIndex>
                                     </numIndex>
                                     <numIndex index="7" type="array">
-                                             <numIndex index="0">1st term paper (old degree order)</numIndex>
+                                             <numIndex index="0">1st term paper (old degree order) - L1</numIndex>
                                              <numIndex index="1">L1</numIndex>
                                     </numIndex>
                                 </items>
-                                <maxitems>1</maxitems>
-                                <size>1</size>
+                                <maxitems>8</maxitems>
+                                <size>8</size>
                                 <default>LIST</default>
-                                <selectedListStyle>width:200px</selectedListStyle>
-                                <itemListStyle>width:200px</itemListStyle>
+                                <selectedListStyle>width:300px</selectedListStyle>
+                                <itemListStyle>width:300px</itemListStyle>
                             </config>
                         </TCEforms>
                     </papertype>

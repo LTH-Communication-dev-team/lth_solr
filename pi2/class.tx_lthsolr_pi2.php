@@ -73,7 +73,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $categoriesThisPage = $this->pi_getFFvalue($piFlexForm, "categoriesthispage", "sDEF", $lDef[$index]);
             $introThisPage = $this->pi_getFFvalue($piFlexForm, "introthispage", "sDEF", $lDef[$index]);
             //$addPeople = $this->pi_getFFvalue($piFlexForm, "addpeople", "sDEF", $lDef[$index]);
-            $removePeople = $this->pi_getFFvalue($piFlexForm, "removepeople", "sDEF", $lDef[$index]);
+            $hideFilter = $this->pi_getFFvalue($piFlexForm, "hideFilter", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             $detailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
                 array(
@@ -127,21 +127,23 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             $facets = '';
             $lu_user = '';
             
-            /*if($categories === 'custom_category' && $customCategories) {
-                $customCategories = 'true';
-            }*/
-            
-            /*if(substr($ip, 0, 7) === '130.235' || substr($ip, 0, 7) === '127.0.0') {
-                $content .= "<style>.dt-buttons { display:block;}</style>";
-                $lu_user = 'ja';
+            if($hideFilter && $categories == 'no_categories') {
             } else {
-                $content .= "<style>.dt-buttons { display:none;}</style>";
-            }*/
-
-            //$content .= '<div class="grid-31 alpha omega">';
-                        
-            $content .= '<div style="clear:both;"><input type="text" id="lthsolr_staff_filter" class="lthsolr_filter" name="lthsolr_filter" placeholder="Filter" value="" /></div>';
+                $content .= '<div class="lth_solr_filter_container">';
+            
+                $content .= '<div style="font-weight:bold;">' . $this->pi_getLL("filter") . '</div>';
+            }
+            
+            $content .= '<div style="clear:both;margin-top:10px;">';
+            if(!$hideFilter) $content .= '<input type="text" id="lthsolr_staff_filter" class="lthsolr_filter" name="lthsolr_filter" placeholder="' . $this->pi_getLL("freetext") . '" value="" />';
+            $content .= '</div>';
+            
             $content .= '<div class="lth_solr_facet_container"></div>';
+
+            if($hideFilter && $categories == 'no_categories') {
+            } else {
+                $content .= '</div>';
+            }
             
             $content .= '<div id="lthsolr_staff_header"></div>';
             
@@ -165,7 +167,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                     <input type="hidden" id="lu_user" value="' . $lu_user . '" />
                     <input type="hidden" id="categoriesThisPage" value="' . $categoriesThisPage . '" />
                     <input type="hidden" id="introThisPage" value="' . $introThisPage . '" />
-                    <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />    
+                    <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />
                     <div style="clear:both"></div>';
             }
             

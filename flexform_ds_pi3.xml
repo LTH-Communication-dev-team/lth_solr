@@ -10,6 +10,24 @@
          </TCEforms>
          <type>array</type>
          <el>
+            <selection>
+                <TCEforms>
+                    <label>Limit the selection</label>
+                    <config>
+                        <type>radio</type>
+                        <items type="array">
+                            <numIndex index="0" type="array">
+                                <numIndex index="0">Kommande avhandlingar</numIndex>
+                                <numIndex index="1">coming_dissertations</numIndex>
+                            </numIndex>
+                            <numIndex index="1" type="array">
+                                <numIndex index="0">Not in use</numIndex>
+                                <numIndex index="1">1</numIndex>
+                            </numIndex>
+                        </items>
+                    </config>
+                </TCEforms>
+            </selection>
             <fe_groups>
                 <TCEforms type="array">
                  <label>Välj en eller flera användargrupper</label>
@@ -105,33 +123,47 @@
                 <TCEforms>
                     <label>No of items to show</label>
                     <config>
-                    <type>select</type>
-                    <items type="array">
-                    <numIndex index="0" type="array">
-                    <numIndex index="0">10</numIndex>
-                    <numIndex index="1">10</numIndex>
-                    </numIndex>
-                    <numIndex index="1" type="array">
-                    <numIndex index="0">25</numIndex>
-                    <numIndex index="1">25</numIndex>
-                    </numIndex>
-                    <numIndex index="2" type="array">
-                    <numIndex index="0">50</numIndex>
-                    <numIndex index="1">50</numIndex>
-                    </numIndex>
-                    <numIndex index="3" type="array">
-                    <numIndex index="0">All</numIndex>
-                    <numIndex index="1">-1</numIndex>
-                    </numIndex>
-                    </items>
-                    <maxitems>1</maxitems>
-                    <size>1</size>
-                    <default>25</default>
-                    <selectedListStyle>width:200px</selectedListStyle>
-                    <itemListStyle>width:200px</itemListStyle>
+                        <type>select</type>
+                        <items type="array">
+                            <numIndex index="0" type="array">
+                            <numIndex index="0">10</numIndex>
+                            <numIndex index="1">10</numIndex>
+                            </numIndex>
+                            <numIndex index="1" type="array">
+                            <numIndex index="0">25</numIndex>
+                            <numIndex index="1">25</numIndex>
+                            </numIndex>
+                            <numIndex index="2" type="array">
+                            <numIndex index="0">50</numIndex>
+                            <numIndex index="1">50</numIndex>
+                            </numIndex>
+                            <numIndex index="3" type="array">
+                            <numIndex index="0">All</numIndex>
+                            <numIndex index="1">15000</numIndex>
+                            </numIndex>
+                        </items>
+                        <maxitems>1</maxitems>
+                        <size>1</size>
+                        <default>25</default>
+                        <selectedListStyle>width:200px</selectedListStyle>
+                        <itemListStyle>width:200px</itemListStyle>
                     </config>
                 </TCEforms>
-         </noItemsToShow>
+            </noItemsToShow>
+            
+            <hideFilter>
+                <TCEforms>
+                    <label>Hide filter</label>
+                    <config>
+                        <type>check</type>
+                        <items type="array">
+                            <numIndex index="0" type="array">
+                                    <numIndex index="0">Hide filter</numIndex>
+                            </numIndex>
+                        </items> 
+                    </config>
+                </TCEforms>
+            </hideFilter>
          </el>
      </ROOT>
 </sDEF>

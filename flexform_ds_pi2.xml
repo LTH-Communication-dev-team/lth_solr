@@ -189,6 +189,20 @@
                 </config>
             </TCEforms>
         </introthispage>
+        
+        <hideFilter>
+            <TCEforms>
+                <label>Hide filter (not working yet)</label>
+                <config>
+                    <type>check</type>
+                    <items type="array">
+                        <numIndex index="0" type="array">
+                                <numIndex index="0">Hide filter</numIndex>
+                        </numIndex>
+                    </items> 
+                </config>
+            </TCEforms>
+        </hideFilter>
 
          </el>
      </ROOT>
