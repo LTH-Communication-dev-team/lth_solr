@@ -435,7 +435,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         //for($i = 0; $i < $numberofloops; $i++) {
-        for($i = 0; $i < 500; $i++) {
+        for($i = 0; $i < $numberofloops; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
             
             $startrecord = $startFromHere + ($i * $maximumrecords);
@@ -513,12 +513,30 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $event_country_en;
                 $event_country_sv;
                 $heritage = array();
+                $awardDate;
+                $bibliographicalNote_sv;
+                $bibliographicalNote_en;
                 
                 //id
                 $id = (string)$content->attributes();
 
                 //portalUrl
                 $portalUrl = (string)$content->children('core',true)->portalUrl;
+                
+                //awardDate
+                $awardDate = (string)$content->children('stab',true)->awardDate;
+                
+                //bibliographicalNote
+                if($content->children('publication-base_uk', true)->bibliographicalNote) {
+                    foreach($content->children('publication-base_uk', true)->bibliographicalNote->children('cre', true)->localizedString as $localizedString) {
+                        if($localizedString->attributes()->locale == 'en_GB') {
+                            $bibliographicalNote_en = (string)$localizedString;
+                        }
+                        if($localizedString->attributes()->locale == 'sv_SE') {
+                            $bibliographicalNote_sv[] = (string)$localizedString;
+                        }
+                    }
+                }
                 
                 //type
                 $type = (string)$content->children('core',true)->type;
@@ -826,6 +844,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'volume' => $volume,
                     'standard_category_en' => $publicationType_en,
                     'standard_category_sv' => $publicationType_sv,
+                    'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
+                    'bibliographicalNote_sv' => $bibliographicalNote_sv,
+                    'bibliographicalNote_en' => $bibliographicalNote_en,
                     'doi' => $doi,
                     'boost' => '1.0',
                     'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
