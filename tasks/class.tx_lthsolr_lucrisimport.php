@@ -62,14 +62,17 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         foreach ($response as $document) {
             $idArray[] = $document->id;
         }*/
-        $startFromHere = 0;
+        $startFromHere = 7420;
+        
+        //gc_disable();
         //echo $lastModified;
-        //$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
+        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
         //$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
         //$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
         //$this->getStudentPapers($config, $client, $buffer, 100, 1, $startFromHere, $heritageArray);
         //$this->standardCat($config, $client);
-        $this->getType($config, $client, $settings, $startFromHere);
+        //$this->getType($config, $client, $settings, $startFromHere);
+        //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
         return TRUE;
     }
     
@@ -378,6 +381,50 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         return TRUE;
     }
     
+    
+    function getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere)
+    {
+        $xmlString;
+        $startrecord;
+        $lucrisId;
+        $lucrisPw;       
+        $xmlpath;      
+                
+        for($i = 0; $i < 1000; $i++) {
+            //echo $i.':'. $numberofloops . '<br />';
+            
+           $startrecord = $startFromHere + ($i * $maximumrecords);
+            if($startrecord > 0) $startrecord++;
+            
+            $lucrisId = $settings['solrLucrisId'];
+            $lucrisPw = $settings['solrLucrisPw'];
+
+            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=10&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?uuids.uuid=defd3bac-a445-4938-b263-a44b59077039&rendering=xml_long";
+            
+             /*try {
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
+                $xml = new SimpleXMLElement($xmlpath, null, true);
+            } catch(Exception $e) {
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
+            }
+
+            if($xml->children('core', true)->count == 0) {
+                return "no items";
+            }
+            
+            $xmlString = $xml->asXML();
+            
+            */
+            $xmlDoc = new DOMDocument();
+            $xmlDoc->load($xmlpath);
+
+            $xmlString = $xmlDoc->saveXML();
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_vjchat_entry', array('entry' => "$xmlString", 'pid' => 100, 'style' => 1));
+            
+        }
+        return TRUE;
+    }
     
     function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere)
     {
