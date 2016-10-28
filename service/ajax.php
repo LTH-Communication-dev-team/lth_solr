@@ -1012,7 +1012,7 @@ function showStaff($scope, $config, $table_length, $syslang)
         //var_dump($group);
         $numRow[] = $group->getNumFound();
 
-      /*  foreach ($group as $document) {        
+        foreach ($group as $document) {        
             $id = $document->id;
             $doktype = $document->doctype;
             
@@ -1073,7 +1073,7 @@ function showStaff($scope, $config, $table_length, $syslang)
                 );
                 
             }
-        }*/
+        }
     }
     
     $resArray = array('personData' => $personData, 'publicationData' => $publicationData, 'publicationNumFound' => $numRow[1], 'projectData' => $projectData, 'projectNumFound' => $numRow[2]);
