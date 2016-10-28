@@ -74,6 +74,62 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
     
     
+    function award($config, $client)
+    {
+        $numberofloops = 1;
+        
+        // create a client instance
+        $client = new Solarium\Client($config);
+        $query = $client->createSelect();
+        $update = $client->createUpdate();
+        
+        for($i = 0; $i < $numberofloops; $i++) {
+            $startrecord = $i * 1000;
+            $query->setQuery('doctype:publication AND (publicationType_en:"Doctoral thesis" OR publicationType_en:"Licentiate Thesis")');
+            $query->setStart($startrecord)->setRows(1000);
+            $response = $client->select($query);
+            $numFound = $response->getNumFound();
+            
+            $numberofloops = ceil($numFound / 1000);
+            
+            //if($startrecord > 0) $startrecord++;
+            
+            
+            $ii = 0;
+            $docArray = array();
+            foreach ($response as $document) {
+                $ii++;
+                $id = $document->id;
+                if($document->title) {
+                    if(is_array($document->title)) {
+                        $title = $document->title[0];
+                    }
+                }
+                //echo $title;
+                $publicationType_en = $document->publicationType_en;
+                $publicationType_sv = $document->publicationType_sv;
+                //echo $publicationType_en[0] . $publicationType_sv[0];
+                ${"doc" . $ii} = $update->createDocument();
+                ${"doc" . $ii}->setKey('id', $id);
+                ${"doc" . $ii}->addField('standard_category_en', str_replace(' ', '_', $publicationType_en[0]));
+                ${"doc" . $ii}->setFieldModifier('standard_category_en', 'set');
+                ${"doc" . $ii}->addField('standard_category_sv', str_replace(' ', '_', $publicationType_sv[0]));
+                ${"doc" . $ii}->setFieldModifier('standard_category_sv', 'set');
+                //${"doc" . $ii}->addField('id_sort', $id);
+                //${"doc" . $ii}->setFieldModifier('id_sort', 'set');
+                ${"doc" . $ii}->addField('title_sort', $title);
+                ${"doc" . $ii}->setFieldModifier('title_sort', 'set');
+                $docArray[] = ${"doc" . $ii};
+            }
+            $update->addDocuments($docArray);
+            $update->addCommit();
+            $result = $client->update($update);
+        }
+        
+        return TRUE;
+    }
+    
+    
     function standardCat($config, $client)
     {
         $numberofloops = 1;
