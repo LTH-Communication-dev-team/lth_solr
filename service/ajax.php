@@ -1000,7 +1000,7 @@ function showStaff($scope, $config, $table_length, $syslang)
     $groupComponent = $query->getGrouping();
 
     $groupComponent->addQuery('uuid:' . $scope);
-    //$groupComponent->addQuery('authorId:' . $scope);
+    $groupComponent->addQuery('authorId:' . $scope);
     //$groupComponent->addQuery('participantId:' . $scope);
     //$groupComponent->setSort('publicationDateYear desc');
     $groupComponent->setLimit($table_length);
