@@ -1055,11 +1055,11 @@ function showStaff($scope, $config, $table_length, $syslang)
                 );
             } else if($doktype === 'publication') {
                 $publicationData[] = array(
-                    $document->id,
+                    /*$document->id,
                     fixArray($document->title),
                     ucwords(strtolower(fixArray($document->authorName))),
                     fixArray($document->$publicationType),
-                    $document->publicationDateYear
+                    $document->publicationDateYear*/
                 );
                 
             } else if($doktype === 'upmproject') {
