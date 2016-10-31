@@ -94,7 +94,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($uid);
             $domain = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootLine);
             $pagePath = \TYPO3\CMS\Backend\Utility\BackendUtility::getRecordPath($uid,'','');
-            $this->extract('http://' . $domain . urlencode($pagePath), "page$uid", $solrPath);
+            echo $pagePath . '<br />';
+            //$this->extract('http://' . $domain . urlencode($pagePath), "page$uid", $solrPath);
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
