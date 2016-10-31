@@ -1,4 +1,10 @@
 <?php
+
+use Solarium\QueryType\Extract\Query;
+use Solarium\QueryType\Extract\RequestBuilder;
+use Solarium\Core\Client\Request;
+
+
 class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 	
     function execute()
@@ -66,70 +72,49 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         
         //gc_disable();
         //echo $lastModified;
-        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
+        //$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
         //$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
         //$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
         //$this->getStudentPapers($config, $client, $buffer, 100, 1, $startFromHere, $heritageArray);
         //$this->standardCat($config, $client);
         //$this->getType($config, $client, $settings, $startFromHere);
         //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
+
+        $this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
         return TRUE;
     }
     
     
-    function award($config, $client)
+    function getPages($solrPath)
     {
-        $numberofloops = 1;
-        
-        // create a client instance
-        $client = new Solarium\Client($config);
-        $query = $client->createSelect();
-        $update = $client->createUpdate();
-        
-        for($i = 0; $i < $numberofloops; $i++) {
-            $startrecord = $i * 1000;
-            $query->setQuery('doctype:publication AND (publicationType_en:"Doctoral thesis" OR publicationType_en:"Licentiate Thesis")');
-            $query->setStart($startrecord)->setRows(1000);
-            $response = $client->select($query);
-            $numFound = $response->getNumFound();
-            
-            $numberofloops = ceil($numFound / 1000);
-            
-            //if($startrecord > 0) $startrecord++;
-            
-            
-            $ii = 0;
-            $docArray = array();
-            foreach ($response as $document) {
-                $ii++;
-                $id = $document->id;
-                if($document->title) {
-                    if(is_array($document->title)) {
-                        $title = $document->title[0];
-                    }
-                }
-                //echo $title;
-                $publicationType_en = $document->publicationType_en;
-                $publicationType_sv = $document->publicationType_sv;
-                //echo $publicationType_en[0] . $publicationType_sv[0];
-                ${"doc" . $ii} = $update->createDocument();
-                ${"doc" . $ii}->setKey('id', $id);
-                ${"doc" . $ii}->addField('standard_category_en', str_replace(' ', '_', $publicationType_en[0]));
-                ${"doc" . $ii}->setFieldModifier('standard_category_en', 'set');
-                ${"doc" . $ii}->addField('standard_category_sv', str_replace(' ', '_', $publicationType_sv[0]));
-                ${"doc" . $ii}->setFieldModifier('standard_category_sv', 'set');
-                //${"doc" . $ii}->addField('id_sort', $id);
-                //${"doc" . $ii}->setFieldModifier('id_sort', 'set');
-                ${"doc" . $ii}->addField('title_sort', $title);
-                ${"doc" . $ii}->setFieldModifier('title_sort', 'set');
-                $docArray[] = ${"doc" . $ii};
-            }
-            $update->addDocuments($docArray);
-            $update->addCommit();
-            $result = $client->update($update);
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid,pid','pages','deleted=0 AND hidden=0 AND doktype < 254');
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $uid = $row['uid'];
+            $pid = $row['pid'];
+            $rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($uid);
+            $domain = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootLine);
+            $pagePath = \TYPO3\CMS\Backend\Utility\BackendUtility::getRecordPath($uid,'','');
+            $this->extract('http://' . $domain . urlencode($pagePath), "page$uid", $solrPath);
         }
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
         return TRUE;
+    }
+    
+    
+    function extract($pageUrl, $id, $config)
+    {
+        try {
+            $pageUrl = "http://" . $solrPath . "update/extract?literal.id=$id&uprefix=attr&fmap.content=body&commit=true&stream.url=$pageUrl";
+            //echo $pageUrl;
+            $curl = curl_init($pageUrl);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            //curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "BANURL");
+            $res = curl_exec($curl);
+        } catch(Exception $e) {
+            echo 'Message: ' .$e->getMessage();
+        }
+
     }
     
     
@@ -825,7 +810,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'keywords_user' => $keywords_user,
                     'language_en' => $language_en,
                     'language_sv' => $language_sv,
-                    'numberOfPages' => $numberOfPages,
+                    'number_of_pages' => $numberOfPages,
                     'organisationId' => $organisationId,
                     'organisationName_en' => $organisationName_en,
                     'organisationName_sv' => $organisationName_sv,
