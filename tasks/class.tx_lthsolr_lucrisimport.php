@@ -102,7 +102,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
     
     
-    function extract($pageUrl, $id, $config)
+    function extract($pageUrl, $id, $solrPath)
     {
         try {
             $pageUrl = "http://" . $solrPath . "update/extract?literal.id=$id&uprefix=attr&fmap.content=body&commit=true&stream.url=$pageUrl";
