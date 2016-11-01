@@ -136,13 +136,13 @@ $this->initTSFE();
         }
         
         $GLOBALS['TSFE'] = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\Controller\\TypoScriptFrontendController',  $GLOBALS['TYPO3_CONF_VARS'], $id, $typeNum);
-        return TRUE;
+        
         $GLOBALS['TSFE']->connectToDB();
         $GLOBALS['TSFE']->initFEuser();
         $GLOBALS['TSFE']->determineId();
         $GLOBALS['TSFE']->initTemplate();
         $GLOBALS['TSFE']->getConfigArray();
- 
+ return TRUE;
         if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('realurl')) {
             $rootline = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($id);
             $host = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootline);
