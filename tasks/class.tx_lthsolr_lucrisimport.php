@@ -82,17 +82,21 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     
     function getPages($solrPath)
     {
-$this->initTSFE();
-/** @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer $cObj */
-$cObj      = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
+        $uid;
+        $bodytext;
+        $url;
+        
+        $this->initTSFE();
+        $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
 
-
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid','pages','deleted=0 AND hidden=0 AND doktype < 254');
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("p.uid,t.bodytext","pages p LEFT JOIN tt_content t ON p.uid = t.pid","p.deleted=0 AND p.hidden=0 AND p.doktype < 199 AND (p.fe_group = 0 OR p.fe_group = '')");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-            $uid = $row['uid'];            
+            $uid = $row['uid'];
+            $bodytext = $row['bodytext'];
+            if($bodytext) $bodytext = urlencode($this->strtrim(strip_tags($bodytext), 200));
             $url = $cObj->typolink_URL(array('parameter' => $uid, 'forceAbsoluteUrl' => 1));
             //echo $url . '<br />';
-            $this->extract($url, "page$uid", $solrPath);
+            if($url) $this->extract($url, $bodytext, "page$uid", $solrPath);
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
@@ -100,10 +104,10 @@ $cObj      = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\F
     }
     
     
-    function extract($pageUrl, $id, $solrPath)
+    function extract($pageUrl, $bodytext, $id, $solrPath)
     {
         try {
-            $pageUrl = "http://" . $solrPath . "update/extract?literal.id=$id&uprefix=attr&fmap.content=body&commit=true&stream.url=$pageUrl";
+            $pageUrl = "http://" . $solrPath . "update/extract?literal.id=$id&literal.attrteaser=$bodytext&uprefix=attr&fmap.content=body&commit=true&stream.url=$pageUrl";
             //echo $pageUrl;
             $curl = curl_init($pageUrl);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -117,23 +121,50 @@ $cObj      = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\F
     
     
     function initTSFE($id = 1, $typeNum = 0) {
-      if (!is_object($GLOBALS['TT'])) {
-          $GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker;
-          $GLOBALS['TT']->start();
-      }
-      $GLOBALS['TSFE'] = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\Controller\\TypoScriptFrontendController',  $GLOBALS['TYPO3_CONF_VARS'], $id, $typeNum);
-      $GLOBALS['TSFE']->connectToDB();
-      $GLOBALS['TSFE']->initFEuser();
-      $GLOBALS['TSFE']->determineId();
-      $GLOBALS['TSFE']->initTemplate();
-      $GLOBALS['TSFE']->getConfigArray();
+        if (!is_object($GLOBALS['TT'])) {
+            $GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker;
+            $GLOBALS['TT']->start();
+        }
+        $GLOBALS['TSFE'] = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\Controller\\TypoScriptFrontendController',  $GLOBALS['TYPO3_CONF_VARS'], $id, $typeNum);
+        $GLOBALS['TSFE']->connectToDB();
+        $GLOBALS['TSFE']->initFEuser();
+        $GLOBALS['TSFE']->determineId();
+        $GLOBALS['TSFE']->initTemplate();
+        $GLOBALS['TSFE']->getConfigArray();
  
-      if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('realurl')) {
-          $rootline = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($id);
-          $host = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootline);
-          $_SERVER['HTTP_HOST'] = $host;
-      }
-  }
+        if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('realurl')) {
+            $rootline = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($id);
+            $host = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootline);
+            $_SERVER['HTTP_HOST'] = $host;
+        }
+    }
+    
+    
+    function strtrim($str, $maxlen=100, $elli=NULL, $maxoverflow=15) {
+        global $CONF;
+
+        if (strlen($str) > $maxlen) {
+
+            if ($CONF["BODY_TRIM_METHOD_STRLEN"]) {
+                return substr($str, 0, $maxlen);
+            }
+
+            $output = NULL;
+            $body = explode(" ", $str);
+            $body_count = count($body);
+
+            $i=0;
+
+            do {
+                $output .= $body[$i]." ";
+                $thisLen = strlen($output);
+                $cycle = ($thisLen < $maxlen && $i < $body_count-1 && ($thisLen+strlen($body[$i+1])) < $maxlen+$maxoverflow?true:false);
+                $i++;
+            } while ($cycle);
+            return $output.$elli;
+        }
+        else return $str;
+    }
     
     
     function standardCat($config, $client)
