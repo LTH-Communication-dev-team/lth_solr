@@ -139,10 +139,11 @@ $this->initTSFE();
         
         $GLOBALS['TSFE']->connectToDB();
         $GLOBALS['TSFE']->initFEuser();
+         return TRUE;
         $GLOBALS['TSFE']->determineId();
         $GLOBALS['TSFE']->initTemplate();
         $GLOBALS['TSFE']->getConfigArray();
- return TRUE;
+
         if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('realurl')) {
             $rootline = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($id);
             $host = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootline);
