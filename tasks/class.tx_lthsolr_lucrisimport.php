@@ -85,7 +85,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         $uid;
         $bodytext;
         $url;
-        
+        return 'sucker!';
         $this->initTSFE();
         $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
 
