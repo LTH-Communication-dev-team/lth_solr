@@ -91,7 +91,7 @@ $this->initTSFE();
     } catch(Exception $e) {
         echo 'Message: ' .$e->getMessage();
     }
-        
+        return TRUE;
     try {
         $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
     } catch(Exception $e) {
