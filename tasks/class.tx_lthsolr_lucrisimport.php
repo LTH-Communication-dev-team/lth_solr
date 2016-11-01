@@ -1,10 +1,5 @@
 <?php
 
-use Solarium\QueryType\Extract\Query;
-use Solarium\QueryType\Extract\RequestBuilder;
-use Solarium\Core\Client\Request;
-
-
 class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 	
     function execute()
@@ -87,15 +82,17 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     
     function getPages($solrPath)
     {
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid,pid','pages','deleted=0 AND hidden=0 AND doktype < 254');
+$this->initTSFE();
+/** @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer $cObj */
+$cObj      = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
+
+
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid','pages','deleted=0 AND hidden=0 AND doktype < 254');
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-            $uid = $row['uid'];
-            $pid = $row['pid'];
-            $rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($uid);
-            $domain = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootLine);
-            $pagePath = \TYPO3\CMS\Backend\Utility\BackendUtility::getRecordPath($uid,'','');
-            echo $pagePath . '<br />';
-            //$this->extract('http://' . $domain . urlencode($pagePath), "page$uid", $solrPath);
+            $uid = $row['uid'];            
+            $url = $cObj->typolink_URL(array('parameter' => $uid, 'forceAbsoluteUrl' => 1));
+            //echo $url . '<br />';
+            $this->extract($url, "page$uid", $solrPath);
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
@@ -117,6 +114,26 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         }
 
     }
+    
+    
+    function initTSFE($id = 1, $typeNum = 0) {
+      if (!is_object($GLOBALS['TT'])) {
+          $GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker;
+          $GLOBALS['TT']->start();
+      }
+      $GLOBALS['TSFE'] = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\Controller\\TypoScriptFrontendController',  $GLOBALS['TYPO3_CONF_VARS'], $id, $typeNum);
+      $GLOBALS['TSFE']->connectToDB();
+      $GLOBALS['TSFE']->initFEuser();
+      $GLOBALS['TSFE']->determineId();
+      $GLOBALS['TSFE']->initTemplate();
+      $GLOBALS['TSFE']->getConfigArray();
+ 
+      if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('realurl')) {
+          $rootline = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($id);
+          $host = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootline);
+          $_SERVER['HTTP_HOST'] = $host;
+      }
+  }
     
     
     function standardCat($config, $client)
