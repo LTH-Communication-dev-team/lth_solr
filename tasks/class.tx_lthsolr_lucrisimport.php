@@ -86,7 +86,12 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         $bodytext;
         $url;
 
-        $this->initTSFE();
+        try {
+$this->initTSFE();
+    } catch(Exception $e) {
+        echo 'Message: ' .$e->getMessage();
+    }
+        
         $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
 
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("p.uid,t.bodytext","pages p LEFT JOIN tt_content t ON p.uid = t.pid","p.deleted=0 AND p.hidden=0 AND p.doktype < 199 AND (p.fe_group = 0 OR p.fe_group = '')");
