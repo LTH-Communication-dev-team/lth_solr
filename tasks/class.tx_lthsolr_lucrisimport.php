@@ -108,7 +108,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             if($bodytext) $bodytext = urlencode($this->strtrim(strip_tags($bodytext), 200));
             $url = $cObj->typolink_URL(array('parameter' => $uid, 'forceAbsoluteUrl' => 1));
             //echo $url . '<br />';
-            if($url) $this->extract($url, $bodytext, "page$uid", $solrPath, $curl);
+            //if($url) $this->extract($url, $bodytext, "page$uid", $solrPath, $curl);
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
