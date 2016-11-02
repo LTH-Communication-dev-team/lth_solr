@@ -85,8 +85,6 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         $uid;
         $bodytext;
         $url;
-        
-        $curl = curl_init();
 
         try {
             $this->initTSFE();
@@ -94,21 +92,16 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             echo 'Message: ' .$e->getMessage();
         }
        // return TRUE;
-        
-        try {
-            $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
-        } catch(Exception $e) {
-            echo 'Message: ' .$e->getMessage();
-        }
 
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT p.uid,t.bodytext","pages p LEFT JOIN tt_content t ON (p.uid = t.pid AND (CType = 'text' OR CType = 'textpic'))","p.deleted=0 AND p.hidden=0 AND p.doktype = 1 AND (p.fe_group = 0 OR p.fe_group = '')","p.uid");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $uid = $row['uid'];
             $bodytext = $row['bodytext'];
             if($bodytext) $bodytext = urlencode($this->strtrim(strip_tags($bodytext), 200));
+            $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
             $url = $cObj->typolink_URL(array('parameter' => $uid, 'forceAbsoluteUrl' => 1));
             //echo $url . '<br />';
-            //if($url) $this->extract($url, $bodytext, "page$uid", $solrPath, $curl);
+            if($url) $this->extract($url, $bodytext, "page$uid", $solrPath);
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
@@ -116,16 +109,15 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
     
     
-    function extract($pageUrl, $bodytext, $id, $solrPath, $curl)
+    function extract($pageUrl, $bodytext, $id, $solrPath)
     {
         try {
             $pageUrl = "http://" . $solrPath . "update/extract?literal.id=$id&literal.attrteaser=$bodytext&uprefix=attr&fmap.content=body&commit=true&stream.url=$pageUrl";
             //echo $pageUrl;
-            curl_setopt($curl, CURLOPT_URL, $pageUrl);  
+            $curl = curl_init($pageUrl);
             //curl_setopt($curl, CURLOPT_RETURNTRANSFER, false);
             //curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "BANURL");
             $res = curl_exec($curl);
-            curl_close($curl);
         } catch(Exception $e) {
             echo 'Message: ' .$e->getMessage();
         }
@@ -133,7 +125,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
     
     
-    function initTSFE($id = 4, $typeNum = 0) {
+    function initTSFE($id = 4, $typeNum = 0)
+    {
         if (!is_object($GLOBALS['TT'])) {
             $GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker;
             $GLOBALS['TT']->start();
