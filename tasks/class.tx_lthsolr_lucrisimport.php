@@ -140,8 +140,8 @@ $this->initTSFE();
         $GLOBALS['TSFE']->connectToDB();
         $GLOBALS['TSFE']->initFEuser();
          
-        $GLOBALS['TSFE']->determineId();
-        return TRUE;
+        //$GLOBALS['TSFE']->determineId();
+        //return TRUE;
         $GLOBALS['TSFE']->initTemplate();
         $GLOBALS['TSFE']->getConfigArray();
 
