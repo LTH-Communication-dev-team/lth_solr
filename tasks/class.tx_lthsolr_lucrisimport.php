@@ -123,6 +123,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, false);
             //curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "BANURL");
             $res = curl_exec($curl);
+            curl_close($curl);
         } catch(Exception $e) {
             echo 'Message: ' .$e->getMessage();
         }
