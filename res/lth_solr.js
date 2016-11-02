@@ -118,7 +118,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                                 i++;
                             });
                             
-                            $('.lth_solr_facet_container').append('<div class="item-list"><ul><li>' + content + '</ul>' + more + '</div>');
+                            $('.lth_solr_facet_container').append('<div class="item-list"><ul><li>' + content + '</ul>' + more + '</div><p></p>');
                             i=0;
                             maxClass='';
                             more='';

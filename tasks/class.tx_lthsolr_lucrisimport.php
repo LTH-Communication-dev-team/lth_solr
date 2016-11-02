@@ -99,7 +99,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             echo 'Message: ' .$e->getMessage();
         }
 
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT p.uid,t.bodytext","pages p LEFT JOIN tt_content t ON (p.uid = t.pid AND (CType = 'text' OR CType = 'textpic'))","p.deleted=0 AND p.hidden=0 AND p.doktype < 199 AND (p.fe_group = 0 OR p.fe_group = '')","p.uid");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT p.uid,t.bodytext","pages p LEFT JOIN tt_content t ON (p.uid = t.pid AND (CType = 'text' OR CType = 'textpic'))","p.deleted=0 AND p.hidden=0 AND p.doktype = 1 AND (p.fe_group = 0 OR p.fe_group = '')","p.uid");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $uid = $row['uid'];
             $bodytext = $row['bodytext'];
