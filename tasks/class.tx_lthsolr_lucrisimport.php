@@ -120,7 +120,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $pageUrl = "http://" . $solrPath . "update/extract?literal.id=$id&literal.attrteaser=$bodytext&uprefix=attr&fmap.content=body&commit=true&stream.url=$pageUrl";
             //echo $pageUrl;
             $curl = curl_init($pageUrl);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, false);
             //curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "BANURL");
             $res = curl_exec($curl);
         } catch(Exception $e) {
