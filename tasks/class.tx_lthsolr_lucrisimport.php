@@ -85,6 +85,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         $uid;
         $bodytext;
         $url;
+        
+        $curl = curl_init();
 
         try {
             $this->initTSFE();
@@ -106,7 +108,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             if($bodytext) $bodytext = urlencode($this->strtrim(strip_tags($bodytext), 200));
             $url = $cObj->typolink_URL(array('parameter' => $uid, 'forceAbsoluteUrl' => 1));
             //echo $url . '<br />';
-            if($url) $this->extract($url, $bodytext, "page$uid", $solrPath);
+            if($url) $this->extract($url, $bodytext, "page$uid", $solrPath, $curl);
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
@@ -114,16 +116,15 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
     
     
-    function extract($pageUrl, $bodytext, $id, $solrPath)
+    function extract($pageUrl, $bodytext, $id, $solrPath, $curl)
     {
         try {
             $pageUrl = "http://" . $solrPath . "update/extract?literal.id=$id&literal.attrteaser=$bodytext&uprefix=attr&fmap.content=body&commit=true&stream.url=$pageUrl";
             //echo $pageUrl;
-            $curl = curl_init($pageUrl);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, false);
+            curl_setopt($curl, CURLOPT_URL, $pageUrl);  
+            //curl_setopt($curl, CURLOPT_RETURNTRANSFER, false);
             //curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "BANURL");
             $res = curl_exec($curl);
-            curl_close($curl);
         } catch(Exception $e) {
             echo 'Message: ' .$e->getMessage();
         }
