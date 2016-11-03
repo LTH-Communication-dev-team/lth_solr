@@ -76,6 +76,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
 
         $this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
+        //$this->getDocuments($client);
         return TRUE;
     }
     
@@ -117,6 +118,40 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
     
     
+    function getDocuments($client)
+    {
+        $mimeArray = array(
+            'application/pdf',
+            'text/plain',
+            'application/msword',
+            'application/vnd.ms-powerpoint',
+            'text/html',
+            'application/vnd.ms-excel',
+            'vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/vnd.ms-office',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'text/rtf',
+            'text/x-asm',
+            'application/vnd.oasis.opendocument.text',
+            'application/vnd.oasis.opendocument.presentation',
+            'application/vnd.oasis.opendocument.spreadsheet'
+        );
+        
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,identifier,name","sys_file","mime_type IN('" . implode("','", $mimeArray) . "')","","","");
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $uid = $row['uid'];
+            $identifier = $row['identifier'];
+            $name = $row['name'];
+            if($identifier && $name) {
+                $this->extractDocument($client, $uid, $name, PATH_site . 'fileadmin' . $identifier);
+            }
+        }
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        return TRUE;
+    }
+    
+    
     function extract($pageUrl, $bodytext, $id, $solrPath)
     {
         try {
@@ -127,9 +162,38 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             //curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "BANURL");
             $res = curl_exec($curl);
         } catch(Exception $e) {
-            echo 'Message: ' .$e->getMessage();
+            //echo 'Message: ' .$e->getMessage();
         }
 
+    }
+    
+    
+    function extractDocument($client, $uid, $name, $filePath)
+    {
+        if(file_exists($filePath)) {
+            //echo $filePath;
+            // get an extract query instance and add settings
+            $query = $client->createExtract();
+            $query->addFieldMapping('content', 'body');
+            $query->setUprefix('attr_');
+            $query->setFile($filePath);
+            $query->setCommit(true);
+            $query->setOmitHeader(false);
+
+            // add document
+            $doc = $query->createDocument();
+            $doc->id = "document$uid";
+            $doc->title = $name;
+            $query->setDocument($doc);
+
+            // this executes the query and returns the result
+            try {
+                $result = $client->extract($query);
+            } catch(Exception $e) {
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $filePath, 'crdate' => time()));
+            }
+            
+        }
     }
     
     
