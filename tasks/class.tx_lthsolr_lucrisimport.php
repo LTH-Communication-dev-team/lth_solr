@@ -85,22 +85,30 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         $uid;
         $bodytext;
         $url;
-
-        try {
-            $this->initTSFE();
-        } catch(Exception $e) {
-            echo 'Message: ' .$e->getMessage();
+        $startPage = 0;
+        
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,msg","tx_devlog","msg LIKE 'lth_solr_page_start_%'");
+        $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+        $devUid = $row['uid'];
+        $msg = $row['msg'];
+        if($msg) {
+            $startPage = (integer)array_pop(explode('_', $msg)) + 1000;
+            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_devlog', 'uid='.intval($devUid), array('msg' => 'lth_solr_page_start_' . (string)$startPage, 'crdate' => time()));
+        } else {
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'lth_solr_page_start_0', 'crdate' => time()));
         }
-       // return TRUE;
 
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT p.uid,t.bodytext","pages p LEFT JOIN tt_content t ON (p.uid = t.pid AND (CType = 'text' OR CType = 'textpic'))","p.deleted=0 AND p.hidden=0 AND p.doktype = 1 AND (p.fe_group = 0 OR p.fe_group = '')","p.uid");
+        $this->initTSFE();
+        // return TRUE;
+        $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
+
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT p.uid,t.bodytext","pages p LEFT JOIN tt_content t ON (p.uid = t.pid AND (CType = 'text' OR CType = 'textpic'))","p.deleted=0 AND p.hidden=0 AND p.doktype = 1 AND (p.fe_group = 0 OR p.fe_group = '')","p.uid","","$startPage,1000");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $uid = $row['uid'];
             $bodytext = $row['bodytext'];
             if($bodytext) $bodytext = urlencode($this->strtrim(strip_tags($bodytext), 200));
-            $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
-            $url = new $cObj->typolink_URL(array('parameter' => $uid, 'forceAbsoluteUrl' => 1));
-            //echo $url . '<br />';
+            $url = $cObj->typolink_URL(array('parameter' => $uid, 'forceAbsoluteUrl' => 1));
+            //echo $uid . ';' . $url . '<br />';
             if($url) $this->extract($url, $bodytext, "page$uid", $solrPath);
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
