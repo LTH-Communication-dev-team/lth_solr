@@ -49,8 +49,12 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             $this->pi_setPiVarDefaults();
             $this->pi_loadLL();
 
-            $staffDetailPage = $this->conf["staffDetailPage"];
-            $siteDetailPage = $this->conf["siteDetailPage"];
+            $this->pi_initPIflexForm();
+            $piFlexForm = $this->cObj->data["pi_flexform"];
+            $index = $GLOBALS["TSFE"]->sys_language_uid;
+            $sDef = current($piFlexForm["data"]);       
+            $lDef = array_keys($sDef);
+            $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
             if(!$syslang) {
@@ -67,14 +71,10 @@ class tx_lthsolr_pi1 extends tslib_pibase {
 
             $query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
             $tab = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tab');
-            
+
             $content = '';
-            
-            //$content = $this->widget($query, $tab);
-            
-            $content .= $this->searchBox($query);
-            
-            $content .= $this->searchResult($query);
+                                    
+            $content .= $this->searchResult($query, $noItemsToShow);
         
             //$this->debug($content);
 	
@@ -82,17 +82,35 @@ class tx_lthsolr_pi1 extends tslib_pibase {
 	}
         
         
-        private function searchResult($query)
+        private function searchResult($query, $noItemsToShow)
         {
-            $content = '';
-            $content .= 
-                   // . '<input type="button" onclick="widget(\'tomas\');" name="send" value="Search" />'
-                    '<div id="solrsearchresult" class="item-list grid-18"></div><div id="lth_solr_facet_container" style="margin-left:20px;" class="grid-8 omega"></div>';
+            //searchbox
+            $content = '<form id="lthsolr_form" action="" method="post" accept-charset="UTF-8">
+            <div class="form-item form-type-textfield form-item-search" role="application">
+                <input type="text" id="searchSiteMain" name="query" value="' . $query . '" />
+                <input type="submit" id="edit-submit" name="op" value="' . $this->pi_getLL("search") . '" class="form-submit" />
+                <input type="hidden" id="no_cache" name="no_cache" value="1" />
+                <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />
+            </div>
+            </form>';
+            
+            //people
+            $content .= '<div id="lthsolr_staff_container"><div id="lthsolr_people_header"></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_simple.html");
+            
+            //pages
+            $content .= '<div id="lthsolr_pages_container"><div id="lthsolr_pages_header"></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/pages_simple.html");
+            
+            //documents
+            $content .= '<div id="lthsolr_documents_container"><div id="lthsolr_documents_header"></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/pages_simple.html");
+            
             return $content;
         }
         
         
-        private function widget($query, $tab)
+        /*private function widget($query, $tab)
         {
             $content = '';
             if($tab == 'all') {
@@ -100,7 +118,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             }
             $content .= 
                    // . '<input type="button" onclick="widget(\'tomas\');" name="send" value="Search" />'
-                    '<div id="solrsearchresult" style=""></div>'
+                    '<div id="solrsearchresult"></div>'
                     . '';
             return $content;
         }
@@ -110,10 +128,9 @@ class tx_lthsolr_pi1 extends tslib_pibase {
         {
             $content = '<form action="" method="post" accept-charset="UTF-8">
             <div class="form-item form-type-textfield form-item-search" role="application">
-            <input type="hidden" id="query" name="query" value="' . $query . '" />
-                <input type="text" id="searchSiteMain" name="search" value="' . $query . '" />
+                <input type="text" id="searchSiteMain" name="query" value="' . $query . '" />
                 <input type="submit" id="edit-submit" name="op" value="Sök" class="form-submit" />
-                <input type="hidden" id="query" name="query" value="' . $query . '" />
+                <input type="hidden" id="no_cache" name="no_cache" value="1" />
             </div>
             </form>';
             
@@ -131,7 +148,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
 		}
 
 		return $xmlDoc;
-	}
+	}*/
         
         
         private function debug($input)
@@ -141,7 +158,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             echo '</pre>';
         }
         
-        private function searchId($id)
+        /*private function searchId($id)
         {
             $content = '';
             
@@ -218,7 +235,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
                 $content .=  '</table>';
             }
             return $content;
-        }
+        }*/
 }
 
 

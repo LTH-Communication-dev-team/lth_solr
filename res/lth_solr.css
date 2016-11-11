@@ -15,11 +15,11 @@ and open the template in the editor.
     display:none;
 }
 
-.item-list ul {
+.item-list ul, #lthsolr_staff_container ul {
     padding:0px;
 }
 
-.item-list ul li{
+.item-list ul li, #lthsolr_staff_container ul li {
     list-style:none !important;
 }
 

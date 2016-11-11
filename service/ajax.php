@@ -29,7 +29,8 @@ $sid = '';
 
 $term = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("term");
 $peopleOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("peopleOffset"));
-$documentsOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("documentsOffset"));
+$pageOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("pageOffset"));
+$documentOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("documentOffset"));
 $query = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("query"));
 $action = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("action"));
 $scope = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("scope"));
@@ -62,13 +63,16 @@ switch($action) {
         $content = searchShort($term, $config);
         break;
     case 'searchLong':
-        $content = searchLong($term, $config);
+        $content = searchLong($term, $table_length, $peopleOffset, $pageOffset, $documentOffset, $config);
         break;
     case 'searchMorePeople':
-        $content = searchMore($term, 'people', $peopleOffset, $documentsOffset, $config);
+        $content = searchMore($term, 'people', $peopleOffset, $pageOffset, $documentOffset, $config);
         break;
+    case 'searchMorePages':
+        $content = searchMore($term, 'pages', $peopleOffset, $pageOffset, $documentOffset, $config);
+        break;    
     case 'searchMoreDocuments':
-        $content = searchMore($term, 'documents', $peopleOffset, $documentsOffset, $config);
+        $content = searchMore($term, 'documents', $peopleOffset, $pageOffset, $documentOffset, $config);
         break;
     case 'listPublications':
         $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $categories, $query, $selection);
@@ -115,8 +119,8 @@ function searchShort($term, $config)
     $term = trim($term);
 
     $groupComponent = $query->getGrouping();
-    $groupComponent->addQuery('display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '"');
-    $groupComponent->addQuery('content:*' . str_replace(' ','\\ ',$term) . '*');
+    $groupComponent->addQuery('doctype:lucat AND display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '"');
+    $groupComponent->addQuery('id:page* AND content:*' . str_replace(' ','\\ ',$term) . '*');
     $groupComponent->setSort('last_name_sort asc');
     $groupComponent->setLimit(5);    
     $resultset = $client->select($query);
@@ -130,6 +134,7 @@ function searchShort($term, $config)
                 $id = $document->uuid;
                 $value = $document->uuid;
                 $label = fixArray($document->display_name);
+                if($document->phone) $label .= ', ' . fixArray($document->phone);
                 $data[] = array(
                     'id' => $id,
                     'label' => $label,
@@ -153,7 +158,7 @@ function searchShort($term, $config)
 }
 
 
-function searchLong($term, $config)
+function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOffset, $config)
 {
     $people;
     $documents;
@@ -168,53 +173,69 @@ function searchLong($term, $config)
     $introText;
     
     $facetResult = array();
+    $peopleData = array();
+    $pageData = array();
+    $documentData = array();
     
     $client = new Solarium\Client($config);
     $query = $client->createSelect();
+    $query->setStart($table_start)->setRows($table_length);
     
     $term = trim($term);
+    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $peopleOffset . $pageOffset . $documentOffset, 'crdate' => time()));
 
     $groupComponent = $query->getGrouping();
-    $groupComponent->addQuery('display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '"');
-    $groupComponent->addQuery('content:' . $term);
-    $groupComponent->setSort('last_name_sort asc');
-    $groupComponent->setLimit(5);
+    if($pageOffset == '0' && $documentOffset == '0') $groupComponent->addQuery('doctype:lucat AND display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '"');
+    if($peopleOffset == '0' && $documentOffset == '0') $groupComponent->addQuery('doctype:page AND content:' . str_replace(' ','\\ ',$term));
+    if($documentOffset == '0' && $peopleOffset == '0') $groupComponent->addQuery('doctype:document AND content:' . str_replace(' ','\\ ',$term));
+    if($pageOffset == '0' && $documentOffset == '0') $groupComponent->setSort('last_name_sort asc');
+    $groupComponent->setLimit($tableLength);
+    $groupComponent->setOffset(intval($peopleOffset) + intval($pageOffset) + intval($documentOffset));
     $resultset = $client->select($query);
     
     $groups = $resultset->getGrouping();
-    
+
     foreach ($groups as $groupKey => $group) {
-        $numfound = $group->getNumFound();
+        $numRow[] = $group->getNumFound();
         foreach ($group as $document) {
             $id = $document->id;
-            $doktype = $document->doctype;
-            if($doktype === 'lucat') {
-                $peopleNumFound = $numfound;
-                $display_name = $document->display_name;
+            $doctype = $document->doctype;
+            if($doctype === 'lucat') {
+                /*$display_name = $document->display_name;
                 $email = $document->email;
                 $phone = fixArray($document->phone);
-                //$image = $document->image;
                 $oname = fixArray($document->oname);
                 $facetResult[] = fixArray($document->oname);
                 $title = fixArray($document->title);
                 $room_number = $document->room_number;
                 if($room_number) $room_number = " (Rum " . fixArray($room_number) . ")";
                 $people .= '<li>';
-                /*if($image) $people .= '<img class="align_left" src="' . $image . '" style="width:100px;height:100px;" />';
-                $people .= "<h3>$display_name</h3>";
-                $people .= "<p>$oname$room_number, $title</p>";
-                $people .= "<p>";
-                if($email) $people .= "<a href=\"mailto:$email\">$email</a><br />";
-                if($phone) $people .= "Telefon: $phone<br />";
-                if($homepage) $people .= $homepage;
-                $people .= "</p>";*/
+
                 $people .= "<p><b>$display_name</b>, $title, $oname$room_number<br />";
                 if($email) $people .= "<a href=\"mailto:$email\">$email</a>, ";
                 if($phone) $people .= "Telefon: $phone";
-                $people .= "</p></li>";
-            } else {
-                $documentsNumFound = $numfound;
-                $content = $document->content;
+                $people .= "</p></li>";*/
+                $peopleData[] = array(
+                    ucwords(strtolower($document->first_name)),
+                    ucwords(strtolower($document->last_name)),
+                    $document->title,
+                    $document->title_en,
+                    $document->phone,
+                    $document->id,
+                    $document->email,
+                    $document->oname,
+                    $document->oname_en,
+                    $document->primary_affiliation,
+                    $document->homepage,
+                    //$image,
+                    //$intro,
+                    $document->room_number,
+                    $document->mobile,
+                    $document->uuid,
+                    $document->orgid
+                );
+            } else if($doctype == 'page') {
+                /*$content = $document->content;
                 if (is_array($content)) {
                     $content = implode(' ', $content);
                 }
@@ -223,19 +244,36 @@ function searchLong($term, $config)
                 $introText = substr($results[1], 0, 200);
                 $url = $document->url;
                 $documents .= '<li><h3><a href="' . $url . '">' . fixArray($title) . '</a></h3><p>' . $introText . '</p><p>' . $url . '</p></li>';
+                 */
+                $pageData[] = array(
+                    $document->id,
+                    $document->title,
+                    $document->teaser,
+                    $document->stream_name
+                );
+            } else if($doctype == 'document') {
+                $documentData[] = array(
+                    $document->id,
+                    $document->title,
+                    $document->teaser,
+                    $document->stream_name
+                );
             }
         }
     }
 
-    if($people && $peopleNumFound > 5) {
+    /*if($peoplesData && $numRow[0] > 5) {
         $people .= "<li id=\"morePeople\"><a href=\"#\" onclick=\"searchLong('$term', 'searchMorePeople', 5, 5); return false;\">Visa fler</a></li>";
     }
-    if($documents && $documentsNumFound > 5) {
-        $documents .= "<li id=\"moreDocuments\"><a href=\"#\" onclick=\"searchLong('$term', 'searchMoreDocuments', 5, 5); return false;\">Visa fler</a></li>";
+    if($pagesData && $numRow[1] > 5) {
+        $documents .= "<li id=\"morePages\"><a href=\"#\" onclick=\"searchLong('$term', 'searchMorePages', 5, 5); return false;\">Visa fler</a></li>";
     }
+    if($documentsData && $numRow[2] > 5) {
+        $documents .= "<li id=\"moreDocuments\"><a href=\"#\" onclick=\"searchLong('$term', 'searchMoreDocuments', 5, 5); return false;\">Visa fler</a></li>";
+    }*/
     $facetResult = array_unique($facetResult);
 
-    return json_encode(array('people' => $people, 'peopleNumFound' => $peopleNumFound, 'documents' => removeInvalidChars($documents), 'documentsNumFound' => $documentsNumFound, 'facet' => $facetResult));
+    return json_encode(array('peopleData' => $peopleData, 'peopleNumFound' => $numRow[0], 'pageData' => $pageData, 'pagesNumFound' => $numRow[1], 'documentData' => $documentData, 'documentsNumFound' => $numRow[2], 'facet' => $facetResult));
 }
 
 
@@ -245,7 +283,7 @@ function removeInvalidChars( $text) {
 }
 
 
-function searchMore($term, $type, $peopleOffset, $documentsOffset, $config)
+function searchMore($term, $type, $peopleOffset, $pageOffset, $documentOffset, $config)
 {
     $client = new Solarium\Client($config);
 
@@ -256,7 +294,7 @@ function searchMore($term, $type, $peopleOffset, $documentsOffset, $config)
         $query->setStart($peopleOffset)->setRows(10);
     } else {
         $query->setQuery('content:*' . $term . '*');
-        $query->setStart($documentsOffset)->setRows(10);
+        $query->setStart($documentOffset)->setRows(10);
     }
     
     $sortArray = array(

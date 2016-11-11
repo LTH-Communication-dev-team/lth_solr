@@ -1,0 +1,51 @@
+<T3DataStructure>
+ <meta>
+       <langDisable>1</langDisable>
+ </meta>
+<sheets>
+  <sDEF>
+        <ROOT>
+         <TCEforms>
+          <sheetTitle>General</sheetTitle>
+         </TCEforms>
+         <type>array</type>
+         <el>
+                
+        <noItemsToShow>
+             <TCEforms>
+                <label>No of items to show</label>
+                <config>
+                <type>select</type>
+                <items type="array">
+                <numIndex index="0" type="array">
+                <numIndex index="0">5</numIndex>
+                <numIndex index="1">5</numIndex>
+                </numIndex>
+                <numIndex index="1" type="array">
+                <numIndex index="0">10</numIndex>
+                <numIndex index="1">10</numIndex>
+                </numIndex>
+                <numIndex index="2" type="array">
+                <numIndex index="0">15</numIndex>
+                <numIndex index="1">15</numIndex>
+                </numIndex>
+                <numIndex index="3" type="array">
+                <numIndex index="0">All</numIndex>
+                <numIndex index="1">3000</numIndex>
+                </numIndex>
+                </items>
+                <maxitems>1</maxitems>
+                <size>1</size>
+                <default>5</default>
+                <selectedListStyle>width:200px</selectedListStyle>
+                <itemListStyle>width:200px</itemListStyle>
+                </config>
+             </TCEforms>
+         </noItemsToShow>
+
+         </el>
+     </ROOT>
+</sDEF>
+
+</sheets>
+</T3DataStructure>

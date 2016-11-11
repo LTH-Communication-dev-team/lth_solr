@@ -59,20 +59,22 @@ class ProcessCmdmap {
                     //$sUsergroup = $document['usergroup'];
                     //echo $sId . $sUsergroup;
                 }
-                //$usergroup = array_unique(array_merge($usergroup, $sUsergroup));
-                $doc = $update->createDocument();
+                if($sId) {
+                    //$usergroup = array_unique(array_merge($usergroup, $sUsergroup));
+                    $doc = $update->createDocument();
 
-                $doc->setKey('id', $sId);
+                    $doc->setKey('id', $sId);
 
-                $doc->addField('orgid', $usergroup);
-                $doc->setFieldModifier('orgid', 'set');
+                    $doc->addField('orgid', $usergroup);
+                    $doc->setFieldModifier('orgid', 'set');
 
-                // add the documents and a commit command to the update query
-                $docArray[] = $doc;
-                $update->addDocuments($docArray);
-                $update->addCommit();
-                $result = $client->update($update);
+                    // add the documents and a commit command to the update query
+                    $docArray[] = $doc;
+                    $update->addDocuments($docArray);
+                    $update->addCommit();
+                    $result = $client->update($update);
                 }
+            }
             $GLOBALS['TYPO3_DB']->sql_free_result($res);
             
         }

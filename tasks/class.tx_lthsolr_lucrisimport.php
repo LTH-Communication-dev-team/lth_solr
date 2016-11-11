@@ -110,7 +110,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             if($bodytext) $bodytext = urlencode($this->strtrim(strip_tags($bodytext), 200));
             $url = $cObj->typolink_URL(array('parameter' => $uid, 'forceAbsoluteUrl' => 1));
             //echo $uid . ';' . $url . '<br />';
-            if($url) $this->extract($url, $bodytext, "page$uid", $solrPath);
+            if($url) $this->extractPage($url, $bodytext, "page$uid", $solrPath);
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
@@ -152,13 +152,13 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
     
     
-    function extract($pageUrl, $bodytext, $id, $solrPath)
+    function extractPage($pageUrl, $bodytext, $id, $solrPath)
     {
         try {
-            $pageUrl = "http://" . $solrPath . "update/extract?literal.id=$id&literal.attrteaser=$bodytext&uprefix=attr&fmap.content=body&commit=true&stream.url=$pageUrl";
+            $pageUrl = "http://" . $solrPath . "update/extract?literal.id=$id&literal.teaser=$bodytext&literal.doctype=page&fmap.content=content&commit=true&stream.url=$pageUrl";
             //echo $pageUrl;
             $curl = curl_init($pageUrl);
-            //curl_setopt($curl, CURLOPT_RETURNTRANSFER, false);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
             //curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "BANURL");
             $res = curl_exec($curl);
         } catch(Exception $e) {
@@ -184,6 +184,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $doc = $query->createDocument();
             $doc->id = "document$uid";
             $doc->title = $name;
+            $doc->doctype = 'document';
             $query->setDocument($doc);
 
             // this executes the query and returns the result
@@ -197,7 +198,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
     
     
-    function initTSFE($id = 4, $typeNum = 0)
+    function initTSFE($id = 1, $typeNum = 0)
     {
         if (!is_object($GLOBALS['TT'])) {
             $GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker;
