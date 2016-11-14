@@ -119,7 +119,7 @@ function searchShort($term, $config)
     $term = trim($term);
 
     $groupComponent = $query->getGrouping();
-    $groupComponent->addQuery('doctype:lucat AND display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '"');
+    $groupComponent->addQuery('doctype:lucat AND (display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
     $groupComponent->addQuery('id:page* AND content:*' . str_replace(' ','\\ ',$term) . '*');
     $groupComponent->setSort('last_name_sort asc');
     $groupComponent->setLimit(5);    
