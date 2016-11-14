@@ -198,7 +198,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     }
     
     
-    function initTSFE($id = 1, $typeNum = 0)
+    function initTSFE($id = 4, $typeNum = 0)
     {
         if (!is_object($GLOBALS['TT'])) {
             $GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker;
