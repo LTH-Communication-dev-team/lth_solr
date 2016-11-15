@@ -182,7 +182,7 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
     $query->setStart($table_start)->setRows($table_length);
     
     $term = trim($term);
-    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $peopleOffset . $pageOffset . $documentOffset, 'crdate' => time()));
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $peopleOffset . $pageOffset . $documentOffset, 'crdate' => time()));
 
     $groupComponent = $query->getGrouping();
     if($pageOffset == '0' && $documentOffset == '0') {
