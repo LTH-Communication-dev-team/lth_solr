@@ -95,15 +95,18 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             </form>';
             
             //people
-            $content .= '<div id="lthsolr_staff_container"><div id="lthsolr_people_header"></div></div>';
+            $content .= '<div id="lthsolr_people_header"></div>';
+            $content .= '<div id="lthsolr_staff_container"></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_simple.html");
             
             //pages
-            $content .= '<div id="lthsolr_pages_container"><div id="lthsolr_pages_header"></div></div>';
+            $content .= '<div id="lthsolr_pages_header"></div>';
+            $content .= '<div id="lthsolr_pages_container"></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/pages_simple.html");
             
             //documents
-            $content .= '<div id="lthsolr_documents_container"><div id="lthsolr_documents_header"></div></div>';
+            $content .= '<div id="lthsolr_documents_header"></div>';
+            $content .= '<div id="lthsolr_documents_container"></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/pages_simple.html");
             
             return $content;

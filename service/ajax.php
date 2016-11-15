@@ -138,7 +138,7 @@ function searchShort($term, $config)
                 $data[] = array(
                     'id' => $id,
                     'label' => $label,
-                    'value' => $value 
+                    'value' => 'lucat' 
                 );
             } else {
                 $id = $document->id;
@@ -147,7 +147,7 @@ function searchShort($term, $config)
                     $data[] = array(
                     'id' => $id,
                     'label' => $label,
-                    'value' => $value 
+                    'value' => 'other' 
                 );
             }
             
@@ -185,9 +185,15 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
     $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $peopleOffset . $pageOffset . $documentOffset, 'crdate' => time()));
 
     $groupComponent = $query->getGrouping();
-    if($pageOffset == '0' && $documentOffset == '0') $groupComponent->addQuery('doctype:lucat AND display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '"');
-    if($peopleOffset == '0' && $documentOffset == '0') $groupComponent->addQuery('doctype:page AND content:' . str_replace(' ','\\ ',$term));
-    if($documentOffset == '0' && $peopleOffset == '0') $groupComponent->addQuery('doctype:document AND content:' . str_replace(' ','\\ ',$term));
+    if($pageOffset == '0' && $documentOffset == '0') {
+        $groupComponent->addQuery('doctype:lucat AND (display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
+    }
+    if($peopleOffset == '0' && $documentOffset == '0') {
+        $groupComponent->addQuery('doctype:page AND content:' . str_replace(' ','\\ ',$term));
+    }
+    if($dpageOffset == '0' && $peopleOffset == '0') {
+        $groupComponent->addQuery('doctype:document AND content:' . str_replace(' ','\\ ',$term));
+    }
     if($pageOffset == '0' && $documentOffset == '0') $groupComponent->setSort('last_name_sort asc');
     $groupComponent->setLimit($tableLength);
     $groupComponent->setOffset(intval($peopleOffset) + intval($pageOffset) + intval($documentOffset));
@@ -262,18 +268,21 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
         }
     }
 
-    /*if($peoplesData && $numRow[0] > 5) {
-        $people .= "<li id=\"morePeople\"><a href=\"#\" onclick=\"searchLong('$term', 'searchMorePeople', 5, 5); return false;\">Visa fler</a></li>";
+    if($peopleOffset != '0') {
+        $peopleNumFound = $numRow[0];
+    } else if($pageOffset != '0') {
+        $pageNumFound = $numRow[0];
+    } else if($documentOffset != '0') {
+        $documentNumFound = $numRow[0];
+    } else {
+        $peopleNumFound = $numRow[0];
+        $pageNumFound = $numRow[1];
+        $documentNumFound = $numRow[2];
     }
-    if($pagesData && $numRow[1] > 5) {
-        $documents .= "<li id=\"morePages\"><a href=\"#\" onclick=\"searchLong('$term', 'searchMorePages', 5, 5); return false;\">Visa fler</a></li>";
-    }
-    if($documentsData && $numRow[2] > 5) {
-        $documents .= "<li id=\"moreDocuments\"><a href=\"#\" onclick=\"searchLong('$term', 'searchMoreDocuments', 5, 5); return false;\">Visa fler</a></li>";
-    }*/
+    
     $facetResult = array_unique($facetResult);
 
-    return json_encode(array('peopleData' => $peopleData, 'peopleNumFound' => $numRow[0], 'pageData' => $pageData, 'pagesNumFound' => $numRow[1], 'documentData' => $documentData, 'documentsNumFound' => $numRow[2], 'facet' => $facetResult));
+    return json_encode(array('peopleData' => $peopleData, 'peopleNumFound' => $peopleNumFound, 'pageData' => $pageData, 'pageNumFound' => $pageNumFound, 'documentData' => $documentData, 'documentNumFound' => $documentNumFound, 'facet' => $facetResult));
 }
 
 

@@ -75,8 +75,36 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         //$this->getType($config, $client, $settings, $startFromHere);
         //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
 
-        $this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
+        //$this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
         //$this->getDocuments($client);
+        $this->getCourses($client);
+        return TRUE;
+    }
+    
+    
+    function getCourses($client)
+    {
+        $buffer = $client->getPlugin('bufferedadd');
+        $buffer->setBufferSize(250);
+                
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("KursID, KursSve, Kurskod", "lot.Kurs", "", "", "", "");
+        while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+            $KursID = $row['KursID'];
+            $KursSve = $row['KursSve'];
+            $data = array(
+                'id' => 'course_' . $row['KursID'],
+                'doctype' => 'course',
+                'title' => $row['Kurskod'] . ', ' . $row['KursSve'],
+                'boost' => '1.0'
+            );
+            try {
+                $buffer->createDocument($data);
+            } catch(Exception $e) {
+                echo 'Message: ' .$e->getMessage();
+            }
+        }
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        $buffer->commit();
         return TRUE;
     }
     
@@ -171,6 +199,36 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     function extractDocument($client, $uid, $name, $filePath)
     {
         if(file_exists($filePath)) {
+            //echo $filePath;
+            // get an extract query instance and add settings
+            $query = $client->createExtract();
+            $query->addFieldMapping('content', 'body');
+            $query->setUprefix('attr_');
+            $query->setFile($filePath);
+            $query->setCommit(true);
+            $query->setOmitHeader(false);
+
+            // add document
+            $doc = $query->createDocument();
+            $doc->id = "document$uid";
+            $doc->title = $name;
+            $doc->doctype = 'document';
+            $query->setDocument($doc);
+
+            // this executes the query and returns the result
+            try {
+                $result = $client->extract($query);
+            } catch(Exception $e) {
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $filePath, 'crdate' => time()));
+            }
+            
+        }
+    }
+    
+    
+    function extractCourse($client, $KursSve)
+    {
+        if($KursSve) {
             //echo $filePath;
             // get an extract query instance and add settings
             $query = $client->createExtract();

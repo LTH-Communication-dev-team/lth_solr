@@ -20,3 +20,5 @@ pw=
 solrLucrisId=
   # cat=basic/dev/170; type=input; label=Lucris pw
 solrLucrisPw=
+  # cat=basic/dev/171; type=input; label=LOT db
+solrLotDb=

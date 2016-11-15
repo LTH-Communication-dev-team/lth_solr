@@ -8,7 +8,7 @@ $(document).ready(function() {
 
     if($('#searchSiteMain').val()) {
         //widget($('#query').val());
-        searchLong($('#searchSiteMain').val(), 0, 0, 0);
+        searchLong($('#searchSiteMain').val(), 0, 0, 0, false);
     }
     
     if($('#lth_solr_action').val() == 'listStaff') {
@@ -274,7 +274,7 @@ function inArray(needle, haystack)
 }*/
 
 
-function searchLong(term, startPeople, startPages, startDocuments)
+function searchLong(term, startPeople, startPages, startDocuments, more)
 {
     //console.log(peopleOffset + ',' + documentsOffset);
     var syslang = $('#lth_solr_syslang').val();
@@ -306,9 +306,10 @@ function searchLong(term, startPeople, startPages, startDocuments)
         //contentType: "application/json; charset=utf-8",
         dataType: 'json',
         beforeSend: function () {
-            if(startPages == 0 && startDocuments == 0) $('#lthsolr_staff_container').append('<img class="lthsolr_loader" id="lthsolr_loader_staff" src="/fileadmin/templates/images/ajax-loader.gif" />');
-            if(startPeople == 0 && startDocuments == 0) $('#lthsolr_pages_container').append('<img class="lthsolr_loader" id="lthsolr_loader_pages" src="/fileadmin/templates/images/ajax-loader.gif" />');
-            if(startPages == 0 && startPeople == 0) $('#lthsolr_documents_container').append('<img class="lthsolr_loader" id="lthsolr_loader_documents" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            if(startPages == 0 && startDocuments == 0 && !more) $('#lthsolr_staff_container').append('<img class="lthsolr_loader" id="lthsolr_loader_staff" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            if(startPeople == 0 && startDocuments == 0 && !more) $('#lthsolr_pages_container').append('<img class="lthsolr_loader" id="lthsolr_loader_pages" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            if(startPages == 0 && startPeople == 0 && !more) $('#lthsolr_documents_container').append('<img class="lthsolr_loader" id="lthsolr_loader_documents" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            $('.lthsolr_more').replaceWith('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
         },
         success: function(d) {
             var i = 0;
@@ -361,7 +362,7 @@ function searchLong(term, startPeople, startPages, startDocuments)
                     $document->orgid
              */
             if(d.peopleData.length > 0) {
-                $('#lthsolr_people_header').html('<h3>People</h3>');
+                //$('#lthsolr_people_header').html('<h3>People</h3>');
                 $.each( d.peopleData, function( key, aData ) {
                     var intro = '';
                     template = $('#solrTemplate').html();
@@ -433,21 +434,22 @@ function searchLong(term, startPeople, startPages, startDocuments)
                     $('#lthsolr_staff_container').append(template);
                 });
                 $('#lthsolr_loader_staff').remove();
-                $('#lthsolr_staff_container .lthsolr_more').remove();
-                $('#lthsolr_people_header').append('1-' + maxLength(parseInt(startPeople) + parseInt(tableLength),parseInt(d.peopleNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.peopleNumFound);
+                //$('#lthsolr_staff_container .lthsolr_more').remove();
+                $('.lthsolr_loader').remove();
+                $('#lthsolr_people_header').html('<h3>People</h3>1-' + maxLength(parseInt(startPeople) + parseInt(tableLength),parseInt(d.peopleNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.peopleNumFound);
                 if((parseInt(startPeople) + parseInt(tableLength)) < d.peopleNumFound) {
                     $('#lthsolr_staff_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" \
-                        onclick="searchLong(\'' + term + '\',' + (parseInt(startPeople) + parseInt(tableLength)) + ',0,0);">' + lth_solr_messages.next + ' ' + 
+                        onclick="searchLong(\'' + term + '\',' + (parseInt(startPeople) + parseInt(tableLength)) + ',0,0,true);">' + lth_solr_messages.next + ' ' + 
                         tableLength + ' ' + lth_solr_messages.of + ' ' + d.peopleNumFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + 
                         d.peopleNumFound + '); searchLong\'' + term + '\',' +
-                        (parseInt(startPeople) + parseInt(tableLength)) + ',0,0);">' + lth_solr_messages.show_all + ' ' + d.peopleNumFound + '</a></div>');
+                        (parseInt(startPeople) + parseInt(tableLength)) + ',0,0,true);">' + lth_solr_messages.show_all + ' ' + d.peopleNumFound + '</a></div>');
                 }
             } else {
                 $('#lthsolr_loader_staff').remove();
             }
             
             if(d.pageData.length > 0) {
-                $('#lthsolr_pages_header').append('<h3>Pages</h3>');
+                //$('#lthsolr_pages_header').append('<h3>Pages</h3>');
                 $.each( d.pageData, function( key, aData ) {
                     template = $('#solrPagesTemplate').html();
                     id = '';
@@ -457,7 +459,8 @@ function searchLong(term, startPeople, startPages, startDocuments)
                     link = '';
                     
                     if(aData[0]) id = aData[0];
-                    if(aData[1]) title = aData[1];
+                    if(aData[1]) title = aData[1][0].split('|').pop().trim();
+                    //console.log(title);
                     if(aData[2]) teaser = '<p>' + aData[2] + '</p>';
                     if(aData[3]) {
                         url = aData[3];
@@ -474,13 +477,14 @@ function searchLong(term, startPeople, startPages, startDocuments)
                 });
                 
                 $('#lthsolr_loader_pages').remove();
-                $('#lthsolr_pages_container .lthsolr_more').remove();
-                $('#lthsolr_pages_header').append('1-' + maxLength(parseInt(startPages) + parseInt(tableLength),parseInt(d.pagesNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.pagesNumFound);
-                if((parseInt(startPages) + parseInt(tableLength)) < d.pagesNumFound) {
+                //$('#lthsolr_pages_container .lthsolr_more').remove();
+                $('.lthsolr_loader').remove();
+                $('#lthsolr_pages_header').html('<h3>Pages</h3>1-' + maxLength(parseInt(startPages) + parseInt(tableLength),parseInt(d.pageNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.pageNumFound);
+                if((parseInt(startPages) + parseInt(tableLength)) < d.pageNumFound) {
                     $('#lthsolr_pages_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" \n\
-                        onclick="listPages(\'' + term + '\',0,' + (parseInt(startPages) + parseInt(tableLength)) + ',0);">' + lth_solr_messages.of + ' ' + tableLength + ' ' + 
-                            lth_solr_messages.next + ' '  + d.pagesNumFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.pagesNumFound + '); \
-                            searchLong(\'' + term + '\',0,' + (parseInt(startPages) + parseInt(tableLength)) + ',0);">' + lth_solr_messages.show_all + ' ' + d.pagesNumFound + '</a></div>');
+                        onclick="searchLong(\'' + term + '\',0,' + (parseInt(startPages) + parseInt(tableLength)) + ',0,true);">' + lth_solr_messages.next + ' ' + tableLength + ' ' + 
+                            lth_solr_messages.of + ' '  + d.pageNumFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.pageNumFound + '); \
+                            searchLong(\'' + term + '\',0,' + (parseInt(startPages) + parseInt(tableLength)) + ',0,true);">' + lth_solr_messages.show_all + ' ' + d.pageNumFound + '</a></div>');
                 }
             } else {
                 $('#lthsolr_loader_pages').remove();
@@ -488,7 +492,7 @@ function searchLong(term, startPeople, startPages, startDocuments)
             
             
             if(d.documentData.length > 0) {
-                $('#lthsolr_documents_header').append('<h3>Documents</h3>');
+                //$('#lthsolr_documents_header').append('<h3>Documents</h3>');
                 $.each( d.documentData, function( key, aData ) {
                     template = $('#solrPagesTemplate').html();
                     id = '';
@@ -515,13 +519,14 @@ function searchLong(term, startPeople, startPages, startDocuments)
                 });
                 
                 $('#lthsolr_loader_documents').remove();
-                $('#lthsolr_documents_container .lthsolr_more').remove();
-                $('#lthsolr_documents_header').append('1-' + maxLength(parseInt(startPages) + parseInt(tableLength),parseInt(d.documentsNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.documentsNumFound);
-                if((parseInt(startPages) + parseInt(tableLength)) < d.documentsNumFound) {
+                //$('#lthsolr_documents_container .lthsolr_more').remove();
+                $('.lthsolr_loader').remove();
+                $('#lthsolr_documents_header').html('<h3>Documents</h3>1-' + maxLength(parseInt(startPages) + parseInt(tableLength),parseInt(d.documentNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.documentNumFound);
+                if((parseInt(startPages) + parseInt(tableLength)) < d.documentNumFound) {
                     $('#lthsolr_documents_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" \n\
-                        onclick="listPages(\'' + term + '\',0,0,' + (parseInt(startPages) + parseInt(tableLength)) + ');">' + lth_solr_messages.of + ' ' + tableLength + ' ' + 
-                            lth_solr_messages.next + ' '  + d.documentsNumFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.documentsNumFound + '); \
-                            searchLong(\'' + term + '\',0,0,' + (parseInt(startPages) + parseInt(tableLength)) + ');">' + lth_solr_messages.show_all + ' ' + d.documentsNumFound + '</a></div>');
+                        onclick="searchLong(\'' + term + '\',0,0,' + (parseInt(startPages) + parseInt(tableLength)) + ',true);">' + lth_solr_messages.of + ' ' + tableLength + ' ' + 
+                            lth_solr_messages.next + ' '  + d.documentNumFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.documentsNumFound + '); \
+                            searchLong(\'' + term + '\',0,0,' + (parseInt(startPages) + parseInt(tableLength)) + ',true);">' + lth_solr_messages.show_all + ' ' + d.documentNumFound + '</a></div>');
                 }
             } else {
                 $('#lthsolr_loader_documents').remove();
