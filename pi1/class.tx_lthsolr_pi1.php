@@ -75,7 +75,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
 
             $content = '';
                                     
-            if(stristr($actual_link, "/demo/")) {
+            if(stristr($actual_link, "/demo/") || stristr($actual_link, "vkans-th0")) {
                 $content .= $this->searchResult($query, $noItemsToShow);
             } else {
                 $content .= $this->widget($query, $tab);
