@@ -17,7 +17,10 @@ var lth_solr_messages = {
     read_more_about: "Läs mer om",
     more: "Mer",
     close: "Stäng",
-    next: "Nästa"
+    next: "Nästa",
+    people: "Personal",
+    documents: "Dokument",
+    webpages: "Webbsidor"
 };
 
 

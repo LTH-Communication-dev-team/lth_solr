@@ -17,7 +17,10 @@ var lth_solr_messages = {
     read_more_about: "Read more about",
     more: "More",
     close: "Close",
-    next: "Next"
+    next: "Next",
+    people: "People",
+    documents: "Documents",
+    webpages: "Web pages"
 };
 
 

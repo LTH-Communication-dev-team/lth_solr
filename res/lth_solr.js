@@ -396,6 +396,9 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
                         title = title_t;
                     } 
 
+                    if(!title || title == '') {
+                        title = 'No title'
+                    }
                     template = template.replace('###title_t###', titleCase(title));
                     template = template.replace('###phone_t###', phone);
 
@@ -436,7 +439,7 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
                 $('#lthsolr_loader_staff').remove();
                 //$('#lthsolr_staff_container .lthsolr_more').remove();
                 $('.lthsolr_loader').remove();
-                $('#lthsolr_people_header').html('<h3>People</h3>1-' + maxLength(parseInt(startPeople) + parseInt(tableLength),parseInt(d.peopleNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.peopleNumFound);
+                $('#lthsolr_people_header').html('<h3>' + lth_solr_messages.people + '</h3>1-' + maxLength(parseInt(startPeople) + parseInt(tableLength),parseInt(d.peopleNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.peopleNumFound);
                 if((parseInt(startPeople) + parseInt(tableLength)) < d.peopleNumFound) {
                     $('#lthsolr_staff_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" \
                         onclick="searchLong(\'' + term + '\',' + (parseInt(startPeople) + parseInt(tableLength)) + ',0,0,true);">' + lth_solr_messages.next + ' ' + 
@@ -479,7 +482,7 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
                 $('#lthsolr_loader_pages').remove();
                 //$('#lthsolr_pages_container .lthsolr_more').remove();
                 $('.lthsolr_loader').remove();
-                $('#lthsolr_pages_header').html('<h3>Pages</h3>1-' + maxLength(parseInt(startPages) + parseInt(tableLength),parseInt(d.pageNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.pageNumFound);
+                $('#lthsolr_pages_header').html('<h3>' + lth_solr_messages.webpages + '</h3>1-' + maxLength(parseInt(startPages) + parseInt(tableLength),parseInt(d.pageNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.pageNumFound);
                 if((parseInt(startPages) + parseInt(tableLength)) < d.pageNumFound) {
                     $('#lthsolr_pages_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" \n\
                         onclick="searchLong(\'' + term + '\',0,' + (parseInt(startPages) + parseInt(tableLength)) + ',0,true);">' + lth_solr_messages.next + ' ' + tableLength + ' ' + 
@@ -489,7 +492,6 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
             } else {
                 $('#lthsolr_loader_pages').remove();
             }
-            
             
             if(d.documentData.length > 0) {
                 //$('#lthsolr_documents_header').append('<h3>Documents</h3>');
@@ -521,7 +523,7 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
                 $('#lthsolr_loader_documents').remove();
                 //$('#lthsolr_documents_container .lthsolr_more').remove();
                 $('.lthsolr_loader').remove();
-                $('#lthsolr_documents_header').html('<h3>Documents</h3>1-' + maxLength(parseInt(startPages) + parseInt(tableLength),parseInt(d.documentNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.documentNumFound);
+                $('#lthsolr_documents_header').html('<h3>' + lth_solr_messages.documents + '</h3>1-' + maxLength(parseInt(startPages) + parseInt(tableLength),parseInt(d.documentNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.documentNumFound);
                 if((parseInt(startPages) + parseInt(tableLength)) < d.documentNumFound) {
                     $('#lthsolr_documents_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" \n\
                         onclick="searchLong(\'' + term + '\',0,0,' + (parseInt(startPages) + parseInt(tableLength)) + ',true);">' + lth_solr_messages.of + ' ' + tableLength + ' ' + 

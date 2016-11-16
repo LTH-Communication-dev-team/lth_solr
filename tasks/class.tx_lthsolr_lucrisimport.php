@@ -75,8 +75,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         //$this->getType($config, $client, $settings, $startFromHere);
         //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
 
-        $this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
-        //$this->getDocuments($client);
+        //$this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
+        $this->getDocuments($client);
         //$this->getCourses($client);
         return TRUE;
     }
@@ -87,14 +87,18 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(250);
                 
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("KursID, KursSve, Kurskod", "lot.Kurs", "", "", "", "");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("K.KursID, K.KursSve, K.KursEng, K.Kurskod, K.Hskpoang, KI.Webbsida", "LubasPP_dbo.Kurs K JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK", "K.KursID", "K.KursID", "", "");
         while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
             $KursID = $row['KursID'];
             $KursSve = $row['KursSve'];
+            $KursEng = $row['KursEng'];
+            $kurskod = $row['Kurskod'];
+            $webbsida = $row['Webbsida'];
             $data = array(
                 'id' => 'course_' . $row['KursID'],
                 'doctype' => 'course',
-                'title' => $row['Kurskod'] . ', ' . $row['KursSve'],
+                'title' =>  $row['KursSve'],
+                'course_code' => $row['Kurskod'],
                 'boost' => '1.0'
             );
             try {
@@ -131,6 +135,11 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         // return TRUE;
         $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\ContentObject\\ContentObjectRenderer');
 
+        /*$sql = "SELECT p.uid,t.bodytext 
+                FROM pages p JOIN tt_content t ON p.uid = t.pid AND t.deleted=0 AND t.hidden=0 
+                WHERE p.deleted = 0 AND p.hidden = 0 AND FROM_UNIXTIME(t.tstamp) >= DATE_SUB(NOW(), INTERVAL 15 MINUTE) GROUP BY p.uid;
+                ";
+        $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);*/
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT p.uid,t.bodytext","pages p LEFT JOIN tt_content t ON (p.uid = t.pid AND (CType = 'text' OR CType = 'textpic'))","p.deleted=0 AND p.hidden=0 AND p.doktype = 1 AND (p.fe_group = 0 OR p.fe_group = '')","p.uid","","$startPage,1000");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $uid = $row['uid'];
@@ -148,6 +157,22 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     
     function getDocuments($client)
     {
+        $uid;
+        $bodytext;
+        $url;
+        $startPage = 0;
+        
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,msg","tx_devlog","msg LIKE 'lth_solr_document_start_%'");
+        $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+        $devUid = $row['uid'];
+        $msg = $row['msg'];
+        if($msg) {
+            $startPage = (integer)array_pop(explode('_', $msg)) + 1000;
+            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_devlog', 'uid='.intval($devUid), array('msg' => 'lth_solr_document_start_' . (string)$startPage, 'crdate' => time()));
+        } else {
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'lth_solr_document_start_0', 'crdate' => time()));
+        }
+        
         $mimeArray = array(
             'application/pdf',
             'text/plain',
@@ -166,7 +191,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             'application/vnd.oasis.opendocument.spreadsheet'
         );
         
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,identifier,name","sys_file","mime_type IN('" . implode("','", $mimeArray) . "')","","","");
+        /*$sql = "SELECT uid,identifier,NAME FROM sys_file WHERE mime_type IN('" . implode("','", $mimeArray) . "') AND FROM_UNIXTIME(tstamp) >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) ORDER BY uid";
+        $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);*/
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,identifier,name","sys_file","mime_type IN('" . implode("','", $mimeArray) . "')","","uid","$startPage,1000");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $uid = $row['uid'];
             $identifier = $row['identifier'];
@@ -192,43 +219,12 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         } catch(Exception $e) {
             //echo 'Message: ' .$e->getMessage();
         }
-
     }
     
     
     function extractDocument($client, $uid, $name, $filePath)
     {
         if(file_exists($filePath)) {
-            //echo $filePath;
-            // get an extract query instance and add settings
-            $query = $client->createExtract();
-            $query->addFieldMapping('content', 'body');
-            $query->setUprefix('attr_');
-            $query->setFile($filePath);
-            $query->setCommit(true);
-            $query->setOmitHeader(false);
-
-            // add document
-            $doc = $query->createDocument();
-            $doc->id = "document$uid";
-            $doc->title = $name;
-            $doc->doctype = 'document';
-            $query->setDocument($doc);
-
-            // this executes the query and returns the result
-            try {
-                $result = $client->extract($query);
-            } catch(Exception $e) {
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $filePath, 'crdate' => time()));
-            }
-            
-        }
-    }
-    
-    
-    function extractCourse($client, $KursSve)
-    {
-        if($KursSve) {
             //echo $filePath;
             // get an extract query instance and add settings
             $query = $client->createExtract();
