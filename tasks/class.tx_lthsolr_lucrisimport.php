@@ -75,9 +75,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         //$this->getType($config, $client, $settings, $startFromHere);
         //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
 
-        //$this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
+        $this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
         //$this->getDocuments($client);
-        $this->getCourses($client);
+        //$this->getCourses($client);
         return TRUE;
     }
     

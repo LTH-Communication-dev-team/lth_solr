@@ -113,6 +113,21 @@ print $content;
 function searchShort($term, $config)
 {
     $client = new Solarium\Client($config);
+    
+    /*$query = $client->createSuggester();
+    $query->setQuery($term);
+    $query->setDictionary('suggest');
+    $query->setOnlyMorePopular(true);
+    $query->setCount(10);
+    $query->setCollate(true);
+    $resultset = $client->suggester($query);
+    $suggestions = array();
+    foreach ($resultset as $term => $termResult) {
+        foreach ($termResult as $result) {
+            $suggestions[] = $result;
+        }
+    }
+    $data = $suggestions;*/
 
     $query = $client->createSelect();
     
@@ -138,7 +153,7 @@ function searchShort($term, $config)
                 $data[] = array(
                     'id' => $id,
                     'label' => $label,
-                    'value' => 'lucat' 
+                    'value' => 'lucat_' . $value
                 );
             } else {
                 $id = $document->id;
@@ -147,11 +162,9 @@ function searchShort($term, $config)
                     $data[] = array(
                     'id' => $id,
                     'label' => $label,
-                    'value' => 'other' 
+                    'value' => $value
                 );
             }
-            
-            
         }
     }
     return json_encode($data);
