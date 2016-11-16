@@ -71,11 +71,15 @@ class tx_lthsolr_pi1 extends tslib_pibase {
 
             $query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
             $tab = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tab');
+            $actual_link = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 
             $content = '';
                                     
-            $content .= $this->searchResult($query, $noItemsToShow);
-        
+            if(stristr($actual_link, "/demo/")) {
+                $content .= $this->searchResult($query, $noItemsToShow);
+            } else {
+                $content .= $this->widget($query, $tab);
+            }
             //$this->debug($content);
 	
             return $content;
@@ -113,7 +117,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
         }
         
         
-        /*private function widget($query, $tab)
+        private function widget($query, $tab)
         {
             $content = '';
             if($tab == 'all') {
@@ -139,7 +143,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             
             return $content;
         }
-        
+       /* 
         private function getXMLDoc($uri)
 	{
             $xmlDoc = new DOMDocument('1.0', 'UTF-8');
@@ -242,9 +246,6 @@ class tx_lthsolr_pi1 extends tslib_pibase {
 }
 
 
-
 if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/lth_solr/pi1/class.tx_lthsolr_pi1.php'])) {
 	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/lth_solr/pi1/class.tx_lthsolr_pi1.php']);
 }
-
-?>
