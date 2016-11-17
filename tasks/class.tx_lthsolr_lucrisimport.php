@@ -171,7 +171,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         $devUid = $row['uid'];
         $msg = $row['msg'];
         if($msg) {
-            $startPage = (integer)array_pop(explode('_', $msg)) + 1000;
+            $startPage = (integer)array_pop(explode('_', $msg)) + 700;
             $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_devlog', 'uid='.intval($devUid), array('msg' => 'lth_solr_document_start_' . (string)$startPage, 'crdate' => time()));
         } else {
             $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'lth_solr_document_start_0', 'crdate' => time()));
@@ -184,7 +184,10 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             'application/vnd.ms-powerpoint',
             'text/html',
             'application/vnd.ms-excel',
+            'vnd.openxmlformats-officedocument.presentationml.presentation',
             'application/vnd.ms-office',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'text/rtf',
             'text/x-asm',
             'application/vnd.oasis.opendocument.text',
@@ -192,14 +195,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             'application/vnd.oasis.opendocument.spreadsheet'
         );
         
-        /*
-         * 'vnd.openxmlformats-officedocument.presentationml.presentation',
-         * 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-         * 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-         */
         /*$sql = "SELECT uid,identifier,NAME FROM sys_file WHERE mime_type IN('" . implode("','", $mimeArray) . "') AND FROM_UNIXTIME(tstamp) >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) ORDER BY uid";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);*/
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,identifier,name","sys_file","mime_type IN('" . implode("','", $mimeArray) . "')","","uid","$startPage,1000");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,identifier,name","sys_file","mime_type IN('" . implode("','", $mimeArray) . "')","","uid","$startPage,700");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $uid = $row['uid'];
             $identifier = $row['identifier'];
