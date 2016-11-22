@@ -76,9 +76,24 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
 
         //$this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
-        $this->getDocuments($client);
+        //$this->getDocuments($client);
         //$this->getCourses($client);
+        $this->addIndexFlag($client);
         return TRUE;
+    }
+    
+    
+    function addIndexFlag($client)
+    {
+        $query = $client->createSelect();
+        $query->setQuery('doctype:document');
+        $query->setStart(0)->setRows(1000000);
+        $response = $client->select($query);
+        foreach ($response as $document) {
+            $uid = str_replace('document','', $document->id);
+            echo $uid;
+            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file', 'uid='.intval($uid), array('lth_solr_index' => 1));
+        }
     }
     
     

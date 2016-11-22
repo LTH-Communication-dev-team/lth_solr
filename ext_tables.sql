@@ -20,6 +20,10 @@ CREATE TABLE fe_users (
     title varchar(255) DEFAULT '' NOT NULL
 );
 
+CREATE TABLE sys_file (
+    lth_solr_index tinyint(1) NOT NULL DEFAULT '0'
+);
+
 
 CREATE TABLE tx_lthsolr_categories (
   id int(10) unsigned NOT NULL AUTO_INCREMENT,
