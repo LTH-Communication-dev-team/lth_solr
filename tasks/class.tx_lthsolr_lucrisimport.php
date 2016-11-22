@@ -87,11 +87,11 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     {
         $query = $client->createSelect();
         $query->setQuery('doctype:document');
-        $query->setStart(0)->setRows(1000000);
+        $query->setStart(0)->setRows(35000);
         $response = $client->select($query);
         foreach ($response as $document) {
             $uid = str_replace('document','', $document->id);
-            echo $uid;
+            //echo $uid;
             $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file', 'uid='.intval($uid), array('lth_solr_index' => 1));
         }
     }
