@@ -85,9 +85,21 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     
     function addIndexFlag($client)
     {
+        $startPage = 0;
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,msg","tx_devlog","msg LIKE 'lth_solr_index_start_%'");
+        $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+        $devUid = $row['uid'];
+        $msg = $row['msg'];
+        if($msg) {
+            $startPage = (integer)array_pop(explode('_', $msg)) + 5000;
+            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_devlog', 'uid='.intval($devUid), array('msg' => 'lth_solr_index_start_' . (string)$startPage, 'crdate' => time()));
+        } else {
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'lth_solr_index_start_0', 'crdate' => time()));
+        }
+        
         $query = $client->createSelect();
         $query->setQuery('doctype:document');
-        $query->setStart(0)->setRows(35000);
+        $query->setStart($startPage)->setRows(5000);
         $response = $client->select($query);
         foreach ($response as $document) {
             $uid = str_replace('document','', $document->id);
