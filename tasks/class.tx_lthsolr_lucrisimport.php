@@ -76,9 +76,9 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
 
         //$this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
-        //$this->getDocuments($client);
+        $this->getDocuments($client);
         //$this->getCourses($client);
-        $this->addIndexFlag($client);
+        //$this->addIndexFlag($client);
         return TRUE;
     }
     
@@ -224,7 +224,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         
         /*$sql = "SELECT uid,identifier,NAME FROM sys_file WHERE mime_type IN('" . implode("','", $mimeArray) . "') AND FROM_UNIXTIME(tstamp) >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) ORDER BY uid";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);*/
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,identifier,name","sys_file","size < 10000000 AND mime_type IN('" . implode("','", $mimeArray) . "')","","uid","$startPage,1000");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,identifier,name","sys_file","lth_solr_index = 0 AND mime_type IN('" . implode("','", $mimeArray) . "')","","uid","$startPage,1000");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $uid = $row['uid'];
             $identifier = $row['identifier'];
@@ -275,6 +275,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             // this executes the query and returns the result
             try {
                 $result = $client->extract($query);
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file', 'uid='.intval($uid), array('lth_solr_index' => 1));
             } catch(Exception $e) {
                 $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $filePath, 'crdate' => time()));
             }
