@@ -198,7 +198,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         $devUid = $row['uid'];
         $msg = $row['msg'];
         if($msg) {
-            $startPage = (integer)array_pop(explode('_', $msg)) + 10;
+            $startPage = (integer)array_pop(explode('_', $msg)) + 1000;
             $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_devlog', 'uid='.intval($devUid), array('msg' => 'lth_solr_document_start_' . (string)$startPage, 'crdate' => time()));
         } else {
             $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'lth_solr_document_start_0', 'crdate' => time()));
