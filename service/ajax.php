@@ -205,11 +205,12 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
     if(substr($term, 0,1) == '"' && substr($term,-1) != '"') {
         $term = ltrim($term,'"');
     }
-
+$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $term, 'crdate' => time()));
     $groupComponent = $query->getGrouping();
     if($pageOffset == '0' && $documentOffset == '0') {  
         if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
-            $groupComponent->addQuery('doctype:lucat AND (display_name:' . str_replace(' ','\\ ',$term) . ' OR phone:' . str_replace(' ','',$term) . ' OR email:' . $term . ')');
+            $groupComponent->addQuery('doctype:lucat AND (display_name:'.$term . ' OR phone:' . $term . ' OR email:' . $term . ')');
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'doctype:lucat AND (display_name:'.$term . ' OR phone:' . $term . ' OR email:' . $term . ')', 'crdate' => time()));
         } else {
             $groupComponent->addQuery('doctype:lucat AND (display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
         }

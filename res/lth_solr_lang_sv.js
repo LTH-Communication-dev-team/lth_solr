@@ -20,7 +20,8 @@ var lth_solr_messages = {
     next: "Nästa",
     people: "Personal",
     documents: "Dokument",
-    webpages: "Webbsidor"
+    webpages: "Webbsidor",
+    nohits: "Din sökning - ###term### - matchade inte något dokument."
 };
 
 

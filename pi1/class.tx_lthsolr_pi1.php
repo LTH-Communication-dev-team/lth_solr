@@ -69,12 +69,12 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
 
-            $query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
+            $query = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query'));
             $tab = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tab');
             $actual_link = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 
             $content = '';
-                                    
+
             if(stristr($actual_link, "/demo/") || stristr($actual_link, "vkans-th0")) {
                 $content .= $this->searchResult($query, $noItemsToShow);
             } else {

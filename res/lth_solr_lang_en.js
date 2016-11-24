@@ -20,7 +20,8 @@ var lth_solr_messages = {
     next: "Next",
     people: "People",
     documents: "Documents",
-    webpages: "Web pages"
+    webpages: "Web pages",
+    nohits: "Your search - ###term### - did not match any document"
 };
 
 
