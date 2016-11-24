@@ -132,9 +132,16 @@ function searchShort($term, $config)
     $query = $client->createSelect();
     
     $term = trim($term);
+    if(substr($term, 0,1) == '"' && substr($term,-1) != '"') {
+        $term = ltrim($term,'"');
+    }
 
     $groupComponent = $query->getGrouping();
-    $groupComponent->addQuery('doctype:lucat AND (display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
+    if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
+        $groupComponent->addQuery('doctype:lucat AND (display_name:' . str_replace(' ','\\ ',$term) . ' OR phone:' . str_replace(' ','',$term) . ' OR email:' . $term . ')');
+    } else {
+        $groupComponent->addQuery('doctype:lucat AND (display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
+    }
     $groupComponent->addQuery('id:page* AND content:*' . str_replace(' ','\\ ',$term) . '*');
     $groupComponent->setSort('last_name_sort asc');
     $groupComponent->setLimit(5);    
@@ -149,7 +156,7 @@ function searchShort($term, $config)
                 $id = $document->uuid;
                 $value = $document->uuid;
                 $label = fixArray($document->display_name);
-                if($document->phone) $label .= ', ' . fixArray($document->phone);
+                if($document->phone) $label .= ', ' . fixPhone(fixArray($document->phone));
                 $data[] = array(
                     'id' => $id,
                     'label' => $label,
@@ -788,6 +795,16 @@ function searchListShort($term, $config)
     }
     //{id: "Botaurus stellaris", label: "Great Bittern", value: "Great Bittern"}
     return json_encode($data);
+}
+
+
+function fixPhone($inputString)
+{
+    if($inputString) {
+        $inputString = str_replace('+4646222', '+46 46 222 ', $inputString);
+        $inputString = substr_replace($inputString, ' ' . substr($inputString, -2), -2);
+    }
+    return $inputString;
 }
 
 

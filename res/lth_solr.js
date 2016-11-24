@@ -280,7 +280,7 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
     var syslang = $('#lth_solr_syslang').val();
     var tableLength = $('#lth_solr_no_items').val();
     var template;
-    
+    //console.log(term);
     $.ajax({
         type : 'POST',
         url : 'index.php',
