@@ -202,11 +202,17 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
     $query->setStart($table_start)->setRows($table_length);
     
     $term = trim($term);
-    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $peopleOffset . $pageOffset . $documentOffset, 'crdate' => time()));
+    if(substr($term, 0,1) == '"' && substr($term,-1) != '"') {
+        $term = ltrim($term,'"');
+    }
 
     $groupComponent = $query->getGrouping();
-    if($pageOffset == '0' && $documentOffset == '0') {
-        $groupComponent->addQuery('doctype:lucat AND (display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
+    if($pageOffset == '0' && $documentOffset == '0') {  
+        if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
+            $groupComponent->addQuery('doctype:lucat AND (display_name:' . str_replace(' ','\\ ',$term) . ' OR phone:' . str_replace(' ','',$term) . ' OR email:' . $term . ')');
+        } else {
+            $groupComponent->addQuery('doctype:lucat AND (display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
+        }
     }
     if($peopleOffset == '0' && $documentOffset == '0') {
         $groupComponent->addQuery('doctype:page AND content:' . str_replace(' ','\\ ',$term));

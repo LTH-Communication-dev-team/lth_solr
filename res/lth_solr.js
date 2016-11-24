@@ -276,7 +276,7 @@ function inArray(needle, haystack)
 
 function searchLong(term, startPeople, startPages, startDocuments, more)
 {
-    //console.log(peopleOffset + ',' + documentsOffset);
+    if(term.replace('"','').length < 2) return false;
     var syslang = $('#lth_solr_syslang').val();
     var tableLength = $('#lth_solr_no_items').val();
     var template;
@@ -439,6 +439,7 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
                 $('#lthsolr_loader_staff').remove();
                 //$('#lthsolr_staff_container .lthsolr_more').remove();
                 $('.lthsolr_loader').remove();
+                console.log(lth_solr_messages.people);
                 $('#lthsolr_people_header').html('<h3>' + lth_solr_messages.people + '</h3>1-' + maxLength(parseInt(startPeople) + parseInt(tableLength),parseInt(d.peopleNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.peopleNumFound);
                 if((parseInt(startPeople) + parseInt(tableLength)) < d.peopleNumFound) {
                     $('#lthsolr_staff_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" \
