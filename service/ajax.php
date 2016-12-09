@@ -205,7 +205,7 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
     if(substr($term, 0,1) == '"' && substr($term,-1) != '"') {
         $term = ltrim($term,'"');
     }
-$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $term, 'crdate' => time()));
+
     $groupComponent = $query->getGrouping();
     if($pageOffset == '0' && $documentOffset == '0') {  
         if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
@@ -454,7 +454,12 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
             fixArray($document->title),
             ucwords(strtolower(fixArray($document->authorName))),
             fixArray($document->$publicationType),
-            $document->publicationDateYear
+            $document->publicationDateYear,
+            $document->publicationDateMonth,
+            $document->publicationDateDay,
+            $document->pages,
+            $document->journalTitle,
+            $document->journalNumber
         );
     }
     $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult);
@@ -823,6 +828,7 @@ function fixArray($inputArray)
     if($inputArray) {
         if(is_array($inputArray)) {
             $inputArray = array_unique($inputArray);
+            $inputArray = array_filter($inputArray);
             $inputArray = implode(', ', $inputArray);
         }
     }
@@ -879,13 +885,15 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
         $introVar = 'staff_custom_text_' . $pageid . '_s';
     }
         
+    $showVal = 'lth_solr_show_' . $pageid . '_i';
+    
     $hideVal = 'lth_solr_hide_' . $pageid . '_i';
 
     $client = new Solarium\Client($config);
 
     $query = $client->createSelect();
     
-    if($scope) {
+    /*if($scope) {
         $scopeArray = explode(",", $scope);
         $scope = '';
         foreach($scopeArray as $key => $value) {
@@ -897,7 +905,7 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
             $scope .= '"' . $value . '" OR heritage:"' . $value . '"';
         }
         $scope .= ')';
-    }
+    }*/
     
     /*if($addPeople) {
         $addPeopleArray = explode("\n", $addPeople);
@@ -919,7 +927,8 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
         $filterQuery = ' AND (display_name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '*)';
     }
 
-    $queryToSet = '(doctype:"lucat"'.$scope.' AND hide_on_web:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
+    //$queryToSet = '(doctype:"lucat"'.$scope.' AND hide_on_web:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
+    $queryToSet = '(doctype:"lucat" AND '. $showVal .':1 AND hide_on_web:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
     //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
     $query->setQuery($queryToSet);
     

@@ -18,12 +18,31 @@
                         <type>check</type>
                         <items type="array">
                             <numIndex index="0" type="array">
-                                    <numIndex index="0">Show staff</numIndex>
+                                    <numIndex index="0">Show staff data</numIndex>
                             </numIndex>
                         </items> 
                     </config>
                 </TCEforms>
             </showStaff>
+            <showStaffPos>
+                 <TCEforms>
+                     <label>Show staff where</label>
+                    <config>
+                       <default>right</default>
+                     <type>radio</type>
+                        <items type="array">
+                          <numIndex index="0" type="array">
+                            <numIndex index="0">To the right</numIndex>
+                            <numIndex index="1">right</numIndex>
+                          </numIndex>
+                          <numIndex index="1" type="array">
+                            <numIndex index="0">In the center</numIndex>
+                            <numIndex index="1">center</numIndex>
+                          </numIndex>
+                        </items>
+                    </config>
+                </TCEforms>
+            </showStaffPos>
             <showPublications>
                 <TCEforms>
                     <config>

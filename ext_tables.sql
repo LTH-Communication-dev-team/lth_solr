@@ -12,10 +12,12 @@ CREATE TABLE fe_users (
     lth_solr_intro text DEFAULT '' NOT NULL,
     lth_solr_image text DEFAULT '' NOT NULL,
     lth_solr_hide text DEFAULT '' NOT NULL,
+    lth_solr_show text DEFAULT '' NOT NULL,
     lth_solr_heritage text DEFAULT '' NOT NULL,
     lth_solr_legacy_heritage text DEFAULT '' NOT NULL,
     image_id tinyint(1) NOT NULL DEFAULT '0',
     hide_on_web tinyint(1) NOT NULL DEFAULT '0',
+    lucache_id varchar(15) DEFAULT '' NOT NULL,
     lth_solr_uuid varchar(255) DEFAULT '' NOT NULL,
     title varchar(255) DEFAULT '' NOT NULL
 );
@@ -58,4 +60,13 @@ CREATE TABLE tx_lthsolr_titles (
   PRIMARY KEY (id),
   KEY category (category) USING BTREE,
   CONSTRAINT tx_lthsolr_titles_ibfk_1 FOREIGN KEY (category) REFERENCES tx_lthsolr_categories (id) ON UPDATE CASCADE
+);
+
+
+CREATE TABLE tx_lthsolr_lucrisdata (
+  id int(10) unsigned NOT NULL AUTO_INCREMENT,
+  typo3_id varchar(255) DEFAULT NULL,
+  lucris_id varchar(255) DEFAULT NULL,
+  lucris_photo varchar(255) DEFAULT NULL,
+  PRIMARY KEY (id)
 );

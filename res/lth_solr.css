@@ -70,11 +70,13 @@ tr.details td.details-control {
 
 .lthsolr_row {
     clear:both;
-    margin-top:15px;
-    margin-bottom:10px;
-    padding-bottom:10px;
     cursor: pointer;
-    border-bottom:1px solid #dedede
+    border-bottom:1px solid #dedede;
+    padding-bottom:10px;
+}
+
+.lthsolr_image_template.lthsolr_row {
+    min-height:110px;
 }
 
 .lthsolr_publication_row, .lthsolr_project_row {
@@ -118,6 +120,88 @@ tr.details td.details-control {
     width:16px;
     height: 16px;
 }
+
+/* Styling LU widget start */
+.autocomplete-output {
+display:none;
+}
+.page-header, .search-wrapper {
+border:0px;
+margin:0px;
+padding:0px !important;
+}
+.page-header {
+margin-bottom:30px;
+}
+.search-field-wrapper {
+margin: auto;
+    width: 50%;
+clear:both;
+}
+.search-field {
+width:260px;
+float:left;
+border-left:1px #ccc solid;
+border-top:1px #ccc solid;
+border-bottom:1px #ccc solid;
+border-right:0px;
+border-radius:4px 0px 0px 4px;
+}
+.form-submit {
+border:1px #ccc solid;
+border-radius:0px 4px 4px 0px;
+}
+#search-content {
+border:0px;
+}
+.search-tab {
+
+}
+.search-tab-header ul {
+max-length:550px;
+height:51px;
+}
+.solrtab-header.active {
+background-color:#337ab7;
+color:#ffffff;
+border-radius: 4px;
+}
+.search-results-wrapper {
+display:none;
+}
+.search-results-wrapper.active {
+display:block;
+}
+.sub-region.sidebar, .element-invisible {
+display:none;
+}
+.solrtab-header {
+padding:15px;
+font-size:1.1em;
+cursor:pointer;
+}
+.solrtab-header.last {
+
+}
+.search-page-title {
+display:none;
+}
+.hits-list-result {
+margin-top:10px;
+}
+.pager-item {
+padding:3px 7px 3px 7px;
+margin-right:8px;
+cursor:pointer;
+border:1px #ddd solid;
+border-radius:4px;
+}
+.pager-item.pager-current {
+background-color:#337ab7;
+color:#ffffff;
+}
+/* Styling LU widget end */
+
 
 /* DESKTOP CHANGES */
 @media all and (min-width: 641px) {

@@ -32,6 +32,17 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 )
             )
         );
+        
+        $config2 = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost2'],
+                    'port' => $settings['solrPort2'],
+                    'path' => $settings['solrPath2'],
+                    'timeout' => $settings['solrTimeout2']
+                )
+            )
+        );
 
         $dbhost = $settings['dbhost'];
         $db = $settings['db'];
@@ -54,20 +65,24 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         
         $heritageArray = $this->getHeritage($con);
         
-        /*Get last modified
+        //Get last modified
         $query->setQuery('doctype:publication');
         $query->addSort('tstamp', $query::SORT_DESC);
-        $query->setStart(0)->setRows(200000);
+        $query->setStart(0)->setRows(1);
         $response = $client->select($query);
         $idArray = array();
         foreach ($response as $document) {
-            $idArray[] = $document->id;
-        }*/
-        $startFromHere = 7420;
+            $lastModified = $document->tstamp;
+        }
+
+        $startFromHere = 34000;
         
         //gc_disable();
         //echo $lastModified;
-        //$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
+        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified);
+        //$this->getPublicationParts($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
+        //$this->copyPublications($config, $config2, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
+        //$this->copyStandardcat($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
         //$this->getOrganisations($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
         //$this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
         //$this->getStudentPapers($config, $client, $buffer, 100, 1, $startFromHere, $heritageArray);
@@ -76,7 +91,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
 
         //$this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
-        $this->getDocuments($client);
+        //$this->getDocuments($client);
         //$this->getCourses($client);
         //$this->addIndexFlag($client);
         return TRUE;
@@ -628,7 +643,122 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         return TRUE;
     }
     
-    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere)
+    
+    function asciiconvert($input)
+    {
+        if($input) {
+            $input = str_replace("Ã¶","ö",$input);
+        }
+        return $input;
+    }
+    
+    
+    function copyStandardcat($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere)
+    {
+        $startPage = 0;
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,msg","tx_devlog","msg LIKE 'lth_solr_standardcat_start_%'");
+        $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+        $devUid = $row['uid'];
+        $msg = $row['msg'];
+        if($msg) {
+            //$startPage = (integer)array_pop(explode('_', $msg)) + 10000;
+            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_devlog', 'uid='.intval($devUid), array('msg' => 'lth_solr_standardcat_start_' . (string)$startPage, 'crdate' => time()));
+        } else {
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'lth_solr_standardcat_start__0', 'crdate' => time()));
+        }
+        
+        $query = $client->createSelect();
+        //$query->setQuery('doctype:publication');
+        //$query->setQuery('id:f8d587f6-23ca-4ca1-ba93-b13e920324e8');
+        $query->setQuery('doctype:publication SND authorName:*Ã¤*');
+        $query->setStart($startPage)->setRows(10000);
+        $response = $client->select($query);
+        
+        $buffer = $client->getPlugin('bufferedadd');
+        $buffer->setBufferSize(50);
+        
+        foreach ($response as $document) {
+            $data = array();
+            foreach ($document as $field => $fieldValue) {
+                if($field != 'score' && $field != '_version_' && $field != 'standard_category_sv2' && $field != 'standard_category_en2') {
+                    if(is_array($fieldValue)) {
+                        $tempArray = array();
+                        foreach($fieldValue as $key => $value) {
+                            //$tempArray[] = $value;
+                            //$encoding = mb_detect_encoding( $value, "auto" );
+                            $tempArray[] = utf8_decode($value);
+                        }
+                        $data[$field] = $tempArray;
+                    } else {
+                        //$data[$field] = $fieldValue;
+                        $data[$field] = utf8_decode($fieldValue);
+                        //$data[$field] = mb_convert_encoding($fieldValue, "UTF-8", $encoding);
+                    }
+                    
+                }
+            }
+            //$data['standard_category_s'] = utf8_decode('Ã¶');
+            //if($document->standard_category_sv) $data['standard_category_sv'] = (string)$document->standard_category_sv2;
+            //if($document->standard_category_en) $data['standard_category_en'] = (string)$document->standard_category_en2;
+            $buffer->createDocument($data);
+            //$this->debug($data);
+        }
+            
+        
+        $buffer->flush();
+        $update = $client->createUpdate();
+        $update->addCommit();
+        $result = $client->update($update);
+        return true;
+    }
+    
+    
+    function copyPublications($config, $config2, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere)
+    {
+        $client = new Solarium\Client($config);
+        
+        $startPage = 0;
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,msg","tx_devlog","msg LIKE 'lth_solr_publications_start_%'");
+        $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+        $devUid = $row['uid'];
+        $msg = $row['msg'];
+        if($msg) {
+            $startPage = (integer)array_pop(explode('_', $msg)) + 10000;
+            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_devlog', 'uid='.intval($devUid), array('msg' => 'lth_solr_publications_start_' . (string)$startPage, 'crdate' => time()));
+        } else {
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'lth_solr_publications_start_0', 'crdate' => time()));
+        }
+        
+        $client = new Solarium\Client($config);
+        $client2 = new Solarium\Client($config2);
+                
+        $query = $client2->createSelect();
+        $query->setQuery('doctype:publication');
+        $query->setStart($startPage)->setRows(10000);
+        $response = $client2->select($query);
+        
+        $buffer = $client->getPlugin('bufferedadd');
+        $buffer->setBufferSize(50);
+        
+        foreach ($response as $document) {
+            $data = array();
+            foreach ($document as $field => $fieldValue) {
+                if($field != 'score' && $field != '_version_') {
+                    $data[$field] = $fieldValue;
+               }
+            }
+            $buffer->createDocument($data);
+        }
+            
+        
+        $buffer->flush();
+        $update = $client->createUpdate();
+        $update->addCommit();
+        $result = $client->update($update);
+        return true;
+    }
+    
+    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified)
     {
         $heritageArray = $heritageArray[0];
         //$this->debug($heritageArray[0]);
@@ -647,14 +777,22 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $lucrisPw = $settings['solrLucrisPw'];
 
             $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
             //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?uuids.uuid=defd3bac-a445-4938-b263-a44b59077039&rendering=xml_long";
             
-            try {
+            /*try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
                 $xml = new SimpleXMLElement($xmlpath, null, true);
             } catch(Exception $e) {
                 $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
-            }
+            }*/
+            $xml = file_get_contents($xmlpath);
+                    $xml = utf8_encode($xml);
+                    //$xml = htmlentities($xml);
+                    $xml = preg_replace('/[\x00-\x08\x0b-\x0c\x0e-\x1f]/', '', $xml);
+                    //$this->debug($xml);
+                    //die();
+                    $xml = simplexml_load_string($xml);	
 
             if($xml->children('core', true)->count == 0) {
                 return "no items";
@@ -668,7 +806,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $portalUrl;
                 $created;
                 $modified;
-                $document_title;
+                $title;
                 $abstract_en;
                 $abstract_sv;
                 $authorIdTemp;
@@ -689,6 +827,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $numberOfPages;
                 $volume;
                 $journalNumber;
+                $journalTitle;
                 $publicationStatus;
                 $publicationDateYear;
                 $publicationDateMonth;
@@ -722,6 +861,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 //id
                 $id = (string)$content->attributes();
 
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $id, 'crdate' => time()));
                 //portalUrl
                 $portalUrl = (string)$content->children('core',true)->portalUrl;
                 
@@ -735,7 +875,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $bibliographicalNote_en = (string)$localizedString;
                         }
                         if($localizedString->attributes()->locale == 'sv_SE') {
-                            $bibliographicalNote_sv[] = (string)$localizedString;
+                            $bibliographicalNote_sv[] = $this->fixUtf8((string)$localizedString);
                         }
                     }
                 }
@@ -743,7 +883,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 //type
                 $type = (string)$content->children('core',true)->type;
                 if($type) {
-                    $type = (string)array_pop(explode('.', $type));
+                    $type = $this->fixUtf8((string)array_pop(explode('.', $type)));
                 }
                 
                 //created
@@ -761,28 +901,28 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                                     $keywords_uka_en[] = (string)$localizedString;
                                 }
                                 if($localizedString->attributes()->locale == 'sv_SE') {
-                                    $keywords_uka_sv[] = (string)$localizedString;
+                                    $keywords_uka_sv[] = $this->fixUtf8((string)$localizedString);
                                 }
                             }
                         } else if($keywordGroup->children('core',true)->configuration->children('core')->logicalName == 'keywordContainers') {
                             foreach($keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword As $userDefinedKeyword) {
-                                $keywords_user[] = (string)$userDefinedKeyword->children('core',true)->freeKeyword;
+                                $keywords_user[] = $this->fixUtf8((string)$userDefinedKeyword->children('core',true)->freeKeyword);
                             }
                         }
                     }
                 }
 
                 //title
-                $title = (string)$content->children('publication-base_uk',true)->title;
+                $title = $this->fixUtf8((string)$content->children('publication-base_uk',true)->title);
 
                 //abstract
                 if($content->children('publication-base_uk',true)->abstract) {
                     foreach($content->children('publication-base_uk',true)->abstract->children('core',true)->localizedString as $abstract) {
                         if($abstract->attributes()->locale == 'en_GB') {
-                            $abstract_en = (string)$abstract;
+                            $abstract_en = $this->fixUtf8((string)$abstract);
                         }
                         if($abstract->attributes()->locale == 'sv_SE') {
-                            $abstract_sv = (string)$abstract;
+                            $abstract_sv = $this->fixUtf8((string)$abstract);
                         }
                     }
                 }
@@ -791,7 +931,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 if($content->children('publication-base_uk',true)->documents) {
                     foreach($content->children('publication-base_uk',true)->documents->children('extension-core',true)->document as $document) {
                         $document_url[] = (string)$document->children('core',true)->url;
-                        $document_title[] = (string)$document->children('core',true)->title;
+                        $document_title[] = $this->fixUtf8((string)$document->children('core',true)->title);
                         $document_limitedVisibility[] = (string)$document->children('core',true)->limitedVisibility;
                     }
                 }
@@ -813,14 +953,14 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $authorId[] = (string)$authorIdTemp;
                         }
                         if($authorNameTemp) {
-                            $authorName[] = (string)$authorNameTemp;
+                            $authorName[] = $this->fixUtf8((string)$authorNameTemp);
                         }
                     }
                 }
 
                 //Organisations
                 if($content->children('publication-base_uk',true)->organisations && 
-                        $content->children('publication-base_uk',true)->organisations->children('organisation-template',true)->association) {
+                    $content->children('publication-base_uk',true)->organisations->children('organisation-template',true)->association) {
                     foreach($content->children('publication-base_uk',true)->organisations->children('organisation-template',true)->association as $association) {
                         $organisationId[] = (string)$association->children('organisation-template',true)->organisation->attributes();
                         foreach($association->children('organisation-template',true)->organisation->children('organisation-template',true)->name->children('core',true)->localizedString as $localizedString) {
@@ -831,7 +971,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                                 $organisationName_en[] = (string)$localizedString;
                             }
                             if($localizedString->attributes()->locale == 'sv_SE') {
-                                $organisationName_sv[] = (string)$localizedString;
+                                $organisationName_sv[] = $this->fixUtf8((string)$localizedString);
                             }
                         }
                         $organisationSourceId[] = (string)$association->children('organisation-template',true)->organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
@@ -889,7 +1029,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     foreach($content->children('stab',true)->associatedExternalOrganisations as $associatedExternalOrganisations) {
                        $externalOrganisationsId[] = (string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->attributes();
                         if($associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name) {
-                            $externalOrganisationsName[] = (string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name;
+                            $externalOrganisationsName[] = $this->fixUtf8((string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name);
                         }
                     }
                 }
@@ -901,7 +1041,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $keyword_en[] = (string)$localizedString;
                         }
                         if($localizedString->attributes()->locale == 'sv_SE') {
-                            $keyword_sv[] = (string)$localizedString;
+                            $keyword_sv[] = $this->fixUtf8((string)$localizedString);
                         }
                     }
                 }
@@ -909,7 +1049,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 //userDefinedKeywords
                 if($content->children('core',true)->keywordGroups && $content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword && $content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword) {
                     foreach($content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword->children('core',true)->freeKeyword as $freeKeyword) {
-                        $userDefinedKeyword[] = (string)$freeKeyword;
+                        $userDefinedKeyword[] = $this->fixUtf8((string)$freeKeyword);
                     }
                 }
 
@@ -920,7 +1060,16 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $language_en = (string)$localizedString;
                         }
                         if($localizedString->attributes()->locale == 'sv_SE') {
-                            $language_sv = (string)$localizedString;
+                            $language_sv = $this->fixUtf8((string)$localizedString);
+                        }
+                    }
+                }
+                
+                //journal title
+                if($content->children('publication-base_uk',true)->journal) {
+                    if($content->children('publication-base_uk',true)->journal->children('journal-template',true)->journal) {
+                        foreach($content->children('publication-base_uk',true)->journal->children('journal-template',true)->journal->children('journal-template',true)->titles->children('journal-template',true)->title as $title) {
+                            $journalTitle = $this->fixUtf8((string)$title->children('extensions-core',true)->string);
                         }
                     }
                 }
@@ -941,12 +1090,12 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $publicationStatus = (string)$content->children('publication-base_uk',true)->publicationStatus;
                 
                 //hostPublicationTitle
-                $hostPublicationTitle = (string)$content->children('publication-base_uk',true)->hostPublicationTitle;
+                $hostPublicationTitle = $this->fixUtf8((string)$content->children('publication-base_uk',true)->hostPublicationTitle);
                     
                 //publishers
                 if($content->children('publication-base_uk',true)->associatedPublishers) {
                     foreach($content->children('publication-base_uk',true)->associatedPublishers->children('publisher-template',true)->publisher as $publisher) {
-                        $publisher = (string)$publisher->children('publisher-template',true)->name;
+                        $publisher = $this->fixUtf8((string)$publisher->children('publisher-template',true)->name);
                     }
                 }
                 
@@ -957,7 +1106,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $event_en = (string)$localizedString;
                         }
                         if($localizedString->attributes()->locale == 'sv_SE') {
-                            $event_sv = (string)$localizedString;
+                            $event_sv = $this->fixUtf8((string)$localizedString);
                         }
                     }
                     $event_city = $content->children('stab',true)->event->children('event-template',true)->city;
@@ -967,7 +1116,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                                 $event_country_en = (string)$localizedString;
                             }
                             if($localizedString->attributes()->locale == 'sv_SE') {
-                                $event_country_sv = (string)$localizedString;
+                                $event_country_sv = $this->fixUtf8((string)$localizedString);
                             }
                         }
                     }
@@ -997,7 +1146,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $publicationType_en = (string)$localizedString;
                         }
                         if($localizedString->attributes()->locale == 'sv_SE') {
-                            $publicationType_sv = (string)$localizedString;
+                            $publicationType_sv = $this->fixUtf8((string)$localizedString);
                         }
                     }
                 }
@@ -1022,6 +1171,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'event_country_sv' => $event_country_sv,
                     'hostPublicationTitle' => $hostPublicationTitle,
                     'journalNumber' => $journalNumber,
+                    'journalTitle' => $journalTitle,
                     'keywords_uka_en' => $keywords_uka_en,
                     'keywords_uka_sv' => $keywords_uka_sv,
                     'keywords_user' => $keywords_user,
@@ -1058,7 +1208,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     //'keyword_sv' => $keyword_sv,
                     //'userDefinedKeyword' => $userDefinedKeyword,
                 );
-                //$this->debug($data);
+               // $this->debug($data);
                 $buffer->createDocument($data);
             }
 
@@ -1066,6 +1216,87 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         $buffer->commit();
         return TRUE;
     }
+    
+    
+    //////////////////////////////////
+    function getPublicationParts($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere)
+    {
+        $client = new Solarium\Client($config);
+                $update = $client->createUpdate();
+
+        for($i = 0; $i < $numberofloops; $i++) {
+            //echo $i.':'. $numberofloops . '<br />';
+            
+            $startrecord = $startFromHere + ($i * $maximumrecords);
+            if($startrecord > 0) $startrecord++;
+            
+            $lucrisId = $settings['solrLucrisId'];
+            $lucrisPw = $settings['solrLucrisPw'];
+
+            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=50&window.offset=$startrecord&orderBy.property=id";
+            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?uuids.uuid=defd3bac-a445-4938-b263-a44b59077039&rendering=xml_long";
+            
+            /*try {
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
+                $xml = new SimpleXMLElement($xmlpath, null, true);
+            } catch(Exception $e) {
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
+            }*/
+            $xml = file_get_contents($xmlpath);
+                    $xml = utf8_encode($xml);
+                    //$xml = htmlentities($xml);
+                    $xml = preg_replace('/[\x00-\x08\x0b-\x0c\x0e-\x1f]/', '', $xml);
+                    //$this->debug($xml);
+                    //die();
+                    $xml = simplexml_load_string($xml);	
+
+            if($xml->children('core', true)->count == 0) {
+                return "no items";
+            }
+
+            $numberofloops = ceil($xml->children('core', true)->count / 50);
+
+            foreach($xml->xpath('//core:result//core:content') as $content) {
+                $id;
+                $journalTitle='';
+                
+                //id
+                $id = (string)$content->attributes();
+
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $id, 'crdate' => time()));
+
+                //journalNumber
+                //$journalNumber = (string)$content->children('publication-base_uk',true)->journalNumber;
+                               
+                //journal title
+                if($content->children('publication-base_uk',true)->journal) {
+                    if($content->children('publication-base_uk',true)->journal->children('journal-template',true)->journal) {
+                        foreach($content->children('publication-base_uk',true)->journal->children('journal-template',true)->journal->children('journal-template',true)->titles->children('journal-template',true)->title as $title) {
+                            $journalTitle = (string)$title->children('extensions-core',true)->string;
+                        }
+                    }
+                }
+
+                if($journalTitle && $journalTitle!='') {
+                    ${"doc"} = $update->createDocument();
+                    ${"doc"}->setKey('id', $id);
+
+                    ${"doc"}->addField('journalTitle', $journalTitle);
+                    ${"doc"}->setFieldModifier('journalTitle', 'set');
+                    
+                    $docArray[] = ${"doc"};
+
+                    $update->addDocuments($docArray);
+                    $update->addCommit();
+                    $result = $client->update($update);
+                }
+                echo $journalTitle;
+            }
+
+        }
+        return TRUE;
+    }
+    /////////////////////////////////
         
     
     function getType($config, $client, $settings, $startFromHere)
@@ -1519,5 +1750,13 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         echo '<pre>';
         print_r($input);
         echo '</pre>';
+    }
+    
+    private function fixUtf8($input)
+    {
+        if($input) {
+            $input = utf8_decode($input);
+        }
+        return $input;
     }
 }

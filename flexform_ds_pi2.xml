@@ -11,51 +11,51 @@
          <type>array</type>
          <el>
          <html_template>
-             <TCEforms>
-                <label>Template</label>
-                <config>
-                <type>select</type>
-                <items type="array">
-                <numIndex index="0" type="array">
-                <numIndex index="0">Kontaktuppgifter (med bild och ingress)</numIndex>
-                <numIndex index="1">contact_with_image_and_ingress.html</numIndex>
-                </numIndex>
-                <numIndex index="1" type="array">
-                <numIndex index="0">Kontaktuppgifter (utan bild, med ingress)</numIndex>
-                <numIndex index="1">contact_without_image_with_ingress.html</numIndex>
-                </numIndex>
-                <numIndex index="2" type="array">
-                <numIndex index="0">Kontaktuppgifter (med bild)</numIndex>
-                <numIndex index="1">contact_with_image.html</numIndex>
-                </numIndex>
-                <numIndex index="3" type="array">
-                <numIndex index="0">Kontaktuppgifter (utan bild)</numIndex>
-                <numIndex index="1">contact_without_image.html</numIndex>
-                </numIndex>
-                <numIndex index="4" type="array">
-                <numIndex index="0">Kontaktuppgifter (enkel)</numIndex>
-                <numIndex index="1">contact_simple.html</numIndex>
-                </numIndex>
-               <!-- <numIndex index="5" type="array">
-                <numIndex index="0">Presentationssida för en enskild person vänster</numIndex>
-                <numIndex index="1">presentation_single_person_left.html</numIndex>
-                </numIndex>
-                <numIndex index="6" type="array">
-                <numIndex index="0">Presentationssida för en enskild person höger</numIndex>
-                <numIndex index="1">presentation_single_person_right.html</numIndex>
-                </numIndex>                
-                <numIndex index="7" type="array">
-                <numIndex index="0">Kontaktsida för en enskild person</numIndex>
-                <numIndex index="1">contact_single_person.html</numIndex>
-                </numIndex> -->
-                </items>
-                <maxitems>1</maxitems>
-                <size>1</size>
-                <default>LIST</default>
-                <selectedListStyle>width:200px</selectedListStyle>
-                <itemListStyle>width:200px</itemListStyle>
-                </config>
-             </TCEforms>
+            <TCEforms>
+               <label>Template</label>
+               <config>
+               <type>select</type>
+               <items type="array">
+               <numIndex index="0" type="array">
+               <numIndex index="0">Kontaktuppgifter (med bild och ingress)</numIndex>
+               <numIndex index="1">contact_with_image_and_ingress.html</numIndex>
+               </numIndex>
+               <numIndex index="1" type="array">
+               <numIndex index="0">Kontaktuppgifter (utan bild, med ingress)</numIndex>
+               <numIndex index="1">contact_without_image_with_ingress.html</numIndex>
+               </numIndex>
+               <numIndex index="2" type="array">
+               <numIndex index="0">Kontaktuppgifter (med bild)</numIndex>
+               <numIndex index="1">contact_with_image.html</numIndex>
+               </numIndex>
+               <numIndex index="3" type="array">
+               <numIndex index="0">Kontaktuppgifter (utan bild)</numIndex>
+               <numIndex index="1">contact_without_image.html</numIndex>
+               </numIndex>
+               <numIndex index="4" type="array">
+               <numIndex index="0">Kontaktuppgifter (enkel)</numIndex>
+               <numIndex index="1">contact_simple.html</numIndex>
+               </numIndex>
+              <!-- <numIndex index="5" type="array">
+               <numIndex index="0">Presentationssida för en enskild person vänster</numIndex>
+               <numIndex index="1">presentation_single_person_left.html</numIndex>
+               </numIndex>
+               <numIndex index="6" type="array">
+               <numIndex index="0">Presentationssida för en enskild person höger</numIndex>
+               <numIndex index="1">presentation_single_person_right.html</numIndex>
+               </numIndex>                
+               <numIndex index="7" type="array">
+               <numIndex index="0">Kontaktsida för en enskild person</numIndex>
+               <numIndex index="1">contact_single_person.html</numIndex>
+               </numIndex> -->
+               </items>
+               <maxitems>1</maxitems>
+               <size>1</size>
+               <default>LIST</default>
+               <selectedListStyle>width:200px</selectedListStyle>
+               <itemListStyle>width:200px</itemListStyle>
+               </config>
+            </TCEforms>
          </html_template>
 
         <detailpage>
@@ -72,35 +72,36 @@
                </config>
             </TCEforms>
         </detailpage>
-        
+                
         <scope>
            <TCEforms type="array">
             <label>Välj en eller flera användargrupper</label>
             <config>
-              <type>select</type>
-              <size>10</size>
-              <maxitems>10</maxitems>
-              <items type="array">
-                <numIndex index="0" type="array">
-                  <numIndex index="0"></numIndex>
-                  <numIndex index="1"></numIndex>
-                </numIndex>
-              </items>
-              <foreign_table>fe_groups</foreign_table>
+                <type>select</type>
+                <size>10</size>
+                <maxitems>10</maxitems>
+                <items type="array">
+                    <numIndex index="0" type="array">
+                        <numIndex index="0"></numIndex>
+                        <numIndex index="1"></numIndex>
+                    </numIndex>
+                </items>
+                <foreign_table>fe_groups</foreign_table> 
+                <!-- <type>user</type>
+                <userFunc>user_sampleflex_addFieldsToFlexForm->addScope</userFunc>-->
             </config>
            </TCEforms>
          </scope>
 
-        <!-- <addpeople>
+        <addPeople>
             <TCEforms>
-               <label>Lägg till personer (en per rad)</label>
-               <config>
-                   <type>text</type>
-                   <cols>50</cols>
-                   <rows>5</rows>
-               </config>
+               <label>Lägg till personer</label>
+                <config>
+                    <type>user</type>
+                    <userFunc>user_sampleflex_addFieldsToFlexForm->addPeople</userFunc>
+                </config>
             </TCEforms>
-        </addpeople> -->
+        </addPeople>
          
          <categories>
              <TCEforms>

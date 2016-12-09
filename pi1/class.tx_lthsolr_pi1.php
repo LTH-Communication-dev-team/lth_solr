@@ -54,6 +54,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             $index = $GLOBALS["TSFE"]->sys_language_uid;
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
+            $display = $this->pi_getFFvalue($piFlexForm, "display", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
@@ -78,7 +79,7 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             if(stristr($actual_link, "/demo/") || stristr($actual_link, "vkans-th0")) {
                 $content .= $this->searchResult($query, $noItemsToShow);
             } else {
-                $content .= $this->widget($query, $tab);
+                $content .= $this->widget($query, $display);
             }
             //$this->debug($content);
 	
@@ -117,11 +118,13 @@ class tx_lthsolr_pi1 extends tslib_pibase {
         }
         
         
-        private function widget($query, $tab)
+        private function widget($query, $display)
         {
             $content = '';
-            if($tab == 'all') {
+            if($tab == 'lu') {
                 $content = '<style>#solrtab-customsites { display:none !important;}</style>';
+            } else if($tab == 'lth') {
+                $content = '<style>#solrtab-all { display:none !important;}</style>';
             }
             $content .= 
                    // . '<input type="button" onclick="widget(\'tomas\');" name="send" value="Search" />'

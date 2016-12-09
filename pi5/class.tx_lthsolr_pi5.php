@@ -55,6 +55,7 @@ class tx_lthsolr_pi5 extends tslib_pibase {
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
             $showStaff = $this->pi_getFFvalue($piFlexForm, "showStaff", "sDEF", $lDef[$index]);
+            $showStaffPos = $this->pi_getFFvalue($piFlexForm, "showStaffPos", "sDEF", $lDef[$index]);
             $showPublications = $this->pi_getFFvalue($piFlexForm, "showPublications", "sDEF", $lDef[$index]);
             $showProjects = $this->pi_getFFvalue($piFlexForm, "showProjects", "sDEF", $lDef[$index]);
 
@@ -98,7 +99,7 @@ class tx_lthsolr_pi5 extends tslib_pibase {
              
             $content = '';
                                 
-            $content .= $this->showStaff($uuid, $noItemsToShow, $publicationDetailUrl, $projectDetailUrl, $syslang, array($showStaff,$showPublications,$showProjects));
+            $content .= $this->showStaff($uuid, $noItemsToShow, $publicationDetailUrl, $projectDetailUrl, $syslang, array($showStaff,$showPublications,$showProjects), $showStaffPos);
         
             //$this->debug($content);
 	
@@ -106,9 +107,9 @@ class tx_lthsolr_pi5 extends tslib_pibase {
 	}
         
         
-        private function showStaff($uuid, $noItemsToShow, $publicationDetailUrl, $projectDetailUrl, $syslang, $show)
+        private function showStaff($uuid, $noItemsToShow, $publicationDetailUrl, $projectDetailUrl, $syslang, $show, $showStaffPos)
         {
-            //Staff
+            //Staff center
             if($show[0]) {
                 $content .= '<div id="lthsolr_staff_container"></div>';
                 $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_with_image_and_ingress_and_adress.html");
@@ -133,6 +134,7 @@ class tx_lthsolr_pi5 extends tslib_pibase {
                 <input type="hidden" id="lth_solr_scope" value="' . $uuid . '" />
                 <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
                 <input type="hidden" id="lth_solr_detail_action" value="showStaff" />
+                <input type="hidden" id="lth_solr_staff_pos" value="' . $showStaffPos . '" />
                 <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
             
             return $content;

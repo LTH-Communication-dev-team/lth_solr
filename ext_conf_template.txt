@@ -22,3 +22,11 @@ solrLucrisId=
 solrLucrisPw=
   # cat=basic/dev/171; type=input; label=LOT db
 solrLotDb=
+  # cat=basic/dev/172; type=input; label=Solr Host 2
+solrHost2=
+  # cat=basic/dev/173; type=input; label=Solr Path 2
+solrPath2=
+  # cat=basic/dev/174; type=input; label=Solr Port 2
+solrPort2=
+  # cat=basic/dev/175; type=input; label=Solr Timeout 2
+solrTimeout2=

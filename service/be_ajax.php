@@ -54,6 +54,8 @@ class lth_solr_ajax {
             case 'resortPublications':
                 $content = $this->resortPublications($items, $pid, $sys_language_uid, $config);
                 break;
+            case 'addPageShow':
+                $content = $this->addPageShow($items, $pid, $config, $checked);
 	}
         
         echo json_encode($content);
@@ -469,6 +471,15 @@ class lth_solr_ajax {
     
     function updateRedirect($items, $pid, $value, $config)
     {
+        $client = new Solarium\Client($config);
+        
+        $update = $client->createUpdate();
+        
+        ${"doc"} = $update->createDocument();
+                        
+        ${"doc"}->setKey('id', $items);
+        
+        //////////////
         $value = json_decode($value);
         $url = $value[0];
         $destination = $value[1];
@@ -481,7 +492,60 @@ class lth_solr_ajax {
                 $GLOBALS['TYPO3_DB']->exec_UPDATEquery("tx_realurl_redirects", "url='" . addslashes($url) . "'", $updateInsertArray);
             } else {
                 $GLOBALS['TYPO3_DB']->exec_INSERTquery("tx_realurl_redirects", $updateInsertArray); 
-            }     
+            }
+            
+            ${"doc"}->addField('redirect', json_encode(array($url,$destination)));
+            ${"doc"}->setFieldModifier('redirect', 'set');
+            $docArray[] = ${"doc"};
+            $update->addDocuments($docArray);
+            $update->addCommit();
+            $result = $client->update($update);
         }
+    }
+    
+    
+    function addPageShow($items, $pid, $config, $checked)
+    {
+        $client = new Solarium\Client($config);
+        
+        $showVar = 'lth_solr_show_' . $pid . '_i';
+
+        $update = $client->createUpdate();
+        
+        ${"doc"} = $update->createDocument();
+                        
+        ${"doc"}->setKey('id', $items);
+
+        if($checked === 'true') {
+            ${"doc"}->addField($showVar, 1);
+            ${"doc"}->setFieldModifier($showVar, 'set');
+        } else {
+            ${"doc"}->addField($showVar, 0);
+            ${"doc"}->setFieldModifier($showVar, 'set');
+        }
+        $docArray[] = ${"doc"};
+
+        $update->addDocuments($docArray);
+        $update->addCommit();
+        $result = $client->update($update);
+        
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_show","fe_users","lucache_id='$items'");
+        $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+        $lth_solr_show = $row['lth_solr_show'];
+        if($lth_solr_show) {
+            $showArray = json_decode($lth_solr_show);
+            if(($key = array_search($showVar, $showArray)) !== false) {
+                unset($showArray[$key]);
+            } else {
+                $showArray[] = $showVar;
+            }
+        } else {
+            $showArray = array();
+            $showArray[] = $showVar;
+        }
+        
+        $updateArray = array('lth_solr_show' => json_encode($showArray), 'tstamp' => time());
+
+        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "lucache_id='$items'", $updateArray);
     }
 }

@@ -24,4 +24,3 @@ var lth_solr_messages = {
     nohits: "Din sökning - ###term### - matchade inte något dokument."
 };
 
-

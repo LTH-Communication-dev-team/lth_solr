@@ -62,25 +62,41 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
         
         $lucrisId = $settings['solrLucrisId'];
         $lucrisPw = $settings['solrLucrisPw'];
+        
+        //$sql = 'TRUNCATE TABLE tx_lthsolr_lucrisdata';
+        //$res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
+        
+        $startfromhere = 24000;
 
-        for($i = 0; $i < $numberofloops; $i++) {
+        for($i = 0; $i < 300; $i++) {
 
-            $startrecord = $i * $maximumrecords;
+            $startrecord = $startfromhere + ($i * $maximumrecords);
             if($startrecord > 0) $startrecord++;
 
             $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/person?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
-            //
-
-            try {
+           
+            
+            //try {
+               // if (file_exists($xmlpath)) {	
+                    $xml = file_get_contents($xmlpath);
+                    $xml = utf8_encode($xml);
+                    $xml = htmlentities($xml);
+                    $xml = preg_replace('/[\x00-\x08\x0b-\x0c\x0e-\x1f]/', '', $xml);
+                    $xml = simplexml_load_string($xml);	
+                    print_r($xml);
+                    return TRUE;
+               // }
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
-                $xml = new SimpleXMLElement($xmlpath, null, true);
-                
-            } catch(Exception $e) {
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
-            }
-            if($xml->children('core', true)->count == 0) {
+                //$xml = new SimpleXMLElement($xmlpath, null, true);
+
+            //} catch(Exception $e) {
+               // $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
+                 //echo $xmlpath;
+                // print_r($xml);
+            //}
+            /*if($xml->children('core', true)->count == 0) {
                 return "no items";
-            }
+            }*/
 
             $numberofloops = ceil($xml->children('core', true)->count / 20);
 
@@ -90,13 +106,13 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
             
             foreach($xml->xpath('//core:result//core:content') as $content) {
                 $ii++;
-                $sourceId = $content->children('stab1',true)->external->children('extensions-core',true)->sourceId;
+                $sourceId = (string)$content->children('stab1',true)->external->children('extensions-core',true)->sourceId;
                 $uuid = (string)$content->attributes();
                 $photo = '';
                 //$this->debug($content);
                 //Photo
                 if($content->children('stab1',true)->photos) {
-                    $photo = $content->children('stab1',true)->photos->children('core',true)->file->children('core',true)->url;
+                    $photo = (string)$content->children('stab1',true)->photos->children('core',true)->file->children('core',true)->url;
                 }
                 
 
@@ -106,9 +122,9 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
                     $sourceId = $sourceIdArray[0];
                    
                     $id = (string)$sourceId;
-                    
+                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_lthsolr_lucrisdata', array('typo3_id' => $id, 'lucris_id' => $uuid, 'lucris_photo' => $photo));
                     //$idArray[$id] = $uuid;
-                    if($id) {
+                   /* if($id) {
                         $uuid = (string)$content->attributes();
                         ${"doc" . $ii} = $update->createDocument();
                         
@@ -140,16 +156,16 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
                         // add the documents and a commit command to the update query
                         $docArray[] = ${"doc" . $ii};
                         $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username='$id'", array('lth_solr_uuid' => $uuid));
-                    }
+                    }*/
                 }
             }
-            $update->addDocuments($docArray);
+            /*$update->addDocuments($docArray);
             $update->addCommit();
-            $result = $client->update($update);
+            $result = $client->update($update);*/
 
         }
         
-        mysqli_close($con);
+        //mysqli_close($con);
         
         return TRUE;
     }

@@ -40,7 +40,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 }
             }
         }
-        if($scope) {
+        /*if($scope) {
             $scopeArray1 = explode(',',$scope);
             foreach($scopeArray1 as $scope) {
                 $scope = explode('|',$scope);
@@ -48,7 +48,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 $scopeArray[] = $scope[0];
             }
             $scopeArray = array_unique($scopeArray);
-        }
+        }*/
 
         /*if($customcategories) {
             $customcategoriesArray = explode("\n", $customcategories);
@@ -63,7 +63,7 @@ class user_sampleflex_addFieldsToFlexForm {
         if($offset=='null' || $offset=='') $offset=0;
         if($limit=='null' || $limit=='') $limit=700;
 
-        if($scopeArray) {
+        /*if($scopeArray) {
 	    $i = 0;
 	    foreach($scopeArray as $key => $value) {
 		if($queries or i==0) {
@@ -74,9 +74,9 @@ class user_sampleflex_addFieldsToFlexForm {
 		}
 		$i++;
 	    }
-	}
+	}*/
 //echo $queries;
-        if(trim($addpeople)) {
+        /*if(trim($addpeople)) {
             $addpeople = str_replace(' ', '', $addpeople);
             $addpeople = str_replace(',', "\n", $addpeople);
             $addpeople = str_replace(':', '', $addpeople);
@@ -84,7 +84,7 @@ class user_sampleflex_addFieldsToFlexForm {
             foreach($addpeopleArray as $value) {
                 $queries .= " id:$value";
             }
-        }
+        }*/
 
         require(__DIR__.'/service/init.php');
 
@@ -100,7 +100,6 @@ class user_sampleflex_addFieldsToFlexForm {
                 )
             )
         );
-
     
 	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
 	    die('Please make all settings in extension manager');
@@ -108,7 +107,10 @@ class user_sampleflex_addFieldsToFlexForm {
 
         $client = new Solarium\Client($sconfig);
         $query = $client->createSelect();
-        $query->setQuery($queries);
+        
+        $showVar = 'lth_solr_show_' . $pid . '_i';
+        
+        $query->setQuery("$showVar:1");
         //$query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
 
         $query->addSort('lth_solr_sort_' . $pid . '_i', $query::SORT_ASC);
@@ -424,6 +426,7 @@ class user_sampleflex_addFieldsToFlexForm {
                     TYPO3.jQuery(this).parent().parent().find('.staffTxtImage').val('');
                     TYPO3.jQuery('#img_'+staffId).attr('src', '/typo3conf/ext/lth_solr/res/placeholder.gif');
                 });
+               
             }
         
             TYPO3.jQuery(document).ready(function() {
@@ -445,6 +448,36 @@ class user_sampleflex_addFieldsToFlexForm {
                         createEditArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
                     }
                 });
+
+                TYPO3.jQuery('#peopleChoice').change(function() {
+                    selectedId = TYPO3.jQuery(this).val();
+                    TYPO3.jQuery('#peopleObject').append(TYPO3.jQuery(this).find('option:selected'));
+                    updateIndex('addPageShow', selectedId, '', false);
+                    var my_options = TYPO3.jQuery('#peopleObject option');
+                    my_options.sort(function(a,b) {
+                        if (a.text > b.text) return 1;
+                        if (a.text < b.text) return -1;
+                        return 0;
+                    })
+                    TYPO3.jQuery('#peopleObject').empty().append( my_options );
+
+                });
+                
+                TYPO3.jQuery('#peopleObject').change(function() {
+                    selectedId = TYPO3.jQuery(this).val();
+                    console.log(selectedId);
+                    TYPO3.jQuery('#peopleChoice').append(TYPO3.jQuery(this).find('option:selected'));
+                    updateIndex('addPageShow', selectedId, '', true);
+                    //action, items, value, checked
+                    var my_options = TYPO3.jQuery('#peopleChoice option');
+                    my_options.sort(function(a,b) {
+                        if (a.text > b.text) return 1;
+                        if (a.text < b.text) return -1;
+                        return 0;
+                    })
+                    TYPO3.jQuery('#peopleChoice').empty().append( my_options );
+                });
+
             });
             
 
@@ -465,6 +498,13 @@ class user_sampleflex_addFieldsToFlexForm {
             }
             li {
               display:inline;
+            }
+            #peopleChoice, #peopleObject {
+                min-width: 300px;
+                min-height: 150px;
+            }
+            #peopleObject {
+                margin-left:20px;
             }
             </style>";
         
@@ -508,6 +548,24 @@ class user_sampleflex_addFieldsToFlexForm {
         
         $pid = $config['row']['pid'];
         $sys_language_uid = $config['row']['sys_language_uid'];
+        
+        $pi_flexform = $config['row']['pi_flexform'];
+        $xml = simplexml_load_string($pi_flexform);
+        $test = $xml->data->sheet[0]->language;
+      
+        if($test) {
+            foreach ($test->field as $n) {
+                foreach($n->attributes() as $name => $val) {
+                    if ($val == 'detailpage') {
+                        $detailpage = (string)$n->value;
+                    }
+                }
+            }
+        }
+        
+        if($detailpage) {
+            $detailpage = array_shift(explode('|', array_pop(explode('_',$detailpage))));
+        }
 
 	$allResponse = $this->getSolrData($config);
 	$response = $allResponse[0];
@@ -523,8 +581,6 @@ class user_sampleflex_addFieldsToFlexForm {
         
         // show documents using the resultset iterator
         $content .= "<style>.ui-state-highlight{width:100%; height: 50px; background-color:yellow;}</style>
-            <link rel=\"stylesheet\" href=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css\">
-            <script src=\"/typo3conf/ext/lth_solr/res/jquery.sortable.js\"></script>
             <script language=\"javascript\">
             
             function createEditRedirectArea(staffId, obj)
@@ -534,15 +590,32 @@ class user_sampleflex_addFieldsToFlexForm {
                 var prevArea = TYPO3.jQuery(obj).parent().parent();
                                 
                 var name = TYPO3.jQuery(obj).parent().prev().prev().html();
-                var redirectTo = '?uuid='+TYPO3.jQuery(obj).parent().prev().html();
-                //var deleteIcon = '<span class=\"t3-icon t3-icon-actions t3-icon-actions-edit t3-icon-edit-delete\">&nbsp;</span>';
+                var redirect = TYPO3.jQuery(obj).parent().parent().find('.lth_solr_redirect').val();
+
+                var detailpage = TYPO3.jQuery(obj).parent().parent().find('.lth_solr_detailpage').val();
+                var redirectTo = '';
+                var source = '';
+                //console.log(redirect);
+                if(!redirect && redirect=='') {
+                    redirectTo = 'index.php?id='+detailpage+'&uuid='+TYPO3.jQuery(obj).parent().prev().html();
+                } else {
+                    redirect = JSON.parse(decodeURIComponent(redirect));
+                    redirectTo = redirect[1];
+                    source = redirect[0];
+                    deleteButton = '<input type=\"button\" id=\"staffRedirectDelete\" value=\"Delete\" />';
+                }
                 
+                //var deleteIcon = '<span class=\"t3-icon t3-icon-actions t3-icon-actions-edit t3-icon-edit-delete\">&nbsp;</span>';
+                //console.log(source+';'+redirectTo);
                 var editArea = '<tr id=\"'+staffId+'\">';
                 editArea += '<td style=\"align:top;\">' + name + '</td>';
-                editArea += '<td style=\"align:top;\">Source: <input type=\"text\" name=\"staffTxtSource\" value=\"\" class=\"staffTxtSource\" /></td>';
+                editArea += '<td style=\"align:top;\">Source: <input type=\"text\" name=\"staffTxtSource\" value=\"'+source+'\" class=\"staffTxtSource\" /></td>';
                 editArea += '<td style=\"align:top;\">Redirect to: <input type=\"text\" name=\"staffTxtRedirectto\" value=\"'+redirectTo+'\" class=\"staffTxtRedirectto\" /></td>';
-                editArea += '<td><input type=\"button\" id=\"staffRedirectSave\" value=\"Save\" /><input type=\"button\" value=\"Cancel\" id=\"staffRedirectCancel\" /></td></tr>';
-                TYPO3.jQuery(obj).parent().parent().replaceWith(editArea);
+                editArea += '<td><input type=\"button\" id=\"staffRedirectSave\" value=\"Save\" /><input type=\"button\" value=\"Cancel\" id=\"staffRedirectCancel\" /></td>';
+                editArea += '</tr>';              
+                //console.log(TYPO3.jQuery('#'+staffId).html());
+                //console.log(editArea);
+                TYPO3.jQuery('#'+staffId).replaceWith(editArea);
                          
                 TYPO3.jQuery('#staffRedirectCancel').click(function(){
                     TYPO3.jQuery(this).parent().parent().replaceWith(prevArea);
@@ -558,7 +631,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 TYPO3.jQuery('#staffRedirectSave').click(function(){
                     var value = [TYPO3.jQuery(this).parent().parent().find('.staffTxtSource').val(),TYPO3.jQuery(this).parent().parent().find('.staffTxtRedirectto').val()];
                     var staffId = TYPO3.jQuery(this).parent().parent().attr('id');
-                    
+                    //console.log(staffId);
                     Ext.Ajax.request({
                         url: 'ajax.php',
                         method: 'POST',
@@ -566,13 +639,15 @@ class user_sampleflex_addFieldsToFlexForm {
                         params: {
                             'ajaxID' : 'lth_solr::ajaxControl',
                             'action' : 'updateRedirect',
-                            'items' : staffId,
+                            'items' : staffId.replace('redirect_',''),
                             'value' : JSON.stringify(value),
                             'pid' : '$pid',
                             'sys_language_uid' : $sys_language_uid,
                             'sid' : Math.random()
                         },
                         success: function(data) {
+                            TYPO3.jQuery(prevArea).find('.lth_solr_detailpage').val(value[0]+' '+value[1]);
+                            TYPO3.jQuery(prevArea).find('td:eq(2)').html(value[0]+' '+value[1]);
                             TYPO3.jQuery('#'+staffId).replaceWith(prevArea);
                             var response = JSON.parse(data.responseText);
                             
@@ -589,12 +664,16 @@ class user_sampleflex_addFieldsToFlexForm {
                         }
                     });                    
                 });
+                
+                TYPO3.jQuery('#staffRedirectDelete').click(function(){
+                    alert('??');
+                });
             }
             
         
             TYPO3.jQuery(document).ready(function() {
                 TYPO3.jQuery('.lth_solr_edit_redirect').click(function() {
-                    if(TYPO3.jQuery('.staffRedirect').length > 0) {
+                    if(TYPO3.jQuery('#staffRedirectSave').length > 0) {
                         alert('You can only edit one row at the time');
                     } else {
                         createEditRedirectArea(TYPO3.jQuery(this).parent().parent().attr('id'), this);
@@ -624,15 +703,20 @@ class user_sampleflex_addFieldsToFlexForm {
             .staffTxtRedirectto {
                 width:400px;
             }
-            </style>";
+            </style>";       
         
         $content .= '<table id="lth_solr_manage_redirects class="lth_solr_manage_redirects"><tbody class="selections">';
         if($response) {
             foreach ($response as $document) {
+                $redirect='';
+                if($document->redirect) {
+                    $redirectArray = json_decode($document->redirect);
+                    $redirect = $redirectArray[0] . ' ' . $redirectArray[1];
+                }
                 $content .= '<tr class="selection" id="redirect_' . $document->id . '">';
                 $content .= '<td style="width:300px; align:top;">'  . $document->display_name . ' (' . $document->id . ')</td>';
                 $content .= '<td style="display:none;">'  . $document->uuid . '</td>';
-                $content .= "<td><input type=\"button\" name=\"Edit\" id=\"lth_solr_edit_redirect_" . $document->id . "\" class=\"lth_solr_edit_redirect\" value=\"Edit\"></td>";
+                $content .= "<td><input type=\"hidden\" class=\"lth_solr_detailpage\" value=\"$detailpage\" /><input type=\"hidden\" class=\"lth_solr_redirect\" value=\"" . rawurlencode($document->redirect) . "\" /><input type=\"button\" name=\"Edit\" id=\"lth_solr_edit_redirect_" . $document->id . "\" class=\"lth_solr_edit_redirect\" value=\"Edit\">" . $redirect . "</td>";
 
                 $content .= "</tr>";
             }
@@ -826,9 +910,108 @@ class user_sampleflex_addFieldsToFlexForm {
         $content .= "</tbody></table>";
         
         return $content;
+    }
+    
+    
+    function addScope($content)
+    {
+        $content = '';
+        $objects;
+        $choices;
+        $lth_solr_show_bool = false;
         
+        $pid = $config['row']['pid'];
+        $sys_language_uid = $config['row']['sys_language_uid'];
+        $showVar = 'lth_solr_show_' . $pid . '_i';
+        
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,title","fe_groups","","","title");
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $uid = $row['uid'];
+            $title = $row['title'];
+            
+            if($lth_solr_show_bool) {
+                $choices .= '<option value="' . $uid . '">' . $title . '</option>';
+            } else {
+                $objects .= '<option value="' . $uid . '">' . $title . '</option>';
+            }
+        }
+
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        
+        $content .= '<table id="lth_solr_addScope" class="lth_solr_addScope"><tbody class="">';
+                
+        $content .= '<tr>';
+        
+        $content .= '<tr><td>Valda</td><td>Objekt</td></tr>';
+        
+        $content .= '<td><select class="selectAddScope" id="scopeChoice" name="scopeChoice" multiple="multiple">';
+        $content .= $choices;
+        $content .= '</select></td>';
+                
+        $content .= '<td><select class="selectAddScope" id="scopeObject" name="scopeObject" multiple="multiple">';
+        $content .= $objects;
+        $content .= '</select></td>';
+        
+        $content .= '</tr>';
+        
+        $content .= "</tbody></table>";
+        
+        return $content;
     }
 	
+    
+    function addPeople($content)
+    {
+        $content = '';
+        $objects;
+        $choices;
+        $lth_solr_show_bool = false;
+        
+        $pid = $config['row']['pid'];
+        $sys_language_uid = $config['row']['sys_language_uid'];
+        $showVar = 'lth_solr_show_' . $pid . '_i';
+        
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lucache_id,first_name,last_name,lth_solr_show","fe_users","lucache_id!=''","","last_name, first_name");
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $name = $row['last_name'] . ', ' . $row['first_name'];
+            $id = $row['lucache_id'];
+            $lth_solr_show = $row['lth_solr_show'];
+            if($lth_solr_show) {
+                $showArray = json_decode($lth_solr_show);
+                if(in_array($showVar, $showArray)) {
+                    $lth_solr_show_bool = true;
+                }
+            } 
+            if($lth_solr_show_bool) {
+                $choices .= '<option value="' . $id . '">' . $name . ' (' . $lucache_id . ')</option>';
+            } else {
+                $objects .= '<option value="' . $id . '">' . $name . ' (' . $lucache_id . ')</option>';
+            }
+        }
+
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        
+        $content .= '<table id="lth_solr_addPeople" class="lth_solr_addPeople"><tbody class="">';
+                
+        $content .= '<tr>';
+        
+        $content .= '<tr><td>Valda</td><td>Objekt</td></tr>';
+        
+        $content .= '<td><select class="selectAddPeople" id="peopleChoice" name="peopleChoice" multiple="multiple">';
+        $content .= $choices;
+        $content .= '</select></td>';
+                
+        $content .= '<td><select class="selectAddPeople" id="peopleObject" name="peopleObject" multiple="multiple">';
+        $content .= $objects;
+        $content .= '</select></td>';
+        
+        $content .= '</tr>';
+        
+        $content .= "</tbody></table>";
+        
+        return $content;
+    }
+    
    
     function objectToArray($d) {
 	if (is_object($d)) {

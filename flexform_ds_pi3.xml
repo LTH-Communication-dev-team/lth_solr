@@ -28,6 +28,7 @@
                     </config>
                 </TCEforms>
             </selection>
+            
             <fe_groups>
                 <TCEforms type="array">
                  <label>Välj en eller flera användargrupper</label>
