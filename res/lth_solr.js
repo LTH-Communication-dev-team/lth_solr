@@ -9,7 +9,6 @@ $(document).ready(function() {
     if($('#searchSiteMain').val()) {
         //widget($('#query').val());
         searchLong($('#searchSiteMain').val(), 0, 0, 0, false);
-        
     }
     
     if($('#lth_solr_action').val() == 'listStaff') {
@@ -27,6 +26,7 @@ $(document).ready(function() {
     } else if($('#lth_solr_action').val() == 'showProject') {
         showProject();
     }
+    
 
     $('#lthsolr_staff_filter').keyup(function() {
         var noQuery;

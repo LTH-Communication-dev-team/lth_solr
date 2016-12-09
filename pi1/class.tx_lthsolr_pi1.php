@@ -121,15 +121,17 @@ class tx_lthsolr_pi1 extends tslib_pibase {
         private function widget($query, $display)
         {
             $content = '';
-            if($tab == 'lu') {
-                $content = '<style>#solrtab-customsites { display:none !important;} .solrtab-header.last {background-color:#337ab7;color:#ffffff;border-radius: 4px;}</style>';
-            } else if($tab == 'lth') {
-                $content = '<style>#solrtab-all { display:none !important;} .solrtab-header.active {background-color:#337ab7;color:#ffffff;border-radius: 4px;</style>';            }
+            if($display == 'lu') {
+                $content = '<style>#solrtab-customsites { display:none !important;}</style>';
+            } else if($display == 'lth') {
+                $content = '<style>#solrtab-all { display:none !important;}</style>';           
+            }
             
-                $content .= 
+            $content .= 
                    // . '<input type="button" onclick="widget(\'tomas\');" name="send" value="Search" />'
                     '<div id="solrsearchresult"></div>'
                     . '';
+            
             return $content;
         }
         

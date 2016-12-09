@@ -75,7 +75,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $lastModified = $document->tstamp;
         }
 
-        $startFromHere = 34000;
+        $startFromHere = 72800;
         
         //gc_disable();
         //echo $lastModified;

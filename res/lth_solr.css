@@ -161,6 +161,11 @@ border:0px;
 max-length:550px;
 height:51px;
 }
+.solrtab-header.active {
+background-color:#337ab7;
+color:#ffffff;
+border-radius: 4px;
+}
 .search-results-wrapper {
 display:none;
 }
