@@ -21,7 +21,14 @@ var lth_solr_messages = {
     people: "People",
     documents: "Documents",
     webpages: "Web pages",
-    nohits: "Your search - ###term### - did not match any document"
+    publications: "Publications",
+    nohits: "Your search - ###term### - did not match any document",
+    abstract: "Abstract",
+    volume: "Volume",
+    journalNumber: "Issue number",
+    journalTitle: "Journal",
+    numberOfPages: "Number of pages",
+    keywords: "Research areas and keywords"
 };
 
 

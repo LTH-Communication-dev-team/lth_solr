@@ -13,7 +13,7 @@ var lth_solr_messages = {
     pages: "Sidor",
     numberOfPages: "Sidantal",
     publicationStatus: "Status",
-    peerReview: "Referentgranskning",
+    peerReview: "Peer review utförd",
     read_more_about: "Läs mer om",
     more: "Mer",
     close: "Stäng",
@@ -21,6 +21,13 @@ var lth_solr_messages = {
     people: "Personal",
     documents: "Dokument",
     webpages: "Webbsidor",
-    nohits: "Din sökning - ###term### - matchade inte något dokument."
+    publications: "Publikationer",
+    nohits: "Din sökning - ###term### - matchade inte något dokument.",
+    abstract: "Abstract",
+    volume: "Volym",
+    journalNumber: "Utgivningsnummer",
+    journalTitle: "Tidskrift",
+    numberOfPages: "Antal sidor",
+    keywords: "Forskningsområden"
 };
 

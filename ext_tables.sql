@@ -19,6 +19,7 @@ CREATE TABLE fe_users (
     hide_on_web tinyint(1) NOT NULL DEFAULT '0',
     lucache_id varchar(15) DEFAULT '' NOT NULL,
     lth_solr_uuid varchar(255) DEFAULT '' NOT NULL,
+    lth_solr_autohomepage text DEFAULT '' NOT NULL,
     title varchar(255) DEFAULT '' NOT NULL
 );
 
@@ -39,10 +40,7 @@ CREATE TABLE tx_lthsolr_categories (
   createdBy varchar(16) NOT NULL,
   modified timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   modifiedBy varchar(16) NOT NULL,
-  PRIMARY KEY (id),
-  UNIQUE KEY type (type) USING BTREE,
-  KEY parentId (parentId) USING BTREE,
-  CONSTRAINT tx_lthsolr_categories_ibfk_1 FOREIGN KEY (parentId) REFERENCES tx_lthsolr_categories (id)
+  PRIMARY KEY (id)
 );
 
 
@@ -57,9 +55,7 @@ CREATE TABLE tx_lthsolr_titles (
   createdBy varchar(16) DEFAULT NULL,
   modified timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   modifiedBy varchar(16) DEFAULT NULL,
-  PRIMARY KEY (id),
-  KEY category (category) USING BTREE,
-  CONSTRAINT tx_lthsolr_titles_ibfk_1 FOREIGN KEY (category) REFERENCES tx_lthsolr_categories (id) ON UPDATE CASCADE
+  PRIMARY KEY (id)
 );
 
 
@@ -68,5 +64,6 @@ CREATE TABLE tx_lthsolr_lucrisdata (
   typo3_id varchar(255) DEFAULT NULL,
   lucris_id varchar(255) DEFAULT NULL,
   lucris_photo varchar(255) DEFAULT NULL,
+  lucris_profile_information text DEFAULT '' NOT NULL,
   PRIMARY KEY (id)
 );

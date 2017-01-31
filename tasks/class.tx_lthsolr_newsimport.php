@@ -4,7 +4,7 @@ ini_set('memory_limit', '-1');
 error_reporting(E_ERROR);
 set_time_limit(0);
 
-class tx_lthsolr_newsimport extends tx_scheduler_Task {
+class tx_lthsolr_newsimport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	
     function execute()
     {
@@ -39,7 +39,7 @@ class tx_lthsolr_newsimport extends tx_scheduler_Task {
 
         $newsArray = array();
 
-        tslib_eidtools::connectDB();
+        //tslib_eidtools::connectDB();
         
         $newsArray = $this->getNews();
               

@@ -64,3 +64,6 @@ $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi2'] = '
 	$_EXTKEY . '_pi6',
 	\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath($_EXTKEY) . 'ext_icon.gif'
 ),'list_type');
+
+//be-ajax :(
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::registerAjaxHandler('lthsolrM1::ajaxControl', 'lth_solr_ajax->ajaxControl');

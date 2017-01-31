@@ -58,7 +58,7 @@
             </TCEforms>
          </html_template>
 
-        <detailpage>
+        <!-- <detailpage>
             <TCEforms>
                <label>Page with details</label>
                <config>
@@ -72,6 +72,7 @@
                </config>
             </TCEforms>
         </detailpage>
+        -->
                 
         <scope>
            <TCEforms type="array">
@@ -172,7 +173,7 @@
              </TCEforms>
          </noItemsToShow>
         
-        <categoriesthispage>
+      <!--  <categoriesthispage>
              <TCEforms>
                 <displayCond>FIELD:categories:=:custom_category</displayCond>
 		<label>Kategorierna ska bara gälla denna sida</label>
@@ -189,7 +190,7 @@
                     <type>check</type>
                 </config>
             </TCEforms>
-        </introthispage>
+        </introthispage> -->
         
         <hideFilter>
             <TCEforms>
@@ -270,7 +271,7 @@
     </ROOT>
 </manageStaffList>
 
-<manageStaffRedirects>
+<!-- <manageStaffRedirects>
     <ROOT>
         <TCEforms>
             <sheetTitle>Manage Staff Redirects</sheetTitle>
@@ -286,7 +287,7 @@
             </dynField>
         </el>
     </ROOT>
-</manageStaffRedirects>
+</manageStaffRedirects> -->
 
 </sheets>
 </T3DataStructure>

@@ -31,7 +31,7 @@
  * @package	TYPO3
  * @subpackage	tx_lthsolr
  */
-class tx_lthsolr_pi4 extends tslib_pibase {
+class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	public $prefixId      = 'tx_lthsolr_pi4';		// Same as class name
 	public $scriptRelPath = 'pi4/class.tx_lthsolr_pi4.php';	// Path to this script relative to the extension dir.
 	public $extKey        = 'lth_solr';	// The extension key.

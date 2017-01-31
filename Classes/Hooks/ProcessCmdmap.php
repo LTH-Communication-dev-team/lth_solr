@@ -66,7 +66,9 @@ class ProcessCmdmap {
                     $sql = "SELECT * FROM fe_users WHERE lucache_id != '' AND FIND_IN_SET((SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(title, '__', 1), '__', -1) FROM fe_groups WHERE uid = $fe_groups),lth_solr_heritage)";
                     $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
                     while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                        $uid = $row['uid'];
                         $lucache_id = $row['lucache_id'];
+                        $lth_solr_show = $row['lth_solr_show'];
                         if($lucache_id) {
                             $doc = $update->createDocument();
                             $doc->setKey('id', $lucache_id);
@@ -75,6 +77,18 @@ class ProcessCmdmap {
 
                             $docArray[] = $doc;
                             $update->addDocuments($docArray);
+                            
+                            $showArray = array();
+                            if($lth_solr_show) {
+                                $showArray = json_decode($lth_solr_show, true);
+                            }
+                            $showArray[] = $showVar;
+                            
+                            $showArray = array_unique($showArray);
+
+                            $updateArray = array('lth_solr_show' => json_encode($showArray), 'tstamp' => time());
+
+                            $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "uid='$uid'", $updateArray);
                             
                         }
                     }

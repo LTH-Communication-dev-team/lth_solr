@@ -1,6 +1,6 @@
 <?php
 
-class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
+class tx_lthsolr_lucrisimport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	
     function execute()
     {
@@ -75,11 +75,11 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
             $lastModified = $document->tstamp;
         }
 
-        $startFromHere = 72800;
+        $startFromHere = 145000;
         
         //gc_disable();
         //echo $lastModified;
-        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified);
+        //$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified);
         //$this->getPublicationParts($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
         //$this->copyPublications($config, $config2, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
         //$this->copyStandardcat($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
@@ -90,7 +90,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         //$this->getType($config, $client, $settings, $startFromHere);
         //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
 
-        //$this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
+        $this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
         //$this->getDocuments($client);
         //$this->getCourses($client);
         //$this->addIndexFlag($client);
@@ -778,7 +778,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
 
             $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
             //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
-            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?uuids.uuid=defd3bac-a445-4938-b263-a44b59077039&rendering=xml_long";
+            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?uuids.uuid=d367ad5c-a1ff-4d12-ad3c-f3796b135bdc&rendering=xml_long";
             
             /*try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
@@ -787,11 +787,13 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
             }*/
             $xml = file_get_contents($xmlpath);
-                    $xml = utf8_encode($xml);
+ 
+                    //$xml = utf8_encode($xml);
                     //$xml = htmlentities($xml);
-                    $xml = preg_replace('/[\x00-\x08\x0b-\x0c\x0e-\x1f]/', '', $xml);
+                    //$xml = preg_replace('/[\x00-\x08\x0b-\x0c\x0e-\x1f]/', '', $xml);
                     //$this->debug($xml);
                     //die();
+                    //$xml = htmlentities($xml, ENT_QUOTES, 'UTF-8'); 
                     $xml = simplexml_load_string($xml);	
 
             if($xml->children('core', true)->count == 0) {
@@ -806,7 +808,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $portalUrl;
                 $created;
                 $modified;
-                $title;
+                $title = array();
                 $abstract_en;
                 $abstract_sv;
                 $authorIdTemp;
@@ -818,9 +820,6 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $organisationName_sv = array();
                 $externalOrganisationsName = array();
                 $externalOrganisationsId = array();
-                $keyword_en = array();
-                $keyword_sv = array();
-                $userDefinedKeyword = array();
                 $language_en = array();
                 $language_sv = array();
                 $pages;
@@ -828,7 +827,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $volume;
                 $journalNumber;
                 $journalTitle;
-                $publicationStatus;
+                $publicationStatus_en;
+                $publicationStatus_sv;
                 $publicationDateYear;
                 $publicationDateMonth;
                 $publicationDateDay;
@@ -842,7 +842,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $hertitage = array();
                 $keywords_uka_en = array();
                 $keywords_uka_sv = array();
-                $keywords_user = array();
+                $keywords_user_en = array();
+                $keywords_user_sv = array();
                 $document_url = array();
                 $document_title = array();
                 $document_limitedVisibility = array();
@@ -870,12 +871,12 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 
                 //bibliographicalNote
                 if($content->children('publication-base_uk', true)->bibliographicalNote) {
-                    foreach($content->children('publication-base_uk', true)->bibliographicalNote->children('cre', true)->localizedString as $localizedString) {
+                    foreach($content->children('publication-base_uk', true)->bibliographicalNote->children('core', true)->localizedString as $localizedString) {
                         if($localizedString->attributes()->locale == 'en_GB') {
                             $bibliographicalNote_en = (string)$localizedString;
                         }
                         if($localizedString->attributes()->locale == 'sv_SE') {
-                            $bibliographicalNote_sv[] = $this->fixUtf8((string)$localizedString);
+                            $bibliographicalNote_sv = (string)$localizedString;
                         }
                     }
                 }
@@ -883,7 +884,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 //type
                 $type = (string)$content->children('core',true)->type;
                 if($type) {
-                    $type = $this->fixUtf8((string)array_pop(explode('.', $type)));
+                    $type = (string)array_pop(explode('.', $type));
                 }
                 
                 //created
@@ -892,37 +893,21 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 //modified
                 $modified = (string)$content->children('core',true)->modified;
 
-                //keywords
-                if($content->children('core',true)->keywordGroups) {
-                    foreach($content->children('core',true)->keywordGroups->children('core',true)->keywordGroup as $keywordGroup) {
-                        if($keywordGroup->children('core',true)->configuration->children('core')->logicalName == 'uka_full') {
-                            foreach($keywordGroup->children('core',true)->keyword->children('core',true)->target->children('core')->term->children('core',true)->localizedString as $localizedString) {
-                                if($localizedString->attributes()->locale == 'en_GB') {
-                                    $keywords_uka_en[] = (string)$localizedString;
-                                }
-                                if($localizedString->attributes()->locale == 'sv_SE') {
-                                    $keywords_uka_sv[] = $this->fixUtf8((string)$localizedString);
-                                }
-                            }
-                        } else if($keywordGroup->children('core',true)->configuration->children('core')->logicalName == 'keywordContainers') {
-                            foreach($keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword As $userDefinedKeyword) {
-                                $keywords_user[] = $this->fixUtf8((string)$userDefinedKeyword->children('core',true)->freeKeyword);
-                            }
-                        }
-                    }
-                }
-
                 //title
-                $title = $this->fixUtf8((string)$content->children('publication-base_uk',true)->title);
+                if($content->children('publication-base_uk',true)->title) {
+                    $title[] = (string)$content->children('publication-base_uk',true)->title;
+                } else if($content->children('stab',true)->title) {
+                    $title[] = (string)$content->children('stab',true)->title;
+                }
 
                 //abstract
                 if($content->children('publication-base_uk',true)->abstract) {
                     foreach($content->children('publication-base_uk',true)->abstract->children('core',true)->localizedString as $abstract) {
                         if($abstract->attributes()->locale == 'en_GB') {
-                            $abstract_en = $this->fixUtf8((string)$abstract);
+                            $abstract_en = (string)$abstract;
                         }
                         if($abstract->attributes()->locale == 'sv_SE') {
-                            $abstract_sv = $this->fixUtf8((string)$abstract);
+                            $abstract_sv = (string)$abstract;
                         }
                     }
                 }
@@ -931,7 +916,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 if($content->children('publication-base_uk',true)->documents) {
                     foreach($content->children('publication-base_uk',true)->documents->children('extension-core',true)->document as $document) {
                         $document_url[] = (string)$document->children('core',true)->url;
-                        $document_title[] = $this->fixUtf8((string)$document->children('core',true)->title);
+                        $document_title[] = (string)$document->children('core',true)->title;
                         $document_limitedVisibility[] = (string)$document->children('core',true)->limitedVisibility;
                     }
                 }
@@ -953,7 +938,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $authorId[] = (string)$authorIdTemp;
                         }
                         if($authorNameTemp) {
-                            $authorName[] = $this->fixUtf8((string)$authorNameTemp);
+                            $authorName[] = (string)$authorNameTemp;
                         }
                     }
                 }
@@ -971,7 +956,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                                 $organisationName_en[] = (string)$localizedString;
                             }
                             if($localizedString->attributes()->locale == 'sv_SE') {
-                                $organisationName_sv[] = $this->fixUtf8((string)$localizedString);
+                                $organisationName_sv[] = (string)$localizedString;
                             }
                         }
                         $organisationSourceId[] = (string)$association->children('organisation-template',true)->organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
@@ -1029,27 +1014,38 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     foreach($content->children('stab',true)->associatedExternalOrganisations as $associatedExternalOrganisations) {
                        $externalOrganisationsId[] = (string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->attributes();
                         if($associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name) {
-                            $externalOrganisationsName[] = $this->fixUtf8((string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name);
+                            $externalOrganisationsName[] = (string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name;
                         }
                     }
                 }
 
-                //keywords (research areas
-                if($content->children('core',true)->keywordGroups && $content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->target) {
-                    foreach($content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->target->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
-                        if($localizedString->attributes()->locale == 'en_GB') {
-                            $keyword_en[] = (string)$localizedString;
+                if($content->children('core',true)->keywordGroups && $content->children('core',true)->keywordGroups->children('core',true)->keywordGroup) {
+                    foreach($content->children('core',true)->keywordGroups->children('core',true)->keywordGroup as $keywordGroup) {
+                        if($keywordGroup->children('core',true)->keyword && $keywordGroup->children('core',true)->keyword->children('core',true)->target) {
+                            if((string)$keywordGroup->children('core',true)->configuration->children('core',true)->logicalName == 'uka_full') {
+                                foreach($keywordGroup->children('core',true)->keyword->children('core',true)->target->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
+                                    if($localizedString->attributes()->locale == 'en_GB') {
+                                        $keywords_uka_en[] = (string)$localizedString;
+                                    }
+                                    if($localizedString->attributes()->locale == 'sv_SE') {
+                                        $keywords_uka_sv[] = (string)$localizedString;
+                                    }
+                                }
+                            }
+                        } else if($keywordGroup->children('core',true)->keyword && $keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword) {
+                            foreach($keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword as $userDefinedKeyword) {
+                                if($userDefinedKeyword->attributes()->locale == 'en_GB') {
+                                    foreach($userDefinedKeyword->children('core',true)->freeKeyword as $freeKeyword) {
+                                        $keywords_user_en[] = (string)$freeKeyword;
+                                    }
+                                }
+                                if($userDefinedKeyword->attributes()->locale == 'sv_SE') {
+                                    foreach($userDefinedKeyword->children('core',true)->freeKeyword as $freeKeyword) {
+                                        $keywords_user_sv[] = (string)$freeKeyword;
+                                    }
+                                }
+                            }
                         }
-                        if($localizedString->attributes()->locale == 'sv_SE') {
-                            $keyword_sv[] = $this->fixUtf8((string)$localizedString);
-                        }
-                    }
-                }
-
-                //userDefinedKeywords
-                if($content->children('core',true)->keywordGroups && $content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword && $content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword) {
-                    foreach($content->children('core',true)->keywordGroups->children('core',true)->keywordGroup->children('core',true)->keyword->children('core',true)->userDefinedKeyword->children('core',true)->freeKeyword as $freeKeyword) {
-                        $userDefinedKeyword[] = $this->fixUtf8((string)$freeKeyword);
                     }
                 }
 
@@ -1060,7 +1056,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $language_en = (string)$localizedString;
                         }
                         if($localizedString->attributes()->locale == 'sv_SE') {
-                            $language_sv = $this->fixUtf8((string)$localizedString);
+                            $language_sv = (string)$localizedString;
                         }
                     }
                 }
@@ -1068,8 +1064,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 //journal title
                 if($content->children('publication-base_uk',true)->journal) {
                     if($content->children('publication-base_uk',true)->journal->children('journal-template',true)->journal) {
-                        foreach($content->children('publication-base_uk',true)->journal->children('journal-template',true)->journal->children('journal-template',true)->titles->children('journal-template',true)->title as $title) {
-                            $journalTitle = $this->fixUtf8((string)$title->children('extensions-core',true)->string);
+                        foreach($content->children('publication-base_uk',true)->journal->children('journal-template',true)->journal->children('journal-template',true)->titles->children('journal-template',true)->title as $jtitle) {
+                            $journalTitle = (string)$jtitle->children('extensions-core',true)->string;
                         }
                     }
                 }
@@ -1087,15 +1083,25 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                 $journalNumber = (string)$content->children('publication-base_uk',true)->journalNumber;
                 
                 //publicationStatus
+                if($content->children('publication-base_uk',true)->publicationStatus) {
+                    foreach($content->children('publication-base_uk',true)->publicationStatus->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
+                        if($localizedString->attributes()->locale == 'en_GB') {
+                            $publicationStatus_en = (string)$localizedString;
+                        }
+                        if($localizedString->attributes()->locale == 'sv_SE') {
+                            $publicationStatus_sv = (string)$localizedString;
+                        }
+                    }
+                }
                 $publicationStatus = (string)$content->children('publication-base_uk',true)->publicationStatus;
                 
                 //hostPublicationTitle
-                $hostPublicationTitle = $this->fixUtf8((string)$content->children('publication-base_uk',true)->hostPublicationTitle);
+                $hostPublicationTitle = (string)$content->children('publication-base_uk',true)->hostPublicationTitle;
                     
                 //publishers
                 if($content->children('publication-base_uk',true)->associatedPublishers) {
                     foreach($content->children('publication-base_uk',true)->associatedPublishers->children('publisher-template',true)->publisher as $publisher) {
-                        $publisher = $this->fixUtf8((string)$publisher->children('publisher-template',true)->name);
+                        $publisher = (string)$publisher->children('publisher-template',true)->name;
                     }
                 }
                 
@@ -1106,7 +1112,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $event_en = (string)$localizedString;
                         }
                         if($localizedString->attributes()->locale == 'sv_SE') {
-                            $event_sv = $this->fixUtf8((string)$localizedString);
+                            $event_sv = (string)$localizedString;
                         }
                     }
                     $event_city = $content->children('stab',true)->event->children('event-template',true)->city;
@@ -1116,7 +1122,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                                 $event_country_en = (string)$localizedString;
                             }
                             if($localizedString->attributes()->locale == 'sv_SE') {
-                                $event_country_sv = $this->fixUtf8((string)$localizedString);
+                                $event_country_sv = (string)$localizedString;
                             }
                         }
                     }
@@ -1146,18 +1152,21 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                             $publicationType_en = (string)$localizedString;
                         }
                         if($localizedString->attributes()->locale == 'sv_SE') {
-                            $publicationType_sv = $this->fixUtf8((string)$localizedString);
+                            $publicationType_sv = (string)$localizedString;
                         }
                     }
                 }
-                
+
                 $data = array(
                     'id' => $id,
                     'type' => $type,
                     'abstract_en' => $abstract_en,
                     'abstract_sv' => $abstract_sv,
                     'authorId' => $authorId,
-                    'authorName' => array_unique($authorName),                   
+                    'authorName' => array_unique($authorName),
+                    'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
+                    'bibliographicalNote_sv' => $bibliographicalNote_sv,
+                    'bibliographicalNote_en' => $bibliographicalNote_en,
                     'doctype' => 'publication',
                     'document_url' => $document_url,
                     'document_title' => $document_title,
@@ -1174,7 +1183,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'journalTitle' => $journalTitle,
                     'keywords_uka_en' => $keywords_uka_en,
                     'keywords_uka_sv' => $keywords_uka_sv,
-                    'keywords_user' => $keywords_user,
+                    'keywords_user_en' => $keywords_user_en,
+                    'keywords_user_sv' => $keywords_user_sv,
                     'language_en' => $language_en,
                     'language_sv' => $language_sv,
                     'number_of_pages' => $numberOfPages,
@@ -1185,7 +1195,8 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'pages' => $pages,
                     'peerReview' => $peerReview,
                     'portalUrl' => $portalUrl,
-                    'publicationStatus' => $publicationStatus,
+                    'publicationStatus_en' => $publicationStatus_en,
+                    'publicationStatus_sv' => $publicationStatus_sv,
                     'publicationDateYear' => $publicationDateYear,
                     'publicationDateMonth' => $publicationDateMonth,
                     'publicationDateDay' => $publicationDateDay,
@@ -1196,20 +1207,15 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
                     'volume' => $volume,
                     'standard_category_en' => $publicationType_en,
                     'standard_category_sv' => $publicationType_sv,
-                    'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
-                    'bibliographicalNote_sv' => $bibliographicalNote_sv,
-                    'bibliographicalNote_en' => $bibliographicalNote_en,
                     'doi' => $doi,
                     'boost' => '1.0',
                     'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
                     'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
-                    'digest' => md5($id),
-                    //'keyword_en' => $keyword_en,
-                    //'keyword_sv' => $keyword_sv,
-                    //'userDefinedKeyword' => $userDefinedKeyword,
+                    'digest' => md5($id),                    
                 );
                // $this->debug($data);
                 $buffer->createDocument($data);
+                
             }
 
         }
@@ -1299,7 +1305,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
     /////////////////////////////////
         
     
-    function getType($config, $client, $settings, $startFromHere)
+    /*function getType($config, $client, $settings, $startFromHere)
     {
        
         $ii = 0;
@@ -1360,7 +1366,7 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         }
 
         return TRUE;
-    }
+    }*/
      
     
     public function toString($input)
@@ -1752,11 +1758,4 @@ class tx_lthsolr_lucrisimport extends tx_scheduler_Task {
         echo '</pre>';
     }
     
-    private function fixUtf8($input)
-    {
-        if($input) {
-            $input = utf8_decode($input);
-        }
-        return $input;
-    }
 }

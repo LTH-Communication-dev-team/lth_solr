@@ -1,5 +1,5 @@
 <?php
-class tx_lthsolr_lupimport extends tx_scheduler_Task {
+class tx_lthsolr_lupimport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	var $feGroupArray = array();
 	var $feUserArray = array();
 	var $titleCategoriesArray = array();
@@ -22,7 +22,7 @@ class tx_lthsolr_lupimport extends tx_scheduler_Task {
 	$port = '8983';
 	$path = '/solr/lup/';
 	
-	tslib_eidtools::connectDB();
+	//tslib_eidtools::connectDB();
 
 	$solr = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('tx_solr_ConnectionManager')->getConnection($host, $port, $path, $scheme);
   

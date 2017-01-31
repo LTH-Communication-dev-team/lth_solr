@@ -6,7 +6,7 @@ set_time_limit(0);
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
+class tx_lthsolr_lucacheimport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	
     function execute()
     {
@@ -20,12 +20,6 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     function indexItems()
     {
 	require(__DIR__.'/init.php');
-        
-        /*if (file_exists(__DIR__.'/config.php')) {
-            require(__DIR__.'/config.php');
-        } else {
-            die(__DIR__);
-        }*/
 
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
@@ -40,14 +34,13 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             )
         );
 
-    
 	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout'] || !$settings['dbhost'] || !$settings['db'] || !$settings['grsp'] || !$settings['user'] || !$settings['pw']) {
 	    return 'Please make all settings in extension manager';
 	}
                 
         $grsp = $settings['grsp'];
 
-        tslib_eidtools::connectDB();
+        //tslib_eidtools::connectDB();
 
         $dbhost = $settings['dbhost'];
         $db = $settings['db'];
@@ -67,7 +60,7 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
         $employeeArray = $this->getFeUsers($employeeArray);
                
         $orgArray = $this->getOrg($con);
-        
+                
         $heritageTempArray = $this->getHeritage($con);
         $heritageArray = $heritageTempArray[0];
         $heritageLegacyArray = $heritageTempArray[1];
@@ -202,21 +195,32 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     
     private function getLucrisData($employeeArray)
     {
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT typo3_id,lucris_id,lucris_photo","tx_lthsolr_lucrisdata","typo3_id!=''");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT typo3_id,lucris_id,lucris_photo,lucris_profile_information","tx_lthsolr_lucrisdata","typo3_id!=''");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $typo3_id = $row['typo3_id'];
             $lucris_id = $row['lucris_id'];
             $lucrisphoto = $row['lucris_photo'];
+            $lucris_profile_information = $row['lucris_profile_information'];
 
+            if($lucris_profile_information) {
+                $profileInformationArray = json_decode($lucris_profile_information, true);
+                $profileInformation_sv = $profileInformationArray['sv'];
+                $profileInformation_en = $profileInformationArray['en'];
+            } else {
+                $profileInformation_sv = '';
+                $profileInformation_en = '';
+            }
             if(array_key_exists($typo3_id, $employeeArray)) {
                 $employeeArray[$typo3_id]['uuid'] = $lucris_id;
                 $employeeArray[$typo3_id]['lucrisphoto'] = $lucrisphoto;
+                $employeeArray[$typo3_id]['profileInformation_sv'] = $profileInformation_sv;
+                $employeeArray[$typo3_id]['profileInformation_en'] = $profileInformation_en;
             }
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         return $employeeArray;
     }
-    
+     
     
     private function getOrg($con)
     {
@@ -310,12 +314,15 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
     
     private function getFeUsers($employeeArray)
     {
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT username, usergroup, image, image_id, lth_solr_cat, lth_solr_sort, lth_solr_intro', 'fe_users', 'deleted = 0');
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT username, usergroup, image, image_id, lth_solr_cat, '
+                . 'lth_solr_sort, lth_solr_intro, lth_solr_autohomepage, lth_solr_show', 'fe_users', 'deleted = 0');
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $username = $row['username'];
             $lth_solr_cat = $row['lth_solr_cat'];
             $lth_solr_intro = $row['lth_solr_intro'];
-            $lth_solr_sort = $row['$lth_solr_sort'];
+            $lth_solr_sort = $row['lth_solr_sort'];
+            $lth_solr_autohomepage = $row['lth_solr_autohomepage'];
+            $lth_solr_show = $row['lth_solr_show'];
             
             if(array_key_exists($username, $employeeArray)) {
                 if($lth_solr_cat && $lth_solr_cat !== '') {
@@ -345,8 +352,18 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                         }
                     }
                 }
-            
-                $employeeArray[$username]['usergroup'] = $row['usergroup']; 
+                
+                if($lth_solr_autohomepage && $lth_solr_autohomepage !== '') {
+                    $lth_solr_autohomepage = json_decode($lth_solr_autohomepage, true);
+                    if($lth_solr_autohomepage) {
+                        foreach($lth_solr_autohomepage as $key => $value) {
+                            $employeeArray[$username]['lth_solr_autohomepage'][$key] = $value;
+                        }
+                    }
+                }
+                
+                $employeeArray[$username]['lth_solr_show'] = $lth_solr_show;
+                $employeeArray[$username]['usergroup'] = $row['usergroup'];
                 $employeeArray[$username]['image'] = $row['image'];
                 $employeeArray[$username]['image_id'] = $row['image_id'];
                 $employeeArray[$username]['exist'] = TRUE;
@@ -421,8 +438,6 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             if(is_array($value['room_number'])) {
                 $room_number = implode(',', array_unique($value['room_number']));
             } 
-            
-            
             
             $usergroupArray = $this->getUids($value['orgid'], $feGroupsArray);
             //echo $value['usergroup'];
@@ -715,6 +730,8 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                             'heritage' => $heritage,
                             'uuid' => $value['uuid'],
                             'lucrisphoto' => $value['lucrisphoto'],
+                            'profileInformation_en' => $value['profileInformation_en'],
+                            'profileInformation_sv' => $value['profileInformation_sv'],
                             'boost' => '1.0',
                             'date' => $current_date,
                             'tstamp' => $current_date,
@@ -740,6 +757,19 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
                                 $data[$key3] = $value3;
                             }
                         }
+                        
+                        if(is_array($value['lth_solr_autohomepage'])) {
+                            foreach($value['lth_solr_autohomepage'] as $key4 => $value4) {
+                                $data[$key4] = $value4;
+                            }
+                        }
+                        
+                        if($value['lth_solr_show']) {
+                            $lth_solr_showArray = json_decode($value['lth_solr_show'],true);
+                            foreach($lth_solr_showArray as $showKey => $showValue) {
+                                $data[$showValue] = 1;
+                            }
+                        }
 
                         try {
                             $buffer->createDocument($data);
@@ -759,7 +789,6 @@ class tx_lthsolr_lucacheimport extends tx_scheduler_Task {
             echo 'Message: ' .$e->getMessage();
             return false;
         }
-
     }
     
     

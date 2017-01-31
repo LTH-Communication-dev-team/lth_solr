@@ -70,9 +70,10 @@ tr.details td.details-control {
 
 .lthsolr_row {
     clear:both;
-    cursor: pointer;
     border-bottom:1px solid #dedede;
     padding-bottom:10px;
+    margin-top:10px;
+    margin-bottom:10px;
 }
 
 .lthsolr_image_template.lthsolr_row {
@@ -119,6 +120,55 @@ tr.details td.details-control {
 .lthsolr_loader {
     width:16px;
     height: 16px;
+}
+
+h2 a, h3 a, h4 a {
+    text-decoration:none !important;
+}
+h4 a, h4 {
+    color: #000000 !important;
+}
+
+h4 {
+    font-size: 1em;
+    line-height:1.6em;
+    font-weight:bold;
+}
+
+h2 {
+}
+
+.lthsolr_more {
+    alignment-adjust: middle;
+}
+
+.pagelink a {
+    color: #006621 !important;
+}
+
+#lthsolr_people_header {
+    margin-top:20px;
+}
+
+#lthsolr_staff_container {
+    border:0px;
+}
+
+#lthsolr_staff_container td {
+    min-width:220px;
+    padding:20px 20px 20px 0px;
+    border:0px;
+}
+
+.lth_solr_res {
+    float:left;
+    width:150px;
+    min-height:500px;
+    display:block;
+}
+
+.lth_solr_search_header {
+    font-size:1.5em;font-weight:bold;color:#576a7c;margin-right:15px;
 }
 
 /* Styling LU widget start */
@@ -199,6 +249,19 @@ border-radius:4px;
 .pager-item.pager-current {
 background-color:#337ab7;
 color:#ffffff;
+}
+
+.lth_solr_res {
+    padding:15px;
+    position:fixed;
+    width:50px;
+    height:100px;
+}
+
+.lth_solr_left_nav {
+    height: 1000px;
+    padding:40px;
+    width: 150px;
 }
 /* Styling LU widget end */
 

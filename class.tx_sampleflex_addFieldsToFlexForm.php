@@ -14,16 +14,20 @@ class user_sampleflex_addFieldsToFlexForm {
         $addpeopleArray = array();
         $addpeople = '';
 
-        $pi_flexform = $config['row']['pi_flexform'];
+        $pi_flexform = $config['row']['pi_flexform']['data']['sDEF']['lDEF'];
         $pid = $config['row']['pid'];
         $sys_language_uid = $config['row']['sys_language_uid'];
         $catVar = 'lth_solr_cat_' . $pid . '_' . $sys_language_uid . '_ss';
         $hideVar = 'lth_solr_hide_' . $pid . '_' . $sys_language_uid . '_i';
 
-        $xml = simplexml_load_string($pi_flexform);
-        $test = $xml->data->sheet[0]->language;
+        //$xml = simplexml_load_string($pi_flexform);
+        //$test = $xml->data->sheet[0]->language;
+        
+        $customcategories = $pi_flexform['customcategories'];
+        //$categoriesThisPage = $pi_flexform['categoriesthispage'];
+        //$introThisPage = $pi_flexform['introthispage'];
       
-        if($test) {
+        /*if($pi_flexform) {
             foreach ($test->field as $n) {
                 foreach($n->attributes() as $name => $val) {
                     if ($val == 'customcategories') {
@@ -39,7 +43,7 @@ class user_sampleflex_addFieldsToFlexForm {
                     }
                 }
             }
-        }
+        }*/
         /*if($scope) {
             $scopeArray1 = explode(',',$scope);
             foreach($scopeArray1 as $scope) {
@@ -100,7 +104,9 @@ class user_sampleflex_addFieldsToFlexForm {
                 )
             )
         );
-    
+         /*   echo '<pre>';
+print_r($config);
+echo '</pre>';*/
 	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
 	    die('Please make all settings in extension manager');
 	}
@@ -122,7 +128,7 @@ class user_sampleflex_addFieldsToFlexForm {
         // this executes the query and returns the result
         $resultset = $client->select($query);
 
-	return array($resultset, $customcategories, $pluginId, $categoriesThisPage, $introThisPage);
+	return array($resultset, $customcategories, $pluginId);
     }
     
     
@@ -135,38 +141,39 @@ class user_sampleflex_addFieldsToFlexForm {
         $pid = $config['row']['pid'];
         $sys_language_uid = $config['row']['sys_language_uid'];
         
-        
+        $nameArray = array();
         //print_r($config);
 
 	$allResponse = $this->getSolrData($config);
 	$response = $allResponse[0];
         $customcategories = $allResponse[1];
-        $categoriesThisPage = $allResponse[3];
+        //$categoriesThisPage = $allResponse[3];
 
-        if(intval($categoriesThisPage) === 1) {
+        //if(intval($categoriesThisPage) === 1) {
             $catVar = 'lth_solr_cat_' . $pid . '_ss';
-        } else {
-            $catVar = 'lth_solr_cat_ss';
-        }
+        //} else {
+        //    $catVar = 'lth_solr_cat_ss';
+        //}
         $hideVar = 'lth_solr_hide_' . $pid . '_i';
+        $autohomepageVar = 'lth_solr_autohomepage_' . $pid . '_s';
         
         $content .= "<style>.ui-state-highlight{width:100%; height: 50px; background-color:yellow;}</style>
             <link rel=\"stylesheet\" href=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css\">
             <script src=\"/typo3conf/ext/lth_solr/res/jquery.sortable.js\"></script>
             <script language=\"javascript\">
-            
+            var ajaxUrl = TYPO3.settings.ajaxUrls['lthsolrM1::ajaxControl'];
+            //console.log(ajaxUrl);
             function updateIndex(action, items, value, checked) {
                 //console.log(items);
                 Ext.Ajax.request({
-                    url: 'ajax.php',
+                    url: ajaxUrl,
                     method: 'POST',
                     params: {
-                        'ajaxID' : 'lth_solr::ajaxControl',
+                        'ajaxID' : 'lthsolrM1::ajaxControl',
                         'action' : action,
                         'items' : items,
                         'value' : value,
                         'checked' : checked,
-                        'categoriesThisPage' : '$categoriesThisPage',
                         'pid' : '$pid',
                         'sys_language_uid' : $sys_language_uid,
                         'sid' : Math.random()
@@ -174,11 +181,10 @@ class user_sampleflex_addFieldsToFlexForm {
                     success: function(response, opts) {
                         //var obj = Ext.decode(response.responseText);
                         //console.dir(obj);
-                        //console.log(response.responseText);
+                        //console.log('???');
                         if(action=='updateText') {
                             //alert(response.responseText);
                         }
-                        //console.log(response.responseText);
                     },
                     failure: function(response, opts) {
                        console.log('server-side failure with status code ' + response.status);
@@ -194,6 +200,11 @@ class user_sampleflex_addFieldsToFlexForm {
                 
                 TYPO3.jQuery('.lth_solr_hideonpage').click(function() {
                     updateIndex('updateHideonpage', TYPO3.jQuery(this).parent().parent().attr('id').replace('edit_',''), TYPO3.jQuery(this).val(), TYPO3.jQuery(this).prop('checked'));
+                    //console.log(TYPO3.jQuery(this).parent().parent().attr('id'));
+                });
+                
+                TYPO3.jQuery('.lth_solr_autopage').click(function() {
+                    updateIndex('updateAutopage', TYPO3.jQuery(this).parent().parent().attr('id').replace('edit_',''), TYPO3.jQuery(this).parent().parent().data('name'), TYPO3.jQuery(this).prop('checked'));
                     //console.log(TYPO3.jQuery(this).parent().parent().attr('id'));
                 });
     
@@ -230,18 +241,29 @@ class user_sampleflex_addFieldsToFlexForm {
             .selection {
                 cursor: pointer;
             }
+            
             </style>";
         
         $content .= '<table id="lth_solr_manage_staff_list" class="lth_solr_manage_staff_list"><tbody class="selections">';
         if($response) {
             foreach ($response as $document) {
-                $content .= '<tr class="selection" id="edit_' . $document->id . '">';
+                $name = $document->first_name . '-' . $document->last_name;
+                if(in_array($name, $nameArray)) {
+                    for($i=0; $i<100; $i++) {
+                        if(!in_array($name . '-' . $i, $nameArray)) {
+                            $name = $name . '-' . $i;
+                            break;
+                        }
+                    }
+                }
+                $nameArray[] = $name;
+                $content .= '<tr class="selection" data-name="' . $name . '" id="edit_' . $document->id . '">';
                 $content .= '<td style="width:300px; align:top;">'  . $document->display_name . ' (' . $document->id . ')</td>';
 
                 $categories = '';
-                //print_r( $document->$catVar);
+                //print_r($customcategories);
                 if($customcategories) {
-                    $customcategoriesArray = explode("\n", $customcategories);
+                    $customcategoriesArray = explode("\n", $customcategories['vDEF']);
                     if(is_array($customcategoriesArray)) {
                         foreach($customcategoriesArray as $key => $value) {
                             $checkedCat = ' ';
@@ -259,11 +281,20 @@ class user_sampleflex_addFieldsToFlexForm {
                 if($document->$hideVar) {
                     $checkedHide = ' " checked="checked" ';
                 }
+                
+                $checkedAuto = ' ';
+                if($document->$autohomepageVar) {
+                    $checkedAuto = ' " checked="checked" ';
+                }
 
-                //$content .= "<td style=\"width: 500px; align:top;\">$categories</td>";
-
-                $content .= "<td style=\"width: 150px;padding-left:90px;\">"
+                //Hide on page
+                $content .= "<td style=\"width:220px;padding-left:90px;\">"
                         . "<input type=\"checkbox\" name=\"lth_solr_hideonpage\" class=\"lth_solr_hideonpage\" value=\"1\"$checkedHide/>Hide on this page"
+                        . "</td>";
+                
+                //Create autopage
+                $content .= "<td style=\"width:290px;padding-left:50px;\">"
+                        . "<input type=\"checkbox\" name=\"lth_solr_autopage\" class=\"lth_solr_autopage\" value=\"1\"$checkedAuto/>Create 'Auto' personal homepage"
                         . "</td>";
 
                 $content .= "</tr>";
@@ -293,45 +324,19 @@ class user_sampleflex_addFieldsToFlexForm {
 
 	$allResponse = $this->getSolrData($config);
 	$response = $allResponse[0];
-        $introThisPage = $allResponse[4];
+        //$introThisPage = $allResponse[4];
 
-        if(intval($introThisPage)===1) {
+        //if(intval($introThisPage)===1) {
             $introVar = 'staff_custom_text_' . $pid . '_s';
-        } else {
-            $introVar = 'staff_custom_text_s';
-        }
+        //} else {
+        //    $introVar = 'staff_custom_text_s';
+        //}
 
         // show documents using the resultset iterator
         $content .= "<style>.ui-state-highlight{width:100%; height: 50px; background-color:yellow;}</style>
             <link rel=\"stylesheet\" href=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css\">
             <script language=\"javascript\">
-            
-            function updateIndex(action, items, value, checked) {
-                //console.log(items);
-                Ext.Ajax.request({
-                    url: 'ajax.php',
-                    method: 'POST',
-                    params: {
-                        'ajaxID' : 'lth_solr::ajaxControl',
-                        'action' : action,
-                        'items' : items,
-                        'value' : value,
-                        'checked' : checked,
-                        'introThisPage' : '$introThisPage',
-                        'pid' : '$pid',
-                        'sys_language_uid' : $sys_language_uid,
-                        'sid' : Math.random()
-                    },
-                    success: function(response, opts) {
-                        //console.log(response.responseText);
-                    },
-                    failure: function(response, opts) {
-                       console.log('server-side failure with status code ' + response.status);
-                    }
-                });
-            }
-            
-            
+
             function createEditArea(staffId, obj)
             {
                 //console.log(TYPO3.jQuery('#'+staffId).find('#img_' + staffId).attr('data-imageId'));
@@ -372,17 +377,17 @@ class user_sampleflex_addFieldsToFlexForm {
                     var imageId = TYPO3.jQuery(this).parent().parent().find('.staffTxtImage').val();
                     var value = [TYPO3.jQuery(this).parent().parent().find('.staffIntrotext').val(), imageId];
                     var staffId = TYPO3.jQuery(this).parent().parent().attr('id');
+                    var ajaxUrl = TYPO3.settings.ajaxUrls['lthsolrM1::ajaxControl'];
                     
                     Ext.Ajax.request({
-                        url: 'ajax.php',
+                        url: ajaxUrl,
                         method: 'POST',
                         dataType: 'json',
                         params: {
-                            'ajaxID' : 'lth_solr::ajaxControl',
+                            'ajaxID' : 'lthsolrM1::ajaxControl',
                             'action' : 'updateIntroAndImage',
                             'items' : staffId,
                             'value' : JSON.stringify(value),
-                            'introThisPage' : '$introThisPage',
                             'pid' : '$pid',
                             'sys_language_uid' : $sys_language_uid,
                             'sid' : Math.random()
@@ -541,7 +546,7 @@ class user_sampleflex_addFieldsToFlexForm {
     }
     
     
-    function manageStaffRedirects($config)
+   /* function manageStaffRedirects($config)
     {
         $content = '';
         $categories = '';
@@ -726,6 +731,7 @@ class user_sampleflex_addFieldsToFlexForm {
         
         return $content;
     }
+     */
     
     function managePublications($config)
     {

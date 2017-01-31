@@ -1,5 +1,5 @@
 <?php
-class tx_lthsolr_lupimport extends tx_scheduler_Task {
+class tx_lthsolr_lupimport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
 	
     function execute()
@@ -15,7 +15,7 @@ class tx_lthsolr_lupimport extends tx_scheduler_Task {
 
     function indexItems()
     {
-        tslib_eidtools::connectDB();
+        //tslib_eidtools::connectDB();
         require(__DIR__.'/init.php');
         $maximumrecords = 250;
         $numberofloops = 1;

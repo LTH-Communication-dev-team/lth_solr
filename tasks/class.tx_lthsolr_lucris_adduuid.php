@@ -1,5 +1,5 @@
 <?php
-class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
+class tx_lthsolr_lucris_adduuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
 	//http://portal.research.lu.se/ws/rest/organisation?typeClassificationUris.uri=/dk/atira/pure/organisation/organisationtypes/organisation/researchteam
     function execute()
@@ -66,25 +66,25 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
         //$sql = 'TRUNCATE TABLE tx_lthsolr_lucrisdata';
         //$res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
         
-        $startfromhere = 24000;
+        $startfromhere = 0;
 
-        for($i = 0; $i < 300; $i++) {
+        for($i = 0; $i < $numberofloops; $i++) {
 
             $startrecord = $startfromhere + ($i * $maximumrecords);
             if($startrecord > 0) $startrecord++;
 
             $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/person?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
-           
-            
+            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/person?uuids.uuid=a432d89f-3d61-427c-ac2d-604f8ba57441&rendering=xml_long";
+            //die($xmlpath);
             //try {
                // if (file_exists($xmlpath)) {	
                     $xml = file_get_contents($xmlpath);
-                    $xml = utf8_encode($xml);
-                    $xml = htmlentities($xml);
-                    $xml = preg_replace('/[\x00-\x08\x0b-\x0c\x0e-\x1f]/', '', $xml);
+                    //$xml = utf8_encode($xml);
+                   //$xml = htmlentities($xml);
+                    //$xml = preg_replace('/[\x00-\x08\x0b-\x0c\x0e-\x1f]/', '', $xml);
                     $xml = simplexml_load_string($xml);	
-                    print_r($xml);
-                    return TRUE;
+                   // $this->debug($xml);
+                  //return TRUE;
                // }
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
                 //$xml = new SimpleXMLElement($xmlpath, null, true);
@@ -109,6 +109,7 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
                 $sourceId = (string)$content->children('stab1',true)->external->children('extensions-core',true)->sourceId;
                 $uuid = (string)$content->attributes();
                 $photo = '';
+                $profileInformation = '';
                 //$this->debug($content);
                 //Photo
                 if($content->children('stab1',true)->photos) {
@@ -116,13 +117,36 @@ class tx_lthsolr_lucris_adduuid extends tx_scheduler_Task {
                 }
                 
 
+                //profileInformation
+                $profileInformationArray = array();
+                if($content->children('stab1',true)->profileInformation) {
+                    foreach($content->children('stab1', true)->profileInformation->children('extensions-core', true)->customField->children('extensions-core',true)->value->children('core',true)->localizedString as $localizedString) {
+                        //echo '126';
+                        if($localizedString->attributes()->locale == 'en_GB') {
+                            $profileInformationArray['en'] = (string)$localizedString;
+                        }
+                        if($localizedString->attributes()->locale == 'sv_SE') {
+                            $profileInformationArray['sv'] = (string)$localizedString;
+                        }
+                    }
+                    if(count($profileInformationArray) > 0) {
+                        $profileInformation = json_encode($profileInformationArray);
+                    }
+                }
+                //echo $uuid . $sourceId . $lucris_photo . $profileInformation;
+                /*
+                 * stab1:profileInformation xmlns:stab1="http://atira.dk/schemas/pure4/model/template/abstractperson/stable">
+<extensions-core:customField>
+<extensions-core:value>
+<core:localizedString locale="sv_SE
+                 */
 
                 if($sourceId && $uuid) {
                     $sourceIdArray = explode('@', $sourceId);
                     $sourceId = $sourceIdArray[0];
                    
                     $id = (string)$sourceId;
-                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_lthsolr_lucrisdata', array('typo3_id' => $id, 'lucris_id' => $uuid, 'lucris_photo' => $photo));
+                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_lthsolr_lucrisdata', array('typo3_id' => $id, 'lucris_id' => $uuid, 'lucris_photo' => $photo, 'lucris_profile_information' => $profileInformation));
                     //$idArray[$id] = $uuid;
                    /* if($id) {
                         $uuid = (string)$content->attributes();

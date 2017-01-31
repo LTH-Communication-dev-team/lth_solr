@@ -31,7 +31,7 @@
  * @package	TYPO3
  * @subpackage	tx_lthsolr
  */
-class tx_lthsolr_pi1 extends tslib_pibase {
+class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	public $prefixId      = 'tx_lthsolr_pi1';		// Same as class name
 	public $scriptRelPath = 'pi1/class.tx_lthsolr_pi1.php';	// Path to this script relative to the extension dir.
 	public $extKey        = 'lth_solr';	// The extension key.
@@ -89,11 +89,13 @@ class tx_lthsolr_pi1 extends tslib_pibase {
         
         private function searchResult($query, $noItemsToShow)
         {
+            $content;
             //searchbox
-            $content = '<form id="lthsolr_form" action="" method="post" accept-charset="UTF-8">
+            //                <input type="submit" id="edit-submit" name="op" value="' . $this->pi_getLL("search") . '" class="form-submit" />
+
+            $content .= '<form id="lthsolr_form" action="" method="post" accept-charset="UTF-8">
             <div class="form-item form-type-textfield form-item-search" role="application">
-                <input type="text" id="searchSiteMain" name="query" value="' . $query . '" />
-                <input type="submit" id="edit-submit" name="op" value="' . $this->pi_getLL("search") . '" class="form-submit" />
+                <input type="hidden" id="searchSiteMain" name="query" value="' . $query . '" />
                 <input type="hidden" id="no_cache" name="no_cache" value="1" />
                 <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />
             </div>
@@ -101,8 +103,8 @@ class tx_lthsolr_pi1 extends tslib_pibase {
             
             //people
             $content .= '<div id="lthsolr_people_header"></div>';
-            $content .= '<div id="lthsolr_staff_container"></div>';
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_simple.html");
+            $content .= '<table id="lthsolr_staff_container"></table>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_search.html");
             
             //pages
             $content .= '<div id="lthsolr_pages_header"></div>';

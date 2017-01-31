@@ -28,26 +28,24 @@ class lth_solr_ajax {
         $checked = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('checked');
         $pid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('pid');
         $sys_language_uid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sys_language_uid');
-        $categoriesThisPage = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('categoriesThisPage');
-        $introThisPage = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('introThisPage');
         $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sid');
 
         switch($action) {
             case 'updateIntroAndImage':
-		$content = $this->updateIntroAndImage($items, $pid, $value, $checked, $sys_language_uid, $introThisPage, $config);
+		$content = $this->updateIntroAndImage($items, $pid, $value, $checked, $sys_language_uid, $config);
 		break;	    
             case 'resort':
 		$content = $this->resort($items, $pid, $sys_language_uid, $config);
 		break;
             case 'updateCategories':
-		$content = $this->updateCategories($items, $pid, $value, $checked, $sys_language_uid, $categoriesThisPage, $config);
+		$content = $this->updateCategories($items, $pid, $value, $checked, $sys_language_uid, $config);
 		break;
             case 'updateHideonpage':
 		$content = $this->updateHideonpage($items, $pid, $value, $checked, $sys_language_uid, $config);
 		break;            
-	    case 'updateRedirect':
+	    /*case 'updateRedirect':
 		$content = $this->updateRedirect($items, $pid, $value, $config);
-		break;
+		break;*/
             case 'hidePublication':
                 $content = $this->hidePublication($items, $pid, $value, $checked, $sys_language_uid, $config);
                 break;
@@ -56,6 +54,10 @@ class lth_solr_ajax {
                 break;
             case 'addPageShow':
                 $content = $this->addPageShow($items, $pid, $config, $checked);
+                break;
+            case 'updateAutopage':
+                $content = $this->updateAutopage($items, $pid, $value, $checked, $sys_language_uid, $config);
+                break;
 	}
         
         echo json_encode($content);
@@ -133,7 +135,7 @@ class lth_solr_ajax {
     }
     
     
-    public function updateCategories($items, $pid, $value, $checked, $sys_language_uid, $categoriesThisPage, $config)
+    public function updateCategories($items, $pid, $value, $checked, $sys_language_uid, $config)
     {
         // $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked, $categoriesThisPage", 'crdate' => time()));
         
@@ -145,11 +147,11 @@ class lth_solr_ajax {
         
         $query->setQuery('id:'.$items);
         
-        if($categoriesThisPage) {
+        //if($categoriesThisPage) {
             $catVar = 'lth_solr_cat_' . $pid . '_ss';
-        } else {
-            $catVar = 'lth_solr_cat_ss';
-        }
+        //} else {
+        //    $catVar = 'lth_solr_cat_ss';
+        //}
 
         $response = $client->select($query);
         
@@ -168,6 +170,17 @@ class lth_solr_ajax {
                
             }
             
+            $primary_uid = $document->primary_uid;
+            $catArray = array();
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_cat", "fe_users", "username='$primary_uid'  AND lth_solr_cat != ''");
+            while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                $catArray = $row['lth_solr_cat'];
+            }
+            $GLOBALS['TYPO3_DB']->sql_free_result($res);
+            if($catArray) {
+                $catArray = json_decode($catArray, true);
+            } 
+            
             if($checked === 'true') {
                 if(is_array($doc->$catVar)) {
                     $tmpCatArray = array();
@@ -181,6 +194,9 @@ class lth_solr_ajax {
                 } else {
                     $doc->$catVar = $value;
                 }
+                if(is_array($catArray)) {
+                    $catArray[$catVar][] = $value;
+                }
             } else {
                 if(is_array($doc->$catVar)) {
                     $tmpCat = array_search($value, $doc->$catVar);
@@ -190,6 +206,10 @@ class lth_solr_ajax {
                 } else {
                     unset($doc->$catVar);
                 }
+                if(is_array($catArray[$catVar])) {
+                    $tmpCat = array_search($value, $catArray[$catVar]);
+                    unset($catArray[$catVar][$tmpCat]);
+                } 
             }
         }
         
@@ -197,21 +217,15 @@ class lth_solr_ajax {
         $update->addCommit();
         $result = $client->update($update);
         
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_cat", "fe_users", "username='$items'  AND lth_solr_cat != ''");
-        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-            $catArray = $row['lth_solr_cat'];
-        }
-        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        
 
-        if($catArray) {
-            $catArray = json_decode($catArray, true);
-        } 
-        $catArray[$catVar] = $doc->$catVar;
-
+        
+       // $catArray[$catVar] = $doc->$catVar;
+$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $updateArray = array('lth_solr_cat' => json_encode($catArray), 'tstamp' => time());
 
-        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "username='$items'", $updateArray);
-
+        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "username='$primary_uid'", $updateArray);
+$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         return $result;
     }
     
@@ -367,7 +381,7 @@ class lth_solr_ajax {
     }
    
     
-    public function updateIntroAndImage($username, $pid, $value, $checked, $sys_language_uid, $introThisPage, $config)
+    public function updateIntroAndImage($username, $pid, $value, $checked, $sys_language_uid, $config)
     {
         $valueArray = json_decode($value, true);
         $introText = $valueArray[0];
@@ -386,11 +400,11 @@ class lth_solr_ajax {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(50);
         
-        if(intval($introThisPage)===1) {
+        //if(intval($introThisPage)===1) {
             $introVar = 'staff_custom_text_' . $pid . '_s';
-        } else {
-            $introVar = 'staff_custom_text_s';
-        }
+        //} else {
+         //   $introVar = 'staff_custom_text_s';
+        //}
         $imageVar = 'image_s';
 
         $data = array();
@@ -431,10 +445,10 @@ class lth_solr_ajax {
         $client->update($update);
         
         /////////////////////////
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_intro, image", "fe_users", "username='$username'");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_intro", "fe_users", "lucache_id='$username'");
         $row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res);
         $introArray = $row['lth_solr_intro'];
-        $image = $row['image'];
+        //$image = $row['image'];
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
 
         if($introArray) {
@@ -450,16 +464,16 @@ class lth_solr_ajax {
             $introArray = '';
         }
         
-        $updateImage = '';
+       /* $updateImage = '';
         if($data['image_s'] == '' && $image) {
             $updateImage = $image;
         } else if($data['image_s'] != '') {
             $updateImage = $data['image_s'];
-        }
+        }*/
 
-        $updateArray = array('lth_solr_intro' => $introArray, 'image' => $updateImage, 'image_id' => $imageId, 'tstamp' => time());
+        $updateArray = array('lth_solr_intro' => $introArray, 'image' => $identifier, 'image_id' => $imageId, 'tstamp' => time());
 
-        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "username='$username'", $updateArray);
+        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "lucache_id='$username'", $updateArray);
         /////////////////////////
         
         $returnArray = [];
@@ -469,7 +483,171 @@ class lth_solr_ajax {
     }
     
     
-    function updateRedirect($items, $pid, $value, $config)
+    function updateAutopage($items, $pid, $value, $checked, $sys_language_uid, $config)
+    {
+        $username = $items;
+        $autoArray = array();
+        $name = '';
+        $autoVar = 'lth_solr_autohomepage_' . $pid . '_s';
+        
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid, lth_solr_autohomepage", "fe_users", "lucache_id='$username'");
+        $row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res);
+        $feUid = $row['uid'];
+        $autoArray = $row['lth_solr_autohomepage'];
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+
+        if($autoArray) {
+            $autoArray = json_decode($autoArray, true);
+        } 
+        
+        $name = $value;
+        $rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($pid);
+        if(is_array($rootLine)) {
+            foreach($rootLine as $key => $value) {
+                $uidArray[] = $value['uid'];
+            }
+            if(is_array($uidArray)) {
+                $uidString = implode(',', $uidArray);
+                $GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
+                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("p.uid AS pid","pages p JOIN sys_template s ON s.pid=p.uid AND s.root = 1 AND s.hidden=0 AND 
+s.deleted=0","p.uid IN($uidString)","","p.uid DESC","0,1");
+                $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+                $pid = $row['pid'];
+                if($pid) {
+                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid","pages","title='staff_container' AND pid=$pid AND hidden=0 AND deleted=0");
+                    $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+                    $scUid = $row['uid'];
+                    if(!$scUid) {
+                        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("MAX(sorting) AS sorting","pages","pid = $pid AND hidden=0 AND deleted=0");
+                        $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+                        $sorting = $row['sorting'];
+                        if($sorting) {
+                            $sorting = intval($sorting) + 100;
+                        }
+                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('pages', array('pid' => $pid, 'perms_userid' => 1, 'perms_groupid' => 1,
+                            'perms_user' => 31, 'perms_group' => 0, 'perms_everybody' => 0, 'title' => "staff_container", 'doktype' => 254,
+                            'sorting' => $sorting, 'tx_realurl_exclude' => 1));
+                        $scUid = $GLOBALS['TYPO3_DB']->sql_insert_id();
+                    }
+                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("p.uid AS pUid, t.uid AS tUid, p.deleted","pages p LEFT JOIN tt_content t ON p.uid=t.pid",
+                            "p.pid=$scUid AND p.title='" . $this->fixAAO($name) . "'");
+                    $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+                    $pUid = $row['pUid'];
+                    $tUid = $row['tUid'];
+                    $deleted = $row['deleted'];
+                    $pi_flexform = '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+                    <T3FlexForms>
+                        <data>
+                            <sheet index="sDEF">
+                                <language index="lDEF">
+                                    <field index="noItemsToShow">
+                                        <value index="vDEF">10</value>
+                                    </field>
+                                    <field index="publicationDetailPage">
+                                        <value index="vDEF">41778</value>
+                                    </field>
+                                    <field index="projectDetailPage">
+                                        <value index="vDEF">41780</value>
+                                    </field>
+                                    <field index="showStaff">
+                                        <value index="vDEF">1</value>
+                                    </field>
+                                    <field index="showPublications">
+                                        <value index="vDEF">1</value>
+                                    </field>
+                                    <field index="showProjects">
+                                        <value index="vDEF">1</value>
+                                    </field>
+                                    <field index="fe_users">
+                                        <value index="vDEF">'.$feUid.'</value>
+                                    </field>
+                                    <field index="showStaffPos">
+                                        <value index="vDEF">right</value>
+                                    </field>
+                                </language>
+                            </sheet>
+                        </data>
+                    </T3FlexForms>';
+                    if(!$pUid) {
+                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('pages', array('pid' => $scUid, 'perms_userid' => 1, 'perms_groupid' => 1,
+                            'perms_user' => 31, 'perms_group' => 0, 'perms_everybody' => 0, 'title' => $this->fixAAO($name), 'doktype' => 1,
+                            'nav_hide' => 1));
+                        $pUid = $GLOBALS['TYPO3_DB']->sql_insert_id();
+                        //tt_content
+                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tt_content', array('pid' => $pUid, 'CType' => 'list',
+                            'list_type' => 'lth_solr_pi5', 'pi_flexform' => $pi_flexform));
+                    } else if($pUid && $deleted && ($checked || $checked == 'true')) {
+                        $GLOBALS['TYPO3_DB']->exec_UPDATEquery('pages', 'uid='.intval($pUid), array('deleted' => 0, 'title' => $this->fixAAO($name)));
+                        $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tt_content', 'uid='.intval($tUid), array('pid' => $pUid, 'CType' => 'list',
+                            'list_type' => 'lth_solr_pi5', 'pi_flexform' => $pi_flexform, 'deleted' => 0));
+                    } else if(!$checked || $checked == 'false') {
+                        $GLOBALS['TYPO3_DB']->exec_UPDATEquery('pages', 'uid='.intval($pUid), array('deleted' => 1));
+                    }
+                }
+            }
+        }
+        
+        $rVal = $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
+            
+        if(!$checked || $checked == 'false') {
+            $name = '';
+        }
+        $autoArray[$autoVar] = $this->fixAAO($name);
+        
+        $updateArray = array('lth_solr_autohomepage' => json_encode($autoArray, true));
+
+        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "lucache_id='$username'", $updateArray);
+        
+        $client = new Solarium\Client($config);
+        $update = $client->createUpdate();
+        ${"doc"} = $update->createDocument();
+        ${"doc"}->setKey('id', $items);
+        ${"doc"}->addField($autoVar, $this->fixAAO($name));
+        ${"doc"}->setFieldModifier($autoVar, 'set');
+        $docArray[] = ${"doc"};
+        $update->addDocuments($docArray);
+        $update->addCommit();
+        $result = $client->update($update);
+        /*$client = new Solarium\Client($config);
+        
+        
+        
+        $value = json_decode($value);
+        $url = $value[0];
+        $destination = $value[1];
+        
+        if($url && $destination) {
+            $url = rtrim(ltrim($url,'/'),'/') . '/';
+            $updateInsertArray = array('url_hash' => hexdec(substr(md5($url), 0, 7)), 'url' => $url, 'destination' => $destination, 'last_referer' => '', 'has_moved' => 1, 'tstamp' => time());
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("url", "tx_realurl_redirects", "url='" . addslashes($url) . "'");
+            if($GLOBALS['TYPO3_DB']->sql_num_rows($res) > 0) {
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery("tx_realurl_redirects", "url='" . addslashes($url) . "'", $updateInsertArray);
+            } else {
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery("tx_realurl_redirects", $updateInsertArray); 
+            }
+            
+            
+        }
+         */
+       // return TRUE;
+        return $rVal;
+    }
+    
+    
+    function fixAAO($name)
+    {
+        if($name) {
+            $name = strtolower($name);
+            $name = str_replace('å', 'a', $name);
+            $name = str_replace('ä', 'a', $name);
+            $name = str_replace('ö', 'a', $name);
+            $name = str_replace(' ', '-', $name);
+        }
+        return $name;
+    }
+    
+    
+    /*function updateRedirect($items, $pid, $value, $config)
     {
         $client = new Solarium\Client($config);
         
@@ -502,7 +680,7 @@ class lth_solr_ajax {
             $result = $client->update($update);
         }
     }
-    
+    */
     
     function addPageShow($items, $pid, $config, $checked)
     {

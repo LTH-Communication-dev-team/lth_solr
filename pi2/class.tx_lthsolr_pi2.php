@@ -31,7 +31,7 @@
  * @package	TYPO3
  * @subpackage	tx_lthsolr
  */
-class tx_lthsolr_pi2 extends tslib_pibase {
+class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	public $prefixId      = 'tx_lthsolr_pi2';		// Same as class name
 	public $scriptRelPath = 'pi2/class.tx_lthsolr_pi2.php';	// Path to this script relative to the extension dir.
 	public $extKey        = 'lth_solr';	// The extension key.
@@ -67,7 +67,7 @@ class tx_lthsolr_pi2 extends tslib_pibase {
                 }
                 $GLOBALS['TYPO3_DB']->sql_free_result($res);
             }
-            $detailPage = $this->pi_getFFvalue($piFlexForm, "detailpage", "sDEF", $lDef[$index]);
+            //$detailPage = $this->pi_getFFvalue($piFlexForm, "detailpage", "sDEF", $lDef[$index]);
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $customCategories = $this->pi_getFFvalue($piFlexForm, "customcategories", "sDEF", $lDef[$index]);
             $categoriesThisPage = $this->pi_getFFvalue($piFlexForm, "categoriesthispage", "sDEF", $lDef[$index]);
@@ -75,12 +75,12 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             //$addPeople = $this->pi_getFFvalue($piFlexForm, "addpeople", "sDEF", $lDef[$index]);
             $hideFilter = $this->pi_getFFvalue($piFlexForm, "hideFilter", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
-            $detailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
+            /*$detailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
                 array(
                     'parameter' => $detailPage,
                     'forceAbsoluteUrl' => true,
                 )
-            );
+            );*/
             $pid = $GLOBALS['TSFE']->page['pid'];
             //$solrId = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('solrid');
             $link = $_SERVER['PHP_SELF'];
@@ -157,7 +157,6 @@ class tx_lthsolr_pi2 extends tslib_pibase {
             } else {
                 $content .= '
                     <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-                    <input type="hidden" id="lth_solr_staffdetailpage" value="' . $detailUrl . '" />
                     <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
                     <input type="hidden" id="pid" value="' . $pid . '" />
                     <input type="hidden" id="lth_solr_action" value="listStaff" />
