@@ -5,10 +5,10 @@ var lthClassesToShow = Array('dt-buttons');
  * and open the template in the editor.
  */
 $(document).ready(function() {
-
+    
     if($('#searchSiteMain').val()) {
         //widget($('#query').val());
-        searchLong($('#searchSiteMain').val(), 0, 0, 0, false);
+        searchLong($('#searchSiteMain').val(), 0, 0, 0, 0, false);
     }
     //console.log($('#lth_solr_action').val());
     if($('#lth_solr_action').val() == 'listStaff') {
@@ -98,7 +98,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                 $('#lthsolr_staff_container div').remove().append('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
             }
             //$('#lthsolr_all').remove();
-            $('.lthsolr_more').replaceWith('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            //$('.lthsolr_more').replaceWith('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
         },
         success: function(d) {
             if(d.data) {
@@ -284,13 +284,13 @@ function inArray(needle, haystack)
 }*/
 
 
-function searchLong(term, startPeople, startPages, startDocuments, more)
+function searchLong(term, startPeople, startPages, startDocuments, startCourses, more)
 {
     if(term.replace('"','').length < 2) return false;
     var syslang = $('#lth_solr_syslang').val();
     var tableLength = 8; //$('#lth_solr_no_items').val();
     var template;
-    //console.log(term);
+    //console.log(more);
     $.ajax({
         type : 'POST',
         url : 'index.php',
@@ -301,16 +301,20 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
             peopleOffset: startPeople,
             pageOffset: startPages,
             documentOffset: startDocuments,
+            courseOffset: startCourses,
             table_length : tableLength,
+            more: more,
             sid : Math.random(),
         },
         //contentType: "application/json; charset=utf-8",
         dataType: 'json',
         beforeSend: function () {
-            if(startPages == 0 && startDocuments == 0 && !more) $('#lthsolr_staff_container').append('<img class="lthsolr_loader" id="lthsolr_loader_staff" src="/fileadmin/templates/images/ajax-loader.gif" />');
-            if(startPeople == 0 && startDocuments == 0 && !more) $('#lthsolr_pages_container').append('<img class="lthsolr_loader" id="lthsolr_loader_pages" src="/fileadmin/templates/images/ajax-loader.gif" />');
-            if(startPages == 0 && startPeople == 0 && !more) $('#lthsolr_documents_container').append('<img class="lthsolr_loader" id="lthsolr_loader_documents" src="/fileadmin/templates/images/ajax-loader.gif" />');
-            $('.lthsolr_more').replaceWith('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            if(startPeople > 0 || more === 'people') $('#lthsolr_staff_container').html('<img class="lthsolr_loader" id="lthsolr_loader_staff" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            if(startPages > 0 || more === 'pages') $('#lthsolr_pages_container').html('<img class="lthsolr_loader" id="lthsolr_loader_pages" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            if(startDocuments > 0 || more === 'documents') $('#lthsolr_documents_container').html('<img class="lthsolr_loader" id="lthsolr_loader_documents" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            if(startCourses > 0 || more === 'courses') $('#lthsolr_courses_container').html('<img class="lthsolr_loader" id="lthsolr_loader_courses" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            
+            //$('.lthsolr_more').replaceWith('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
         },
         success: function(d) {
             var i = 0;
@@ -362,10 +366,10 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
 
                     template = template.replace('###email_t###', aData[6]);
                     
-                    if(aData[2]) title_t = aData[2][0];
-                    if(aData[3]) title_en_t = aData[3][0];
-                    if(aData[7]) oname_t = aData[7][0];
-                    if(aData[8]) oname_en_t = aData[8][0];
+                    if(aData[2]) title_t = splitString(aData[2][0]+'',30);
+                    if(aData[3]) title_en_t = splitString(aData[3][0]+'',30);
+                    if(aData[7]) oname_t = splitString(aData[7][0]+'',30);
+                    if(aData[8]) oname_en_t = splitString(aData[8][0]+'',30);
                     if(aData[4]) {
                         phone = aData[4][0];
                     }
@@ -408,13 +412,19 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
 
                     //template = template.replace('###image_t###', '<div style="height: 100px"><img style="max-height: 100%; max-width: 100%" src="' + aData[11] + '" /></div>');
                     var image = '';
-                    if(aData[11]) image = '<div class="align_left" style="width:80px;"><img style="max-height: 100%; max-width: 100%" src="' + aData[11] + '" /></div>';
-                    template = template.replace('###image_t###', image);
+                    if(aData[11] != 0 && aData[11] != null) {
+                       image = aData[11];
+                    } else if(aData[12]) {
+                       image = aData[12];
+                    }
+
+                    if(image !== '') image = '<div class="align_left" style="width:80px;"><img style="max-height: 100%; max-width: 100%" src="' + image + '" /></div>';
+                    template = template.replace('###image###', image);
                     
                     //if(aData[12]) intro = aData[12].replace('\n','<br />');
                     //template = template.replace('###lth_solr_intro###', intro);
 
-                    if(aData[11]) {
+                    if(aData[13]) {
                         roomNumber = '(' + lth_solr_messages.room + ' ' + aData[11] + ')';
                     } else {
                         roomNumber = '';
@@ -428,10 +438,17 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
                     tableCounter++;
                 });
                 $('#lthsolr_loader_staff').remove();
-                //$('#lthsolr_staff_container .lthsolr_more').remove();
-                $('.lthsolr_loader').remove();
-
-                $('#lthsolr_people_header').html('<span class="lth_solr_search_header">' + lth_solr_messages.people + '</span><span>1-' + maxLength(parseInt(startPeople) + parseInt(tableLength),parseInt(d.peopleNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.peopleNumFound + '</span>');
+ 
+                $('#lthsolr_people_header').html('<span class="lth_solr_search_header">' + lth_solr_messages.people + '</span><span>' + (parseInt(startPeople) + 1) + '-' + maxLength(parseInt(startPeople) + parseInt(tableLength),parseInt(d.peopleNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.peopleNumFound + '</span>');
+                
+                if((parseInt(startPeople) - parseInt(tableLength)) >= 0) {
+                    $('#lthsolr_people_header').append('<span class="lthsolr_more">\n\
+                    <a href="javascript:" onclick="var board_h = $(this).closest(\'.lthsolr_table_wrapper\').outerHeight();\n\
+                    $(this).closest(\'.lthsolr_table_wrapper\').css(\'height\', board_h + \'px\');\n\
+                    $(\'#lth_solr_no_items\').val(' + d.peopleNumFound + '); \n\
+                    searchLong(\'' + term + '\',' + (parseInt(startPeople) - parseInt(tableLength)) + ',0,0,0,\'people\');">\n\
+                    <span class="fa fa-angle-double-left"></span>' + lth_solr_messages.prev + '</a></span>');
+                }
                 if((parseInt(startPeople) + parseInt(tableLength)) < d.peopleNumFound) {
                     /*$('#lthsolr_staff_container').append('<div class="lthsolr_more"><a href="javascript:" \
                         onclick="searchLong(\'' + term + '\',' + (parseInt(startPeople) + parseInt(tableLength)) + ',0,0,true);">' + lth_solr_messages.next + ' ' + 
@@ -439,17 +456,23 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
                         d.peopleNumFound + '); searchLong(\'' + term + '\',' +
                         (parseInt(startPeople) + parseInt(tableLength)) + ',0,0,true);">' + lth_solr_messages.show_all + ' ' + d.peopleNumFound + '</a></div>');
                     */
-                   $('#lthsolr_people_header').append('<span style="margin-left:15px;"><a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + 
-                        d.peopleNumFound + '); searchLong(\'' + term + '\',' +
-                        (parseInt(startPeople) + parseInt(tableLength)) + ',0,0,true);">' + lth_solr_messages.show_all + '</a></span>');
+                    $('#lthsolr_people_header').append('<span class="lthsolr_more">\n\
+                        <a href="javascript:" onclick="var board_h = $(this).closest(\'.lthsolr_table_wrapper\').outerHeight();\n\
+                        $(this).closest(\'.lthsolr_table_wrapper\').css(\'height\', board_h + \'px\');\n\
+                        $(\'#lth_solr_no_items\').val(' + d.peopleNumFound + ');\n\
+                        searchLong(\'' + term + '\',' + (parseInt(startPeople) + parseInt(tableLength)) + ',0,0,0,\'people\');">' + lth_solr_messages.next + 
+                        '<span class="fa fa-angle-double-right"></span></a></span>');
                 }
-            } else {
-                $('#lthsolr_loader_staff').remove();
+            } else if(more !== true) {
+                /*$('#lthsolr_loader_staff').remove();
                 if(d.pageData.length == 0 && d.documentData.length == 0) {
                     $('#lthsolr_people_header').html('<h3>' + lth_solr_messages.nohits.replace('###term###',term) + '</h3>');
-                }
+                }*/
+                $('#lthsolr_staff_container').parent().remove();
             }
             
+            var tableCounter = 4;
+            var indexCounter = 1;
             if(d.pageData.length > 0) {
                 $('.lth_solr_res').append('<li>Pages</li>');
                 $.each( d.pageData, function( key, aData ) {
@@ -464,37 +487,60 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
                     if(aData[1]) title = aData[1][0].split('|').pop().trim();
                     //console.log(title);
                     if(aData[2]) teaser = '<p>' + aData[2] + '</p>';
-                    if(aData[3]) {
+                    /*if(aData[3]) {
                         url = aData[3];
                         link = '<p class="pagelink"><a href="' + aData[3] + '">' + aData[3] + '</a><p>';
-                    }
+                    }*/
 
                     template = template.replace('###id###', id);
-                    template = template.replace('###title###', title);
+                    template = template.replace('###title###', indexCounter + '. ' + splitString(title+'',30));
                     template = template.replace('###teaser###', teaser);
                     template = template.replace('###url###', url);
                     template = template.replace('###link###', link);
                     
-                    $('#lthsolr_pages_container').append(template);
+                    //$('#lthsolr_pages_container').append(template);
+                    
+                    if(tableCounter === 4) {
+                        $('#lthsolr_pages_container').append('<tr></tr>');
+                        tableCounter = 0
+                    }
+                    $('#lthsolr_pages_container tr:last').append(template);
+                    tableCounter++;
+                    indexCounter++;
                 });
                 
                 $('#lthsolr_loader_pages').remove();
-                //$('#lthsolr_pages_container .lthsolr_more').remove();
-                $('.lthsolr_loader').remove();
-                $('#lthsolr_pages_header').html('<span class="lth_solr_search_header">'+ lth_solr_messages.webpages + '</span><span>1-' + maxLength(parseInt(startPeople) + parseInt(tableLength),parseInt(d.pageNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.pageNumFound + '</span>');
+
+                $('#lthsolr_pages_header').html('<span class="lth_solr_search_header">'+ lth_solr_messages.webpages + '</span><span>' + (parseInt(startPeople) + 1) + '-' + maxLength(parseInt(startPages) + parseInt(tableLength),parseInt(d.pageNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.pageNumFound + '</span>');
+                
+                if((parseInt(startPages) - parseInt(tableLength)) >= 0) {
+                    $('#lthsolr_pages_header').append('<span class="lthsolr_more">\n\
+                    <a href="javascript:" onclick="var board_h = $(this).closest(\'.lthsolr_table_wrapper\').outerHeight();\n\
+                    $(this).closest(\'.lthsolr_table_wrapper\').css(\'height\', board_h + \'px\');\
+                    $(\'#lth_solr_no_items\').val(' + d.pageNumFound + '); \n\
+                    searchLong(\'' + term + '\',0,' + (parseInt(startPages) - parseInt(tableLength)) + ',0,0,\'pages\');">\n\
+                    <span class="fa fa-angle-double-left"></span>' + lth_solr_messages.prev + '</a></span>');
+                }
                 if((parseInt(startPages) + parseInt(tableLength)) < d.pageNumFound) {
                     /*$('#lthsolr_pages_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" \n\
                         onclick="searchLong(\'' + term + '\',0,' + (parseInt(startPages) + parseInt(tableLength)) + ',0,true);">' + lth_solr_messages.next + ' ' + tableLength + ' ' + 
                             lth_solr_messages.of + ' '  + d.pageNumFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.pageNumFound + '); \
                             searchLong(\'' + term + '\',0,' + (parseInt(startPages) + parseInt(tableLength)) + ',0,true);">' + lth_solr_messages.show_all + ' ' + d.pageNumFound + '</a></div>');
                     */
-                   $('#lthsolr_pages_header').append('<span style="margin-left:15px;"><a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.pageNumFound + '); \
-                            searchLong(\'' + term + '\',0,' + (parseInt(startPages) + parseInt(tableLength)) + ',0,true);">' + lth_solr_messages.show_all + '</a></span>');
+                   $('#lthsolr_pages_header').append('<span class="lthsolr_more">\n\
+                        <a href="javascript:" onclick="var board_h = $(this).closest(\'.lthsolr_table_wrapper\').outerHeight();\n\
+                        $(this).closest(\'.lthsolr_table_wrapper\').css(\'height\', board_h + \'px\');\n\
+                        $(\'#lth_solr_no_items\').val(' + d.pageNumFound + '); \
+                        searchLong(\'' + term + '\',0,' + (parseInt(startPages) + parseInt(tableLength)) + ',0,0,\'pages\');">\n\
+                        <span class="fa fa-angle-double-right"></span>' + lth_solr_messages.next + '</a></span>');
                 }
-            } else {
-                $('#lthsolr_loader_pages').remove();
+            } else if(more !== true) {
+                //$('#lthsolr_loader_pages').remove();
+                $('#lthsolr_pages_container').parent().remove();
             }
             
+            var tableCounter = 4;
+            var indexCounter = 1;
             if(d.documentData.length > 0) {
                 $('.lth_solr_res').append('<li>Documents</li>');
                 $.each( d.documentData, function( key, aData ) {
@@ -510,32 +556,126 @@ function searchLong(term, startPeople, startPages, startDocuments, more)
                     if(aData[2]) teaser = '<p>' + aData[2] + '</p>';
                     if(aData[3]) {
                         url = aData[3];
-                        link = '<p><a href="' + aData[3] + '">' + aData[3] + '</a><p>';
+                        link = '<p><a href="' + aData[3].toString().substring(0,25) + '">' + aData[3].toString().substring(0,25) + '</a><p>';
                     }
 
                     template = template.replace('###id###', id);
-                    template = template.replace('###title###', title);
+                    template = template.replace('###title###', indexCounter + '. ' + splitString(title+'',25));
                     template = template.replace('###teaser###', teaser);
-                    template = template.replace('###url###', url);
+                    //template = template.replace('###url###', url);
                     template = template.replace('###link###', link);
                     
-                    $('#lthsolr_documents_container').append(template);
+                    //$('#lthsolr_documents_container').append(template);
+                    if(tableCounter === 4) {
+                        $('#lthsolr_documents_container').append('<tr></tr>');
+                        tableCounter = 0
+                    }
+                    $('#lthsolr_documents_container tr:last').append(template);
+                    tableCounter++;
+                    indexCounter++;
                 });
                 
                 $('#lthsolr_loader_documents').remove();
-                //$('#lthsolr_documents_container .lthsolr_more').remove();
-                $('.lthsolr_loader').remove();
-                $('#lthsolr_people_header').html('<div class="lth_solr_search_header">1-' + maxLength(parseInt(startPeople) + parseInt(tableLength),parseInt(d.peopleNumFound)) + ' träffar ' + lth_solr_messages.of + ' '  + d.peopleNumFound + ' på "'+term+'" i kategorin ' + lth_solr_messages.pages + '</div>');
-                if((parseInt(startPages) + parseInt(tableLength)) < d.documentNumFound) {
-                    $('#lthsolr_documents_container').append('<div class="lthsolr_more"><a href="javascript:" \n\
+
+                $('#lthsolr_documents_header').html('<span class="lth_solr_search_header">'+ lth_solr_messages.documents + '</span><span>' + (parseInt(startPeople) + 1) + '-' + maxLength(parseInt(startDocuments) + parseInt(tableLength),parseInt(d.documentNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.documentNumFound + '</span>');
+                if((parseInt(startDocuments) - parseInt(tableLength)) >= 0) {
+                    $('#lthsolr_documents_header').append('<span class="lthsolr_more">\n\
+                    <a href="javascript:" onclick="var board_h = $(this).closest(\'.lthsolr_table_wrapper\').outerHeight(); \n\
+                    $(this).closest(\'.lthsolr_table_wrapper\').css(\'height\', board_h + \'px\');\n\
+                    $(\'#lth_solr_no_items\').val(' + d.documentNumFound + '); \n\
+                    searchLong(\'' + term + '\',0,0,' + (parseInt(startDocuments) - parseInt(tableLength)) + ',0,\'documents\',0);">\n\
+                    <span class="fa fa-angle-double-left"></span>' + lth_solr_messages.prev + '</a></span>');
+                }
+                if((parseInt(startDocuments) + parseInt(tableLength)) < d.documentNumFound) {
+                    /*$('#lthsolr_documents_container').append('<div class="lthsolr_more"><a href="javascript:" \n\
                         onclick="searchLong(\'' + term + '\',0,0,' + (parseInt(startPages) + parseInt(tableLength)) + ',true);">' + lth_solr_messages.of + ' ' + tableLength + ' ' + 
                             lth_solr_messages.next + ' '  + d.documentNumFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.documentsNumFound + '); \
                             searchLong(\'' + term + '\',0,0,' + (parseInt(startPages) + parseInt(tableLength)) + ',true);">' + lth_solr_messages.show_all + ' ' + d.documentNumFound + '</a></div>');
+                    */
+                    $('#lthsolr_documents_header').append('<span class="lthsolr_more">\n\
+                        <a href="javascript:" onclick="var board_h = $(this).closest(\'.lthsolr_table_wrapper\').outerHeight();\n\
+                        $(this).closest(\'.lthsolr_table_wrapper\').css(\'height\', board_h + \'px\');\n\
+                        $(\'#lth_solr_no_items\').val(' + d.documentsNumFound + '); \
+                        searchLong(\'' + term + '\',0,0,' + (parseInt(startDocuments) + parseInt(tableLength)) + ',0,\'documents\');">' + lth_solr_messages.next + 
+                        '<span class="fa fa-angle-double-right"></span></a></span>');
                 }
-            } else {
-                $('#lthsolr_loader_documents').remove();
+            } else if(more !== true) {
+                //$('#lthsolr_loader_documents').remove();
+                $('#lthsolr_documents_container').parent().remove();
             }
-            
+                
+            var tableCounter = 4;
+            var indexCounter = 1;
+            var course_code, credit;
+            if(d.courseData.length > 0) {
+                $('.lth_solr_res').append('<li>Courses</li>');
+                $.each( d.courseData, function( key, aData ) {
+                    template = $('#solrCoursesTemplate').html();
+                    id = '';
+                    title = '';
+                    course_code = '';
+                    url = '';
+                    link = '';
+                    credit = '';
+
+                    if(aData[0]) id = aData[0];
+                    if(aData[1]) title = aData[1];
+                    if(aData[3]) course_code = aData[3];
+                    if(aData[4]) credit = aData[4] + 'hp';
+                    if(aData[5]) {
+                        url = aData[5].toString();
+                        if(url.substr(0,4) != 'http') {
+                            url = 'http://' + url;
+                        }
+                        link = '<p><a href="' + url + '">' + url.substring(0,25) + '</a><p>';
+                    }
+
+                    template = template.replace('###id###', id);
+                    template = template.replace('###title###', indexCounter + '. ' + splitString(title+'',30));
+                    template = template.replace('###course_code###', course_code);
+                    template = template.replace('###link###', link);
+                    template = template.replace('###credit###', credit);
+                    
+                    //$('#lthsolr_documents_container').append(template);
+                    if(tableCounter === 4) {
+                        $('#lthsolr_courses_container').append('<tr></tr>');
+                        tableCounter = 0
+                    }
+                    $('#lthsolr_courses_container tr:last').append(template);
+                    tableCounter++;
+                    indexCounter++;
+                });
+
+                //$('#lthsolr_people_header').html('<div class="lth_solr_search_header">1-' + maxLength(parseInt(startPeople) + parseInt(tableLength),parseInt(d.peopleNumFound)) + ' träffar ' + lth_solr_messages.of + ' '  + d.peopleNumFound + ' på "'+term+'" i kategorin ' + lth_solr_messages.pages + '</div>');
+                $('#lthsolr_courses_header').html('<span class="lth_solr_search_header">'+ lth_solr_messages.courses + '</span><span>' + (parseInt(startCourses) + 1) + '-' + maxLength(parseInt(startCourses) + parseInt(tableLength),parseInt(d.courseNumFound)) + ' ' + lth_solr_messages.of + ' '  + d.courseNumFound + '</span>');
+                
+                if((parseInt(startCourses) - parseInt(tableLength)) >= 0) {
+                    $('#lthsolr_courses_header').append('<span class="lthsolr_more">\n\
+                        <a href="javascript:" onclick="var board_h = $(this).closest(\'.lthsolr_table_wrapper\').height(); \n\
+                        $(this).closest(\'.lthsolr_table_wrapper\').css(\'outerHeight\', board_h + \'px\');\n\
+                        $(\'#lth_solr_no_items\').val(' + d.documentNumFound + '); \n\
+                        searchLong(\'' + term + '\',0,0,0,' + (parseInt(startCourses) - parseInt(tableLength)) + ',\'courses\');">\n\
+                        <span class="fa fa-angle-double-left"></span>' + lth_solr_messages.prev + '</a></span>');
+  
+                }
+                if((parseInt(startCourses) + parseInt(tableLength)) < d.courseNumFound) {
+                    /*$('#lthsolr_documents_container').append('<div class="lthsolr_more"><a href="javascript:" \n\
+                        onclick="searchLong(\'' + term + '\',0,0,' + (parseInt(startPages) + parseInt(tableLength)) + ',true);">' + lth_solr_messages.of + ' ' + tableLength + ' ' + 
+                            lth_solr_messages.next + ' '  + d.documentNumFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.documentsNumFound + '); \
+                            searchLong(\'' + term + '\',0,0,' + (parseInt(startPages) + parseInt(tableLength)) + ',true);">' + lth_solr_messages.show_all + ' ' + d.documentNumFound + '</a></div>');
+                    */
+                    $('#lthsolr_courses_header').append('<span class="lthsolr_more">\n\
+                        <a href="javascript:" onclick="var board_h = $(this).closest(\'.lthsolr_table_wrapper\').height();\n\
+                        $(this).closest(\'.lthsolr_table_wrapper\').css(\'outerHeight\', board_h + \'px\');\n\
+                        $(\'#lth_solr_no_items\').val(' + d.courseNumFound + '); \
+                        searchLong(\'' + term + '\',0,0,0,' + (parseInt(startCourses) + parseInt(tableLength)) + ',\'courses\');">' + lth_solr_messages.next + 
+                        '<span class="fa fa-angle-double-right"></span></a></span>');
+    
+                }
+                $('#lthsolr_loader_courses').remove();
+            } else if(more !== true) {
+                $('#lthsolr_courses_container').parent().remove();
+            }
         },
         failure: function(errMsg) {
             console.log(errMsg);
@@ -1274,6 +1414,22 @@ function getFacets()
     } else {
         return null;
     }
+}
+
+function splitString(str, length) {
+    var words = str.split(" ");
+    for (var j = 0; j < words.length; j++) {
+        var l = words[j].length;
+        if (l > length) {
+            var result = [], i = 0;
+            while (i < l) {
+                result.push(words[j].substr(i, length))
+                i += length;
+            }
+            words[j] = result.join(" ");
+        }
+    }
+    return words.join(" ");
 }
 
 /*function lthSolrGetCookie(cname)

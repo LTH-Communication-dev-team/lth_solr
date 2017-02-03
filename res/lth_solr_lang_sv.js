@@ -1,5 +1,8 @@
 var lth_solr_messages = {
     show_all: "Visa alla",
+    show_more: "Visa fler",
+    next: "Nästa",
+    prev: "Förra",
     show_selection: "Visa urval",
     staff_categories: "Personalkategorier",
     personal_homepage: "Personlig hemsida",
@@ -28,6 +31,7 @@ var lth_solr_messages = {
     journalNumber: "Utgivningsnummer",
     journalTitle: "Tidskrift",
     numberOfPages: "Antal sidor",
-    keywords: "Forskningsområden"
+    keywords: "Forskningsområden",
+    courses: "Kurser"
 };
 

@@ -31,6 +31,8 @@ $term = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("term");
 $peopleOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("peopleOffset"));
 $pageOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("pageOffset"));
 $documentOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("documentOffset"));
+$courseOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("courseOffset"));
+$more = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("more"));
 $query = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("query"));
 $action = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("action"));
 $scope = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("scope"));
@@ -63,7 +65,7 @@ switch($action) {
         $content = searchShort($term, $config);
         break;
     case 'searchLong':
-        $content = searchLong($term, $table_length, $peopleOffset, $pageOffset, $documentOffset, $config);
+        $content = searchLong($term, $table_length, $peopleOffset, $pageOffset, $documentOffset, $courseOffset, $more, $config);
         break;
     case 'searchMorePeople':
         $content = searchMore($term, 'people', $peopleOffset, $pageOffset, $documentOffset, $config);
@@ -178,7 +180,7 @@ function searchShort($term, $config)
 }
 
 
-function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOffset, $config)
+function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOffset, $courseOffset, $more, $config)
 {
     $people;
     $documents;
@@ -196,6 +198,7 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
     $peopleData = array();
     $pageData = array();
     $documentData = array();
+    $courseData = array();
     
     $client = new Solarium\Client($config);
     $query = $client->createSelect();
@@ -207,23 +210,28 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
     }
 
     $groupComponent = $query->getGrouping();
-    if($pageOffset == '0' && $documentOffset == '0') {  
+    
+    if($more != 'pages' && $more != 'documents' && $more != 'courses') {  
         if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
             $groupComponent->addQuery('doctype:lucat AND (display_name:'.$term . ' OR phone:' . $term . ' OR email:' . $term . ')');
-            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'doctype:lucat AND (display_name:'.$term . ' OR phone:' . $term . ' OR email:' . $term . ')', 'crdate' => time()));
+            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'doctype:lucat AND (display_name:'.$term . ' OR phone:' . $term . ' OR email:' . $term . ')', 'crdate' => time()));
         } else {
             $groupComponent->addQuery('doctype:lucat AND (display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
         }
     }
-    if($peopleOffset == '0' && $documentOffset == '0') {
+    if($more != 'people' && $more != 'documents' && $more != 'courses') {
         $groupComponent->addQuery('doctype:page AND content:' . str_replace(' ','\\ ',$term));
     }
-    if($dpageOffset == '0' && $peopleOffset == '0') {
-        $groupComponent->addQuery('doctype:document AND content:' . str_replace(' ','\\ ',$term));
+    if($more != 'pages' && $more != 'people' && $more != 'courses') {
+        $groupComponent->addQuery('doctype:document AND attr_body:' . str_replace(' ','\\ ',$term));
     }
+    if($more != 'pages' && $more != 'documents' && $more != 'people') {
+        $groupComponent->addQuery('doctype:course AND (title_sv:' . str_replace(' ','\\ ',$term) . '* OR title_en:' . str_replace(' ','\\ ',$term) . '* OR course_code:' . strtolower(str_replace(' ','\\ ',$term.'*')).')');
+    }
+    
     if($pageOffset == '0' && $documentOffset == '0') $groupComponent->setSort('last_name_sort asc');
     $groupComponent->setLimit($tableLength);
-    $groupComponent->setOffset(intval($peopleOffset) + intval($pageOffset) + intval($documentOffset));
+    $groupComponent->setOffset(intval($peopleOffset) + intval($pageOffset) + intval($documentOffset) + intval($courseOffset));
     $resultset = $client->select($query);
     
     $groups = $resultset->getGrouping();
@@ -260,8 +268,8 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
                     $document->oname_en,
                     $document->primary_affiliation,
                     $document->homepage,
-                    //$image,
-                    //$intro,
+                    $document->image_id,
+                    $document->lucrisphoto,
                     $document->room_number,
                     $document->mobile,
                     $document->uuid,
@@ -291,25 +299,37 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
                     $document->teaser,
                     $document->stream_name
                 );
+            } else if($doctype == 'course') {
+                $courseData[] = array(
+                    $document->id,
+                    $document->title_sv,
+                    $document->title_en,
+                    $document->course_code,
+                    $document->credit,
+                    $document->url
+                );
             }
         }
     }
 
-    if($peopleOffset != '0') {
+    if($more == 'people') {
         $peopleNumFound = $numRow[0];
-    } else if($pageOffset != '0') {
+    } else if($more == 'pages') {
         $pageNumFound = $numRow[0];
-    } else if($documentOffset != '0') {
+    } else if($more == 'documents') {
         $documentNumFound = $numRow[0];
+    } else if($more == 'courses') {
+        $courseNumFound = $numRow[0];
     } else {
         $peopleNumFound = $numRow[0];
         $pageNumFound = $numRow[1];
         $documentNumFound = $numRow[2];
+        $courseNumFound = $numRow[3];
     }
     
     $facetResult = array_unique($facetResult);
 
-    return json_encode(array('peopleData' => $peopleData, 'peopleNumFound' => $peopleNumFound, 'pageData' => $pageData, 'pageNumFound' => $pageNumFound, 'documentData' => $documentData, 'documentNumFound' => $documentNumFound, 'facet' => $facetResult));
+    return json_encode(array('peopleData' => $peopleData, 'peopleNumFound' => $peopleNumFound, 'pageData' => $pageData, 'pageNumFound' => $pageNumFound, 'documentData' => $documentData, 'documentNumFound' => $documentNumFound, 'courseData' => $courseData, 'courseNumFound' => $courseNumFound, 'facet' => $facetResult));
 }
 
 

@@ -16,7 +16,7 @@ $TYPO3_CONF_VARS['FE']['eID_include']['lth_solr'] = 'EXT:lth_solr/service/ajax.p
 //$TYPO3_CONF_VARS['BE']['AJAX']['lth_solr::ajaxControl'] = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('lth_solr').'service/be_ajax.php:lth_solr_ajax->ajaxControl';
 
 
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['tx_lthsolr_lucacheimport'] = array(
+/*$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['tx_lthsolr_lucacheimport'] = array(
 	'extension'        => $_EXTKEY,
 	'title'            => 'Lucache Import',
 	'description'      => '',
@@ -56,6 +56,30 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['tx_lthsolr_lucr
 	'title'            => 'Lucris Add uuid',
 	'description'      => '',
 	'additionalFields' => '',
+);*/
+
+//LuCacheImport
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\LuCacheImport'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Lucache import',
+    'description' => '',
+    'additionalFields' => ''
+);
+
+//CourseImport
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\CourseImport'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Course import',
+    'description' => '',
+    'additionalFields' => ''
+);
+
+//DocumentImport
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\DocumentImport'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Document import',
+    'description' => '',
+    'additionalFields' => ''
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi1/class.tx_lthsolr_pi1.php', '_pi1', 'list_type', 1);

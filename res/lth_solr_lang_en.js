@@ -1,5 +1,8 @@
 var lth_solr_messages = {
     show_all: "Show all",
+    show_more: "Show more",
+    next: "Next",
+    prev: "Previous",
     show_selection: "Show selection",
     staff_categories: "Staff categories",
     personal_homepage: "Personal homepage",
@@ -28,7 +31,8 @@ var lth_solr_messages = {
     journalNumber: "Issue number",
     journalTitle: "Journal",
     numberOfPages: "Number of pages",
-    keywords: "Research areas and keywords"
+    keywords: "Research areas and keywords",
+    courses: Courses
 };
 
 

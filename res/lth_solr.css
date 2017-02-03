@@ -139,7 +139,18 @@ h2 {
 }
 
 .lthsolr_more {
-    alignment-adjust: middle;
+    margin-left:15px;
+    
+}
+
+.fa {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.lthsolr_more a {
+    color: #000000 !important;
+    text-decoration: none !important;
 }
 
 .pagelink a {
@@ -150,13 +161,22 @@ h2 {
     margin-top:20px;
 }
 
-#lthsolr_staff_container {
+#lthsolr_staff_container, #lthsolr_pages_container, #lthsolr_documents_container, #lthsolr_courses_container {
     border:0px;
 }
 
-#lthsolr_staff_container td {
+.lthsolr_table_wrapper {
+    background-color: #fbfbfb;
+     border-radius: 10px;
+    padding-left:15px;
+    padding-top:5px;
+    margin-top:15px;
+    border:2px #f7f7f7 solid;
+}
+
+#lthsolr_staff_container td, #lthsolr_pages_container td, #lthsolr_documents_container td, #lthsolr_courses_container td {
     min-width:220px;
-    padding:20px 20px 20px 0px;
+    padding:15px 15px 0px 0px;
     border:0px;
 }
 

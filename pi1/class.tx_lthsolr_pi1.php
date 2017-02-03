@@ -68,7 +68,7 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
-            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
+            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js?" . rand(1,100000000) . "\"></script>"; 
 
             $query = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query'));
             $tab = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tab');
@@ -91,30 +91,37 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
         {
             $content;
             //searchbox
-            //                <input type="submit" id="edit-submit" name="op" value="' . $this->pi_getLL("search") . '" class="form-submit" />
+            //                
 
-            $content .= '<form id="lthsolr_form" action="" method="post" accept-charset="UTF-8">
-            <div class="form-item form-type-textfield form-item-search" role="application">
-                <input type="hidden" id="searchSiteMain" name="query" value="' . $query . '" />
+            $content .= '<form id="lthsolr_form" class="form-inline" action="" method="post" accept-charset="UTF-8">
+            <div class="form-group">
+                <input type="text" class="form-control" id="searchSiteMain" name="query" value="' . $query . '" />
+            </div>
                 <input type="hidden" id="no_cache" name="no_cache" value="1" />
                 <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />
-            </div>
+                <input type="submit" id="edit-submit" name="op" value="' . $this->pi_getLL("search") . '"  class="btn btn-default" />
+            
             </form>';
             
             //people
-            $content .= '<div id="lthsolr_people_header"></div>';
-            $content .= '<table id="lthsolr_staff_container"></table>';
+            $content .= '<div class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_people_header"></div>';
+            $content .= '<table id="lthsolr_staff_container" class="table"></table></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_search.html");
             
             //pages
-            $content .= '<div id="lthsolr_pages_header"></div>';
-            $content .= '<div id="lthsolr_pages_container"></div>';
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/pages_simple.html");
+            $content .= '<div class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_pages_header"></div>';
+            $content .= '<table id="lthsolr_pages_container" class="table"></table></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/pages_search.html");
             
             //documents
-            $content .= '<div id="lthsolr_documents_header"></div>';
-            $content .= '<div id="lthsolr_documents_container"></div>';
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/pages_simple.html");
+            $content .= '<div class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_documents_header"></div>';
+            $content .= '<table id="lthsolr_documents_container" class="table"></table></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/documents_search.html");
+            
+            //courses
+            $content .= '<div class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_courses_header"></div>';
+            $content .= '<table id="lthsolr_courses_container" class="table"></table></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/courses_search.html");
             
             return $content;
         }
