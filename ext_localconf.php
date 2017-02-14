@@ -7,7 +7,7 @@ if (!defined('TYPO3_MODE')) {
     'lth.' . $_EXTKEY
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'][] = 'LTH\\lth_solr\\Hooks\\ProcessCmdmap';
+//$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'][] = 'LTH\\lth_solr\\Hooks\\ProcessCmdmap';
 
 // Add AJAX support
 $TYPO3_CONF_VARS['FE']['eID_include']['lth_solr'] = 'EXT:lth_solr/service/ajax.php';

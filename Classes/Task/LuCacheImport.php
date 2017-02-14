@@ -161,7 +161,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             GROUP BY P.id, V.orgid 
             ORDER BY P.id, V.orgid";
         
-        $res = mysqli_query($con, $sql) or die("157; ".mysqli_error());
+        $res = mysqli_query($con, $sql) or die("164; ".mysqli_error());
 
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $primary_uid = $row['primary_uid'];
@@ -322,8 +322,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     private function getFeUsers($employeeArray)
     {
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT username, usergroup, image, image_id, lth_solr_cat, '
-                . 'lth_solr_sort, lth_solr_intro, lth_solr_autohomepage, lth_solr_show', 'fe_users', 'lth_solr_index = 1 AND disable = 0 AND deleted = 0');
+        //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT username, usergroup, image, image_id, lth_solr_cat, lucache_id, '
+                . 'lth_solr_sort, lth_solr_intro, lth_solr_autohomepage, lth_solr_show', 'fe_users', 'lth_solr_index = 1 AND deleted = 0');
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $username = $row['username'];
             $lth_solr_cat = $row['lth_solr_cat'];
@@ -331,6 +333,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $lth_solr_sort = $row['lth_solr_sort'];
             $lth_solr_autohomepage = $row['lth_solr_autohomepage'];
             $lth_solr_show = $row['lth_solr_show'];
+            $lucache_id = $row['lucache_id'];
             
             if(array_key_exists($username, $employeeArray)) {
                 if($lth_solr_cat && $lth_solr_cat !== '') {
@@ -376,7 +379,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $employeeArray[$username]['image_id'] = $row['image_id'];
                 $employeeArray[$username]['exist'] = TRUE;
             } else {
+                $employeeArray[$username]['id'] = $lucache_id;
                 $employeeArray[$username]['exist'] = 'disable';
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $username.$employeeArray[$username]['exist'], 'crdate' => time()));
             }
         }
         return $employeeArray;
@@ -450,7 +455,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             } 
             
             $usergroupArray = $this->getUids($value['orgid'], $feGroupsArray);
-            //echo $value['usergroup'];
+            //echo $value['orgid'];
             //echo $usergroupArray['pid'];
             //echo $usergroupArray['usergroup'];
             if($usergroupArray[0]) {
@@ -474,7 +479,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 }
 
                 if($value['exist']===TRUE && $usergroupArray[1]) {
-                    if(!$value['roomnumber']) $value['roomnumber'] = '';
+                    if(!$value['roomnumber']) {
+                        $value['roomnumber'] = '';
+                    }
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
@@ -489,6 +496,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         'hide_on_web' => $value['hide_on_web'],
                         'lth_solr_uuid' => (string)$value['uuid'],
                         'lucache_id' => $lucache_id,
+                        'lth_solr_index' => 1,
                         'tstamp' => time()
                     );
                     
@@ -499,12 +507,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     /*$employeeArray[$key]['image'] = $feUsersArray[$key]['image'];
                     $employeeArray[$key]['lth_solr_intro'] = $feUsersArray[$key]['lth_solr_intro'];
                     $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
-                } else if($value['exist']==='disable') {
-                    $updateArray = array(
-                        'disable' => 1,
-                        'tstamp' => time()
-                    );
-                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username = '" . $value['primary_uid'] . "'", $updateArray);
                 } else if($usergroupArray[1]) {
                     $insertArray = array(
                         'username' => $value['primary_uid'],
@@ -532,7 +534,14 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     //echo $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
                     //echo '471';
                 }
-            } 
+            } else if($value['exist'] === 'disable') {
+                 $updateArray = array(
+                    'disable' => 1,
+                    'tstamp' => time()
+                );
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'disable:'.$value['primary_uid'], 'crdate' => time()));
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username = '" . $key . "'", $updateArray);
+            }
         }
         return $employeeArray;
     }
@@ -544,16 +553,24 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //echo count($employeeArray);
         try {
             if(count($employeeArray) > 0) {
+                
                 $current_date = gmDate("Y-m-d\TH:i:s\Z");
                 
                 //create a client instance
                 $client = new \Solarium\Client($config);
-                
+                $update = $client->createUpdate();
                 $buffer = $client->getPlugin('bufferedadd');
                 $buffer->setBufferSize(250);
+                $docArray = array();
                 
                 foreach($employeeArray as $key => $value) {
-                    if($value['id']) {
+                    if($value['exist']==='disable') {
+                        ${"doc"} = $update->createDocument();
+                        ${"doc"}->setKey('id', $value['id']);
+                        ${"doc"}->addField('disable_i', 1);
+                        ${"doc"}->setFieldModifier('disable_i', 'set');
+                        $docArray[] = ${"doc"};
+                    } else if($value['id']) {
                         $heritage = array();
                         $heritage2 = array();
                         $legacy = array();
@@ -788,11 +805,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             }
                         }
                         
-                        if($value['exist']==='disable') {
-                            $data['disable'] = 1;
-                        } else {
-                            $data['disable'] = 0;
-                        }
+                        $data['disable_i'] = 0;
 
                         try {
                             $buffer->createDocument($data);
@@ -804,6 +817,12 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 } 
                 // this executes the query and returns the result
                 $buffer->commit();
+
+                if(count($docArray) > 0) {
+                    $update->addDocuments($docArray);
+                    $update->addCommit();
+                    $client->update($update);
+                }
                 return TRUE;
             } else {
                 echo 'no!!';

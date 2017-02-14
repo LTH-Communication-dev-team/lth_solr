@@ -63,10 +63,10 @@ $(document).ready(function() {
 function listStaff(tableStart, facet, query, noQuery, more)
 {
     var syslang = $('#lth_solr_syslang').val();
-    //var scope = $('#lth_solr_scope').val();
+    var scope = $('#lth_solr_scope').val();
     var tableLength = $('#lth_solr_no_items').val();
     //var lth_solr_detailpage = $('#lth_solr_staffdetailpage').val();
-    
+    //console.log(scope);
     $.ajax({
         type : 'POST',
         url : 'index.php',
@@ -77,7 +77,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
             table_length : tableLength,
             pid : $('#pid').val(),
             pageid : $('body').attr('id'),
-            //scope : scope,
+            scope : scope,
             syslang : syslang,
             query: query,
             categories : $('#lth_solr_categories').val(),

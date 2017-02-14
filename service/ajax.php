@@ -924,7 +924,7 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
 
     $query = $client->createSelect();
     
-    /*if($scope) {
+    if($scope) {
         $scopeArray = explode(",", $scope);
         $scope = '';
         foreach($scopeArray as $key => $value) {
@@ -935,32 +935,18 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
             }
             $scope .= '"' . $value . '" OR heritage:"' . $value . '"';
         }
-        $scope .= ')';
-    }*/
-    
-    /*if($addPeople) {
-        $addPeopleArray = explode("\n", $addPeople);
-        $addPeople = '';
-        foreach($addPeopleArray as $key => $value) {
-            if($addPeople) {
-                $addPeople .= ' OR ';
-            } else if($scope) {
-                $addPeople .= ' OR (id:';
-            } else {
-                $addPeople .= ' AND (id:';
-            }
-            $addPeople .= $value;
-        }
-        $addPeople .= ')';
-    }*/
+        $scope .= " OR $showVal:1)";
+    } else {
+        $scope = " OR $showVal:1";
+    }
     
     if($filterQuery) {
         $filterQuery = ' AND (display_name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '*)';
     }
 
-    //$queryToSet = '(doctype:"lucat"'.$scope.' AND hide_on_web:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
-    $queryToSet = '(doctype:"lucat" AND '. $showVal .':1 AND hide_on_web:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
-    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
+    $queryToSet = '(doctype:"lucat"'.$scope. ' AND hide_on_web:0 AND disable_i:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
+    //$queryToSet = '(doctype:"lucat" AND '. $showVal .':1 AND hide_on_web:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
+    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
     $query->setQuery($queryToSet);
     
     $query->setStart($table_start)->setRows($table_length);

@@ -19,46 +19,51 @@ class user_sampleflex_addFieldsToFlexForm {
         $sys_language_uid = $config['row']['sys_language_uid'];
         $catVar = 'lth_solr_cat_' . $pid . '_' . $sys_language_uid . '_ss';
         $hideVar = 'lth_solr_hide_' . $pid . '_' . $sys_language_uid . '_i';
+        $scope = $pi_flexform['scope']['vDEF'];
 
-        //$xml = simplexml_load_string($pi_flexform);
-        //$test = $xml->data->sheet[0]->language;
+        /*$xml = simplexml_load_string($pi_flexform);
+        $test = $xml->data->sheet[0]->language;
         
-        $customcategories = $pi_flexform['customcategories'];
-        //$categoriesThisPage = $pi_flexform['categoriesthispage'];
-        //$introThisPage = $pi_flexform['introthispage'];
-      
-        /*if($pi_flexform) {
+        if($pi_flexform) {
             foreach ($test->field as $n) {
                 foreach($n->attributes() as $name => $val) {
                     if ($val == 'customcategories') {
                         $customcategories = (string)$n->value;
                     } else if($val == 'scope') {
                         $scope = (string)$n->value;
-                    } else if($val == 'addpeople') {
-                        $addpeople = (string)$n->value;
-                    } else if($val == 'categoriesthispage') {
-                        $categoriesThisPage = (string)$n->value;
-                    } else if($val == 'introthispage') {
-                        $introThisPage = (string)$n->value;
                     }
                 }
             }
         }*/
-        /*if($scope) {
-            $scopeArray1 = explode(',',$scope);
-            foreach($scopeArray1 as $scope) {
-                $scope = explode('|',$scope);
-                $scope = explode('__',$scope[1]);
-                $scopeArray[] = $scope[0];
+        
+        $customcategories = $pi_flexform['customcategories'];
+        
+        $showVal = 'lth_solr_show_' . $pid . '_i';
+        
+        if($scope) {
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . implode(',',$scope) . ")");
+            while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                $title[] = explode('__', $row['title'])[0];
             }
-            $scopeArray = array_unique($scopeArray);
-        }*/
+            if($title) {
+                $scope = implode(',', $title);
+            }
+            $GLOBALS['TYPO3_DB']->sql_free_result($res);
 
-        /*if($customcategories) {
-            $customcategoriesArray = explode("\n", $customcategories);
+            $scopeArray = explode(",", $scope);
+            $scope = '';
+            foreach($scopeArray as $key => $value) {
+                if($scope) {
+                    $scope .= ' OR ';
+                } else {
+                    $scope .= ' AND (orgid:';
+                }
+                $scope .= '"' . $value . '" OR heritage:"' . $value . '"';
+            }
+            $scope .= " OR $showVal:1)";
         } else {
-            return 'You have to save custom categories!';
-        }*/
+            $scope = " OR $showVal:1";
+        }
         
         $queryFilterString = '';
         $offset=null;
@@ -66,29 +71,6 @@ class user_sampleflex_addFieldsToFlexForm {
         $okString = '';
         if($offset=='null' || $offset=='') $offset=0;
         if($limit=='null' || $limit=='') $limit=700;
-
-        /*if($scopeArray) {
-	    $i = 0;
-	    foreach($scopeArray as $key => $value) {
-		if($queries or i==0) {
-		    //$queries = "usergroup_txt:$value";
-                    $queries = "heritage:$value";
-		} else {
-		    $queries .= " $value";
-		}
-		$i++;
-	    }
-	}*/
-//echo $queries;
-        /*if(trim($addpeople)) {
-            $addpeople = str_replace(' ', '', $addpeople);
-            $addpeople = str_replace(',', "\n", $addpeople);
-            $addpeople = str_replace(':', '', $addpeople);
-            $addpeopleArray = explode("\n",$addpeople);
-            foreach($addpeopleArray as $value) {
-                $queries .= " id:$value";
-            }
-        }*/
 
         require(__DIR__.'/service/init.php');
 
@@ -114,9 +96,10 @@ echo '</pre>';*/
         $client = new Solarium\Client($sconfig);
         $query = $client->createSelect();
         
-        $showVar = 'lth_solr_show_' . $pid . '_i';
-        
-        $query->setQuery("$showVar:1");
+        $queryToSet = '(doctype:"lucat"'.$scope. ' AND hide_on_web:0 AND disable_i:0)';
+        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
+        $query->setQuery($queryToSet);
+        //$query->setQuery("$showVar:1");
         //$query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
 
         $query->addSort('lth_solr_sort_' . $pid . '_i', $query::SORT_ASC);
@@ -966,19 +949,20 @@ echo '</pre>';*/
     }
 	
     
-    function addPeople($content)
+    function addPeople($config)
     {
         $content = '';
         $objects;
         $choices;
-        $lth_solr_show_bool = false;
+        
         
         $pid = $config['row']['pid'];
         $sys_language_uid = $config['row']['sys_language_uid'];
         $showVar = 'lth_solr_show_' . $pid . '_i';
-        
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lucache_id,first_name,last_name,lth_solr_show","fe_users","lucache_id!=''","","last_name, first_name");
+        $GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lucache_id,first_name,last_name,lth_solr_show","fe_users","disable=0 AND deleted=0 AND lucache_id!=''","","last_name, first_name");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $lth_solr_show_bool = false;
             $name = $row['last_name'] . ', ' . $row['first_name'];
             $id = $row['lucache_id'];
             $lth_solr_show = $row['lth_solr_show'];
@@ -989,12 +973,12 @@ echo '</pre>';*/
                 }
             } 
             if($lth_solr_show_bool) {
-                $choices .= '<option value="' . $id . '">' . $name . ' (' . $lucache_id . ')</option>';
+                $choices .= '<option value="' . $id . '">' . $name . ' (' . $id . ')</option>';
             } else {
-                $objects .= '<option value="' . $id . '">' . $name . ' (' . $lucache_id . ')</option>';
+                $objects .= '<option value="' . $id . '">' . $name . ' (' . $id . ')</option>';
             }
         }
-
+$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
         $content .= '<table id="lth_solr_addPeople" class="lth_solr_addPeople"><tbody class="">';
