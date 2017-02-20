@@ -162,8 +162,8 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             if(substr($clientIp,0,7) === '130.235' || $clientIp === '127.0.0.1') {
                 $content .= '<div id="lth_solr_hidden_tools" class="form-group">';
-                $content .= '<label><a href="javascript:" class="exportStaffCsv">Exportera csv</a></label>'
-                        . '<a href="javascript:" class="exportStaffTxt">Exportera txt</a></label>';
+                $content .= '<span style="margin-left:15px;" class="glyphicon glyphicon-export" aria-hidden="true"></span><a href="javascript:" class="exportStaffCsv">Exportera csv</a>'
+                        . '<span style="margin-left:15px;" class="glyphicon glyphicon-export" aria-hidden="true"></span><a href="javascript:" class="exportStaffTxt">Exportera txt</a>';
                 $content .= '</div>';
             }            
             

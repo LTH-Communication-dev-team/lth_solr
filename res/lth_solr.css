@@ -191,7 +191,7 @@ h2 {
     display:none;
 }
 
-#lth_solr_tools a {
+#lth_solr_tools a, #lth_solr_hidden_tools a {
     text-decoration: none;
     color: #777;
 }
