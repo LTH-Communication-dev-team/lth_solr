@@ -325,9 +325,9 @@ function listStaff(tableStart, facet, query, noQuery, more)
                 });
                 $('.lthsolr_loader').remove();
                 
-                $('#lthsolr_staff_header').html('1-' + maxLength(parseInt(tableStart) + parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound);
+                $('#lthsolr_staff_header').html('1-' + maxLength(parseInt(tableStart), parseInt(tableLength), parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound);
                 if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
-                    $('#lthsolr_staff_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" onclick="listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'#lthsolr_staff_filter\').val().trim(),false,true);">' + lth_solr_messages.next + ' ' + tableLength + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'.lthsolr_filter\').val().trim(),false,true);">' + lth_solr_messages.show_all + ' ' + d.numFound + '</a></div>');
+                    $('#lthsolr_staff_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" onclick="listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'#lthsolr_staff_filter\').val().trim(),false,true);">' + lth_solr_messages.next + ' ' + remain(parseInt(tableStart),parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'.lthsolr_filter\').val().trim(),false,true);">' + lth_solr_messages.show_all + ' ' + d.numFound + '</a></div>');
                 }
             }
             
@@ -357,10 +357,22 @@ function listStaff(tableStart, facet, query, noQuery, more)
 }
 
 
-function maxLength(tableLength, numFound)
+function maxLength(tableStart, tableLength, numFound)
 {
-    if(tableLength > numFound) {
+    //console.log(tableStart + ';' + tableLength + ';' + numFound);
+    if(tableStart + tableLength > numFound) {
         return numFound;
+    } else {
+        return tableStart + tableLength;
+    }
+}
+
+
+function remain(tableStart, tableLength, numFound)
+{
+    //console.log(tableStart + ';' + tableLength + ';' + numFound);
+    if((tableStart + tableLength + tableLength) > numFound) {
+        return numFound - (tableStart + tableLength);
     } else {
         return tableLength;
     }
