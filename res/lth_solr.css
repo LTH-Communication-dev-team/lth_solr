@@ -30,7 +30,8 @@ and open the template in the editor.
 .lth_solr_filter_container {
     padding:8px 8px 2px 8px;
     margin-bottom:15px;
-    background-color:#dedede;
+    background-color:#fafafa;
+    border-bottom: 1px #ebebeb solid;
 }
 
 .search-wrapper {
@@ -84,11 +85,6 @@ tr.details td.details-control {
     border-bottom: 1px solid #dedede;
     margin-top:15px;
     cursor: pointer;
-}
-
-.lthsolr_filter {
-    width: 200px;
-    height: 25px;
 }
 
 .item-list li {
@@ -189,6 +185,15 @@ h2 {
 
 .lth_solr_search_header {
     font-size:1.5em;font-weight:bold;color:#576a7c;margin-right:15px;
+}
+
+#lth_solr_hidden_tools {
+    display:none;
+}
+
+#lth_solr_tools a {
+    text-decoration: none;
+    color: #777;
 }
 
 /* Styling LU widget start */

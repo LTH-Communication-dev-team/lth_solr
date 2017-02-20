@@ -48,7 +48,7 @@ $(document).ready(function() {
         listPublications(0, getFacets(), $(this).val().trim(), noQuery);
     });
     
-    $( "#searchSiteMain" ).autocomplete({
+    $( "#searchSiteMain a" ).autocomplete({
         source: "index.php?eID=lth_solr&action=searchShort",
         minLength: 2,
         select: function( event, ui ) {
@@ -56,8 +56,112 @@ $(document).ready(function() {
             $('#searchSiteMain').val(ui.item.label.replace('<strong>','').replace('</strong>','').split(',').shift());
             $('#lthsolr_form').submit();
         }
-    });   
+    });
+    
+    $('#lth_solr_tools').click(function() {
+        $('#lth_solr_hidden_tools').toggle('slow');
+    });
+    
+    $('.exportStaffCsv').click(function() {
+        exportStaff('csv');
+    });
+    
+    $('.exportStaffPdf').click(function() {
+        exportStaff('pdf');
+    });
+    
+    $('.exportStaffTxt').click(function() {
+        exportStaff('txt');
+    });
 });
+
+
+function exportStaff(exportType)
+{
+    if(exportType==='csv') {
+        var csv = $(".lthsolr_row").map(function(a,i){
+            return $.trim($(this).text()).split(/\s*\n\s*/).join(",");
+        }).toArray().join("\r\n");
+        download(csv, "tabledata.csv", "text/csv");
+    } else if(exportType==='pdf') {
+        
+    } else if(exportType==='txt') {
+        var txt = $(".lthsolr_row").map(function(a,i){
+            return $.trim($(this).text()).split(/\s*\n\s*/).join(",");
+        }).toArray().join("\r\n");
+        download(txt, "tabledata.txt", "text/txt");
+    }
+}
+
+
+function exportTableToCSV($table, filename) {
+
+    var $rows = $table.find('tr:has(td)'),
+
+      // Temporary delimiter characters unlikely to be typed by keyboard
+      // This is to avoid accidentally splitting the actual contents
+      tmpColDelim = String.fromCharCode(11), // vertical tab character
+      tmpRowDelim = String.fromCharCode(0), // null character
+
+      // actual delimiter characters for CSV format
+      colDelim = '","',
+      rowDelim = '"\r\n"',
+
+      // Grab text from table into CSV formatted string
+      csv = '"' + $rows.map(function(i, row) {
+        var $row = $(row),
+          $cols = $row.find('td');
+
+        return $cols.map(function(j, col) {
+          var $col = $(col),
+            text = $col.text();
+
+          return text.replace(/"/g, '""'); // escape double quotes
+
+        }).get().join(tmpColDelim);
+
+      }).get().join(tmpRowDelim)
+      .split(tmpRowDelim).join(rowDelim)
+      .split(tmpColDelim).join(colDelim) + '"';
+
+    // Deliberate 'false', see comment below
+    if (false && window.navigator.msSaveBlob) {
+
+      var blob = new Blob([decodeURIComponent(csv)], {
+        type: 'text/csv;charset=utf8'
+      });
+
+      // Crashes in IE 10, IE 11 and Microsoft Edge
+      // See MS Edge Issue #10396033
+      // Hence, the deliberate 'false'
+      // This is here just for completeness
+      // Remove the 'false' at your own risk
+      window.navigator.msSaveBlob(blob, filename);
+
+    } else if (window.Blob && window.URL) {
+      // HTML5 Blob        
+      var blob = new Blob([csv], {
+        type: 'text/csv;charset=utf-8'
+      });
+      var csvUrl = URL.createObjectURL(blob);
+
+      $(this)
+        .attr({
+          'download': filename,
+          'href': csvUrl
+        });
+    } else {
+      // Data URI
+      var csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+
+      $(this)
+        .attr({
+          'download': filename,
+          'href': csvData,
+          'target': '_blank'
+        });
+    }
+  }
 
 
 function listStaff(tableStart, facet, query, noQuery, more)
@@ -98,7 +202,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                 $('#lthsolr_staff_container div').remove().append('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
             }
             //$('#lthsolr_all').remove();
-            //$('.lthsolr_more').replaceWith('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            $('.lthsolr_more').replaceWith('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
         },
         success: function(d) {
             if(d.data) {
@@ -111,25 +215,29 @@ function listStaff(tableStart, facet, query, noQuery, more)
                 var more = '<p class="maxlist-more"></p>';
                 
                 if(d.facet) {
-                    if($('.item-list').length == 0) {
+                    if($('.lth_solr_facet').length == 0) {
                         $.each( d.facet, function( key, value ) {
                             $.each( value, function( key1, value1 ) {
                                 if(i > 4) {
-                                    maxClass = ' class="maxlist-hidden"';
+                                    maxClass = 'maxlist-hidden ';
                                     more = '<p class="maxlist-more"><a href="#">' + lth_solr_messages.show_all + '</a></p>';
                                 }
 
                                 facet = value1[0];
                                 count = value1[1];
                                 if(parseInt(value1[1]) > 0) {
-                                    content += '<li' + maxClass + '>';
+                                    //content += '<li' + maxClass + '>';
+                                    content += '<label class="' + maxClass + 'checkbox-inline">';
+                                    content += '<input type="checkbox" class="lth_solr_facet" name="lth_solr_facet" value="' + key.split('$').shift() + '###' + facet.split('$').shift() + '">';
                                     content += facet.split('$').shift().capitalize().replace(/_/g, ' ') + ' [' + count + '] ';
-                                    content += '<input type="checkbox" class="lth_solr_facet" name="lth_solr_facet" value="' + key.split('$').shift() + '###' + facet.split('$').shift() + '"></li>';
+                                    //content += '</li>';
+                                    content += '</label>';
                                 }
                                 i++;
                             });
                             
-                            $('.lth_solr_facet_container').append('<div class="item-list"><ul><li>' + content + '</ul>' + more + '</div><p></p>');
+                            //$('.lth_solr_facet_container').append('<div class="item-list"><ul><li>' + content + '</ul>' + more + '</div><p></p>');
+                            $('.lth_solr_facet_container').append(content + more);
                             i=0;
                             maxClass='';
                             more='';
@@ -219,7 +327,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                 
                 $('#lthsolr_staff_header').html('1-' + maxLength(parseInt(tableStart) + parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound);
                 if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
-                    $('#lthsolr_staff_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" onclick="listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'.lthsolr_filter\').val().trim(),false,true);">' + lth_solr_messages.next + ' ' + tableLength + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'.lthsolr_filter\').val().trim(),false,true);">' + lth_solr_messages.show_all + ' ' + d.numFound + '</a></div>');
+                    $('#lthsolr_staff_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" onclick="listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'#lthsolr_staff_filter\').val().trim(),false,true);">' + lth_solr_messages.next + ' ' + tableLength + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'.lthsolr_filter\').val().trim(),false,true);">' + lth_solr_messages.show_all + ' ' + d.numFound + '</a></div>');
                 }
             }
             
@@ -1393,9 +1501,9 @@ function createFacetClick(listType)
 {
     $('.lth_solr_facet').click(function() {
         if(listType==='listStaff') {
-            listStaff(0, getFacets(), $('.lthsolr_filter').val().trim(),false,false);
+            listStaff(0, getFacets(), $('#lthsolr_staff_filter').val().trim(),false,false);
         } else if(listType==='listPublications') {
-            listPublications(0, getFacets(), $('.lthsolr_filter').val().trim(),false,false);
+            listPublications(0, getFacets(), $('#lthsolr_staff_filter').val().trim(),false,false);
         }
     });
 }

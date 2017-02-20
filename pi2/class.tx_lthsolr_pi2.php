@@ -57,6 +57,9 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $lDef = array_keys($sDef);
             $html_template = $this->pi_getFFvalue($piFlexForm, "html_template", "sDEF", $lDef[$index]);
             $scope = $this->pi_getFFvalue($piFlexForm, "scope", "sDEF", $lDef[$index]);
+            
+            $clientIp = $_SERVER['REMOTE_ADDR'];
+            
             if($scope) {
                 $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($scope)");
                 while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
@@ -119,7 +122,8 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js\"></script>"; 
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css\" />";
- 
+            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_download"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/download/download.js\"></script>"; 
+
                     
             $content = '';
             $facetContent = '';
@@ -131,19 +135,37 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             } else {
                 $content .= '<div class="lth_solr_filter_container">';
             
-                $content .= '<div style="font-weight:bold;">' . $this->pi_getLL("filter") . '</div>';
+                //$content .= '<div style="font-weight:bold;">' . $this->pi_getLL("filter") . '</div>';
             }
             
-            $content .= '<div style="clear:both;margin-top:10px;">';
-            if(!$hideFilter) $content .= '<input type="text" id="lthsolr_staff_filter" class="lthsolr_filter" name="lthsolr_filter" placeholder="' . $this->pi_getLL("freetext") . '" value="" />';
+            $content .= '<div class="form-group">';
+            if(!$hideFilter) {
+                $content .= '<div class="input-group">';
+                $content .= '<div class="input-group-addon"><span class="glyphicon glyphicon-filter" aria-hidden="true"></span></div><input type="text" id="lthsolr_staff_filter" class="form-control" name="lthsolr_filter" title="' . $this->pi_getLL("filter_search_results") . '" value="" />';
+                $content .= '</div>';
+            }
             $content .= '</div>';
+
             
             $content .= '<div class="lth_solr_facet_container"></div>';
-
+            
+            if(substr($clientIp,0,7) === '130.235' || $clientIp === '127.0.0.1') {
+                $content .= '<div id="lth_solr_tools" class="form-group">';
+                $content .= '<a href="javascript:"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span>Exportera data</a>';
+                $content .= '</div>';
+            }
+            
             if($hideFilter && $categories == 'no_categories') {
             } else {
                 $content .= '</div>';
             }
+            
+            if(substr($clientIp,0,7) === '130.235' || $clientIp === '127.0.0.1') {
+                $content .= '<div id="lth_solr_hidden_tools" class="form-group">';
+                $content .= '<label><a href="javascript:" class="exportStaffCsv">Exportera csv</a></label>'
+                        . '<a href="javascript:" class="exportStaffTxt">Exportera txt</a></label>';
+                $content .= '</div>';
+            }            
             
             $content .= '<div id="lthsolr_staff_header"></div>';
             
