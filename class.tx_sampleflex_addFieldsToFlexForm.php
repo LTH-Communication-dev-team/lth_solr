@@ -35,7 +35,7 @@ class user_sampleflex_addFieldsToFlexForm {
                 }
             }
         }*/
-        
+        $categories = $pi_flexform['categories'];
         $customcategories = $pi_flexform['customcategories'];
         
         $showVal = 'lth_solr_show_' . $pid . '_i';
@@ -97,7 +97,7 @@ echo '</pre>';*/
         $query = $client->createSelect();
         
         $queryToSet = '(doctype:"lucat"'.$scope. ' AND hide_on_web:0 AND disable_i:0)';
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
         $query->setQuery($queryToSet);
         //$query->setQuery("$showVar:1");
         //$query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
@@ -111,7 +111,7 @@ echo '</pre>';*/
         // this executes the query and returns the result
         $resultset = $client->select($query);
 
-	return array($resultset, $customcategories, $pluginId);
+	return array($resultset, $customcategories, $pluginId, $categories);
     }
     
     
@@ -130,7 +130,7 @@ echo '</pre>';*/
 	$allResponse = $this->getSolrData($config);
 	$response = $allResponse[0];
         $customcategories = $allResponse[1];
-        //$categoriesThisPage = $allResponse[3];
+        $categoriesSettings = $allResponse[3];
 
         //if(intval($categoriesThisPage) === 1) {
             $catVar = 'lth_solr_cat_' . $pid . '_ss';
@@ -245,7 +245,7 @@ echo '</pre>';*/
 
                 $categories = '';
                 //print_r($customcategories);
-                if($customcategories) {
+                if($customcategories && $categories==='custom_category') {
                     $customcategoriesArray = explode("\n", $customcategories['vDEF']);
                     if(is_array($customcategoriesArray)) {
                         foreach($customcategoriesArray as $key => $value) {
