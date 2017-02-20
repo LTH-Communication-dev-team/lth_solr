@@ -10,12 +10,18 @@
                         <label index="freetext">Free text</label>
                         <label index="filter">Filter</label>
                         <label index="filter_search_results">Filter search results</label>
+                        <label index="export_data">Export data</label>
+                        <label index="export_csv">Export csv</label>
+                        <label index="export_txt">Export txt</label>
 		</languageKey>
                 <languageKey index="sv" type="array">
 			<label index="more">Mer</label>
                         <label index="freetext">Fritext</label>
                         <label index="filter">Filter</label>
                         <label index="filter_search_results">Filtrera sökresultat</label>
+                        <label index="export_data">Exportera data</label>
+                        <label index="export_csv">Exportera csv</label>
+                        <label index="export_txt">Exportera txt</label>                
                 </languageKey>
 	</data>
 </T3locallang>
