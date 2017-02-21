@@ -82,6 +82,14 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
     'additionalFields' => ''
 );
 
+//LucrisAddUuid
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\AddLucrisUuid'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Add lucris uuid',
+    'description' => '',
+    'additionalFields' => ''
+);
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi1/class.tx_lthsolr_pi1.php', '_pi1', 'list_type', 1);
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi2/class.tx_lthsolr_pi2.php', '_pi2', 'list_type', 1);
