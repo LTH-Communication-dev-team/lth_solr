@@ -68,7 +68,7 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $xml = simplexml_load_string($xml);	
 
             print_r($xml);
-            die();
+            die($xmlpath);
             $numberofloops = ceil($xml->children('core', true)->count / 20);
 
             $ii = 0;
