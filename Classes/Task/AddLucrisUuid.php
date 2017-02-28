@@ -64,11 +64,11 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/person?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
             //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/person?uuids.uuid=a432d89f-3d61-427c-ac2d-604f8ba57441&rendering=xml_long";
 
-            try {
+            //try {
                 $xml = file_get_contents($xmlpath);
-            } catch(Exception $e) {
-                echo 'Message: ' .$e->getMessage();
-            }
+            //} catch(Exception $e) {
+            //    echo 'Message: ' .$e->getMessage();
+            //}
                      
             $xml = simplexml_load_string($xml);	
 
