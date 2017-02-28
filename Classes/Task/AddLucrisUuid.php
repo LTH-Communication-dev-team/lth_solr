@@ -69,7 +69,7 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             //} catch(Exception $e) {
             //    echo 'Message: ' .$e->getMessage();
             //}
-                     
+             die($xml);        
             $xml = simplexml_load_string($xml);	
 
             $numberofloops = ceil($xml->children('core', true)->count / 20);
