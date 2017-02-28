@@ -64,7 +64,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $folderArray = $this->getFolderStructure($grsp);
         
         $feGroupsArray = $this->getFeGroups();
-
+ 
         $employeeArray = $this->getFeUsers($employeeArray);
                
         $orgArray = $this->getOrg($con);
@@ -72,14 +72,14 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $heritageTempArray = $this->getHeritage($con);
         $heritageArray = $heritageTempArray[0];
         $heritageLegacyArray = $heritageTempArray[1];
-        
+
         $categoriesArray = $this->getCategories();
 
         $this->createFolderStructure($grsp, $folderArray, $orgArray);
         
         $folderArray = $this->getFolderStructure($grsp);
         
-        $this->createFeGroups($folderArray, $orgArray, $feGroupsArray);
+        $this->createFeGroups($folderArray, $orgArray, $feGroupsArray, $heritageArray);
         
         $feGroupsArray = $this->getFeGroups();
         
@@ -403,7 +403,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function createFeGroups($folderArray, $orgArray, $feGroupsArray)
+    private function createFeGroups($folderArray, $orgArray, $feGroupsArray, $heritageArray)
     {
         $tmpTitle = '';
         $tmpKeyArray = array();
@@ -411,9 +411,13 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         foreach($orgArray as $key => $value) {
             $tmpTitle = $value['orgid'] . '__' . $value['name'];
+            $subGroup = $heritageArray[$value['orgid']];
+            if($subGroup) {
+                $subGroup = $feGroupsArray[$subGroup]['uid'];
+            }
             //print_r($feGroupsArray);
+            $folder = $folderArray[$value['orgid']];
             if(!array_key_exists($value['orgid'], $feGroupsArray)) {
-                $folder = $folderArray[$value['orgid']];
                 if($folder['uid']){
                     $GLOBALS['TYPO3_DB']->exec_INSERTquery('fe_groups', array(
                         'title' => $tmpTitle,
@@ -425,7 +429,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 }
             } else if($folder['uid']) {
                 $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_groups', "title='$tmpTitle'", array(
-                    'subgroup' => $feGroupsArray[$value['parent']]['uid'],
+                    'subgroup' => $subGroup,
                     'tstamp' => time())
                 );
             }

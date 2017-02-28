@@ -82,6 +82,22 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
     'additionalFields' => ''
 );
 
+//PublicationImport
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\PublicationImport'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Publication import',
+    'description' => '',
+    'additionalFields' => ''
+);
+
+//ProjectImport
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\ProjectImport'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Project import',
+    'description' => '',
+    'additionalFields' => ''
+);
+
 //LucrisAddUuid
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\AddLucrisUuid'] = array(
     'extension' => $_EXTKEY,

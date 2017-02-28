@@ -115,6 +115,107 @@ echo '</pre>';*/
     }
     
     
+    function getProjects()
+    {
+        require(__DIR__.'/service/init.php');
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $content;
+        
+        $content .= "<style>.projectChoice, .projectObject {min-width:400px; max-width:400px; min-height:200px; margin-right:20px;}</style>";
+        
+        $content .= "<script language=\"javascript\">
+            TYPO3.jQuery(document).ready(function() {
+            TYPO3.jQuery('#projectChoice').change(function() {
+                    selectedId = TYPO3.jQuery(this).val();
+                    TYPO3.jQuery('#projectObject').append(TYPO3.jQuery(this).find('option:selected'));
+                    var my_options = TYPO3.jQuery('#projectObject option');
+                    my_options.sort(function(a,b) {
+                        if (a.text > b.text) return 1;
+                        if (a.text < b.text) return -1;
+                        return 0;
+                    })
+                    TYPO3.jQuery('#projectObject').empty().append( my_options );
+
+                });
+                
+                TYPO3.jQuery('#projectObject').change(function() {
+                console.log('???');
+                    selectedId = TYPO3.jQuery(this).val();
+                    TYPO3.jQuery('#projectChoice').append(TYPO3.jQuery(this).find('option:selected'));
+                    var my_options = TYPO3.jQuery('#projectChoice option');
+                    my_options.sort(function(a,b) {
+                        if (a.text > b.text) return 1;
+                        if (a.text < b.text) return -1;
+                        return 0;
+                    })
+                    TYPO3.jQuery('#projectChoice').empty().append( my_options );
+                });
+                });
+                </script>";
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => $settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $queryToSet = '(doctype:upmproject)';
+        $query->setQuery($queryToSet);
+        $query->addSort('title_sort2', $query::SORT_ASC);
+        $query->setStart(0)->setRows(1000000);
+        $response = $client->select($query);
+        
+        if($response) {
+            foreach ($response as $document) {
+                $title_en = (string)$document->title_en[0];
+                $title_sv = (string)$document->title_sv[0];
+                if($title_sv!=='') {
+                    $title = $title_sv;
+                } else {
+                    $title = $title_en;
+                }
+                $objects .= '<option value="' . $document->id . '">' . $title . '</option>';
+            }
+        }
+        
+        $content .= '<table id="lth_solr_projects" class="lth_solr_projects"><tbody class="">';
+                
+        $content .= '<tr>';
+        
+        $content .= '<tr><td>Valda</td><td>Objekt</td></tr>';
+        
+        $content .= '<td><select class="projectChoice" id="projectChoice" name="projectChoice" multiple="multiple">';
+        $content .= $choices;
+        $content .= '</select></td>';
+                
+        $content .= '<td><select class="projectObject" id="projectObject" name="projectObject" multiple="multiple">';
+        $content .= $objects;
+        $content .= '</select></td>';
+        
+        $content .= '</tr>';
+        
+        $content .= "</tbody></table>";
+            
+        $content .= "</tbody></table>";
+        
+        return $content;
+    }
+    
+    
     function manageStaffList($config)
     {
         //print_r($config);
@@ -827,24 +928,12 @@ echo '</pre>';*/
 	    die('Please make all settings in extension manager');
 	}
         
-        $pi_flexform = $config['row']['pi_flexform'];
-        $xml = simplexml_load_string($pi_flexform);
-        $test = $xml->data->sheet[0]->language;
-      
-        if($test) {
-            foreach ($test->field as $n) {
-                foreach($n->attributes() as $name => $val) {
-                    if ($val == 'fe_groups') {
-                        $fe_groups = (string)$n->value;
-                    } else if($val == 'fe_users') {
-                        $fe_users = (string)$n->value;
-                    }
-                }
-            }
-        }
+        $fe_groups = $config['row']['pi_flexform']['data']['sDEF']['lDEF']['fe_groups']['vDEF'];
+        $fe_users = $config['row']['pi_flexform']['data']['sDEF']['lDEF']['fe_users']['vDEF'];
+        
 
         if($fe_groups) {
-            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode("|",$fe_groups)[0].")");
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . implode(",",$fe_groups).")");
             while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                 $title[] = explode('__', $row['title'])[0];
             }
@@ -853,7 +942,7 @@ echo '</pre>';*/
             }
             $GLOBALS['TYPO3_DB']->sql_free_result($res);
         } else if($fe_users) {
-            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid = " . intval($fe_users));
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid IN(" . implode(',',$fe_users).")");
             $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
             $scope = $row['lth_solr_uuid'];
             $GLOBALS['TYPO3_DB']->sql_free_result($res);

@@ -24,6 +24,13 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
     function getPersonUuid()
     {
+        $current = array();
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("typo3_id,lucris_id", "tx_lthsolr_lucrisdata", "lucris_type='staff'");
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $current[] = $row['typo3_id'];
+        }
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        
         require(__DIR__.'/init.php');
         $maximumrecords = 20;
         $numberofloops = 1;
@@ -62,13 +69,9 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             } catch(Exception $e) {
                 echo 'Message: ' .$e->getMessage();
             }
-            
-            print_r($xml);
-            
+                     
             $xml = simplexml_load_string($xml);	
 
-            print_r($xml);
-            die($xmlpath);
             $numberofloops = ceil($xml->children('core', true)->count / 20);
 
             $ii = 0;
@@ -86,7 +89,6 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $photo = (string)$content->children('stab1',true)->photos->children('core',true)->file->children('core',true)->url;
                 }
                 
-
                 //profileInformation
                 $profileInformationArray = array();
                 if($content->children('stab1',true)->profileInformation) {
@@ -109,7 +111,11 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $sourceId = $sourceIdArray[0];
                    
                     $id = (string)$sourceId;
-                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_lthsolr_lucrisdata', array('typo3_id' => $id, 'lucris_id' => $uuid, 'lucris_photo' => $photo, 'lucris_profile_information' => $profileInformation));
+                    if(in_array($id, $current)) {
+                        $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_lthsolr_lucrisdata', "typo3_id='$id'", array('lucris_id' => $uuid, 'lucris_photo' => $photo, 'lucris_profile_information' => $profileInformation, 'lucris_type' => 'staff'));
+                    } else {
+                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_lthsolr_lucrisdata', array('typo3_id' => $id, 'lucris_id' => $uuid, 'lucris_photo' => $photo, 'lucris_profile_information' => $profileInformation, 'lucris_type' => 'staff'));
+                    }
                 }
             }
 

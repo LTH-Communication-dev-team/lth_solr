@@ -359,7 +359,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
 
 function maxLength(tableStart, tableLength, numFound)
 {
-    //console.log(tableStart + ';' + tableLength + ';' + numFound);
+    console.log(tableStart + ';' + tableLength + ';' + numFound);
     if(tableStart + tableLength > numFound) {
         return numFound;
     } else {
@@ -1275,7 +1275,7 @@ function showStaff()
         dataType: "json",
         beforeSend: function () {
             if(lth_solr_staff_pos=='right') {
-                $('.grid-23').removeClass('grid-23').addClass('grid-15').after('<div id="content_sidebar_wrapper" class="grid-8 omega"><div id="content_sidebar"><h2>Contact</h2></div>');
+                $('.grid-23').after('<div id="content_sidebar_wrapper" class="grid-8 omega"><div id="content_sidebar"><h2>Contact</h2></div>');
                 var staffContainer = $('#lthsolr_staff_container');
                 $('#content_sidebar h2').after(staffContainer);
             }
@@ -1294,32 +1294,26 @@ function showStaff()
                     template = template.replace('###id###', id);
 
                     var display_name_t = aData[0] + ' ' + aData[1];
-                    $('#page_title h1').text(display_name_t);
+                    
                     template = template.replace('###display_name_t###', display_name_t);
                     var title, title_t = '', title_en_t = '', oname = '', oname_t = '', oname_en_t = '', phone = '', roomNumber = '', homePage = '';
 
                     template = template.replace(/###email_t###/g, aData[6]);
 
-                    //if(aData[17]) {
-                       // for (i = 0; i < aData[17].length; i++) {
-                           // if(inArray(scope, aData[17][i].split(','))) {
-                                if(aData[2]) title_t = aData[2][0];
-                                if(aData[3]) title_en_t = aData[3][0];
-                                if(aData[7]) oname_t = aData[7][0];
-                                if(aData[8]) oname_en_t = aData[8][0];
-                                if(aData[4]) {
-                                    phone = aData[4][0];
-                                    
-                                }
-                                if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
-                                if(aData[14]) {
-                                    if(phone) phone += ', ';
-                                    phone += aData[14][0];
-                                }
+                    if(aData[2]) title_t = aData[2][0];
+                    if(aData[3]) title_en_t = aData[3][0];
+                    
+                    if(aData[7]) oname_t = aData[7][0];
+                    if(aData[8]) oname_en_t = aData[8][0];
+                    if(aData[4]) {
+                        phone = aData[4][0];
 
-                           // }
-                       // }
-                    //}
+                    }
+                    if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
+                    if(aData[14]) {
+                        if(phone) phone += ', ';
+                        phone += aData[14][0];
+                    }
                         
                     if(syslang == 'en' && title_en_t) {
                         title = title_en_t;
@@ -1327,6 +1321,9 @@ function showStaff()
                         title = title_t;
                     } 
 
+                    //Change page main header
+                    $('#page_title h1').text(display_name_t).append('<h2>'+title+'</h2>');
+                    
                     template = template.replace('###title_t###', titleCase(title));
                     template = template.replace('###phone_t###', phone);
 
@@ -1371,6 +1368,10 @@ function showStaff()
                     }
                     template = template.replace('###visiting_address###', ostreet + ' ' + ocity);
                     template = template.replace('###postal_address###', opostal_address);
+                    
+                    if(aData[21]) {
+                        $('#lthsolr_publications_container').prepend('<h3>Forskning</h3>' + aData[21]);
+                    }
                     $('#lthsolr_staff_container').append(template);
                 });
                 $('#lthsolr_loader_staff').remove();
@@ -1414,7 +1415,7 @@ function showStaff()
                     if(aData[8] && aData[9]) journalTitle += ' ' + aData[9];
 
                     template = template.replace('###id###', aData[0]);
-                    template = template.replace('###title###', title);
+                    template = template.replace('###title###', '<b>'+title+'</b>');
                     template = template.replace('###authorName###', aData[2]);
                     template = template.replace('###publicationType###', aData[3]);
                     template = template.replace('###publicationDate###', publicationDate);
@@ -1426,7 +1427,7 @@ function showStaff()
                 
                 $('#lthsolr_loader_publication').remove();
 
-                $('#lthsolr_publications_header').append('1-' + maxLength(parseInt(tableStartPublications) + parseInt(tableLength),parseInt(d.publicationNumFound)) + ' of ' + d.publicationNumFound);
+                $('#lthsolr_publications_header').append('1-' + maxLength(parseInt(tableStartPublications),parseInt(tableLength),parseInt(d.publicationNumFound)) + ' of ' + d.publicationNumFound);
                 if((parseInt(tableStartPublications) + parseInt(tableLength)) < d.publicationNumFound) {
                     $('#lthsolr_publications_container').append('<div style="margin-top:20px;" class="lthsolr_more">\n\
 <a href="javascript:" onclick="listPublications(' + (parseInt(tableStartPublications) + parseInt(tableLength)) + ');">' + lth_solr_messages.next + ' ' + tableLength + ' ' + lth_solr_messages.of + ' ' + d.publicationNumFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.publicationNumFound + '); listPublications(' + (parseInt(tableStartPublications) + parseInt(tableLength)) + ');">' + lth_solr_messages.show_all + ' ' + d.publicationNumFound + '</a></div>');

@@ -66,6 +66,20 @@
                 </TCEforms>
             </fe_users>
             
+            <projects>
+                <TCEforms>
+                    <label>Välj ett/flera forskningsprojekt</label>
+                    <config>
+                        <type>user</type>
+                        <userFunc>user_sampleflex_addFieldsToFlexForm->getProjects</userFunc>
+                    </config>
+                     <config>
+                    <type>select</type>
+                     <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getProjects</itemsProcFunc>
+                   </config>
+                </TCEforms>
+            </projects>
+            
             <detailPage>
                 <TCEforms>
                    <label>Page with details</label>

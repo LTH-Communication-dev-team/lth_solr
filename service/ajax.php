@@ -1161,7 +1161,8 @@ function showStaff($scope, $config, $table_length, $syslang)
                     $document->ophone,
                     $document->ostreet,
                     $document->ocity,
-                    $document->opostal_address
+                    $document->opostal_address,
+                    $document->profileInformation_sv
                 );
             } else if($doktype === 'publication') {
                 $publicationData[] = array(

@@ -46,25 +46,26 @@ CREATE TABLE tx_lthsolr_categories (
 
 
 CREATE TABLE tx_lthsolr_titles (
-  id int(10) unsigned NOT NULL AUTO_INCREMENT,
-  title_sv varchar(64) CHARACTER SET utf8 COLLATE utf8_swedish_ci NOT NULL,
-  title_en varchar(64) NOT NULL,
-  category int(10) unsigned NOT NULL,
-  comment varchar(127) DEFAULT NULL,
-  disabled tinyint(1) NOT NULL DEFAULT '0',
-  created datetime DEFAULT NULL,
-  createdBy varchar(16) DEFAULT NULL,
-  modified timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  modifiedBy varchar(16) DEFAULT NULL,
-  PRIMARY KEY (id)
+    id int(10) unsigned NOT NULL AUTO_INCREMENT,
+    title_sv varchar(64) CHARACTER SET utf8 COLLATE utf8_swedish_ci NOT NULL,
+    title_en varchar(64) NOT NULL,
+    category int(10) unsigned NOT NULL,
+    comment varchar(127) DEFAULT NULL,
+    disabled tinyint(1) NOT NULL DEFAULT '0',
+    created datetime DEFAULT NULL,
+    createdBy varchar(16) DEFAULT NULL,
+    modified timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    modifiedBy varchar(16) DEFAULT NULL,
+    PRIMARY KEY (id)
 );
 
 
 CREATE TABLE tx_lthsolr_lucrisdata (
-  id int(10) unsigned NOT NULL AUTO_INCREMENT,
-  typo3_id varchar(255) DEFAULT NULL,
-  lucris_id varchar(255) DEFAULT NULL,
-  lucris_photo varchar(255) DEFAULT NULL,
-  lucris_profile_information text DEFAULT '' NOT NULL,
-  PRIMARY KEY (id)
+    id int(10) unsigned NOT NULL AUTO_INCREMENT,
+    typo3_id varchar(255) DEFAULT NULL,
+    lucris_id varchar(255) DEFAULT NULL,
+    lucris_photo varchar(255) DEFAULT NULL,
+    lucris_profile_information text DEFAULT '' NOT NULL,
+    lucris_type varchar(25) DEFAULT NULL,
+    PRIMARY KEY (id)
 );
