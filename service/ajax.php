@@ -1031,22 +1031,7 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
             $image = '';
         }
         
-        $data[] = array(
-            /*ucwords(strtolower($document->first_name_t)),
-            ucwords(strtolower($document->last_name_t)),
-            $document->title_txt,
-            $document->title_en_txt,
-            $document->phone_txt,
-            $document->id,
-            fixString($document->email_t),            
-            $document->oname_txt,
-            $document->oname_en_txt,
-            $document->primary_affiliation_t,
-            $document->homepage_t,
-            $image,
-            fixString($intro_t),
-            fixString($document->room_number_s),
-            $document->mobile_txt*/
+        $data[] = array(           
             mb_convert_case(strtolower($document->first_name), MB_CASE_TITLE, "UTF-8"),
             mb_convert_case(strtolower($document->last_name), MB_CASE_TITLE, "UTF-8"),
             $document->title,
@@ -1062,7 +1047,8 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
             $intro_t,
             fixRoomNumber($document->room_number),
             $document->mobile,
-            $document->$autoVal
+            $document->$autoVal,
+            $document->orgid
         );
     }
     $resArray = array('data' => $data, 'numFound' => $numFound,'facet' => $facetResult, 'draw' => 1);

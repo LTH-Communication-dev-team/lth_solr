@@ -169,6 +169,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
     var syslang = $('#lth_solr_syslang').val();
     var scope = $('#lth_solr_scope').val();
     var tableLength = $('#lth_solr_no_items').val();
+    var curI;
     //var lth_solr_detailpage = $('#lth_solr_staffdetailpage').val();
     //console.log(scope);
     $.ajax({
@@ -262,22 +263,33 @@ function listStaff(tableStart, facet, query, noQuery, more)
 
                     template = template.replace(/###email_t###/g, aData[6]);
 
+                    i=0;
+                    curI = 0;
+                    for (i = 0; i < aData[16].length; i++) {
+                        if(scope===aData[16][i]) {
+                            curI = i;
+                        }
+                    }
                     //if(aData[17]) {
-                        //for (i = 0; i < aData[17].length; i++) {
+                        //
                             //if(inArray(scope, aData[17][i].split(','))) {
-                                if(aData[2]) title_t = aData[2][0];
-                                if(aData[3]) title_en_t = aData[3][0];
-                                if(aData[7]) oname_t = aData[7][0];
-                                if(aData[8]) oname_en_t = aData[8][0];
-                                if(aData[4]) {
-                                    phone = aData[4][0];
-                                    
-                                }
-                                if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
-                                if(aData[14]) {
-                                    if(phone) phone += ', ';
-                                    phone += '+46 ' + aData[14][0].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");;
-                                }
+                    if(aData[2]) title_t = aData[2][curI];
+                    if(aData[3]) title_en_t = aData[3][curI];
+                    if(aData[7]) oname_t = aData[7][curI];
+                    if(aData[8]) oname_en_t = aData[8][curI];
+                    if(aData[4]) {
+                        if(aData[4][curI]) {
+                            phone = aData[4][curI];
+                        } else {
+                            phone = aData[4][0];
+                        }
+
+                    }
+                    if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
+                    if(aData[14]) {
+                        if(phone) phone += ', ';
+                        phone += '+46 ' + aData[14][0].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");;
+                    }
 
                             //}
                         //}
@@ -327,7 +339,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                 
                 $('#lthsolr_staff_header').html('1-' + maxLength(parseInt(tableStart), parseInt(tableLength), parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound);
                 if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
-                    $('#lthsolr_staff_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" onclick="listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'#lthsolr_staff_filter\').val().trim(),false,true);">' + lth_solr_messages.next + ' ' + remain(parseInt(tableStart),parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'.lthsolr_filter\').val().trim(),false,true);">' + lth_solr_messages.show_all + ' ' + d.numFound + '</a></div>');
+                    $('#lthsolr_staff_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" onclick="listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'#lthsolr_staff_filter\').val().trim(),false,true);">' + lth_solr_messages.next + ' ' + remain(parseInt(tableStart),parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'#lthsolr_staff_filter\').val().trim(),false,true);">' + lth_solr_messages.show_all + ' ' + d.numFound + '</a></div>');
                 }
             }
             

@@ -155,9 +155,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             VORG.city AS ocity,
             VORG.postal_address AS opostal_address
             FROM lucache_person AS P 
-            LEFT JOIN lucache_vrole AS V ON P.id = V.id AND V.primary_role = 1 
+            LEFT JOIN lucache_vrole AS V ON P.id = V.id 
             LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid
-            WHERE primary_affiliation = 'employee' 
             GROUP BY P.id, V.orgid 
             ORDER BY P.id, V.orgid";
         
@@ -459,9 +458,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             } 
             
             $usergroupArray = $this->getUids($value['orgid'], $feGroupsArray);
-            //echo $value['orgid'];
-            //echo $usergroupArray['pid'];
-            //echo $usergroupArray['usergroup'];
+
             if($usergroupArray[0]) {
                 $ugFe = $value['usergroup'];
                 if($ugFe) {
@@ -483,6 +480,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 }
 
                 if($value['exist']===TRUE && $usergroupArray[1]) {
+                    if($value['primary_uid']==='mtov-man') {
+                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($value['orgid'],true), 'crdate' => time()));
+                    }
                     if(!$value['roomnumber']) {
                         $value['roomnumber'] = '';
                     }
