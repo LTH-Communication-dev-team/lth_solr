@@ -98,6 +98,14 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
     'additionalFields' => ''
 );
 
+//StudentPaperImport
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\StudentPaperImport'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Student paper import',
+    'description' => '',
+    'additionalFields' => ''
+);
+
 //LucrisAddUuid
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\AddLucrisUuid'] = array(
     'extension' => $_EXTKEY,

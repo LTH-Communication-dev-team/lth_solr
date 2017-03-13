@@ -85,8 +85,8 @@ switch($action) {
     case 'showPublication':
         $content = showPublication($scope, $syslang, $config, $detailPage);
         break;
-    case 'showStudentpaper':
-        $content = showStudentpaper($scope, $syslang, $config, $detailPage);
+    case 'showStudentPaper':
+        $content = showStudentPaper($scope, $syslang, $config, $detailPage);
         break;
     case 'listProjects':
         $content = listProjects($scope, $syslang, $config);
@@ -511,11 +511,19 @@ function showPublication($term, $syslang, $config, $detailPage)
         $id = $document->id;
         $title = fixArray($document->title);
         $authorNameArray = $document->authorName;
+        $authorFirstNameArray = $document->authorFirstName;
+        $authorLastNameArray = $document->authorLastName;
         $authorIdArray = $document->authorId;
         $i=0;
         foreach ($authorNameArray as $key => $authorName) {
-            if($authors) $authors .= ', ';
-            $authors .= '<a href="' . $staffDetailPage . '?no_cache=1&uuid=' . $authorIdArray[$i] . '">' . mb_convert_case(strtolower($authorName), MB_CASE_TITLE, "UTF-8") . '</a>';
+            if($authorsName) $authorsName .= ', ';
+            if($authorsId) $authorsId .= ', ';
+            if($authorsReverseName) $authorsReverseName .= '; ';
+            if($authorsReverseNameShort) $authorsReverseNameShort .= '; ';
+            $authorsName .= mb_convert_case(strtolower($authorName), MB_CASE_TITLE, "UTF-8");
+            $authorsReverseName .= mb_convert_case(strtolower($authorLastNameArray[$i]), MB_CASE_TITLE, "UTF-8") . ', ' . mb_convert_case(strtolower($authorFirstNameArray[$i]), MB_CASE_TITLE, "UTF-8");
+            $authorsReverseNameShort .= mb_convert_case(strtolower($authorLastNameArray[$i]), MB_CASE_TITLE, "UTF-8") . ', ' . substr($authorFirstNameArray[$i], 0, 1) . '.';
+            $authorsId .= $authorIdArray[$i];
             $i++;
         }
 
@@ -540,8 +548,11 @@ function showPublication($term, $syslang, $config, $detailPage)
         }
 
         $publicationType = fixArray($document->$publicationTypeHolder);
+        $publicationTypeUri = $document->publicationTypeUri;
         $language = fixArray($document->$languageHolder);
         $publicationDateYear = $document->publicationDateYear;
+        $publicationDateMonth = $document->publicationDateMonth;
+        $publicationDateDay = $document->publicationDateDay;
         $abstract_en = fixArray($document->abstract_en);
         $abstract_sv = fixArray($document->abstract_sv);
         if($syslang == 'sv' && $abstract_sv && $abstract_sv != '<br/>') {
@@ -562,21 +573,42 @@ function showPublication($term, $syslang, $config, $detailPage)
             $keywords = $document->keywords_en;
         }
         $peerReview = $document->peerReview;
+        $doi = $document->doi;
+        $issn = $document->issn;
+        $isbn = $document->isbn;
+        $publisher = $document->publisher;
+        
+        $standard_category_en = $document->standard_category_en;
         
         $data = array(
-            $abstract,
-            $authors,
-            $organisations,
-            $externalOrganisations,
-            $keywords,
-            $language,
-            $pages,
-            $numberOfPages,
-            $journalTitle,
-            $volume,
-            $journalNumber,
-            $publicationStatus,
-            $peerReview,
+            'id' => $id,
+            'title' => $title,
+            'abstract' => $abstract,
+            'authorsName' => $authorsName,
+            'authorsReverseName' => $authorsReverseName,
+            'authorsReverseNameShort' => $authorsReverseNameShort,
+            'authorsId' => $authorsId,
+            'organisations' => $organisations,
+            'externalOrganisations' => $externalOrganisations,
+            'keywords' => $keywords,
+            'language' => $language,
+            'pages' => $pages,
+            'numberOfPages' => $numberOfPages,
+            'journalTitle' => $journalTitle,
+            'volume' => $volume,
+            'journalNumber' => $journalNumber,
+            'publicationStatus' => $publicationStatus,
+            'peerReview' => $peerReview,
+            'publicationDateYear' => $publicationDateYear,
+            'publicationDateMonth' => $publicationDateMonth,
+            'publicationDateDay' => $publicationDateDay,
+            'publicationType' => $publicationType,
+            'publicationTypeUri' => $publicationTypeUri,
+            'doi' => $doi,
+            'issn' => $issn,
+            'isbn' => $isbn,
+            'standard_category_en' => $standard_category_en,
+            'publisher' => $publisher
         );
 
         /*$content .= "<h3>$publicationType</h3>";
@@ -681,6 +713,128 @@ function listStudentPapers($facet, $term, $syslang, $config, $table_length, $tab
         );
     }
     $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult);
+    return json_encode($resArray);
+}
+
+
+function showStudentPaper($term, $syslang, $config, $detailPage)
+{
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+
+    $query->setQuery('id:'.$term);
+    
+    $response = $client->select($query);
+    
+    $content = '';
+    
+    $organisationNameHolder = 'organisationName_' . $syslang;
+    $publicationTypeHolder = 'publicationType_' . $syslang;
+    $languageHolder = 'language_' . $syslang;
+    
+    $detailPageArray = explode(',', $detailPage);
+    $staffDetailPage = $detailPageArray[0];
+    $projectDetailPage = $detailPageArray[1];
+        
+    foreach ($response as $document) {
+        $id = $document->id;
+        $title = fixArray($document->title);
+        $authorNameArray = $document->authorName;
+        $authorIdArray = $document->authorId;
+        $i=0;
+        foreach ($authorNameArray as $key => $authorName) {
+            if($authors) $authors .= ', ';
+            $authors .= '<a href="' . $staffDetailPage . '?no_cache=1&uuid=' . $authorIdArray[$i] . '">' . mb_convert_case(strtolower($authorName), MB_CASE_TITLE, "UTF-8") . '</a>';
+            $i++;
+        }
+
+        $organisationNameArray = $document->$organisationNameHolder;
+        $organisationIdArray = $document->organisationId;
+        $i=0;
+        foreach($organisationNameArray as $key => $organisationName) {
+            if($organisations) $organisations .= ', ';
+            $organisations .= '<a href="' . $organisationIdArray[$i] . '">' . $organisationName . '</a>';
+            $i++;
+        }
+
+        if($document->externalOrganisationsName) {
+            $externalOrganisationsNameArray = $document->externalOrganisationsName;
+            $externalOrganisationsIdArray = $document->externalOrganisationsId;
+            $i=0;
+            foreach($externalOrganisationsNameArray as $key => $externalOrganisationsName) {
+                if($externalOrganisations) $externalOrganisations .= ', ';
+                $externalOrganisations .= '<a href="' . $externalOrganisationsIdArray[$i] . '">' . $externalOrganisationsName . '</a>';
+                $i++;
+            }
+        }
+
+        $publicationType = fixArray($document->$publicationTypeHolder);
+        $language = fixArray($document->$languageHolder);
+        $publicationDateYear = $document->publicationDateYear;
+        $abstract_en = fixArray($document->abstract_en);
+        $abstract_sv = fixArray($document->abstract_sv);
+        if($syslang == 'sv' && $abstract_sv && $abstract_sv != '<br/>') {
+            $abstract = $abstract_sv;
+        } else {
+            $abstract = $abstract_en;
+        }
+        $pages = $document->pages;
+        $journalTitle = $document->journalTitle;
+        $numberOfPages = $document->number_of_pages;
+        $volume = $document->volume;
+        $journalNumber = $document->journalNumber;
+        if($syslang == 'sv') {
+            $publicationStatus = $document->publicationStatus_sv;
+            $keywords = $document->keywords_sv;
+        } else {
+            $publicationStatus = $document->publicationStatus_en;
+            $keywords = $document->keywords_en;
+        }
+        $peerReview = $document->peerReview;
+        
+        $data = array(
+            $abstract,
+            $authors,
+            $organisations,
+            $externalOrganisations,
+            $keywords,
+            $language,
+            $pages,
+            $numberOfPages,
+            $journalTitle,
+            $volume,
+            $journalNumber,
+            $publicationStatus,
+            $peerReview,
+        );
+
+        /*$content .= "<h3>$publicationType</h3>";
+
+        if($abstract) {
+            $content .= "<div><div class=\"textblock more-content\" style=\"height: 80px; overflow: hidden;\"></div>";
+
+            $content .= "<a href=\"#\" onclick=\"showMore(this);return false;\" class=\"readmore\" data-height=\"144\">More</a></div>";
+        }
+        $content .= "<h2>Details</h2><table>";
+
+        if($authors) $content .= "<tr><th>Authors</th><td></td></tr>";
+        if($organisations) $content .= "<tr><th>Organisations</th><td></td></tr>";
+        if($externalOrganisations) $content .= "<tr><th>External organisations</th><td></td></tr>";
+        if($language) $content .= "<tr><th>Orginal language</th><td></td></tr>";
+        if($pages) $content .= "<tr><th>Pages (from-to)</th><td></td></tr>";
+        if($numberOfPages) $content .= "<tr><th>Number of pages</th><td></td></tr>";
+        if($journal) $content .= "<tr><th>Journal</th><td></td></tr>";
+        if($volume) $content .= "<tr><th>Volume</th><td></td></tr>";
+        if($publicationStatus) $content .= "<tr><th>State</th><td></td></tr>";
+        if($peerReview) $content .= "<tr><th>Peer-reviewed</th><td></td></tr>";*/
+        //$content .= "<div><div></div><div>$publicationDateYear</td></tr>";
+        //if($abstract) $content .= "<tr><th></th><td>$abstract_en</td></tr>";
+
+    }
+    
+    $resArray = array('data' => $data, 'title' => $title);
+    
     return json_encode($resArray);
 }
 

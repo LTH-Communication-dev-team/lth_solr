@@ -32,7 +32,7 @@ var lth_solr_messages = {
     journalTitle: "Journal",
     numberOfPages: "Number of pages",
     keywords: "Research areas and keywords",
-    courses: Courses
+    courses: "Courses"
 };
 
 

@@ -19,6 +19,8 @@ $(document).ready(function() {
         listPublications(0);
     } else if($('#lth_solr_action').val() == 'listStudentPapers') {
         listStudentPapers(0);
+    } else if($('#lth_solr_action').val() == 'showStudentPaper') {
+        showStudentPaper(0);
     } else if($('#lth_solr_action').val() == 'listProjects') {
         listProjects(0);
     } else if($('#lth_solr_action').val() == 'showPublication') {
@@ -371,7 +373,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
 
 function maxLength(tableStart, tableLength, numFound)
 {
-    console.log(tableStart + ';' + tableLength + ';' + numFound);
+    //console.log(tableStart + ';' + tableLength + ';' + numFound);
     if(tableStart + tableLength > numFound) {
         return numFound;
     } else {
@@ -401,7 +403,7 @@ function inArray(needle, haystack)
 }
 
 
-/*function showMore()
+function showMore()
 {
     var readMoreText = $('.readmore').text();
     var scrollHeight = '';
@@ -413,7 +415,7 @@ function inArray(needle, haystack)
         $('.readmore').text(lth_solr_messages.more);
     }
     $('.more-content').css('height',scrollHeight+'px');
-}*/
+}
 
 
 function searchLong(term, startPeople, startPages, startDocuments, startCourses, more)
@@ -993,9 +995,10 @@ function listStudentPapers(tableStart, facet, query, noQuery, more)
     var syslang = $('#lth_solr_syslang').val();
     var scope = $('#lth_solr_scope').val();
     var tableLength = $('#lth_solr_no_items').val();
-    var lth_solr_detailpage = $('#lth_solr_detailpage').val();
+    var detailPage = $('#lth_solr_detailpage').val();
+    
     var i = 0;
-    var maxClass, more, count, content;
+    var maxClass, more, count, content, title;
     
     $.ajax({
         type : 'POST',
@@ -1018,7 +1021,7 @@ function listStudentPapers(tableStart, facet, query, noQuery, more)
         },
         dataType: 'json',
         error : function(jq, st, err) {
-            alert(st + " : " + err);
+            alert(jq + ';' + st + " : " + err);
         },
         beforeSend: function () {
             //   console.log(facet + ',' + query + ',' + noQuery + ', ' + more);
@@ -1063,8 +1066,11 @@ function listStudentPapers(tableStart, facet, query, noQuery, more)
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrPublicationTemplate').html();
 
+                    if(aData[1]) {
+                        title = '<a href="index.php?id=' + detailPage + '&uuid=' + aData[0] + '&no_cache=1">' + aData[1] + '</a>';
+                    }
                     template = template.replace('###id###', aData[0]);
-                    template = template.replace('###title###', aData[1]);
+                    template = template.replace('###title###', title);
                     template = template.replace(/###authorName###/g, aData[2]);
                     template = template.replace(/###publicationType###/g, aData[3]);
                     template = template.replace(/###publicationDateYear###/g, aData[4]);
@@ -1079,19 +1085,70 @@ function listStudentPapers(tableStart, facet, query, noQuery, more)
                     $('#lthsolr_publications_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" onclick="listPublications(' + (parseInt(tableStart) + parseInt(tableLength)) + ');">NEXT ' + tableLength + ' of ' + d.numFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listPublications(' + (parseInt(tableStart) + parseInt(tableLength)) + ');">Show all ' + d.numFound + '</a></div>');
                 }
             }
-            
-            $('.lthsolr_publication_row').on( 'click', function () {
-                if(lth_solr_detailpage) {
-                    var id = $(this).attr('id');
-                    //console.log(id);
-                    window.location.href = lth_solr_detailpage + '?no_cache=1&uuid=' + id;
-                }
-            });
-            
         }
-
     });
+}
+
+
+function showStudentPaper()
+{
+    var lth_solr_staffdetailpage = $('#lth_solr_staffdetailpage').val();
+    var lth_solr_projectdetailpage = $('#lth_solr_projectdetailpage').val();
+    var syslang = $('#lth_solr_syslang').val();
     
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID : 'lth_solr',
+            action : 'showStudentPaper',
+            scope : $('#lth_solr_uuid').val(),
+            syslang : syslang,
+            detailPage: lth_solr_staffdetailpage + ',' + lth_solr_projectdetailpage,
+            sid : Math.random(),
+        },
+        //contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        beforeSend: function () {
+            $('#lth_solr_container').html('<img src="/fileadmin/templates/images/ajax-loader.gif" />');
+        },
+        success: function(d) {
+            console.log(d);
+            if(d.data) {
+                var template = $('#solrTemplate').html();
+    
+                template = template.replace(/###title###/g, d.title);
+                template = template.replace('###abstract###', checkData(d.data[0], lth_solr_messages.abstract));
+                template = template.replace(/###authors###/g, checkData(d.data[1], lth_solr_messages.authors));
+                template = template.replace('###organisations###', checkData(d.data[2], lth_solr_messages.organisations));
+                template = template.replace('###externalOrganisations###', checkData(d.data[3]));
+                template = template.replace('###keywords###', checkData(d.data[4], lth_solr_messages.keywords));
+                template = template.replace('###language###', checkData(d.data[5], lth_solr_messages.language));
+                template = template.replace('###pages###', checkData(d.data[6], lth_solr_messages.pages));
+                template = template.replace('###numberOfPages###', checkData(d.data[7], lth_solr_messages.numberOfPages));
+                template = template.replace('###journalTitle###', checkData(d.data[8], lth_solr_messages.journalTitle));
+                template = template.replace('###volume###', checkData(d.data[9], lth_solr_messages.volume));
+                template = template.replace('###journalNumber###', checkData(d.data[10], lth_solr_messages.journalNumber));
+                template = template.replace('###publicationStatus###', checkData(d.data[11], lth_solr_messages.publicationStatus));
+                template = template.replace('###peerReview###', checkData(d.data[12], lth_solr_messages.peerReview, syslang));
+                template = template.replace('###publicationDateYear###', d.data[13]);
+                template = template.replace('###publicationDateMonth###', d.data[14]);
+                template = template.replace('###publicationDateDay###', d.data[15]);
+                
+                $('#page_title h1').text(d.title);
+                $('#lth_solr_container').html(template);
+            }
+        }
+    });
+}
+
+
+function bibtexFormat(label, input)
+{
+    if(input) {
+        return label + ' = ' + input + ',<br />';
+    }
+    return '';
 }
 
 
@@ -1120,26 +1177,119 @@ function showPublication()
         success: function(d) {
             if(d.data) {
                 var template = $('#solrTemplate').html();
-                template = template.replace(/###title###/g, d.title);
-                template = template.replace('###abstract###', checkData(d.data[0], lth_solr_messages.abstract));
-                template = template.replace(/###authors###/g, checkData(d.data[1], lth_solr_messages.authors));
-                template = template.replace('###organisations###', checkData(d.data[2], lth_solr_messages.organisations));
-                template = template.replace('###externalOrganisations###', checkData(d.data[3]));
-                template = template.replace('###keywords###', checkData(d.data[4], lth_solr_messages.keywords));
-                template = template.replace('###language###', checkData(d.data[5], lth_solr_messages.language));
-                template = template.replace('###pages###', checkData(d.data[6], lth_solr_messages.pages));
-                template = template.replace('###numberOfPages###', checkData(d.data[7], lth_solr_messages.numberOfPages));
-                template = template.replace('###journalTitle###', checkData(d.data[8], lth_solr_messages.journalTitle));
-                template = template.replace('###volume###', checkData(d.data[9], lth_solr_messages.volume));
-                template = template.replace('###journalNumber###', checkData(d.data[10], lth_solr_messages.journalNumber));
-                template = template.replace('###publicationStatus###', checkData(d.data[11], lth_solr_messages.publicationStatus));
-                template = template.replace('###peerReview###', checkData(d.data[12], lth_solr_messages.peerReview, syslang));
+                
+                id = d.data.id;
+                title = d.data.title;
+                abstract = d.data.abstract;
+                authorsName = d.data.authorsName;
+                authorsReverseName = d.data.authorsReverseName;
+                authorsReverseNameShort = d.data.authorsReverseNameShort;
+                authorsId = d.data.authorsId;
+                organisations = d.data.organisations;
+                externalOrganisations = d.data.externalOrganisations;
+                keywords = d.data.keywords;
+                language = d.data.language;
+                pages = d.data.pages;
+                numberOfPages = d.data.numberOfPages;
+                journalTitle = d.data.journalTitle;
+                volume = d.data.volume;
+                journalNumber = d.data.journalNumber;
+                publicationStatus = d.data.publicationStatus;
+                peerReview = d.data.peerReview;
+                publicationDateYear = d.data.publicationDateYear;
+                publicationDateMonth = d.data.publicationDateMonth;
+                publicationDateDay = d.data.publicationDateDay;
+                standard_category_en = d.data.standard_category_en;
+                publicationType = d.data.publicationType;
+                publicationTypeUri = d.data.publicationTypeUri;
+                doi = d.data.doi;
+                issn = d.data.issn;
+                isbn = d.data.isbn;
+                publisher = d.data.publisher;
+                
+                //overview
+                template = template.replace(/###title###/g, title);
+                template = template.replace('###abstract###', checkData(abstract, lth_solr_messages.abstract));
+                template = template.replace(/###authors###/g, checkData(authorsName, lth_solr_messages.authors));
+                template = template.replace('###organisations###', checkData(organisations, lth_solr_messages.organisations));
+                template = template.replace('###externalOrganisations###', checkData(externalOrganisations));
+                template = template.replace('###keywords###', checkData(keywords, lth_solr_messages.keywords));
+                template = template.replace('###language###', checkData(language, lth_solr_messages.language));
+                template = template.replace('###pages###', checkData(pages, lth_solr_messages.pages));
+                template = template.replace('###numberOfPages###', checkData(numberOfPages, lth_solr_messages.numberOfPages));
+                template = template.replace('###journalTitle###', checkData(journalTitle, lth_solr_messages.journalTitle));
+                template = template.replace('###volume###', checkData(volume, lth_solr_messages.volume));
+                template = template.replace('###journalNumber###', checkData(journalNumber, lth_solr_messages.journalNumber));
+                template = template.replace('###publicationStatus###', checkData(publicationStatus, lth_solr_messages.publicationStatus));
+                template = template.replace('###peerReview###', checkData(peerReview, lth_solr_messages.peerReview, syslang));
+                
+                //cite
+                
+                //standard
+                standard = '';
+                standard = stdWrap(title + '.' + ' / ' + authorsReverseName + '.');
+                standard += stdWrap('In: ' + journalTitle + ', ' + volume + ', ' + pages + '.' + '<br />Research output: ' + fixResearchOutput(publicationTypeUri));
+                template = template.replace('###standard###', standard);
+                
+                //Harvard
+                harvard = '';
+                harvard = stdWrap(authorsReverseNameShort + ' ' + publicationDateYear + ", '" + journalTitle + "' <i>" + journalTitle + "</i>, " + volume + ", " + pages + '.' + 'DOI: ' + doi);
+                template = template.replace('###harvard###', harvard);
+                //bibtex
+                /*
+                 * @article{90e30c5ea737465fab4a73982e948bc7,
+title = "Experimental and numerical analysis of adhesion failure in moist packaging material during excessive heating",
+keywords = "Blister, Dynamic sorption, Mixture theory, Paperboard, Porous media",
+author = "Henrik Askfelt and Matti Ristinmaa",
+year = "2017",
+month = "5",
+doi = "10.1016/j.ijheatmasstransfer.2017.01.068",
+volume = "108",
+pages = "2566--2580",
+journal = "International Journal of Heat and Mass Transfer",
+issn = "0017-9310",
+publisher = "Pergamon",
+}
+                 */
+                bibtex = '';
+                bibtex = '@' + standard_category_en + '{' + id.replace('-','') + ',<br />';
+                bibtex += bibtexFormat('title', title);
+                bibtex += bibtexFormat('keywords', keywords);
+                bibtex += bibtexFormat('author', authorsName);
+                bibtex += bibtexFormat('year', publicationDateYear);
+                bibtex += bibtexFormat('month', publicationDateMonth);
+                bibtex += bibtexFormat('doi', doi);
+                bibtex += bibtexFormat('volume', volume);
+                bibtex += bibtexFormat('pages', pages);
+                bibtex += bibtexFormat('journal', journalTitle);
+                bibtex += bibtexFormat('issn', issn);
+                bibtex += bibtexFormat('isbn', isbn);
+                bibtex += bibtexFormat('publisher', publisher);
+                template = template.replace('###bibtex###', bibtex);
                 
                 $('#page_title h1').text(d.title);
                 $('#lth_solr_container').html(template);
             }
         }
     });
+}
+
+
+function stdWrap(input)
+{
+    if(input) {
+        input = '<p>' + input + '</p>';
+    }
+    return input;
+}
+
+
+function fixResearchOutput(input)
+{
+    if(input) {
+        input = input.split('/researchoutputtypes/')[1].replace('/', ' > ').replace('contributiontojournal', 'Contribution to journal').replace('article','Article');
+    }
+    return input;
 }
 
 

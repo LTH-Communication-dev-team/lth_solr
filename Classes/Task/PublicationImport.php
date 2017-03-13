@@ -61,7 +61,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $heritageArray = $this->getHeritage($con);
         
-        $startFromHere = 148000;
+        $startFromHere = 0;
 
 	$executionSucceeded = $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified);
         
@@ -85,11 +85,11 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $lucrisId = $settings['solrLucrisId'];
             $lucrisPw = $settings['solrLucrisPw'];
 
-            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            ////$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=6b7d9c9a-4b3d-4a0a-8d7b-38d8454472d8&rendering=xml_long";
+            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=90e30c5e-a737-465f-ab4a-73982e948bc7&rendering=xml_long";
             
-            $xml = file_get_contents($xmlpath);
+            $xml = file_get_contents($xmlpath);         
             $xml = simplexml_load_string($xml);        
             
 
@@ -112,6 +112,8 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $authorNameTemp;      
                 $authorId = array();
                 $authorName = array();
+                $authorFirstName = array();
+                $authorLastName = array();
                 $organisationId = array();
                 $organisationName_en = array();
                 $organisationName_sv = array();
@@ -131,8 +133,9 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $publicationDateDay;
                 $peerReview;
                 $doi;
-                $publicationType_en;
-                $publicationType_sv;
+                $publicationType_en = '';
+                $publicationType_sv = '';
+                $publicationTypeUri = '';
                 $standard_category_sv;
                 $standard_category_en;
                 $organisationSourceId = array();
@@ -155,6 +158,8 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $awardDate;
                 $bibliographicalNote_sv;
                 $bibliographicalNote_en;
+                $issn = '';
+                $isbn = '';
                 
                 //id
                 $id = (string)$content->attributes();
@@ -231,12 +236,16 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             if($personAssociation->children('person-template',true)->person) {
                                 $authorIdTemp = (string)$personAssociation->children('person-template',true)->person->attributes();
                                 $authorNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
+                                $authorFirstName[] = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
                                 $authorNameTemp .= ' ' . (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                                $authorLastName[] = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
                             }
                             if($personAssociation->children('person-template',true)->externalPerson) {
                                 $authorIdTemp = (string)$personAssociation->children('person-template',true)->externalPerson->attributes();
                                 $authorNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
+                                $authorFirstName[] = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
                                 $authorNameTemp .= ' ' . (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
+                                $authorLastName[] = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
                             }
                             if($authorIdTemp) {
                                 $authorId[] = (string)$authorIdTemp;
@@ -380,6 +389,28 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         }
                     }
                 }
+                
+                //issn
+                foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->journal) {
+                        if($content->children($varVal,true)->journal->children('journal-template',true)->issn) {
+                            foreach($content->children($varVal,true)->journal->children('journal-template',true)->issn as $issn) {
+                                $issn = (string)$issn->children('extensions-core',true)->string;
+                            }
+                        }
+                    }
+                }
+                
+                //isbn
+                foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->journal) {
+                        if($content->children($varVal,true)->journal->children('journal-template',true)->isbn) {
+                            foreach($content->children($varVal,true)->journal->children('journal-template',true)->isbn as $isbn) {
+                                $isbn = (string)$isbn->children('extensions-core',true)->string;
+                            }
+                        }
+                    }
+                }
 
                 //numberOfPages
                 foreach($varArray as $varVal) {
@@ -481,7 +512,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 
                 //Doi
                 foreach($varArray as $varVal) {
-                    if($doi = $content->children($varVal,true)->dois) {
+                    if($content->children($varVal,true)->dois) {
                         $doi = (string)$content->children($varVal,true)->dois->children('core',true)->doi->children('core',true)->doi;
                     }
                 }
@@ -497,6 +528,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 $publicationType_sv = (string)$localizedString;
                             }
                         }
+                        $publicationTypeUri = (string)$content->children($varVal,true)->typeClassification->children('core',true)->uri;
                     }
                 }
 
@@ -507,6 +539,8 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'abstract_sv' => $abstract_sv,
                     'authorId' => $authorId,
                     'authorName' => array_unique($authorName),
+                    'authorFirstName' => $authorFirstName,
+                    'authorLastName' => $authorLastName,
                     'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
                     'bibliographicalNote_sv' => $bibliographicalNote_sv,
                     'bibliographicalNote_en' => $bibliographicalNote_en,
@@ -545,11 +579,13 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'publicationDateDay' => $publicationDateDay,
                     'publicationType_en' => $publicationType_en,
                     'publicationType_sv' => $publicationType_sv,
+                    'publicationTypeUri' => $publicationTypeUri,
                     'publisher' => $publisher,
                     'title' => $title,
                     'volume' => $volume,
                     'standard_category_en' => $publicationType_en,
                     'standard_category_sv' => $publicationType_sv,
+                    'issn' => $issn,
                     'doi' => $doi,
                     'boost' => '1.0',
                     'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),

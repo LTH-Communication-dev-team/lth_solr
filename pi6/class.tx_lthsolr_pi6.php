@@ -117,13 +117,13 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $content .= '
                 <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
                 <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
-                <input type="hidden" id="lth_solr_action" value="showPublication" />';
+                <input type="hidden" id="lth_solr_action" value="showStudentPaper" />';
             
             return $content;
         }
         
         
-        private function listStudentPapers($scope, $detailPage, $syslang, $noItemsToShow, $categories, $papertype)
+        private function listStudentPapers($whatToDisplay, $scope, $detailPage, $syslang, $noItemsToShow, $categories, $papertype)
         {
             /*$content = '<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
                 <thead><tr><th>Title</th><th>Author</th><th>Type</th><th>Year</th></tr></thead>
