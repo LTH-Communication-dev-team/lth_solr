@@ -106,9 +106,7 @@ class ConvertForms extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $content .= "}\n";
                 
                 try {
-                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tt_content', array('pid' => $pid, 'CType' => 'mailform', 
-                        'bodytext' => $content, 'sorting' => intval($sorting)+10, 
-                    'hidden' => 0, 'tstamp' => time(), 'crdate' => time()));
+                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tt_content', array('pid' => $pid, 'CType' => 'mailform', 'bodytext' => $content, 'sorting' => intval($sorting)+10, 'tstamp' => time(), 'crdate' => time()));
 
                 } catch(Exception $e) {
                     echo 'Message: ' .$e->getMessage();
