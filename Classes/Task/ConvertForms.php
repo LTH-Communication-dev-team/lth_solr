@@ -238,22 +238,51 @@ value = Email:
     
     function convertRadio($fieldName, $fieldType, $label, $value, $mandatory, $i)
     {
-        $content = "$i = RADIO\n";
-        $content .= "$i{\n";
-        $content .= "type = radio\n";
+        /*
+         * Avslutning av: | *Avslutning_av=radio | Nyhetsbrevet, LTH-nytt i pappersformat
+         */
+        
         if($value) {
-            $content .= "checked = checked\n";
+            $valueArray = explode(",", $value);
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => count($valueArray), 'crdate' => time()));
+            //if(count($valueArray) > 1) {
+                $ii=0;
+                $content = "$i = RADIOGROUP\n";
+                $content .= "$i{\n";
+                if($mandatory===true) {
+                    $content .= "required = required\n";
+                }
+                if($label) {
+                    $content .= "legend {\nvalue = $label\n}\n";
+                }
+                $content .= "name = $fieldName\n";
+                foreach($valueArray as $vKey => $vValue) {
+                    $ii=$ii+10;
+                    $content .= "$ii = RADIO\n";
+                    $content .= "$ii{\n";
+                    $content .= "type = RADIO\n";
+                    $content .= "value = $vValue\n";
+                    $content .= "label {\nvalue = $vValue\n}\n";
+                    $content .= "}\n";
+                }
+                $content .= "}\n";
+            /*} else if(count($valueArray) === 1) {
+                $content = "$i = RADIO\n";
+                $content .= "$i{\n";
+                $content .= "type = radio\n";
+                if($mandatory===true) {
+                    $content .= "required = required\n";
+                }
+                $content .= "name = $fieldName\n";
+                if($mandatory===true) {
+                    $content .= "required = required\n";
+                }
+                if($label) {
+                    $content .= "label {\nvalue = $label\n}\n";
+                }
+                $content .= "}\n";
+            }*/
         }
-        $content .= "name = $fieldName\n";
-        
-        if($mandatory===true) {
-            $content .= "required = required\n";
-        }
-        if($label) {
-            $content .= "label {\nvalue = $label\n}\n";
-        }
-        $content .= "}\n";
-        
         return $content;
     }
     
