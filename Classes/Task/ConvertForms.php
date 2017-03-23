@@ -50,13 +50,15 @@ class ConvertForms extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $content .= "}\n";
                 $content .= "}\n";
                 $bodytextArray = explode("\n", $bodytext);
+
                 if(is_array($bodytextArray)) {
                     foreach($bodytextArray as $bodytextKey => $bodytextRow) {
                         if($bodytextRow && strpos($bodytextRow, "|") !== false) {
                             
                             $bodytextRowArray = explode("|", $bodytextRow);
                             if(is_array($bodytextRowArray)) {
-                                $i = $i+10;
+                                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $bodytextRow, 'crdate' => time()));
+                                
                                 $label = trim($bodytextRowArray[0]);
                                 $field = trim($bodytextRowArray[1]);
                                 $value = trim($bodytextRowArray[2]);
@@ -72,6 +74,10 @@ class ConvertForms extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                     $content = str_replace("###subject###", $value, $content);
                                 } else if($fieldName==="formtype_mail" && $fieldType==="submit") {
                                     $submitValue = $value;
+                                } else if($fieldName==="html_enabled" && $fieldType==="hidden") {
+                                    
+                                } else {
+                                    $i = $i+10;
                                 }
                                 if($fieldType) {
                                     $fieldTypeArray = explode(",", $fieldType);
@@ -97,6 +103,7 @@ class ConvertForms extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         }
                     }
                 }
+                $i = $i+10;
                 $content .= "$i = SUBMIT\n";
                 $content .= "$i {\n";
                 $content .= "type = submit\n";
