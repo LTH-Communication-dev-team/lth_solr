@@ -36,6 +36,7 @@ class ConvertForms extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $subheader = $row['subheader'];
             $sorting = $row['sorting'];
             if($bodytext) {
+                $i=0;
                 $content = "enctype = multipart/form-data\n";
                 $content .= "method = post\n";
                 $content .= "prefix = tx_form\n";
