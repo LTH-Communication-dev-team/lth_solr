@@ -27,7 +27,7 @@ class ConvertForms extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         
         $i=0;
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("t.uid, t.pid, t.bodytext, t.subheader, t.sorting", "tt_content t JOIN pages p ON p.uid = t.pid", "t.CType = 'mailform' AND t.deleted = 0 AND t.hidden=0 AND p.deleted = 0 AND p.hidden=0");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("t.uid, t.pid, t.bodytext, t.subheader, t.sorting, t.pages", "tt_content t JOIN pages p ON p.uid = t.pid", "t.CType = 'mailform' AND t.deleted = 0 AND t.hidden=0 AND p.deleted = 0 AND p.hidden=0");
         //SELECT t.uid, t.pid, t.bodytext FROM tt_content t JOIN pages p ON p.uid = t.pid WHERE t.CType = 'mailform' AND t.deleted = 0 AND t.hidden=0 AND p.deleted = 0 AND p.hidden=0
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $uid = $row['uid'];
@@ -35,6 +35,7 @@ class ConvertForms extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $bodytext = $row['bodytext'];
             $subheader = $row['subheader'];
             $sorting = $row['sorting'];
+            $pages = $row['pages'];
             if($bodytext) {
                 $i=0;
                 $content = "enctype = multipart/form-data\n";
@@ -48,6 +49,12 @@ class ConvertForms extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $content .= "senderEmail = $subheader\n";
                 $content .= "subject = ###subject###\n";
                 $content .= "}\n";
+                if($pages) {
+                    $content .= "2 = redirect\n";
+                    $content .= "2 {\n";
+                    $content .= "destination = $pages\n";
+                    $content .= "}\n";
+                }
                 $content .= "}\n";
                 $bodytextArray = explode("\n", $bodytext);
 
