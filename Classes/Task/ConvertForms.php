@@ -27,7 +27,7 @@ class ConvertForms extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         
         $i=0;
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("t.uid, t.pid, t.bodytext, t.subheader, t.sorting, t.pages", "tt_content t JOIN pages p ON p.uid = t.pid", "t.CType = 'mailform' AND t.deleted = 0 AND t.hidden=0 AND p.deleted = 0 AND p.hidden=0 AND P.uid=1717");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("t.uid, t.pid, t.bodytext, t.subheader, t.sorting, t.pages", "tt_content t JOIN pages p ON p.uid = t.pid", "t.CType = 'mailform' AND t.deleted = 0 AND t.hidden=0 AND p.deleted = 0 AND p.hidden=0 AND p.uid=1717");
         //SELECT t.uid, t.pid, t.bodytext FROM tt_content t JOIN pages p ON p.uid = t.pid WHERE t.CType = 'mailform' AND t.deleted = 0 AND t.hidden=0 AND p.deleted = 0 AND p.hidden=0
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $uid = $row['uid'];
