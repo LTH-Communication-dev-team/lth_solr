@@ -134,3 +134,5 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi5/class.tx_lthsolr_pi5.php', '_pi5', 'list_type', 1);
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi6/class.tx_lthsolr_pi6.php', '_pi6', 'list_type', 1);
+
+$GLOBALS['TYPO3_CONF_VARS']['FE']['ContentObjects']['IMGTEXT'] = \Lth\Lthsolr\ContentObject\ImageTextContentObject::class;
