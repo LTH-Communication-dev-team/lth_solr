@@ -57,7 +57,6 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $selection = $this->pi_getFFvalue($piFlexForm, "selection", "sDEF", $lDef[$index]);
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
-            $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $hideFilter = $this->pi_getFFvalue($piFlexForm, "hideFilter", "sDEF", $lDef[$index]);
 
             if($fe_groups) {
@@ -118,7 +117,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             if($uuid) {
                 $content .= $this->showPublication($uuid, $staffDetailPage, $projectDetailPage, $syslang);
             } else {
-                $content .= $this->listPublications($scope, $detailPage, $syslang, $noItemsToShow, $categories, $hideFilter, $selection);
+                $content .= $this->listPublications($scope, $detailPage, $syslang, $noItemsToShow, $hideFilter, $selection);
             }
         
             //$this->debug($content);
@@ -146,22 +145,32 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
         }
         
         
-        private function listPublications($scope, $detailPage, $syslang, $noItemsToShow, $categories, $hideFilter, $selection)
+        private function listPublications($scope, $detailPage, $syslang, $noItemsToShow, $hideFilter, $selection)
         {
+            $content .= '<style>.glyphicon-search {font-size: 25px;}.glyphicon-filter {font-size: 15px;}</style>';
             $content .= '<div class="lth_solr_filter_container">';
             
-            $content .= '<div style="font-weight:bold;">' . $this->pi_getLL("filter") . '</div>';
+                //$content .= '<div style="font-weight:bold;">' . $this->pi_getLL("filter") . '</div>';
               
-            $content .= '<div style="clear:both;margin-top:10px;">';
-            if(!$hideFilter) $content .= '<input type="text" id="lthsolr_publications_filter" class="lthsolr_filter" placeholder="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
-            $content .= '</div>';
+                $content .= '<div style="clear:both;height:50px;">';
+                if(!$hideFilter) {
+                    $content .= '<div id="refine" style="float:left;width:30%;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:16px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">Filter</span></div>';
+                    $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
+                    $content .= '<div style="float:left;padding-top:10px;width:60%">';
+                    $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_publications_filter" class="lthsolr_filter" placeholdera="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
+                    $content .= '</div>';
+                }
+                $content .= '</div>';
+                
+            $content .= '</div>';    
             
-            $content .= '<div class="lth_solr_facet_container"></div>';
-            $content .= '</div>';
+            $content .= '<div style="clear:both;">';
             
-            $content .= '<div id="lthsolr_publications_header"></div>';
+            $content .= '<div id="lth_solr_facet_container"></div>';
             
-            $content .= '<div id="lthsolr_publications_container"></div>';
+            $content .= '<div id="lthsolr_publications_container"><div style="clear:both;" id="lthsolr_publications_header"></div></div>';
+            
+            $content .= '</div>'; 
             
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple.html");
             
@@ -170,7 +179,6 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                     <input type="hidden" id="lth_solr_publicationdetailpage" value="' . $detailPage . '" />
                     <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />    
                     <input type="hidden" id="lth_solr_action" value="listPublications" />
-                    <input type="hidden" id="lth_solr_categories" value="' . $categories . '" />
                     <input type="hidden" id="lth_solr_selection" value="' . $selection . '" />    
                     <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
             

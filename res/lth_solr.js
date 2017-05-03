@@ -17,6 +17,10 @@ $(document).ready(function() {
         showStaff();
     } else if($('#lth_solr_action').val() == 'listPublications') {
         listPublications(0);
+        $("#refine").click(function(){
+            $("#lth_solr_facet_container").toggle(500);
+            $("#lthsolr_publications_container").toggleClass('expand');
+        });
     } else if($('#lth_solr_action').val() == 'listStudentPapers') {
         listStudentPapers(0);
     } else if($('#lth_solr_action').val() == 'showStudentPaper') {
@@ -28,7 +32,7 @@ $(document).ready(function() {
     } else if($('#lth_solr_action').val() == 'showProject') {
         showProject();
     }
-    
+            
 
     $('#lthsolr_staff_filter').keyup(function() {
         var noQuery;
@@ -76,6 +80,15 @@ $(document).ready(function() {
         exportStaff('txt');
     });
 });
+
+
+function mobileCheck() {
+    var check = false;
+    if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+        check=true;
+    }
+    return check;
+}
 
 
 function exportStaff(exportType)
@@ -377,7 +390,7 @@ function maxLength(tableStart, tableLength, numFound)
     if(tableStart + tableLength > numFound) {
         return numFound;
     } else {
-        return tableStart + tableLength;
+        return parseInt(tableStart) + parseInt(tableLength);
     }
 }
 
@@ -858,8 +871,9 @@ function listPublications(tableStart, facet, query, noQuery, more)
     var maxClass = '';
     var count = '';
     var content = '';
-    var pages, title, publicationDate, journalTitle;
-    
+    var pages, title, publicationDate, journalTitle, facetHeader;
+    var inputFacet = facet;
+
     $.ajax({
         type : 'POST',
         url : 'index.php',
@@ -874,7 +888,6 @@ function listPublications(tableStart, facet, query, noQuery, more)
             syslang : syslang,
             query: query,
             addPeople : $('#addPeople').val(),
-            categories : $('#lth_solr_categories').val(),
             selection : $('#lth_solr_selection').val(),
             facet: facet,
             sid : Math.random(),
@@ -886,7 +899,7 @@ function listPublications(tableStart, facet, query, noQuery, more)
         beforeSend: function () {
             //   console.log(facet + ',' + query + ',' + noQuery + ', ' + more);
             if(!more) {
-                $('#lthsolr_publications_container div').remove().append('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
+                $('#lthsolr_publications_container div').not('#lthsolr_publications_header').remove().append('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
             }
 
             //$('#lthsolr_all').remove();
@@ -895,25 +908,36 @@ function listPublications(tableStart, facet, query, noQuery, more)
         success: function(d) {
             if(d.data) {
                 if(d.facet) {
-                    if($('.item-list').length == 0) {
+                    $('#lth_solr_facet_container').html('');
+                    if($('.item-list').length == 0 || 1+1===2) {
                         $.each( d.facet, function( key, value ) {
+                            
                             $.each( value, function( key1, value1 ) {
                                 if(i > 4) {
                                     maxClass = ' class="maxlist-hidden"';
                                     more = '<p class="maxlist-more"><span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span><a href="#">' + lth_solr_messages.more + '</a></p>';
                                 }
 
-                                facet = value1[0];
+                                facet = value1[0].toString();
                                 count = value1[1];
+                                facetHeader = value1[2];
+                                var facetCheck = '';
+                                
+                                if(inputFacet) {
+                                    if(inArray(key + '###' + facet,JSON.parse(inputFacet))) {
+                                        facetCheck = ' checked="checked"';
+                                    }
+                                }
                                 if(parseInt(value1[1]) > 0 && value1[0]) {
-                                    content += '<li' + maxClass + '>';
-                                    content += facet.split('$').shift().capitalize().replace(/_/g, ' ') + ' [' + count + '] ';
-                                    content += '<input type="checkbox" class="lth_solr_facet" name="lth_solr_facet" value="' + key.split('$').shift() + '###' + facet.split('$').shift() + '"></li>';
+                                    content += '<li' + maxClass + ' style="width:100%;">';
+                                    content += facet.capitalize().replace(/_/g, ' ') + '&nbsp;[' + count + '] ';
+                                    content += '<input type="checkbox" class="lth_solr_facet" name="lth_solr_facet" value="' + key + '###' + facet + '"' + facetCheck + '>';
+                                    content += '</li>';
                                 }
                                 i++;
                             });
 
-                            $('.lth_solr_facet_container').append('<div class="item-list"><ul><li>' + content + '</ul>' + more + '</div>');
+                            $('#lth_solr_facet_container').append('<div class="item-list"><ul><li style="width:100%;"><b>'+facetHeader+'</b></li>' + content + '</ul>' + more + '</div>');
                             i=0;
                             maxClass='';
                             more='';
@@ -928,13 +952,13 @@ function listPublications(tableStart, facet, query, noQuery, more)
                     pages = '';
                     publicationDate = '';
                     journalTitle = '';
-                     if(aData[1]) {
+                    if(aData[1]) {
                         title = aData[1].charAt(0).toUpperCase() + aData[1].slice(1).toLowerCase();
                     } else {
                         title = 'untitled';
                     }
                     if(lth_solr_detailpage) {
-                        title = '<a href="' + lth_solr_detailpage + '?no_cache=1&uuid=' + aData[0] + '">' + title.charAt(0).toUpperCase() + title.slice(1).toLowerCase(); + '</a>';
+                        title = '<a href="' + lth_solr_detailpage + '?no_cache=1&uuid=' + aData[0] + '&lth_solr[uuid]=' + aData[0] + '">' + title + '</a>';
                     }
                     if(aData[4]) publicationDate = aData[4];
                     if(aData[5]) publicationDate += '-'+aData[5];
@@ -968,9 +992,14 @@ function listPublications(tableStart, facet, query, noQuery, more)
                 
                 $('.lthsolr_loader').remove();
 
-                $('#lthsolr_publications_header').html('1-' + maxLength(parseInt(tableStart) + parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound);
+                $('#lthsolr_publications_header').html(1+parseInt(tableStart) + '-' + maxLength(parseInt(tableStart),parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound);
                 if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
                     $('#lthsolr_publications_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" onclick="listPublications(' + (parseInt(tableStart) + parseInt(tableLength)) + ');">' + lth_solr_messages.next + ' ' + tableLength + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listPublications(' + (parseInt(tableStart) + parseInt(tableLength)) + ');">' + lth_solr_messages.show_all + ' ' + d.numFound + '</a></div>');
+                }
+                if(!mobileCheck()) {
+                    $('#lthsolr_publications_container').parent().height($('#lthsolr_publications_container').height());
+                    $('#lth_solr_facet_container').height($('#lthsolr_publications_container').height());
+                    $('#lthsolr_publications_container, #lth_solr_facet_container').css('float','left');
                 }
             }
             
@@ -1164,7 +1193,7 @@ function showPublication()
         data: {
             eID : 'lth_solr',
             action : 'showPublication',
-            scope : $('#lth_solr_uuid').val(),
+            term : $('#lth_solr_uuid').val(),
             syslang : syslang,
             detailPage: lth_solr_staffdetailpage + ',' + lth_solr_projectdetailpage,
             sid : Math.random(),
@@ -1393,7 +1422,7 @@ function showProject()
 function toggleFacets()
 {
     $('.maxlist-more a').on( 'click', function () {
-        $('.maxlist-hidden').toggle('slow');
+        $(this).parent().parent().find('.maxlist-hidden').toggle('slow');
         if($(this).text() == lth_solr_messages.more) {
             $(this).text(lth_solr_messages.close);
         } else {
@@ -1678,7 +1707,7 @@ function createFacetClick(listType)
         if(listType==='listStaff') {
             listStaff(0, getFacets(), $('#lthsolr_staff_filter').val().trim(),false,false);
         } else if(listType==='listPublications') {
-            listPublications(0, getFacets(), $('#lthsolr_staff_filter').val().trim(),false,false);
+            listPublications(0, getFacets(), $('#lthsolr_publications_filter').val().trim(),false,false);
         }
     });
 }
@@ -1687,7 +1716,7 @@ function createFacetClick(listType)
 function getFacets()
 {
     var facet = [];
-    $(".lth_solr_facet_container input[type=checkbox]").each(function() {
+    $("#lth_solr_facet_container input[type=checkbox]").each(function() {
         if($(this).prop('checked')) {
             facet.push($(this).val());
         };

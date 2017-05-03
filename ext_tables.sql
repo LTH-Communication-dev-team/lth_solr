@@ -69,3 +69,11 @@ CREATE TABLE tx_lthsolr_lucrisdata (
     lucris_type varchar(25) DEFAULT NULL,
     PRIMARY KEY (id)
 );
+
+
+CREATE TABLE tx_lthsolr_path (
+    uid int(10) unsigned NOT NULL AUTO_INCREMENT,
+    title varchar(255) DEFAULT NULL,
+    lucris_id varchar(255) DEFAULT NULL,
+    PRIMARY KEY (uid)
+);

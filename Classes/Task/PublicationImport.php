@@ -85,14 +85,13 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $lucrisId = $settings['solrLucrisId'];
             $lucrisPw = $settings['solrLucrisPw'];
 
-            ////$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
-            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=90e30c5e-a737-465f-ab4a-73982e948bc7&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=90e30c5e-a737-465f-ab4a-73982e948bc7&rendering=xml_long";
             
             $xml = file_get_contents($xmlpath);         
             $xml = simplexml_load_string($xml);        
             
-
             if($xml->children('core', true)->count == 0) {
                 return "no items";
             }
@@ -164,7 +163,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 //id
                 $id = (string)$content->attributes();
 
-                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $id, 'crdate' => time()));
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $id, 'crdate' => time()));
                 //portalUrl
                 $portalUrl = (string)$content->children('core',true)->portalUrl;
                 
@@ -539,6 +538,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'abstract_sv' => $abstract_sv,
                     'authorId' => $authorId,
                     'authorName' => array_unique($authorName),
+                    'authorName_sort' => array_unique($authorName),
                     'authorFirstName' => $authorFirstName,
                     'authorLastName' => $authorLastName,
                     'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
@@ -582,6 +582,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'publicationTypeUri' => $publicationTypeUri,
                     'publisher' => $publisher,
                     'title' => $title,
+                    'title_sort' => $title,
                     'volume' => $volume,
                     'standard_category_en' => $publicationType_en,
                     'standard_category_sv' => $publicationType_sv,

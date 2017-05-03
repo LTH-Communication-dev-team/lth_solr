@@ -77,13 +77,13 @@ switch($action) {
         $content = searchMore($term, 'documents', $peopleOffset, $pageOffset, $documentOffset, $config);
         break;
     case 'listPublications':
-        $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $categories, $query, $selection);
+        $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $query, $selection);
         break;
     case 'listStudentPapers':
         $content = listStudentpapers($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $categories, $query, $papertype);
         break;
     case 'showPublication':
-        $content = showPublication($scope, $syslang, $config, $detailPage);
+        $content = showPublication($term, $syslang, $config, $detailPage);
         break;
     case 'showStudentPaper':
         $content = showStudentPaper($scope, $syslang, $config, $detailPage);
@@ -405,7 +405,7 @@ function searchMore($term, $type, $peopleOffset, $pageOffset, $documentOffset, $
 }
 
 
-function listPublications($facet, $term, $syslang, $config, $table_length, $table_start, $pageid, $categories, $filterQuery, $selection)
+function listPublications($facet, $term, $syslang, $config, $table_length, $table_start, $pageid, $filterQuery, $selection)
 {
     $currentDate = gmDate("Y-m-d\TH:i:s\Z");
     
@@ -416,20 +416,31 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
     $hideVal = 'lth_solr_hide_' . $pageid . '_i';
     
     if($filterQuery) {
-        $filterQuery = ' AND (title_sort:*' . $filterQuery . '*)';
+        $filterQuery = str_replace(" ","\ ",$filterQuery);
+        $filterQuery = " AND ((title:*$filterQuery*) OR authorName:*$filterQuery*)";
     }
     
     if($selection == 'coming_dissertations') {
         $selection = ' AND publicationType_en:Doctoral Thesis*';
     }
     // AND award:['.$currentDate . ' TO *]
-
+//$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'doctype:publication AND -' . $hideVal . ':[* TO *] AND (organisationSourceId  :'.$term.' OR authorId:'.$term.')' . $selection . $filterQuery, 'crdate' => time()));
     $query->setQuery('doctype:publication AND -' . $hideVal . ':[* TO *] AND (organisationSourceId  :'.$term.' OR authorId:'.$term.')' . $selection . $filterQuery);
     //$query->addParam('rows', 1500);
     $query->setStart($table_start)->setRows($table_length);
     
+    $publicationType = "publicationType_$syslang";
+    $categoryType = "standard_category_$syslang";
+    $languageType = "language_$syslang";
+    
     // get the facetset component
     $facetSet = $query->getFacetSet();
+    
+    // create a facet field instance and set options
+    $facetSet->createFacetField('standard')->setField($categoryType);
+    $facetSet->createFacetField('language')->setField($languageType);
+    $facetSet->createFacetField('year')->setField('publicationDateYear');
+
     if($facet) {
         $facetArray = json_decode($facet, true);
 
@@ -437,14 +448,12 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
         foreach($facetArray as $key => $value) {
             $facetTempArray = explode('###', $value);
             if($facetQuery) {
-                $facetQuery .= ' OR ';
+                $facetQuery .= ' AND ';
             }
             $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"';
         }
 
         $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
-    } else if($categories) {
-        $facetSet->createFacetField('standard')->setField('standard_category_' . $syslang);
     }
 
     $sortArray = array(
@@ -457,16 +466,46 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
     
     $numFound = $response->getNumFound();
     
-    $categoryType = "standard_category_$syslang";
-    $publicationType = "publicationType_$syslang";
+    
     
     // display facet query count
-    if(!$facet && $categories) {
+    //if(!$facet) {
         $facet_standard = $response->getFacetSet()->getFacet('standard');
-        foreach ($facet_standard as $value => $count) {
-            $facetResult[$categoryType][] = array($value, $count);
+        if($syslang==="en") {
+            $facetHeader = "Publikation Type";
+        } else {
+            $facetHeader = "Publikationstyp";
         }
-    }
+        foreach ($facet_standard as $value => $count) {
+            //if($count > 0) {
+                $facetResult[$categoryType][] = array($value, $count, $facetHeader);
+            //}
+        }
+        
+        $facet_language = $response->getFacetSet()->getFacet('language');
+        if($syslang==="en") {
+            $facetHeader = "Language";
+        } else {
+            $facetHeader = "Språk";
+        }
+        foreach ($facet_language as $value => $count) {
+            //if($count > 0) {
+                $facetResult[$languageType][] = array($value, $count, $facetHeader);
+            //}
+        }
+        
+        $facet_year = $response->getFacetSet()->getFacet('year');
+        if($syslang==="en") {
+            $facetHeader = "Publikation Year";
+        } else {
+            $facetHeader = "Publikationsår";
+        }
+        foreach ($facet_year as $value => $count) {
+            //if($count > 0) {
+                $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
+            //}
+        }
+    //}
         
     foreach ($response as $document) {     
         $data[] = array(
@@ -1100,7 +1139,7 @@ function listStaff($facet, $pageid, $pid, $sys_language_uid, $scope, $table_leng
 
     $queryToSet = '(doctype:"lucat"'.$scope. ' AND hide_on_web:0 AND disable_i:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
     //$queryToSet = '(doctype:"lucat" AND '. $showVal .':1 AND hide_on_web:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
-    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
     $query->setQuery($queryToSet);
     
     $query->setStart($table_start)->setRows($table_length);

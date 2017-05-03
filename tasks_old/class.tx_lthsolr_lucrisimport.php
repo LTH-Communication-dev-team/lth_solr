@@ -75,11 +75,11 @@ class tx_lthsolr_lucrisimport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $lastModified = $document->tstamp;
         }
 
-        $startFromHere = 145000;
+        $startFromHere = 0;
         
         //gc_disable();
         //echo $lastModified;
-        //$this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified);
+        $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified);
         //$this->getPublicationParts($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
         //$this->copyPublications($config, $config2, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
         //$this->copyStandardcat($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
@@ -90,7 +90,7 @@ class tx_lthsolr_lucrisimport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$this->getType($config, $client, $settings, $startFromHere);
         //$this->getXml($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere);
 
-        $this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
+        //$this->getPages($settings['solrHost'] . ':' . $settings['solrPort'] . $settings['solrPath']);
         //$this->getDocuments($client);
         //$this->getCourses($client);
         //$this->addIndexFlag($client);
@@ -1164,6 +1164,7 @@ class tx_lthsolr_lucrisimport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'abstract_sv' => $abstract_sv,
                     'authorId' => $authorId,
                     'authorName' => array_unique($authorName),
+                    'authorName_sort' => array_unique($authorName),
                     'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
                     'bibliographicalNote_sv' => $bibliographicalNote_sv,
                     'bibliographicalNote_en' => $bibliographicalNote_en,

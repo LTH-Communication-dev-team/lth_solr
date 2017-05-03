@@ -7,6 +7,14 @@ and open the template in the editor.
     Created on : 2015-sep-17, 21:04:25
     Author     : kans-th0
 */
+
+@media screen and (max-width: 600px) {
+  .refine {
+    visibility: hidden;
+    display: none;
+  }
+}
+
 .dt-buttons {
     clear:both;
 }
@@ -23,13 +31,19 @@ and open the template in the editor.
     list-style:none !important;
 }
 
-.lth_solr_facet_container {
+#lth_solr_facet_container {
     margin-bottom:10px;
+    width:30%;
+    display:none;
+    background-color:#353838;
+    padding:10px;
+    color:#ffffff;
 }
 
+
 .lth_solr_filter_container {
-    padding:8px 8px 2px 8px;
-    margin-bottom:15px;
+    /*padding:8px 8px 2px 8px;*/
+    margin-bottom:0px;
     background-color:#fafafa;
     border-bottom: 1px #ebebeb solid;
 }
@@ -84,16 +98,34 @@ tr.details td.details-control {
 .lthsolr_publication_row, .lthsolr_project_row {
     border-bottom: 1px solid #dedede;
     margin-top:15px;
-    cursor: pointer;
+    padding-bottom:15px;
 }
 
 .item-list li {
     float:left;
 }
 
-#lthsolr_staff_container, #lthsolr_publications_container {
+#lthsolr_staff_container {
     clear:both;
     max-width:500px;
+}
+
+.expand {
+    padding:10px;
+}
+
+#lthsolr_publications_container {
+    width:450px;
+    padding-top:10px;
+}
+
+#lthsolr_publications_container a {
+    text-decoration:none;
+}
+
+#lthsolr_publications_container p {
+    margin:0px;
+    padding:0px;
 }
 
 #lthsolr_staff_header {
@@ -102,7 +134,7 @@ tr.details td.details-control {
 }
 
 .lth_solr_facet {
-    margin-right: 10px !important;
+    
 }
 
 .maxlist-more {
@@ -111,6 +143,7 @@ tr.details td.details-control {
 
 .maxlist-more a {
     text-decoration:none;
+    color: #ffffff;
 }
 
 .lthsolr_loader {
@@ -298,4 +331,19 @@ color:#ffffff;
 /* DESKTOP CHANGES */
 @media all and (min-width: 641px) {
   .lthsolr_image_template p, .lthsolr_image_template h3 {margin-left:80px !important}
+}
+
+@media screen and (max-width: 600px) {
+  .refine {
+    visibility: hidden;
+    display: none;
+  }
+  #lth_solr_facet_container {
+        margin-bottom:10px;
+        width:100%;
+        display:none;
+        background-color:#353838;
+        padding:10px;
+        color:#ffffff;
+    }
 }
