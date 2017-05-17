@@ -58,7 +58,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
             $hideFilter = $this->pi_getFFvalue($piFlexForm, "hideFilter", "sDEF", $lDef[$index]);
-echo $this->pi_getLL("more");
+
             if($fe_groups) {
                 $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
                 while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
