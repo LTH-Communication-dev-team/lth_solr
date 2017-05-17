@@ -30,13 +30,15 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         require(__DIR__.'/init.php');
 
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $syslang = "sv";
      
         $config = array(
             'endpoint' => array(
                 'localhost' => array(
                     'host' => $settings['solrHost'],
                     'port' => $settings['solrPort'],
-                    'path' => $settings['solrPath'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
                     'timeout' => $settings['solrTimeout']
                 )
             )
@@ -85,7 +87,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray);
 
-        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config);
+        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang);
         
         //$executionSucceeded = TRUE;
         
@@ -551,7 +553,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config)
+    private function updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang)
     {
         //$this->debug($employeeArray);
         //echo count($employeeArray);
@@ -573,6 +575,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         ${"doc"}->setKey('id', $value['id']);
                         ${"doc"}->addField('disable_i', 1);
                         ${"doc"}->setFieldModifier('disable_i', 'set');
+                        ${"doc"}->addField('type', 'staff');
+                        ${"doc"}->setFieldModifier('type', 'set');
+                        ${"doc"}->addField('appKey', 'lthsolr');
+                        ${"doc"}->setFieldModifier('appKey', 'set');
                         $docArray[] = ${"doc"};
                     } else if($value['id']) {
                         $heritage = array();
@@ -673,6 +679,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                         $standard_category_sv = array();
                         $standard_category_en = array();
+                        $standardCategory = array();
                         //$titleArray = explode('###', $value['title']);
                         $titleArray = $value['title'];
                         //$title_enArray = explode('###', $value['title_en']);
@@ -680,6 +687,15 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         foreach($titleArray as $tkey => $tvalue) {
                             $standard_category_sv[] = $categoriesArray[$tvalue][0];
                             $standard_category_en[] = $categoriesArray[$tvalue][1];
+                        }
+                        if($syslang==="sv") {
+                            $standardCategory = $standard_category_sv;
+                            $title = $titleArray;
+                            $profileInformation = $value['profileInformation_sv'];
+                        } else {
+                            $standardCategory = $standard_category_en;
+                            $title = $title_enArray;
+                            $profileInformation = $value['profileInformation_en'];
                         }
 
                         //echo $value['id'].',';
@@ -722,57 +738,59 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'usergroup_txt' => $heritage,
                             'lth_solr_sort_ss' => $value['lth_solr_sort'],*/
                             //New
+                            'appKey' => 'lthsolr',
                             'id' => $value['id'],
                             'primary_uid' => $value['primary_uid'],
-                            'doctype' => 'lucat',
-                            'display_name' => $display_name_t,
-                            'first_name' => $value['first_name'],
-                            'last_name' => $value['last_name'],
-                            'first_name_sort' => $value['first_name'],
-                            'last_name_sort' => $value['last_name'],
+                            'docType' => 'staff',
+                            'type' => 'staff',
+                            'name' => $display_name_t,
+                            'firstName' => $value['first_name'],
+                            'lastName' => $value['last_name'],
+                            //'first_name_sort' => $value['first_name'],
+                            //'last_name_sort' => $value['last_name'],
                             'email' => $value['email'],
-                            'primary_affiliation' => $value['primary_affiliation'],
+                            'primaryAffiliation' => $value['primary_affiliation'],
                             'homepage' => strtolower($homepage),
-                            'lang' => $value['lang'],
+                            'language' => $value['lang'],
                             'degree' => $value['degree'],
-                            'degree_en' => $value['degree_en'],                        
-                            'hide_on_web' => intval($value['hide_on_web']),
-                            'update_flag' => intval($value['update_flag']),
-                            'title_sort' => $titleArray,
+                            //'degree_en' => $value['degree_en'],                        
+                            'hideOnWeb' => intval($value['hide_on_web']),
+                            'updateFlag' => intval($value['update_flag']),
+                            //'title_sort' => $titleArray,
                             //'ou_sort' => $this->fixArray(explode('###', $value['oname'])),
                             'guid' => $value['guid'],
-                            'standard_category_sv' => $standard_category_sv,
-                            'standard_category_en' => $standard_category_en,
+                            'standardCategory' => $standardCategory,
+                            //'standard_category_en' => $standard_category_en,
                             //arrays:
-                            'title' => $titleArray,
-                            'title_en' => $title_enArray,
+                            'title' => $title,
+                            //'title_en' => $title_enArray,
                             'phone' => $value['phone'],
                             'mobile' => $value['mobile'],
-                            'room_number' => $value['room_number'],
-                            'orgid' => $value['orgid'],
-                            'oname' => $value['oname'],
-                            'oname_en' => $value['oname_en'],
-                            'oname_sort' => $value['oname'],
-                            'oname_sort_en' => $value['oname_en'],
-                            'maildelivery' => $value['maildelivery'],
-                            'ophone' => $value['ophone'],
-                            'ostreet' => $value['ostreet'],
-                            'ocity' => $value['ocity'],
-                            'opostal_address' => $value['opostal_address'],
+                            'roomNumber' => $value['room_number'],
+                            'organisationId' => $value['orgid'],
+                            'organisationName' => $value['oname'],
+                            //'oname_en' => $value['oname_en'],
+                            //'oname_sort' => $value['oname'],
+                            //'oname_sort_en' => $value['oname_en'],
+                            'mailDelivery' => $value['maildelivery'],
+                            'organisationPhone' => $value['ophone'],
+                            'organisationStreet' => $value['ostreet'],
+                            'organisationCity' => $value['ocity'],
+                            'organisationPostalAddress' => $value['opostal_address'],
                             //extra:
                             'image' => $value['image'],
-                            'image_id' => $value['image_id'],
+                            'imageId' => $value['image_id'],
                             //'ltholr_intro_txt' => $value['lth_solr_intro'],
                             //'lth_solr_txt_t' => $value['lth_solr_txt'],
                             //'usergroup' => $value['orgid'],
                             'heritage' => $heritage,
                             'uuid' => $value['uuid'],
-                            'lucrisphoto' => $value['lucrisphoto'],
-                            'profileInformation_en' => $value['profileInformation_en'],
-                            'profileInformation_sv' => $value['profileInformation_sv'],
+                            'lucrisPhoto' => $value['lucrisphoto'],
+                            'profileInformation' => $profileInformation,
+                            //'profileInformation_sv' => $value['profileInformation_sv'],
                             'boost' => '1.0',
                             'date' => $current_date,
-                            'tstamp' => $current_date,
+                            'changed' => $current_date,
                             'digest' => md5($key)
                         );
 

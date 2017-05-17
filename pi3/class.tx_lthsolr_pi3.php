@@ -58,7 +58,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
             $hideFilter = $this->pi_getFFvalue($piFlexForm, "hideFilter", "sDEF", $lDef[$index]);
-
+echo $this->pi_getLL("more");
             if($fe_groups) {
                 $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
                 while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
@@ -101,7 +101,10 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             }
 
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
-            
+            if(strstr($uuid,")")) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),")");
+            }
+            //echo $uuid;
             //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
@@ -168,7 +171,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             $content .= '<div id="lth_solr_facet_container"></div>';
             
-            $content .= '<div id="lthsolr_publications_container"><div style="clear:both;" id="lthsolr_publications_header"></div></div>';
+            $content .= '<div id="lthsolr_publications_container"><div style="clear:both;height:20px;" id="lthsolr_publications_header"></div></div>';
             
             $content .= '</div>'; 
             

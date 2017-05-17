@@ -12,6 +12,7 @@ var lth_solr_messages = {
     namelabel: "Namn",
     authors: "Författare",
     organisations: "Enheter och grupper",
+    externalOrganisations: "Externa organisationer",
     language: "Språk",
     pages: "Sidor",
     numberOfPages: "Sidantal",
@@ -32,6 +33,12 @@ var lth_solr_messages = {
     journalTitle: "Tidskrift",
     numberOfPages: "Antal sidor",
     keywords: "Forskningsområden",
-    courses: "Kurser"
+    keywords_uka: "UKÄ",
+    keywords_user: "Nyckelord",
+    courses: "Kurser",
+    publicationDateYear: "År",
+    supervisor: "Handledare",
+    type: "Typ",
+    fulltext: "Fulltext"
 };
 

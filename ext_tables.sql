@@ -71,7 +71,7 @@ CREATE TABLE tx_lthsolr_lucrisdata (
 );
 
 
-CREATE TABLE tx_lthsolr_path (
+CREATE TABLE tx_lthsolr_uniquetitle (
     uid int(10) unsigned NOT NULL AUTO_INCREMENT,
     title varchar(255) DEFAULT NULL,
     lucris_id varchar(255) DEFAULT NULL,

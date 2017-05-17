@@ -85,6 +85,9 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             }
             
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
+            if(strstr($uuid,")")) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),")");
+            }
             
             //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
@@ -101,9 +104,7 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             } else {
                 $content .= $this->listStudentPapers($scope, $detailPage, $syslang, $noItemsToShow, $categories, $papertype);
             }
-        
             //$this->debug($content);
-	
             return $content;
 	}
         
@@ -112,7 +113,9 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
         {
             $content = '<div id="lth_solr_container" ></div>';
             
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_presentation.html");
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/studentpaper_presentation.html");
+            
+            $content = str_replace('###more###', 'Mer', $content);
             
             $content .= '
                 <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
@@ -123,22 +126,42 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
         }
         
         
-        private function listStudentPapers($whatToDisplay, $scope, $detailPage, $syslang, $noItemsToShow, $categories, $papertype)
+        private function listStudentPapers($scope, $detailPage, $syslang, $noItemsToShow, $categories, $papertype)
         {
-            /*$content = '<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
-                <thead><tr><th>Title</th><th>Author</th><th>Type</th><th>Year</th></tr></thead>
-                <tbody id="table_data_container">
-                </tbody>
-            </table>';*/
-            $content .= '<div style="clear:both;margin-top:20px;margin-bottom:20px;">Filter: <input type="text" id="lthsolr_publications_filter" class="lthsolr_filter" name="lthsolr_filter" value="" /></div>';
+            /*$content .= '<div style="clear:both;margin-top:20px;margin-bottom:20px;">Filter: <input type="text" id="lthsolr_publications_filter" class="lthsolr_filter" name="lthsolr_filter" value="" /></div>';
             
             $content .= '<div class="lth_solr_facet_container"></div>';
             
             $content .= '<div id="lthsolr_publications_header"></div>';
             
-            $content .= '<div id="lthsolr_publications_container"></div>';
+            $content .= '<div id="lthsolr_publications_container"></div>';*/
             
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple.html");
+            $content .= '<style>.glyphicon-search {font-size: 25px;}.glyphicon-filter {font-size: 15px;}</style>';
+            $content .= '<div class="lth_solr_filter_container">';
+            
+                //$content .= '<div style="font-weight:bold;">' . $this->pi_getLL("filter") . '</div>';
+              
+                $content .= '<div style="clear:both;height:50px;">';
+                if(!$hideFilter) {
+                    $content .= '<div id="refine" style="float:left;width:30%;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:16px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">Filter</span></div>';
+                    $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
+                    $content .= '<div style="float:left;padding-top:10px;width:60%">';
+                    $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_studentpapers_filter" class="lthsolr_filter" placeholdera="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
+                    $content .= '</div>';
+                }
+                $content .= '</div>';
+                
+            $content .= '</div>';    
+            
+            $content .= '<div style="clear:both;">';
+            
+            $content .= '<div id="lth_solr_facet_container"></div>';
+            
+            $content .= '<div id="lthsolr_publications_container"><div style="clear:both;height:20px;" id="lthsolr_publications_header"></div></div>';
+            
+            $content .= '</div>'; 
+            
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/studentpaper_simple.html");
             
             $content .= '
                     <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />

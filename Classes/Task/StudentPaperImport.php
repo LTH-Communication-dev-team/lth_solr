@@ -23,12 +23,14 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
+        $syslang = "sv";
+        
         $config = array(
             'endpoint' => array(
                 'localhost' => array(
                     'host' => $settings['solrHost'],
                     'port' => $settings['solrPort'],
-                    'path' => $settings['solrPath'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
                     'timeout' => $settings['solrTimeout']
                 )
             )
@@ -45,13 +47,13 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         //Get last modified
         $query = $client->createSelect();
-        $query->setQuery('doctype:studentPaper');
-        $query->addSort('tstamp', $query::SORT_DESC);
+        $query->setQuery('docType:studentPaper');
+        $query->addSort('changed', $query::SORT_DESC);
         $query->setStart(0)->setRows(1);
         $response = $client->select($query);
         $idArray = array();
         foreach ($response as $document) {
-            $lastModified = $document->tstamp;
+            $lastModified = $document->changed;
         }
         
         $buffer = $client->getPlugin('bufferedadd');
@@ -63,13 +65,13 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $startFromHere = 0;
 
-	$executionSucceeded = $this->getStudentPapers($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $startFromHere, $heritageArray, $lastModified);
+	$executionSucceeded = $this->getStudentPapers($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $startFromHere, $heritageArray, $lastModified, $syslang);
         
 	return $executionSucceeded;
     }
     
 
-    function getStudentPapers($config, $client, $buffer, $current_date, $maximumRecords, $numberOfLoops, $startFromHere, $heritageArray, $lastModified)
+    function getStudentPapers($config, $client, $buffer, $current_date, $maximumRecords, $numberOfLoops, $startFromHere, $heritageArray, $lastModified, $syslang)
     {
         $heritageArray = $heritageArray[0];
         for($i = 0; $i < 5000; $i++) {
@@ -98,7 +100,7 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                     $modified;
                     $genre;
-                    $title;
+                    $documentTitle;
                     $authorName = array();
                     $supervisorName = array();
                     $organisationName_en = array();
@@ -128,7 +130,7 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                     $genre = (string)$content->recordData->mods->genre;
 
-                    $title = (string)$content->recordData->mods->titleInfo->title;
+                    $documentTitle = (string)$content->recordData->mods->titleInfo->title;
 
                     //name
                     foreach($content->recordData->mods->name as $name) {
@@ -140,7 +142,7 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         if($name->role->roleTerm == 'author') {
                             $authorName[] = (string)$nameTemp;
                         } else if($name->role->roleTerm == 'supervisor') {
-                            $supervisorName[] = (string)$nameTemp;  //NY FÄLTTYP!!!!!!!!!!!!!!!!!
+                            $supervisorName[] = (string)$nameTemp;
                         } else if($name->role->roleTerm == 'department') {
                             $organisationName_en[] = (string)$nameTemp;
                             $organisationName_sv[] = (string)$nameTemp;
@@ -227,31 +229,48 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     foreach($content->recordData->mods->subject->topic as $topic) {
                         $keywords_user[] = (string)$topic;
                     }
+                    
+                    $organisationName = "";
+                    $abstract = "";
+                    $language_en = "";
+                    
+                    if($syslang==="sv") {
+                        $organisationName = $organisationName_sv;
+                        $abstract = $abstract_sv;
+                        $language = $language_sv;
+                    } else {
+                        $organisationName = $organisationName_en;
+                        $abstract = $abstract_en;
+                        $language = $language_en;
+                    }
 
                     $data = array(
                         'id' => $id,
+                        'appKey' => 'lthsolr',
                         'genre' => $genre,
-                        'title' => $title,
-                        'title_sort' => $title,
+                        'documentTitle' => $documentTitle,
+                        //'title_sort' => $title,
                         'authorName' => array_unique($authorName),
                         'supervisorName' => $supervisorName,
-                        'organisationName_en' => $organisationName_en,
-                        'organisationName_sv' => $organisationName_sv,
+                        'organisationName' => $organisationName,
+                        //'organisationName_sv' => $organisationName_sv,
                         'organisationSourceId' => $organisationSourceId,
-                        'abstract_en' => $abstract_en,
-                        'abstract_sv' => $abstract_sv, 
-                        'doctype' => 'studentPaper',
-                        'document_url' => $document_url,
-                        'document_type' => $document_type,
-                        'document_size' => $document_size,
-                        'document_limitedVisibility' => $document_limitedVisibility,                    
+                        'abstract' => $abstract,
+                        //'abstract_sv' => $abstract_sv, 
+                        'docType' => 'studentPaper',
+                        'type' => 'studentPaper',
+                        'documentUrl' => $document_url,
+                        'documentType' => $document_type,
+                        'documentSize' => $document_size,
+                        'documentLimitedVisibility' => $document_limitedVisibility,                    
                         'publicationDateYear' => $publicationDateYear,
-                        'language_en' => $language_en,
-                        'language_sv' => $language_sv,
-                        'keywords_user' => $keywords_user,                    
+                        'language' => $language,
+                        //'language_sv' => $language_sv,
+                        'keywordsUser' => $keywords_user,
+                        'standardCategory' => $genre,
                         'boost' => '1.0',
                         'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
-                        'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
+                        'changed' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
                         'digest' => md5($id)
                     );
                     //$this->debug($data);

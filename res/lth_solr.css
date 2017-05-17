@@ -40,6 +40,9 @@ and open the template in the editor.
     color:#ffffff;
 }
 
+#lthsolrAbstract {
+    margin-bottom: 10px;
+}
 
 .lth_solr_filter_container {
     /*padding:8px 8px 2px 8px;*/

@@ -12,6 +12,7 @@ var lth_solr_messages = {
     namelabel: "Name",
     authors: "Authors",
     organisations: "Organisations",
+    externalOrganisations: "External organisations",
     language: "Original languages",
     pages: "Pages",
     numberOfPages: "Number of pages",
@@ -32,7 +33,13 @@ var lth_solr_messages = {
     journalTitle: "Journal",
     numberOfPages: "Number of pages",
     keywords: "Research areas and keywords",
-    courses: "Courses"
+    keywords_uka: "UKÄ",
+    keywords_user: "Keywords",
+    courses: "Courses",
+    publicationDateYear: "Year",
+    supervisor: "Supervisor",
+    type: "Type",
+    fulltext: "Full text"
 };
 
 

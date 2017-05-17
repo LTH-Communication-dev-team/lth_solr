@@ -19,16 +19,18 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         require(__DIR__.'/init.php');
         $maximumrecords = 20;
-        $numberofloops = 1;
+        $numberofloops = 40;
         
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $syslang = "sv";
         
         $config = array(
             'endpoint' => array(
                 'localhost' => array(
                     'host' => $settings['solrHost'],
                     'port' => $settings['solrPort'],
-                    'path' => $settings['solrPath'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
                     'timeout' => $settings['solrTimeout']
                 )
             )
@@ -39,19 +41,20 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $user = $settings['user'];
         $pw = $settings['pw'];
 
-        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("42; ".mysqli_error());
+        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("44; ".mysqli_error());
         
         $client = new \Solarium\Client($config);
         
         //Get last modified
         $query = $client->createSelect();
-        $query->setQuery('doctype:publication');
-        $query->addSort('tstamp', $query::SORT_DESC);
+        $query->setQuery('docType:publication');
+        //$query->addSort('changed', $query::SORT_DESC);
         $query->setStart(0)->setRows(1);
         $response = $client->select($query);
         $idArray = array();
+        $numFound = $response->getNumFound();
         foreach ($response as $document) {
-            $lastModified = $document->tstamp;
+            $lastModified = $document->changed;
         }
         
         $buffer = $client->getPlugin('bufferedadd');
@@ -61,15 +64,15 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $heritageArray = $this->getHeritage($con);
         
-        $startFromHere = 0;
-
-	$executionSucceeded = $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified);
+        $startFromHere = $numFound;
+        
+	$executionSucceeded = $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
         
 	return $executionSucceeded;
     }
     
 
-    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified)
+    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
     {
         $heritageArray = $heritageArray[0];
         //$this->debug($heritageArray[0]);
@@ -87,7 +90,8 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
             $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=90e30c5e-a737-465f-ab4a-73982e948bc7&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=c9c61408-4194-4b81-adc6-a15f4529b0bf&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=BIBTEX";
             
             $xml = file_get_contents($xmlpath);         
             $xml = simplexml_load_string($xml);        
@@ -96,7 +100,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 return "no items";
             }
 
-            $numberofloops = ceil($xml->children('core', true)->count / 20);
+            //$numberofloops = ceil($xml->children('core', true)->count / 20);
 
             foreach($xml->xpath('//core:result//core:content') as $content) {
                 $id;
@@ -104,9 +108,9 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $portalUrl;
                 $created;
                 $modified;
-                $title = array();
-                $abstract_en;
-                $abstract_sv;
+                //$title = array();
+                $abstract_en = '';
+                $abstract_sv = '';
                 $authorIdTemp;
                 $authorNameTemp;      
                 $authorId = array();
@@ -143,9 +147,9 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $keywords_uka_sv = array();
                 $keywords_user_en = array();
                 $keywords_user_sv = array();
-                $document_url = array();
-                $document_title = array();
-                $document_limitedVisibility = array();
+                $document_url = "";
+                $document_title = "";
+                $document_limitedVisibility = "";
                 $hostPublicationTitle;
                 $publisher;
                 $event_en;
@@ -159,6 +163,16 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $bibliographicalNote_en;
                 $issn = '';
                 $isbn = '';
+                $abstract = '';
+                $bibliographicalNote = '';
+                $event = '';
+                $eventCountry = '';
+                $keywordsUka = '';
+                $keywordsUser = '';
+                $language = '';
+                $organisationName = '';
+                $publicationStatus = '';
+                $publicationType = '';
                 
                 //id
                 $id = (string)$content->attributes();
@@ -198,9 +212,9 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                 //title
                 if($content->children('publication-base_uk',true)->title) {
-                    $title[] = (string)$content->children('publication-base_uk',true)->title;
+                    $document_title = (string)$content->children('publication-base_uk',true)->title;
                 } else if($content->children('stab',true)->title) {
-                    $title[] = (string)$content->children('stab',true)->title;
+                    $document_title = (string)$content->children('stab',true)->title;
                 }
 
                 //abstract
@@ -221,9 +235,9 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 foreach($varArray as $varVal) {
                     if($content->children($varVal,true)->documents) {
                         foreach($content->children($varVal,true)->documents->children('extension-core',true)->document as $document) {
-                            $document_url[] = (string)$document->children('core',true)->url;
-                            $document_title[] = (string)$document->children('core',true)->title;
-                            $document_limitedVisibility[] = (string)$document->children('core',true)->limitedVisibility;
+                            $document_url = (string)$document->children('core',true)->url;
+                            //$document_title[] = (string)$document->children('core',true)->title;
+                            $document_limitedVisibility = (string)$document->children('core',true)->limitedVisibility;
                         }
                     }
                 }
@@ -325,8 +339,8 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 }
 
                 //External organisations
-                if($content->children('stab',true)->associatedExternalOrganisations && $content->children('stab',true)->associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation) {
-                    foreach($content->children('stab',true)->associatedExternalOrganisations as $associatedExternalOrganisations) {
+                if($content->children('publication-base_uk',true)->associatedExternalOrganisations && $content->children('publication-base_uk',true)->associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation) {
+                    foreach($content->children('publication-base_uk',true)->associatedExternalOrganisations as $associatedExternalOrganisations) {
                        $externalOrganisationsId[] = (string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->attributes();
                         if($associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name) {
                             $externalOrganisationsName[] = (string)$associatedExternalOrganisations->children('externalorganisation-template',true)->externalOrganisation->children('externalorganisation-template',true)->name;
@@ -334,6 +348,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     }
                 }
 
+                //Keywords
                 if($content->children('core',true)->keywordGroups && $content->children('core',true)->keywordGroups->children('core',true)->keywordGroup) {
                     foreach($content->children('core',true)->keywordGroups->children('core',true)->keywordGroup as $keywordGroup) {
                         if($keywordGroup->children('core',true)->keyword && $keywordGroup->children('core',true)->keyword->children('core',true)->target) {
@@ -530,78 +545,135 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         $publicationTypeUri = (string)$content->children($varVal,true)->typeClassification->children('core',true)->uri;
                     }
                 }
+                
+                //CITE OCH BIBTEX
+                $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
+                $cite = "";
+                $bibtex = "";
+                foreach($citeArray as $citebibKey => $citebib) {
+                    $citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=$citebib";
+                    $citebibxml = file_get_contents($citebibxmlpath);
+                    $citebibxml = str_replace('$$$', '', $citebibxml);
+                    $citebibxml = preg_replace('/<div/', '$$$<div', $citebibxml, 1);
+                    $citebibxml = $this->lreplace('</div>', '</div>$$$', $citebibxml);
+                    $citebibxmlArray = explode('$$$', $citebibxml);
+                    //$citebibxml = simplexml_load_string($citebibxml);
+                    if($citebib==="BIBTEX") {
+                        $bibtex = "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
+                    } else {
+                        $cite .= "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
+                    }
+                }
+                
+                //$title_unique = preg_replace("/[^a-z0-9\s]/i", "", $title);
+                //$title_unique = preg_replace("/\s\s+/", " ", $title_unique); 
+                
+                if($syslang==="sv") {
+                    $abstract = $abstract_sv;
+                    $bibliographicalNote = $bibliographicalNote_sv;
+                    $event = $event_sv;
+                    $eventCountry = $event_country_sv;
+                    $keywordsUka = $keywords_uka_sv;
+                    $keywordsUser = $keywords_user_sv;
+                    $language = $language_sv;
+                    $organisationName = $organisationName_sv;
+                    $publicationStatus = $publicationStatus_sv;
+                    $publicationType = $publicationType_sv;
+                } else {
+                    $abstract = $abstract_en;
+                    $bibliographicalNote = $bibliographicalNote_en;
+                    $event = $event_en;
+                    $eventCountry = $event_country_en;
+                    $keywordsUka = $keywords_uka_en;
+                    $keywordsUser = $keywords_user_en;
+                    $language = $language_en;
+                    $organisationName = $organisationName_en;
+                    $publicationStatus = $publicationStatus_en;
+                    $publicationType = $publicationType_en;
+                }
 
                 $data = array(
                     'id' => $id,
                     'type' => $type,
-                    'abstract_en' => $abstract_en,
-                    'abstract_sv' => $abstract_sv,
+                    'abstract' => $abstract,
+                    //'abstract_sv' => $abstract_sv,
                     'authorId' => $authorId,
                     'authorName' => array_unique($authorName),
-                    'authorName_sort' => array_unique($authorName),
+                    //'authorName_sort' => array_unique($authorName),
                     'authorFirstName' => $authorFirstName,
                     'authorLastName' => $authorLastName,
                     'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
-                    'bibliographicalNote_sv' => $bibliographicalNote_sv,
-                    'bibliographicalNote_en' => $bibliographicalNote_en,
-                    'doctype' => 'publication',
-                    'document_url' => $document_url,
-                    'document_title' => $document_title,
-                    'document_limitedVisibility' => $document_limitedVisibility,                    
+                    'bibliographicalNote' => $bibliographicalNote,
+                    //'bibliographicalNote_en' => $bibliographicalNote_en,
+                    'docType' => 'publication',
+                    'documentUrl' => $document_url,
+                    'documentTitle' => $document_title,
+                    'documentLimitedVisibility' => $document_limitedVisibility,     
+                    'doi' => $doi,
                     'externalOrganisationsName' => $externalOrganisationsName,
                     'externalOrganisationsId' => $externalOrganisationsId,
-                    'event_en' => $event_en,
-                    'event_sv' => $event_sv,
-                    'event_city' => $event_city,
-                    'event_country_en' => $event_country_en,
-                    'event_country_sv' => $event_country_sv,
+                    'event' => $event,
+                    //'event_sv' => $event_sv,
+                    'eventCity' => $event_city,
+                    'eventCountry' => $event_country,
+                    //'event_country_sv' => $event_country_sv,
                     'hostPublicationTitle' => $hostPublicationTitle,
                     'journalNumber' => $journalNumber,
                     'journalTitle' => $journalTitle,
-                    'keywords_uka_en' => $keywords_uka_en,
-                    'keywords_uka_sv' => $keywords_uka_sv,
-                    'keywords_user_en' => $keywords_user_en,
-                    'keywords_user_sv' => $keywords_user_sv,
-                    'language_en' => $language_en,
-                    'language_sv' => $language_sv,
-                    'number_of_pages' => $numberOfPages,
+                    'keywordsUka' => $keywordsUka,
+                    //'keywords_uka_sv' => $keywords_uka_sv,
+                    'keywordsUser' => $keywordsUser,
+                    //'keywords_user_sv' => $keywords_user_sv,
+                    'language' => $language,
+                    //'language_sv' => $language_sv,
+                    'numberOfPages' => $numberOfPages,
                     'organisationId' => $organisationId,
-                    'organisationName_en' => $organisationName_en,
-                    'organisationName_sv' => $organisationName_sv,
+                    'organisationName' => $organisationName,
+                    //'organisationName_sv' => $organisationName_sv,
                     'organisationSourceId' => $organisationSourceId, 
                     'pages' => $pages,
                     'peerReview' => $peerReview,
                     'portalUrl' => $portalUrl,
-                    'publicationStatus_en' => $publicationStatus_en,
-                    'publicationStatus_sv' => $publicationStatus_sv,
+                    'publicationStatus' => $publicationStatus,
+                    //'publicationStatus_sv' => $publicationStatus_sv,
                     'publicationDateYear' => $publicationDateYear,
                     'publicationDateMonth' => $publicationDateMonth,
                     'publicationDateDay' => $publicationDateDay,
-                    'publicationType_en' => $publicationType_en,
-                    'publicationType_sv' => $publicationType_sv,
+                    'publicationType' => $publicationType,
+                    //'publicationType_sv' => $publicationType_sv,
                     'publicationTypeUri' => $publicationTypeUri,
                     'publisher' => $publisher,
-                    'title' => $title,
-                    'title_sort' => $title,
+                    //'title' => $title,
+                    //'title_sort' => $title,
                     'volume' => $volume,
-                    'standard_category_en' => $publicationType_en,
-                    'standard_category_sv' => $publicationType_sv,
+                    'standardCategory' => $publicationType,
+                    //'standard_category_sv' => $publicationType_sv,
                     'issn' => $issn,
-                    'doi' => $doi,
+                    'isbn' => $isbn,
                     'boost' => '1.0',
                     'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
-                    'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
-                    'digest' => md5($id),                    
+                    'changed' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
+                    'digest' => md5($id),
+                    'bibtex' => $bibtex,
+                    'cite' => $cite,
+                    'appKey' => 'lthsolr'
                 );
-               // $this->debug($data);
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
+                // $this->debug($data);
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
                 $buffer->createDocument($data);
-                
             }
-
         }
         $buffer->commit();
         return TRUE;
+    }
+    
+    
+    function lreplace($search, $replace, $subject){
+   	$pos = strrpos($subject, $search);
+   	if($pos !== false){
+            $subject = substr_replace($subject, $replace, $pos, strlen($search));
+   	}
+   	return $subject;
     }
     
     

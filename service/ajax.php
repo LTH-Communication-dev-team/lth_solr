@@ -4,24 +4,7 @@ if (!defined ('PATH_typo3conf')) die ('Could not access this script directly!');
 
 require(__DIR__.'/init.php');
 
-$settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
-        
-$config = array(
-    'endpoint' => array(
-        'localhost' => array(
-                    'host' => $settings['solrHost'],
-                    'port' => $settings['solrPort'],
-                    'path' => $settings['solrPath'],
-                    'timeout' => $settings['solrTimeout']
-        )
-    )
-);
-
-
-if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
-    return 'Please make all settings in extension manager';
-}
-
+$term = '';
 $content = '';
 $query = '';
 $action = '';
@@ -52,6 +35,24 @@ $papertype = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('papertype');
 $selection = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('selection');
 $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("sid");
 date_default_timezone_set('Europe/Stockholm');
+
+$settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+$config = array(
+    'endpoint' => array(
+        'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+        )
+    )
+);
+
+
+if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+    return 'Please make all settings in extension manager';
+}
 
 //tslib_eidtools::connectDB();
 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $query, 'crdate' => time()));
@@ -86,7 +87,7 @@ switch($action) {
         $content = showPublication($term, $syslang, $config, $detailPage);
         break;
     case 'showStudentPaper':
-        $content = showStudentPaper($scope, $syslang, $config, $detailPage);
+        $content = showStudentPaper($term, $syslang, $config, $detailPage);
         break;
     case 'listProjects':
         $content = listProjects($scope, $syslang, $config);
@@ -140,24 +141,24 @@ function searchShort($term, $config)
 
     $groupComponent = $query->getGrouping();
     if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
-        $groupComponent->addQuery('doctype:lucat AND (display_name:' . str_replace(' ','\\ ',$term) . ' OR phone:' . str_replace(' ','',$term) . ' OR email:' . $term . ')');
+        $groupComponent->addQuery('docType:staff AND (nameSearch:' . str_replace(' ','\\ ',$term) . ' OR phone:' . str_replace(' ','',$term) . ' OR email:' . $term . ')');
     } else {
-        $groupComponent->addQuery('doctype:lucat AND (display_name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
+        $groupComponent->addQuery('docType:staff AND (nameSearch:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
     }
-    $groupComponent->addQuery('id:page* AND content:*' . str_replace(' ','\\ ',$term) . '*');
-    $groupComponent->setSort('last_name_sort asc');
+    $groupComponent->addQuery('type:pages AND content:*' . str_replace(' ','\\ ',$term) . '*');
+    $groupComponent->setSort('lastNameExact asc');
     $groupComponent->setLimit(5);    
     $resultset = $client->select($query);
     $groups = $resultset->getGrouping();
     foreach ($groups as $groupKey => $group) {
         foreach ($group as $document) {        
             
-            $doktype = $document->doctype;
+            $docType = $document->docType;
             
-            if($doktype === 'lucat') {
+            if($docType === 'staff') {
                 $id = $document->uuid;
                 $value = $document->uuid;
-                $label = fixArray($document->display_name);
+                $label = fixArray($document->name);
                 if($document->phone) $label .= ', ' . fixPhone(fixArray($document->phone));
                 $data[] = array(
                     'id' => $id,
@@ -417,28 +418,24 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
     
     if($filterQuery) {
         $filterQuery = str_replace(" ","\ ",$filterQuery);
-        $filterQuery = " AND ((title:*$filterQuery*) OR authorName:*$filterQuery*)";
+        $filterQuery = " AND ((documentTitle:*$filterQuery*) OR authorName:*$filterQuery*)";
     }
     
     if($selection == 'coming_dissertations') {
-        $selection = ' AND publicationType_en:Doctoral Thesis*';
+        $selection = ' AND publicationType:Doctoral Thesis*';
     }
     // AND award:['.$currentDate . ' TO *]
-//$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'doctype:publication AND -' . $hideVal . ':[* TO *] AND (organisationSourceId  :'.$term.' OR authorId:'.$term.')' . $selection . $filterQuery, 'crdate' => time()));
-    $query->setQuery('doctype:publication AND -' . $hideVal . ':[* TO *] AND (organisationSourceId  :'.$term.' OR authorId:'.$term.')' . $selection . $filterQuery);
+//$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'docType:publication AND -' . $hideVal . ':[* TO *] AND (organisationSourceId  :'.$term.' OR authorId:'.$term.')' . $selection . $filterQuery, 'crdate' => time()));
+    $query->setQuery('docType:publication AND -' . $hideVal . ':[* TO *] AND publicationDateYear:[* TO ' . date("Y") . '] AND (organisationSourceId:'.$term.' OR authorId:'.$term.')' . $selection . $filterQuery);
     //$query->addParam('rows', 1500);
     $query->setStart($table_start)->setRows($table_length);
-    
-    $publicationType = "publicationType_$syslang";
-    $categoryType = "standard_category_$syslang";
-    $languageType = "language_$syslang";
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
     
     // create a facet field instance and set options
-    $facetSet->createFacetField('standard')->setField($categoryType);
-    $facetSet->createFacetField('language')->setField($languageType);
+    $facetSet->createFacetField('standard')->setField('standardCategory');
+    $facetSet->createFacetField('language')->setField('language');
     $facetSet->createFacetField('year')->setField('publicationDateYear');
 
     if($facet) {
@@ -457,8 +454,11 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
     }
 
     $sortArray = array(
-        'lth_solr_sort_' . $pageid . '_i' => 'asc',
-        'publicationDateYear' => 'desc'
+        //'lth_solr_sort_' . $pageid . '_i' => 'asc',
+        'publicationDateYear' => 'desc',
+        'publicationDateMonth' => 'desc',
+        'publicationDateDay' => 'desc',
+        'documentTitle' => 'asc'
     );
     $query->addSorts($sortArray);
 
@@ -466,19 +466,17 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
     
     $numFound = $response->getNumFound();
     
-    
-    
     // display facet query count
     //if(!$facet) {
         $facet_standard = $response->getFacetSet()->getFacet('standard');
         if($syslang==="en") {
-            $facetHeader = "Publikation Type";
+            $facetHeader = "Publication Type";
         } else {
             $facetHeader = "Publikationstyp";
         }
         foreach ($facet_standard as $value => $count) {
             //if($count > 0) {
-                $facetResult[$categoryType][] = array($value, $count, $facetHeader);
+                $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
             //}
         }
         
@@ -490,13 +488,13 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
         }
         foreach ($facet_language as $value => $count) {
             //if($count > 0) {
-                $facetResult[$languageType][] = array($value, $count, $facetHeader);
+                $facetResult["language"][] = array($value, $count, $facetHeader);
             //}
         }
         
         $facet_year = $response->getFacetSet()->getFacet('year');
         if($syslang==="en") {
-            $facetHeader = "Publikation Year";
+            $facetHeader = "Publication Year";
         } else {
             $facetHeader = "Publikationsår";
         }
@@ -510,9 +508,9 @@ function listPublications($facet, $term, $syslang, $config, $table_length, $tabl
     foreach ($response as $document) {     
         $data[] = array(
             $document->id,
-            fixArray($document->title),
+            $document->documentTitle,
             ucwords(strtolower(fixArray($document->authorName))),
-            fixArray($document->$publicationType),
+            fixArray($document->publicationType),
             $document->publicationDateYear,
             $document->publicationDateMonth,
             $document->publicationDateDay,
@@ -533,7 +531,7 @@ function showPublication($term, $syslang, $config, $detailPage)
     $query = $client->createSelect();
 
     $query->setQuery('id:'.$term);
-    
+
     $response = $client->select($query);
     
     $content = '';
@@ -554,19 +552,19 @@ function showPublication($term, $syslang, $config, $detailPage)
         $authorLastNameArray = $document->authorLastName;
         $authorIdArray = $document->authorId;
         $i=0;
-        foreach ($authorNameArray as $key => $authorName) {
-            if($authorsName) $authorsName .= ', ';
+        foreach ($authorNameArray as $key => $name) {
+            if($authorName) $authorName .= ', ';
             if($authorsId) $authorsId .= ', ';
-            if($authorsReverseName) $authorsReverseName .= '; ';
-            if($authorsReverseNameShort) $authorsReverseNameShort .= '; ';
-            $authorsName .= mb_convert_case(strtolower($authorName), MB_CASE_TITLE, "UTF-8");
-            $authorsReverseName .= mb_convert_case(strtolower($authorLastNameArray[$i]), MB_CASE_TITLE, "UTF-8") . ', ' . mb_convert_case(strtolower($authorFirstNameArray[$i]), MB_CASE_TITLE, "UTF-8");
-            $authorsReverseNameShort .= mb_convert_case(strtolower($authorLastNameArray[$i]), MB_CASE_TITLE, "UTF-8") . ', ' . substr($authorFirstNameArray[$i], 0, 1) . '.';
-            $authorsId .= $authorIdArray[$i];
+            if($authorReverseName) $authorReverseName .= '; ';
+            if($authorReverseNameShort) $authorReverseNameShort .= '$';
+            $authorName .= mb_convert_case(strtolower($name), MB_CASE_TITLE, "UTF-8");
+            $authorReverseName .= mb_convert_case(strtolower($authorLastNameArray[$i]), MB_CASE_TITLE, "UTF-8") . ', ' . mb_convert_case(strtolower($authorFirstNameArray[$i]), MB_CASE_TITLE, "UTF-8");
+            $authorReverseNameShort .= mb_convert_case(strtolower($authorLastNameArray[$i]), MB_CASE_TITLE, "UTF-8") . ', ' . substr($authorFirstNameArray[$i], 0, 1) . '.';
+            $authorId .= $authorIdArray[$i];
             $i++;
         }
 
-        $organisationNameArray = $document->$organisationNameHolder;
+        $organisationNameArray = $document->organisationName;
         $organisationIdArray = $document->organisationId;
         $i=0;
         foreach($organisationNameArray as $key => $organisationName) {
@@ -586,50 +584,58 @@ function showPublication($term, $syslang, $config, $detailPage)
             }
         }
 
-        $publicationType = fixArray($document->$publicationTypeHolder);
+        $publicationType = fixArray($document->publicationType);
         $publicationTypeUri = $document->publicationTypeUri;
-        $language = fixArray($document->$languageHolder);
+        $language = fixArray($document->language);
         $publicationDateYear = $document->publicationDateYear;
         $publicationDateMonth = $document->publicationDateMonth;
         $publicationDateDay = $document->publicationDateDay;
-        $abstract_en = fixArray($document->abstract_en);
-        $abstract_sv = fixArray($document->abstract_sv);
-        if($syslang == 'sv' && $abstract_sv && $abstract_sv != '<br/>') {
+        $abstract = fixArray($document->abstract);
+        //$abstract_sv = fixArray($document->abstract_sv);
+        /*if($syslang == 'sv' && $abstract_sv && $abstract_sv != '<br/>') {
             $abstract = $abstract_sv;
         } else {
             $abstract = $abstract_en;
-        }
+        }*/
         $pages = $document->pages;
         $journalTitle = $document->journalTitle;
-        $numberOfPages = $document->number_of_pages;
+        $numberOfPages = $document->numberOfPages;
         $volume = $document->volume;
         $journalNumber = $document->journalNumber;
-        if($syslang == 'sv') {
-            $publicationStatus = $document->publicationStatus_sv;
-            $keywords = $document->keywords_sv;
-        } else {
+        //if($syslang == 'sv') {
+            $publicationStatus = $document->publicationStatus;
+            $keywordsUka = $document->keywordsUka;
+            $keywordsUser = $document->keywordsUser;
+       /* } else {
             $publicationStatus = $document->publicationStatus_en;
-            $keywords = $document->keywords_en;
-        }
+            $keywords_uka = $document->keywords_uka_en;
+            $keywords_user = $document->keywords_user_en;
+        }*/
         $peerReview = $document->peerReview;
         $doi = $document->doi;
         $issn = $document->issn;
         $isbn = $document->isbn;
         $publisher = $document->publisher;
         
-        $standard_category_en = $document->standard_category_en;
+        $standardCategory = $document->standardCategory;
+        
+        $type = $document->type;
+        
+        $bibtex = $document->bibtex;
+        $cite = $document->cite;
         
         $data = array(
             'id' => $id,
             'title' => $title,
             'abstract' => $abstract,
-            'authorsName' => $authorsName,
-            'authorsReverseName' => $authorsReverseName,
-            'authorsReverseNameShort' => $authorsReverseNameShort,
-            'authorsId' => $authorsId,
+            'authorName' => $authorName,
+            'authorReverseName' => rawurlencode($authorReverseName),
+            'authorReverseNameShort' => rawurlencode(str_replace("$", ", ", str_lreplace("$", " and ", $authorReverseNameShort))),
+            'authorId' => $authorsId,
             'organisations' => $organisations,
             'externalOrganisations' => $externalOrganisations,
-            'keywords' => $keywords,
+            'keywords_uka' => $keywordsUka,
+            'keywords_user' => $keywordsUser,
             'language' => $language,
             'pages' => $pages,
             'numberOfPages' => $numberOfPages,
@@ -646,10 +652,13 @@ function showPublication($term, $syslang, $config, $detailPage)
             'doi' => $doi,
             'issn' => $issn,
             'isbn' => $isbn,
-            'standard_category_en' => $standard_category_en,
-            'publisher' => $publisher
+            'standard_category_en' => $standardCategory,
+            'publisher' => $publisher,
+            'bibtex' => $bibtex,
+            'cite' => $cite
         );
 
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
         /*$content .= "<h3>$publicationType</h3>";
 
         if($abstract) {
@@ -680,6 +689,19 @@ function showPublication($term, $syslang, $config, $detailPage)
 }
 
 
+function str_lreplace($search, $replace, $subject)
+{
+    $pos = strrpos($subject, $search);
+
+    if($pos !== false)
+    {
+        $subject = substr_replace($subject, $replace, $pos, strlen($search));
+    }
+
+    return $subject;
+}
+
+
 function listStudentPapers($facet, $term, $syslang, $config, $table_length, $table_start, $pageid, $categories, $filterQuery, $papertype)
 {
     $client = new Solarium\Client($config);
@@ -687,7 +709,9 @@ function listStudentPapers($facet, $term, $syslang, $config, $table_length, $tab
     $query = $client->createSelect();
         
     if($filterQuery) {
-        $filterQuery = ' AND (title_sort:*' . $filterQuery . '*)';
+        //$filterQuery = ' AND (documentTitle:*' . $filterQuery . '*)';
+        $filterQuery = str_replace(" ","\ ",$filterQuery);
+        $filterQuery = " AND ((documentTitle:*$filterQuery*) OR authorName:*$filterQuery*)";
     }
     
     if($papertype) {
@@ -699,12 +723,17 @@ function listStudentPapers($facet, $term, $syslang, $config, $table_length, $tab
         $papertype = ' AND (' . $papertype . ')';
     }
 
-    $query->setQuery('doctype:studentPaper AND (organisationSourceId  :'.$term.')' . $papertype . $filterQuery);
+    $query->setQuery('docType:studentPaper AND (organisationSourceId  :'.$term.')' . $papertype . $filterQuery);
     //$query->addParam('rows', 1500);
     $query->setStart($table_start)->setRows($table_length);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
+    // create a facet field instance and set options
+    $facetSet->createFacetField('standard')->setField('standardCategory');
+    $facetSet->createFacetField('language')->setField('language');
+    $facetSet->createFacetField('year')->setField('publicationDateYear');
+
     if($facet) {
         $facetArray = json_decode($facet, true);
 
@@ -712,18 +741,17 @@ function listStudentPapers($facet, $term, $syslang, $config, $table_length, $tab
         foreach($facetArray as $key => $value) {
             $facetTempArray = explode('###', $value);
             if($facetQuery) {
-                $facetQuery .= ' OR ';
+                $facetQuery .= ' AND ';
             }
-            $facetQuery .= $facetTempArray[0] . ':' . $facetTempArray[1] . '';
+            $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"';
         }
 
         $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
-    } else if($categories) {
-        $facetSet->createFacetField('standard')->setField('standard_category_' . $syslang);
     }
 
     $sortArray = array(
-        'publicationDateYear' => 'desc'
+        'publicationDateYear' => 'desc',
+        'documentTitle' => 'asc'
     );
     $query->addSorts($sortArray);
 
@@ -731,24 +759,49 @@ function listStudentPapers($facet, $term, $syslang, $config, $table_length, $tab
     
     $numFound = $response->getNumFound();
     
-    $categoryType = "standard_category_$syslang";
-    $publicationType = "publicationType_$syslang";
-    
-    // display facet query count
-    if(!$facet && $categories) {
-        $facet_standard = $response->getFacetSet()->getFacet('standard');
-        foreach ($facet_standard as $value => $count) {
-            $facetResult[$categoryType][] = array($value, $count);
+    $facet_standard = $response->getFacetSet()->getFacet('standard');
+        if($syslang==="en") {
+            $facetHeader = "Publication Type";
+        } else {
+            $facetHeader = "Publikationstyp";
         }
-    }
+        foreach ($facet_standard as $value => $count) {
+            //if($count > 0) {
+                $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+            //}
+        }
+        
+        $facet_language = $response->getFacetSet()->getFacet('language');
+        if($syslang==="en") {
+            $facetHeader = "Language";
+        } else {
+            $facetHeader = "Språk";
+        }
+        foreach ($facet_language as $value => $count) {
+            //if($count > 0) {
+                $facetResult["language"][] = array($value, $count, $facetHeader);
+            //}
+        }
+        
+        $facet_year = $response->getFacetSet()->getFacet('year');
+        if($syslang==="en") {
+            $facetHeader = "Publication Year";
+        } else {
+            $facetHeader = "Publikationsår";
+        }
+        foreach ($facet_year as $value => $count) {
+            //if($count > 0) {
+                $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
+            //}
+        }
         
     foreach ($response as $document) {     
         $data[] = array(
             $document->id,
-            fixArray($document->title),
+            fixArray($document->documentTitle),
             ucwords(strtolower(fixArray($document->authorName))),
-            fixArray($document->$publicationType),
-            $document->publicationDateYear
+            $document->publicationDateYear,
+            $document->organisationName
         );
     }
     $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult);
@@ -765,36 +818,37 @@ function showStudentPaper($term, $syslang, $config, $detailPage)
     $query->setQuery('id:'.$term);
     
     $response = $client->select($query);
-    
+    $numFound = $response->getNumFound();
     $content = '';
-    
-    $organisationNameHolder = 'organisationName_' . $syslang;
-    $publicationTypeHolder = 'publicationType_' . $syslang;
-    $languageHolder = 'language_' . $syslang;
-    
-    $detailPageArray = explode(',', $detailPage);
+    /*$detailPageArray = explode(',', $detailPage);
     $staffDetailPage = $detailPageArray[0];
-    $projectDetailPage = $detailPageArray[1];
+    $projectDetailPage = $detailPageArray[1];*/
         
     foreach ($response as $document) {
         $id = $document->id;
-        $title = fixArray($document->title);
+        $abstract = $document->abstract;
+        $documentTitle = $document->documentTitle;
         $authorNameArray = $document->authorName;
-        $authorIdArray = $document->authorId;
+        //$authorIdArray = $document->authorId;
         $i=0;
-        foreach ($authorNameArray as $key => $authorName) {
-            if($authors) $authors .= ', ';
-            $authors .= '<a href="' . $staffDetailPage . '?no_cache=1&uuid=' . $authorIdArray[$i] . '">' . mb_convert_case(strtolower($authorName), MB_CASE_TITLE, "UTF-8") . '</a>';
-            $i++;
+        if(is_array($authorNameArray)) {
+            foreach ($authorNameArray as $key => $authorName) {
+                if($authors) $authors .= ', ';
+                $authors .=  mb_convert_case(strtolower($authorName), MB_CASE_TITLE, "UTF-8");
+                //$authors .= '<a href="' . $staffDetailPage . '?no_cache=1&uuid=' . $authorIdArray[$i] . '">' . mb_convert_case(strtolower($authorName), MB_CASE_TITLE, "UTF-8") . '</a>';
+                $i++;
+            }
         }
 
-        $organisationNameArray = $document->$organisationNameHolder;
+        $organisationNameArray = $document->organisationName;
         $organisationIdArray = $document->organisationId;
         $i=0;
-        foreach($organisationNameArray as $key => $organisationName) {
-            if($organisations) $organisations .= ', ';
-            $organisations .= '<a href="' . $organisationIdArray[$i] . '">' . $organisationName . '</a>';
-            $i++;
+        if(is_array($organisationNameArray)) {
+            foreach($organisationNameArray as $key => $organisationName) {
+                if($organisations) $organisations .= ', ';
+                $organisations .= '<a href="' . $organisationIdArray[$i] . '">' . $organisationName . '</a>';
+                $i++;
+            }
         }
 
         if($document->externalOrganisationsName) {
@@ -808,44 +862,35 @@ function showStudentPaper($term, $syslang, $config, $detailPage)
             }
         }
 
-        $publicationType = fixArray($document->$publicationTypeHolder);
-        $language = fixArray($document->$languageHolder);
+        $publicationType = $document->genre;
+        $language = fixArray($document->language);
         $publicationDateYear = $document->publicationDateYear;
-        $abstract_en = fixArray($document->abstract_en);
-        $abstract_sv = fixArray($document->abstract_sv);
-        if($syslang == 'sv' && $abstract_sv && $abstract_sv != '<br/>') {
-            $abstract = $abstract_sv;
-        } else {
-            $abstract = $abstract_en;
-        }
-        $pages = $document->pages;
-        $journalTitle = $document->journalTitle;
-        $numberOfPages = $document->number_of_pages;
-        $volume = $document->volume;
-        $journalNumber = $document->journalNumber;
-        if($syslang == 'sv') {
-            $publicationStatus = $document->publicationStatus_sv;
-            $keywords = $document->keywords_sv;
-        } else {
-            $publicationStatus = $document->publicationStatus_en;
-            $keywords = $document->keywords_en;
-        }
-        $peerReview = $document->peerReview;
-        
+        $keywords = fixArray($document->keywordsUser);
+        $documentUrl = $document->documentUrl;
+        $supervisorName = $document->supervisorName;
+        $bibtex = "@misc{" . $id . ",<br />";
+        if($abstract) $bibtex .= "abstract = {" . $abstract . "},<br />";
+        $bibtex .= "author = {" . $authors . "},<br />";
+        $bibtex .= "keyword = {" . $keywords . "},<br />";
+        $bibtex .= "language = {" . $language . "},<br />";
+        $bibtex .= "note = {Student Paper},<br />";
+        $bibtex .= "title = {" . $documentTitle . "},<br />";
+        $bibtex .= "year = {" . $publicationDateYear . "},<br />";
+        $bibtex .= "}";
+                
         $data = array(
             $abstract,
+            $documentTitle,
             $authors,
             $organisations,
             $externalOrganisations,
-            $keywords,
+            $publicationType,
             $language,
-            $pages,
-            $numberOfPages,
-            $journalTitle,
-            $volume,
-            $journalNumber,
-            $publicationStatus,
-            $peerReview,
+            $publicationDateYear,
+            $keywords,
+            $documentUrl,
+            $supervisorName,
+            $bibtex
         );
 
         /*$content .= "<h3>$publicationType</h3>";
@@ -872,7 +917,7 @@ function showStudentPaper($term, $syslang, $config, $detailPage)
 
     }
     
-    $resArray = array('data' => $data, 'title' => $title);
+    $resArray = array('data' => $data);
     
     return json_encode($resArray);
 }
