@@ -1924,9 +1924,9 @@ function showStaff()
             //console.log(d.publicationData.length);
             var pages, publicationDate, journalTitle, title;
             var publicationDetailPage = $('#lth_solr_publicationdetailpage').val();
-            publicationDetailPage += 'publikationer';
+            publicationDetailPage += 'visa';
             if(syslang=='en') {
-                publicationDetailPage += 'publications';
+                publicationDetailPage += 'show';
             }
                 
             if(d.publicationData.length > 0) {
