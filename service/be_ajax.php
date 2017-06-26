@@ -7,17 +7,6 @@ class lth_solr_ajax {
 
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
 
-        $config = array(
-            'endpoint' => array(
-                'localhost' => array(
-                    'host' => $settings['solrHost'],
-                    'port' => $settings['solrPort'],
-                    'path' => $settings['solrPath'],
-                    'timeout' => $settings['solrTimeout']
-                )
-            )
-        );
-
         if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
             return 'Please make all settings in extension manager';
         }
@@ -27,36 +16,47 @@ class lth_solr_ajax {
         $value = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('value');
         $checked = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('checked');
         $pid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('pid');
-        $sys_language_uid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sys_language_uid');
+        $syslang = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('syslang');
         $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sid');
+        
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
 
         switch($action) {
             case 'updateIntroAndImage':
-		$content = $this->updateIntroAndImage($items, $pid, $value, $checked, $sys_language_uid, $config);
+		$content = $this->updateIntroAndImage($items, $pid, $value, $checked, $syslang, $config);
 		break;	    
             case 'resort':
-		$content = $this->resort($items, $pid, $sys_language_uid, $config);
+		$content = $this->resort($items, $pid, $syslang, $config);
 		break;
             case 'updateCategories':
-		$content = $this->updateCategories($items, $pid, $value, $checked, $sys_language_uid, $config);
+		$content = $this->updateCategories($items, $pid, $value, $checked, $syslang, $config);
 		break;
             case 'updateHideonpage':
-		$content = $this->updateHideonpage($items, $pid, $value, $checked, $sys_language_uid, $config);
+		$content = $this->updateHideonpage($items, $pid, $value, $checked, $syslang, $config);
 		break;            
 	    /*case 'updateRedirect':
 		$content = $this->updateRedirect($items, $pid, $value, $config);
 		break;*/
             case 'hidePublication':
-                $content = $this->hidePublication($items, $pid, $value, $checked, $sys_language_uid, $config);
+                $content = $this->hidePublication($items, $pid, $value, $checked, $syslang, $config);
                 break;
             case 'resortPublications':
-                $content = $this->resortPublications($items, $pid, $sys_language_uid, $config);
+                $content = $this->resortPublications($items, $pid, $syslang, $config);
                 break;
             case 'addPageShow':
                 $content = $this->addPageShow($items, $pid, $config, $checked);
                 break;
             case 'updateAutopage':
-                $content = $this->updateAutopage($items, $pid, $value, $checked, $sys_language_uid, $config);
+                $content = $this->updateAutopage($items, $pid, $value, $checked, $syslang, $config);
                 break;
 	}
         
@@ -64,7 +64,7 @@ class lth_solr_ajax {
     }
     
     
-    public function resort($items, $pid, $sys_language_uid, $config)
+    public function resort($items, $pid, $syslang, $config)
     {
         $sortVal = 10;
         $lth_solr_sort = '';
@@ -106,6 +106,7 @@ class lth_solr_ajax {
                    }
                 }
             }
+            $data["appKey"] = "lthsolr";
             $data[$sortVar] = $sortVal;
             $buffer->createDocument($data);
             
@@ -135,7 +136,7 @@ class lth_solr_ajax {
     }
     
     
-    public function updateCategories($items, $pid, $value, $checked, $sys_language_uid, $config)
+    public function updateCategories($items, $pid, $value, $checked, $syslang, $config)
     {
         // $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked, $categoriesThisPage", 'crdate' => time()));
         
@@ -156,6 +157,7 @@ class lth_solr_ajax {
         $response = $client->select($query);
         
         $doc = $update->createDocument();
+        $doc->appKey = 'lthsolr';
         
         foreach ($response as $document) {
             
@@ -166,8 +168,7 @@ class lth_solr_ajax {
 
                     }*/
                     $doc->$field = $fieldValue;
-               }
-               
+                }
             }
             
             $primary_uid = $document->primary_uid;
@@ -221,16 +222,16 @@ class lth_solr_ajax {
 
         
        // $catArray[$catVar] = $doc->$catVar;
-$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
+//$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $updateArray = array('lth_solr_cat' => json_encode($catArray), 'tstamp' => time());
 
         $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "username='$primary_uid'", $updateArray);
-$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
+//$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         return $result;
     }
     
     
-    public function hidePublication($items, $pid, $value, $checked, $sys_language_uid, $config)
+    public function hidePublication($items, $pid, $value, $checked, $syslang, $config)
     {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $items. $pid. $value. $checked, 'crdate' => time()));
         $client = new Solarium\Client($config);
@@ -258,7 +259,7 @@ $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYP
     }
     
     
-    public function resortPublications($items, $pid, $sys_language_uid, $config)
+    public function resortPublications($items, $pid, $syslang, $config)
     {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $items. $pid, 'crdate' => time()));
         $sortVal = 10;
@@ -290,6 +291,7 @@ $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYP
                    }
                 }
             }
+            $data['appKey'] = 'lthsolr';
             $data[$sortVar] = $sortVal;
             $buffer->createDocument($data);
         }
@@ -301,7 +303,7 @@ $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYP
     }
     
     
-    public function updateHideonpage($items, $pid, $value, $checked, $sys_language_uid, $config)
+    public function updateHideonpage($items, $pid, $value, $checked, $syslang, $config)
     {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked", 'crdate' => time()));
         
@@ -331,7 +333,7 @@ $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYP
                }
                
             }
-            
+            $doc->appKey = 'lthsolr';
             if($checked === 'true') {
                 /*if(is_array($doc->$hideVar)) {
                     $tmpHideArray = array();
@@ -381,7 +383,7 @@ $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYP
     }
    
     
-    public function updateIntroAndImage($username, $pid, $value, $checked, $sys_language_uid, $config)
+    public function updateIntroAndImage($username, $pid, $value, $checked, $syslang, $config)
     {
         $valueArray = json_decode($value, true);
         $introText = $valueArray[0];
@@ -483,7 +485,7 @@ $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYP
     }
     
     
-    function updateAutopage($items, $pid, $value, $checked, $sys_language_uid, $config)
+    function updateAutopage($items, $pid, $value, $checked, $syslang, $config)
     {
         $username = $items;
         $autoArray = array();

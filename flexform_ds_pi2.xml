@@ -1,293 +1,274 @@
 <T3DataStructure>
- <meta>
-       <langDisable>1</langDisable>
- </meta>
-<sheets>
-  <sDEF>
-        <ROOT>
-         <TCEforms>
-          <sheetTitle>General</sheetTitle>
-         </TCEforms>
-         <type>array</type>
-         <el>
-         <html_template>
-            <TCEforms>
-               <label>Template</label>
-               <config>
-               <type>select</type>
-               <items type="array">
-               <numIndex index="0" type="array">
-               <numIndex index="0">Kontaktuppgifter (med bild och ingress)</numIndex>
-               <numIndex index="1">contact_with_image_and_ingress.html</numIndex>
-               </numIndex>
-               <numIndex index="1" type="array">
-               <numIndex index="0">Kontaktuppgifter (utan bild, med ingress)</numIndex>
-               <numIndex index="1">contact_without_image_with_ingress.html</numIndex>
-               </numIndex>
-               <numIndex index="2" type="array">
-               <numIndex index="0">Kontaktuppgifter (med bild)</numIndex>
-               <numIndex index="1">contact_with_image.html</numIndex>
-               </numIndex>
-               <numIndex index="3" type="array">
-               <numIndex index="0">Kontaktuppgifter (utan bild)</numIndex>
-               <numIndex index="1">contact_without_image.html</numIndex>
-               </numIndex>
-               <numIndex index="4" type="array">
-               <numIndex index="0">Kontaktuppgifter (enkel)</numIndex>
-               <numIndex index="1">contact_simple.html</numIndex>
-               </numIndex>
-              <!-- <numIndex index="5" type="array">
-               <numIndex index="0">Presentationssida för en enskild person vänster</numIndex>
-               <numIndex index="1">presentation_single_person_left.html</numIndex>
-               </numIndex>
-               <numIndex index="6" type="array">
-               <numIndex index="0">Presentationssida för en enskild person höger</numIndex>
-               <numIndex index="1">presentation_single_person_right.html</numIndex>
-               </numIndex>                
-               <numIndex index="7" type="array">
-               <numIndex index="0">Kontaktsida för en enskild person</numIndex>
-               <numIndex index="1">contact_single_person.html</numIndex>
-               </numIndex> -->
-               </items>
-               <maxitems>1</maxitems>
-               <size>1</size>
-               <default>LIST</default>
-               <selectedListStyle>width:200px</selectedListStyle>
-               <itemListStyle>width:200px</itemListStyle>
-               </config>
-            </TCEforms>
-         </html_template>
-
-        <!-- <detailpage>
-            <TCEforms>
-               <label>Page with details</label>
-               <config>
-                   <type>group</type>
-                   <internal_type>db</internal_type>
-                   <allowed>pages</allowed>
-                   <size>1</size>
-                   <maxitems>1</maxitems>
-                   <minitems>0</minitems>
-                   <show_thumbs>0</show_thumbs>
-               </config>
-            </TCEforms>
-        </detailpage>
-        -->
+    <meta>
+        <langDisable>1</langDisable>
+    </meta>
+    <sheets>
+        <sDEF>
+            <ROOT>
+                <TCEforms>
+                    <sheetTitle>General</sheetTitle>
+                </TCEforms>
+                <type>array</type>
+                <el>      
+                    <init>
+                        <TCEforms>
+                            <config>
+                                <type>user</type>
+                                <userFunc>user_sampleflex_addFieldsToFlexForm->init</userFunc>
+                            </config>
+                        </TCEforms>
+                    </init>
+                    <html_template>
+                        <TCEforms>
+                            <label>Template</label>
+                            <config>
+                                <type>select</type>
+                                <items type="array">
+                                <numIndex index="0" type="array">
+                                <numIndex index="0">Kontaktuppgifter (med bild och ingress)</numIndex>
+                                <numIndex index="1">contact_with_image_and_ingress.html</numIndex>
+                                </numIndex>
+                                <numIndex index="1" type="array">
+                                <numIndex index="0">Kontaktuppgifter (utan bild, med ingress)</numIndex>
+                                <numIndex index="1">contact_without_image_with_ingress.html</numIndex>
+                                </numIndex>
+                                <numIndex index="2" type="array">
+                                <numIndex index="0">Kontaktuppgifter (med bild)</numIndex>
+                                <numIndex index="1">contact_with_image.html</numIndex>
+                                </numIndex>
+                                <numIndex index="3" type="array">
+                                <numIndex index="0">Kontaktuppgifter (utan bild)</numIndex>
+                                <numIndex index="1">contact_without_image.html</numIndex>
+                                </numIndex>
+                                <numIndex index="4" type="array">
+                                <numIndex index="0">Kontaktuppgifter (enkel)</numIndex>
+                                <numIndex index="1">contact_simple.html</numIndex>
+                                </numIndex>
+                                <!-- <numIndex index="5" type="array">
+                                 <numIndex index="0">Presentationssida för en enskild person vänster</numIndex>
+                                 <numIndex index="1">presentation_single_person_left.html</numIndex>
+                                 </numIndex>
+                                 <numIndex index="6" type="array">
+                                 <numIndex index="0">Presentationssida för en enskild person höger</numIndex>
+                                 <numIndex index="1">presentation_single_person_right.html</numIndex>
+                                 </numIndex>                
+                                 <numIndex index="7" type="array">
+                                 <numIndex index="0">Kontaktsida för en enskild person</numIndex>
+                                 <numIndex index="1">contact_single_person.html</numIndex>
+                                 </numIndex> -->
+                                </items>
+                                <maxitems>1</maxitems>
+                                <size>1</size>
+                                <default>LIST</default>
+                                <selectedListStyle>width:200px</selectedListStyle>
+                                <itemListStyle>width:200px</itemListStyle>
+                            </config>
+                        </TCEforms>
+                    </html_template>
                 
-        <scope>
-           <TCEforms type="array">
-            <label>Välj en eller flera användargrupper</label>
-            <config>
-                <type>select</type>
-                <size>10</size>
-                <maxitems>10</maxitems>
-                <items type="array">
-                    <numIndex index="0" type="array">
-                        <numIndex index="0"></numIndex>
-                        <numIndex index="1"></numIndex>
-                    </numIndex>
-                </items>
-                <foreign_table>fe_groups</foreign_table> 
-                <!-- <type>user</type>
-                <userFunc>user_sampleflex_addFieldsToFlexForm->addScope</userFunc>-->
-            </config>
-           </TCEforms>
-         </scope>
+                    <fe_groups>
+                        <TCEforms type="array">
+                            <label>Välj en eller flera användargrupper</label>
+                            <config>
+                                <type>select</type>
+                                <size>10</size>
+                                <maxitems>10</maxitems>
+                                <items type="array">
+                                    <numIndex index="0" type="array">
+                                        <numIndex index="0"></numIndex>
+                                        <numIndex index="1"></numIndex>
+                                    </numIndex>
+                                </items>
+                                <foreign_table>fe_groups</foreign_table> 
+                                <!-- <type>user</type>
+                                <userFunc>user_sampleflex_addFieldsToFlexForm->addScope</userFunc>-->
+                            </config>
+                        </TCEforms>
+                    </fe_groups>
 
-        <addPeople>
-            <TCEforms>
-               <label>Lägg till personer</label>
-                <config>
-                    <type>user</type>
-                    <userFunc>user_sampleflex_addFieldsToFlexForm->addPeople</userFunc>
-                </config>
-            </TCEforms>
-        </addPeople>
+                    <fe_users>
+                        <TCEforms>
+                            <label>Lägg till personer</label>
+                            <config>
+                                <type>user</type>
+                                <userFunc>user_sampleflex_addFieldsToFlexForm->addPeople</userFunc>
+                            </config>
+                        </TCEforms>
+                    </fe_users>
          
-         <categories>
-             <TCEforms>
-                 <onChange>reload</onChange>
-                 <label>Kategorivisningsläge</label>
-                 <config>
-                     <default>no_categories</default>
-                     <type>radio</type>
-                        <items type="array">
-                          <numIndex index="0" type="array">
-                            <numIndex index="0">Inga kategorier</numIndex>
-                            <numIndex index="1">no_categories</numIndex>
-                          </numIndex>
-                          <numIndex index="1" type="array">
-                            <numIndex index="0">Standardkategorier</numIndex>
-                            <numIndex index="1">standard_category</numIndex>
-                          </numIndex>
-                          <numIndex index="2" type="array">
-                            <numIndex index="0">Egna kategorier</numIndex>
-                            <numIndex index="1">custom_category</numIndex>
-                          </numIndex>
-                        </items>
-                 </config>
-             </TCEforms>
-         </categories>
+                    <categories>
+                        <TCEforms>
+                            <onChange>reload</onChange>
+                            <label>Kategorivisningsläge</label>
+                            <config>
+                                <default>no_categories</default>
+                                <type>radio</type>
+                                   <items type="array">
+                                     <numIndex index="0" type="array">
+                                       <numIndex index="0">Inga kategorier</numIndex>
+                                       <numIndex index="1">no_categories</numIndex>
+                                     </numIndex>
+                                     <numIndex index="1" type="array">
+                                       <numIndex index="0">Standardkategorier</numIndex>
+                                       <numIndex index="1">standard_category</numIndex>
+                                     </numIndex>
+                                     <numIndex index="2" type="array">
+                                       <numIndex index="0">Egna kategorier</numIndex>
+                                       <numIndex index="1">custom_category</numIndex>
+                                     </numIndex>
+                                   </items>
+                            </config>
+                        </TCEforms>
+                    </categories>
          
-         <customcategories>
-             <TCEforms>
-                <displayCond>FIELD:categories:=:custom_category</displayCond>
-		<label>Egna personalkategorier (en per rad)</label>
-		<config>
-                    <type>text</type>
-                    <cols>50</cols>
-                    <rows>5</rows>
-		</config>
-            </TCEforms>
-        </customcategories>
-        
-        <noItemsToShow>
-             <TCEforms>
-                <label>No of items to show</label>
-                <config>
-                <type>select</type>
-                <items type="array">
-                <numIndex index="0" type="array">
-                <numIndex index="0">10</numIndex>
-                <numIndex index="1">10</numIndex>
-                </numIndex>
-                <numIndex index="1" type="array">
-                <numIndex index="0">25</numIndex>
-                <numIndex index="1">25</numIndex>
-                </numIndex>
-                <numIndex index="2" type="array">
-                <numIndex index="0">50</numIndex>
-                <numIndex index="1">50</numIndex>
-                </numIndex>
-                <numIndex index="3" type="array">
-                <numIndex index="0">All</numIndex>
-                <numIndex index="1">3000</numIndex>
-                </numIndex>
-                </items>
-                <maxitems>1</maxitems>
-                <size>1</size>
-                <default>25</default>
-                <selectedListStyle>width:200px</selectedListStyle>
-                <itemListStyle>width:200px</itemListStyle>
-                </config>
-             </TCEforms>
-         </noItemsToShow>
-        
-      <!--  <categoriesthispage>
-             <TCEforms>
-                <displayCond>FIELD:categories:=:custom_category</displayCond>
-		<label>Kategorierna ska bara gälla denna sida</label>
-		<config>
-                    <type>check</type>
-                </config>
-            </TCEforms>
-        </categoriesthispage>
-        
-        <introthispage>
-             <TCEforms>
-		<label>Intro-texterna ska bara gälla denna sida</label>
-		<config>
-                    <type>check</type>
-                </config>
-            </TCEforms>
-        </introthispage> -->
-        
-        <hideFilter>
-            <TCEforms>
-                <label>Hide filter (not working yet)</label>
-                <config>
-                    <type>check</type>
-                    <items type="array">
-                        <numIndex index="0" type="array">
-                                <numIndex index="0">Hide filter</numIndex>
-                        </numIndex>
-                    </items> 
-                </config>
-            </TCEforms>
-        </hideFilter>
+                    <customcategories>
+                        <TCEforms>
+                           <displayCond>FIELD:categories:=:custom_category</displayCond>
+                           <label>Egna personalkategorier (en per rad)</label>
+                           <config>
+                               <type>text</type>
+                               <cols>50</cols>
+                               <rows>5</rows>
+                           </config>
+                       </TCEforms>
+                    </customcategories>
 
-         </el>
-     </ROOT>
-</sDEF>
+                    <staffHomepagePath>
+                        <TCEforms>
+                           <label>Sökväg till personliga hemsidor</label>
+                           <config>
+                               <type>input</type>
+                           </config>
+                       </TCEforms>
+                    </staffHomepagePath>
 
+                    <publicationDetailPage>
+                        <TCEforms>
+                           <label>Page with publication details</label>
+                           <config>
+                               <type>group</type>
+                               <internal_type>db</internal_type>
+                               <allowed>pages</allowed>
+                               <size>1</size>
+                               <maxitems>1</maxitems>
+                               <minitems>0</minitems>
+                               <show_thumbs>0</show_thumbs>
+                           </config>
+                        </TCEforms>
+                    </publicationDetailPage>
+        
+                    <noItemsToShow>
+                        <TCEforms>
+                            <label>No of items to show</label>
+                            <config>
+                            <type>select</type>
+                            <items type="array">
+                            <numIndex index="0" type="array">
+                            <numIndex index="0">10</numIndex>
+                            <numIndex index="1">10</numIndex>
+                            </numIndex>
+                            <numIndex index="1" type="array">
+                            <numIndex index="0">25</numIndex>
+                            <numIndex index="1">25</numIndex>
+                            </numIndex>
+                            <numIndex index="2" type="array">
+                            <numIndex index="0">50</numIndex>
+                            <numIndex index="1">50</numIndex>
+                            </numIndex>
+                            <numIndex index="3" type="array">
+                            <numIndex index="0">All</numIndex>
+                            <numIndex index="1">3000</numIndex>
+                            </numIndex>
+                            </items>
+                            <maxitems>1</maxitems>
+                            <size>1</size>
+                            <default>25</default>
+                            <selectedListStyle>width:200px</selectedListStyle>
+                            <itemListStyle>width:200px</itemListStyle>
+                            </config>
+                        </TCEforms>
+                    </noItemsToShow>
+                </el>
+            </ROOT>
+        </sDEF>
 
-<manageStaffIntroImage>
-    <ROOT>
-        <TCEforms>
-            <sheetTitle>Manage Staff Introtext and Image</sheetTitle>
-        </TCEforms>
-        <el>
-            <dynField>
+        <manageStaffIntroImage>
+            <ROOT>
                 <TCEforms>
-                    <config>
-                        <type>user</type>
-                        <userFunc>user_sampleflex_addFieldsToFlexForm->manageStaffIntroImage</userFunc>
-                    </config>
+                    <sheetTitle>Manage Staff Introtext and Image</sheetTitle>
                 </TCEforms>
-            </dynField>
-        </el>
-    </ROOT>
-</manageStaffIntroImage>
+                <el>
+                    <dynField>
+                        <TCEforms>
+                            <config>
+                                <type>user</type>
+                                <userFunc>user_sampleflex_addFieldsToFlexForm->manageStaffIntroImage</userFunc>
+                            </config>
+                        </TCEforms>
+                    </dynField>
+                </el>
+            </ROOT>
+        </manageStaffIntroImage>
 
 
-<manageStaffList>
-    <ROOT>
-        <TCEforms>
-            <sheetTitle>Manage Staff-Categories, Hide-on-this-page and sorting</sheetTitle>
-        </TCEforms>
-        <el>
-            <dynField>
+        <manageStaffList>
+            <ROOT>
                 <TCEforms>
-                    <config>
-                        <type>user</type>
-                        <userFunc>user_sampleflex_addFieldsToFlexForm->manageStaffList</userFunc>
-                    </config>
+                    <sheetTitle>Manage Staff-Categories, Hide-on-this-page and sorting</sheetTitle>
                 </TCEforms>
-            </dynField>
- 
-          <!--  <imagefolder>
-                <TCEforms>
-                   <label>Mapp i fileadmin med bilder på personer (lucat-id.jpg) (kans-th0.jpg)</label>
-                   <config>
-                       <type>group</type>
-                       <internal_type>db</internal_type>
-                       <allowed>sys_file</allowed>
-                       <prepend_tname>TRUE</prepend_tname>
-                       <_CLASS>whatever</_CLASS>
-                       <appearance>
-                           <elementBrowserAllowed>jpg,gif,png</elementBrowserAllowed>
-                           <elementBrowserType>file</elementBrowserType>
-                       </appearance>
-                       <max_size>75mb</max_size>
-                       <show_thumbs>1</show_thumbs>
-                       <size>3</size>
-                       <maxitems>200</maxitems>
-                       <minitems>0</minitems>
-                       <autoSizeMax>40</autoSizeMax>
-                   </config>
-                </TCEforms>    
-           </imagefolder> -->
-        </el>
-    </ROOT>
-</manageStaffList>
+                <el>
+                    <dynField>
+                        <TCEforms>
+                            <config>
+                                <type>user</type>
+                                <userFunc>user_sampleflex_addFieldsToFlexForm->manageStaffList</userFunc>
+                            </config>
+                        </TCEforms>
+                    </dynField>
 
-<!-- <manageStaffRedirects>
-    <ROOT>
-        <TCEforms>
-            <sheetTitle>Manage Staff Redirects</sheetTitle>
-        </TCEforms>
-        <el>
-            <dynField>
+                    <!--  <imagefolder>
+                          <TCEforms>
+                             <label>Mapp i fileadmin med bilder på personer (lucat-id.jpg) (kans-th0.jpg)</label>
+                             <config>
+                                 <type>group</type>
+                                 <internal_type>db</internal_type>
+                                 <allowed>sys_file</allowed>
+                                 <prepend_tname>TRUE</prepend_tname>
+                                 <_CLASS>whatever</_CLASS>
+                                 <appearance>
+                                     <elementBrowserAllowed>jpg,gif,png</elementBrowserAllowed>
+                                     <elementBrowserType>file</elementBrowserType>
+                                 </appearance>
+                                 <max_size>75mb</max_size>
+                                 <show_thumbs>1</show_thumbs>
+                                 <size>3</size>
+                                 <maxitems>200</maxitems>
+                                 <minitems>0</minitems>
+                                 <autoSizeMax>40</autoSizeMax>
+                             </config>
+                          </TCEforms>    
+                     </imagefolder> -->
+                  </el>
+              </ROOT>
+        </manageStaffList>
+
+        <!-- <manageStaffRedirects>
+            <ROOT>
                 <TCEforms>
-                    <config>
-                        <type>user</type>
-                        <userFunc>user_sampleflex_addFieldsToFlexForm->manageStaffRedirects</userFunc>
-                    </config>
+                    <sheetTitle>Manage Staff Redirects</sheetTitle>
                 </TCEforms>
-            </dynField>
-        </el>
-    </ROOT>
-</manageStaffRedirects> -->
+                <el>
+                    <dynField>
+                        <TCEforms>
+                            <config>
+                                <type>user</type>
+                                <userFunc>user_sampleflex_addFieldsToFlexForm->manageStaffRedirects</userFunc>
+                            </config>
+                        </TCEforms>
+                    </dynField>
+                </el>
+            </ROOT>
+        </manageStaffRedirects> -->
 
-</sheets>
+    </sheets>
 </T3DataStructure>

@@ -74,7 +74,14 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                     'forceAbsoluteUrl' => true,
                 )
             );
+            $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
+            
+            $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
+            if(strstr($uuid,")")) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),")");
+                $scope = $uuid;
+            }
             
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
             if(!$syslang) {
@@ -82,11 +89,6 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             }
             if($syslang=='se') {
                 $syslang='sv';
-            }
-            
-            $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
-            if(strstr($uuid,")")) {
-                $uuid = rtrim(array_pop(explode('(',$uuid)),")");
             }
             
             //Load main js- and css-files
@@ -99,17 +101,17 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             }
             $content = '';
 
-            if($uuid) {
-                $content .= $this->showStudentPaper($uuid, $staffDetailPage, $projectDetailPage, $syslang);
+            if($uuid && substr($uuid, 0, 1) !== "v") {
+                $content .= $this->showStudentPaper($uuid, $staffDetailPage, $projectDetailPage);
             } else {
-                $content .= $this->listStudentPapers($scope, $detailPage, $syslang, $noItemsToShow, $categories, $papertype);
+                $content .= $this->listStudentPapers($scope, $detailPage, $noItemsToShow, $categories, $papertype);
             }
             //$this->debug($content);
             return $content;
 	}
         
         
-        private function showStudentPaper($uuid, $staffDetailPage, $projectDetailPage, $syslang)
+        private function showStudentPaper($uuid, $staffDetailPage, $projectDetailPage)
         {
             $content = '<div id="lth_solr_container" ></div>';
             
@@ -119,14 +121,13 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             $content .= '
                 <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
-                <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
                 <input type="hidden" id="lth_solr_action" value="showStudentPaper" />';
             
             return $content;
         }
         
         
-        private function listStudentPapers($scope, $detailPage, $syslang, $noItemsToShow, $categories, $papertype)
+        private function listStudentPapers($scope, $detailPage, $noItemsToShow, $categories, $papertype)
         {
             /*$content .= '<div style="clear:both;margin-top:20px;margin-bottom:20px;">Filter: <input type="text" id="lthsolr_publications_filter" class="lthsolr_filter" name="lthsolr_filter" value="" /></div>';
             
@@ -141,15 +142,16 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
                 //$content .= '<div style="font-weight:bold;">' . $this->pi_getLL("filter") . '</div>';
               
-                $content .= '<div style="clear:both;height:50px;">';
-                if(!$hideFilter) {
-                    $content .= '<div id="refine" style="float:left;width:30%;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:16px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">Filter</span></div>';
-                    $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
-                    $content .= '<div style="float:left;padding-top:10px;width:60%">';
-                    $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_studentpapers_filter" class="lthsolr_filter" placeholdera="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
-                    $content .= '</div>';
-                }
-                $content .= '</div>';
+            $content .= '<div style="clear:both;height:50px;">';
+            if($categories != "no_categories") {
+                $content .= '<div id="refine" style="float:left;width:30%;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:16px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">Filter</span></div>';
+            }    
+            $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
+            $content .= '<div style="float:left;padding-top:10px;width:60%">';
+            $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_studentpapers_filter" class="lthsolr_filter" placeholdera="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
+            $content .= '</div>';
+            
+            $content .= '</div>';
                 
             $content .= '</div>';    
             
@@ -166,7 +168,6 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $content .= '
                     <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
                     <input type="hidden" id="lth_solr_detailpage" value="' . $detailPage . '" />
-                    <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />    
                     <input type="hidden" id="lth_solr_action" value="listStudentPapers" />
                     <input type="hidden" id="lth_solr_categories" value="' . $categories . '" />
                     <input type="hidden" id="lth_solr_papertype" value="' . $papertype . '" /> 

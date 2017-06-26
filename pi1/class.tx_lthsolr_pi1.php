@@ -102,14 +102,14 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 <input type="submit" id="edit-submit" name="op" value="' . $this->pi_getLL("search") . '"  class="btn btn-default" />
             
             </form>';
-            
+            $content .= '<div id="lthsolr_search_container">';
             //people
-            $content .= '<div class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_people_header"></div>';
-            $content .= '<table id="lthsolr_staff_container" class="table"></table></div>';
+            $content .= '<div id="lthsolr_people_header"></div>';
+            $content .= '<ul id="lthsolr_staff_container"></ul>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_search.html");
             
             //pages
-            $content .= '<div class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_pages_header"></div>';
+            $content .= '<div style="clear:both;" class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_pages_header"></div>';
             $content .= '<table id="lthsolr_pages_container" class="table"></table></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/pages_search.html");
             
@@ -122,7 +122,7 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $content .= '<div class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_courses_header"></div>';
             $content .= '<table id="lthsolr_courses_container" class="table"></table></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/courses_search.html");
-            
+            $content .= '</div>';
             return $content;
         }
         

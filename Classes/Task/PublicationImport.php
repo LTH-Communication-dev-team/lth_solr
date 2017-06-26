@@ -111,8 +111,8 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 //$title = array();
                 $abstract_en = '';
                 $abstract_sv = '';
-                $authorIdTemp;
-                $authorNameTemp;      
+                $authorExternal = array();
+                $authorExternalOrganisation = array();
                 $authorId = array();
                 $authorName = array();
                 $authorFirstName = array();
@@ -167,8 +167,8 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $bibliographicalNote = '';
                 $event = '';
                 $eventCountry = '';
-                $keywordsUka = '';
-                $keywordsUser = '';
+                $keywordsUka = array();
+                $keywordsUser = array();
                 $language = '';
                 $organisationName = '';
                 $publicationStatus = '';
@@ -246,34 +246,40 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 foreach($varArray as $varVal) {
                     if($content->children($varVal,true)->persons) {
                         foreach($content->children($varVal,true)->persons->children('person-template',true)->personAssociation as $personAssociation) {
+                            $authorExternalTemp = 0;
+                            $authorIdTemp = "";
+                            $authorNameTemp = "";
+                            $authorFirstNameTemp = "";
+                            $authorLastNameTemp = "";
+                            $authorExternalOrganisationTemp = "";
                             if($personAssociation->children('person-template',true)->person) {
                                 $authorIdTemp = (string)$personAssociation->children('person-template',true)->person->attributes();
-                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
-                                $authorFirstName[] = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
-                                $authorNameTemp .= ' ' . (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
-                                $authorLastName[] = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
-                            }
-                            if($personAssociation->children('person-template',true)->externalPerson) {
+                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName . ' ' . (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                                $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
+                                $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                            } else if($personAssociation->children('person-template',true)->externalPerson) {
+                                $authorExternalTemp = 1;
                                 $authorIdTemp = (string)$personAssociation->children('person-template',true)->externalPerson->attributes();
-                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
-                                $authorFirstName[] = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
-                                $authorNameTemp .= ' ' . (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
-                                $authorLastName[] = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
+                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName . ' ' . (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
+                                $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
+                                $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
                             }
-                            if($authorIdTemp) {
-                                $authorId[] = (string)$authorIdTemp;
+                            if($personAssociation->children('person-template',true)->externalOrganisation) {
+                                $authorExternalOrganisationTemp = (string)$personAssociation->children('person-template',true)->externalOrganisation;
                             }
-                            if($authorNameTemp) {
-                                $authorName[] = (string)$authorNameTemp;
-                            }
+                            $authorExternal[] = $authorExternalTemp;
+                            $authorId[] = $authorIdTemp;
+                            $authorName[] = $authorNameTemp;
+                            $authorFirstName[] = $authorFirstNameTemp;
+                            $authorLastName[] = $authorLastNameTemp;
+                            $authorExternalOrganisation[] = $authorExternalOrganisationTemp;
                         }
                     }
                 }
 
                 //Organisations
                 foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->organisations && 
-                        $content->children($varVal,true)->organisations->children('organisation-template',true)->association) {
+                    if($content->children($varVal,true)->organisations && $content->children($varVal,true)->organisations->children('organisation-template',true)->association) {
                         foreach($content->children($varVal,true)->organisations->children('organisation-template',true)->association as $association) {
                             $organisationId[] = (string)$association->children('organisation-template',true)->organisation->attributes();
                             foreach($association->children('organisation-template',true)->organisation->children('organisation-template',true)->name->children('core',true)->localizedString as $localizedString) {
@@ -551,7 +557,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $cite = "";
                 $bibtex = "";
                 foreach($citeArray as $citebibKey => $citebib) {
-                    $citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=$citebib";
+                    $citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&rendering=$citebib";
                     $citebibxml = file_get_contents($citebibxmlpath);
                     $citebibxml = str_replace('$$$', '', $citebibxml);
                     $citebibxml = preg_replace('/<div/', '$$$<div', $citebibxml, 1);
@@ -591,12 +597,19 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $publicationStatus = $publicationStatus_en;
                     $publicationType = $publicationType_en;
                 }
+                
+                if(!$abstract && $abstract_en) {
+                    $abstract = $abstract_en;
+                }
+                if(!$abstract && $abstract_sv) {
+                    $abstract = $abstract_sv;
+                }
 
                 $data = array(
                     'id' => $id,
-                    'type' => $type,
                     'abstract' => $abstract,
-                    //'abstract_sv' => $abstract_sv,
+                    'authorExternal' => $authorExternal,
+                    'authorExternalOrganisation' => $authorExternalOrganisation,
                     'authorId' => $authorId,
                     'authorName' => array_unique($authorName),
                     //'authorName_sort' => array_unique($authorName),
@@ -645,6 +658,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'publisher' => $publisher,
                     //'title' => $title,
                     //'title_sort' => $title,
+                    'type' => $type,
                     'volume' => $volume,
                     'standardCategory' => $publicationType,
                     //'standard_category_sv' => $publicationType_sv,

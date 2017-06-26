@@ -54,35 +54,20 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $index = $GLOBALS["TSFE"]->sys_language_uid;
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
-            $selection = $this->pi_getFFvalue($piFlexForm, "selection", "sDEF", $lDef[$index]);
+            $display = $this->pi_getFFvalue($piFlexForm, "display", "sDEF", $lDef[$index]);
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
-            $hideFilter = $this->pi_getFFvalue($piFlexForm, "hideFilter", "sDEF", $lDef[$index]);
-
-            if($fe_groups) {
-                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
-                while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                    $title[] = explode('__', $row['title'])[0];
-                }
-                if($title) {
-                    $scope = implode(',', $title);
-                }
-                $GLOBALS['TYPO3_DB']->sql_free_result($res);
-            } else if($fe_users) {
-                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid = " . intval($fe_users));
-                $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
-                $scope = $row['lth_solr_uuid'];
-                $GLOBALS['TYPO3_DB']->sql_free_result($res);
-            }
-            
-            $detailPage = $this->pi_getFFvalue($piFlexForm, "detailPage", "sDEF", $lDef[$index]);
+            $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $staffDetailPage = $this->pi_getFFvalue($piFlexForm, "staffDetailPage", "sDEF", $lDef[$index]);
             $projectDetailPage = $this->pi_getFFvalue($piFlexForm, "projectDetailPage", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             
-            if($detailPage) {
+            $keyword;
+            $uuid;
+            
+            /*if($detailPage) {
                 $detailPage = $this->detailUrl($detailPage);
-            }
+            }*/
             
             if($staffDetailPage) {
                 $staffDetailPage = $this->detailUrl($staffDetailPage);
@@ -90,6 +75,13 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             if($projectDetailPage) {
                 $projectDetailPage = $this->detailUrl($projectDetailPage);
+            }
+
+            $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
+            $keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
+
+            if(strstr($uuid,")")) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),")");
             }
             
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
@@ -99,28 +91,56 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             if($syslang=='se') {
                 $syslang='sv';
             }
-
-            $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
-            if(strstr($uuid,")")) {
-                $uuid = rtrim(array_pop(explode('(',$uuid)),")");
-            }
-            //echo $uuid;
             //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
-             
-            //$query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
-            
-            if(!$scope && !$uuid) {
-                return 'Please add organisation uuid';
+            //$GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_download"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/download/download.js\"></script>"; 
+            if($display === "tagcloud") {
+                $GLOBALS["TSFE"]->additionalHeaderData["jqcloud.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/jqcloud/jqcloud.js?" . rand(1,100000000) . "\"></script>"; 
+                $GLOBALS["TSFE"]->additionalHeaderData["jqcloud.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/jqcloud/jqcloud.css?" . rand(1,100000000) . "\" />";              
             }
-            $content = '';
 
-            if($uuid) {
-                $content .= $this->showPublication($uuid, $staffDetailPage, $projectDetailPage, $syslang);
+            $content = '';
+            if($uuid && substr($uuid, 0, 1) !== "v" && substr($uuid, 0, 2) !== "--" && !$keyword) {
+                $content .= $this->showPublication($uuid, $staffDetailPage, $projectDetailPage);
+            } else if(substr($uuid, 0, 1) === "v") {
+                $lth_solr_uuid = array();
+                $lth_solr_uuid['fe_groups'][] = $uuid;
+                $scope = urlencode(json_encode($lth_solr_uuid));
+                $content .= $this->listPublications($scope, $detailPage, $noItemsToShow, $selection, $categories);
+            } else if(substr($uuid, 0, 2) === "--") {
+                $lth_solr_uuid = array();
+                $lth_solr_uuid['fe_users'][] = str_replace('--','', $uuid);
+                $scope = urlencode(json_encode($lth_solr_uuid));
+                $content .= $this->listPublications($scope, $detailPage, $noItemsToShow, $selection, $categories);
             } else {
-                $content .= $this->listPublications($scope, $detailPage, $syslang, $noItemsToShow, $hideFilter, $selection);
+                $lth_solr_uuid = array();
+                if($fe_groups) {
+                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
+                    while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                        $lth_solr_uuid['fe_groups'][] = explode('__', $row['title'])[0];
+                    }
+                    $GLOBALS['TYPO3_DB']->sql_free_result($res);
+                } 
+                if($fe_users) {
+                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . explode('|',$fe_users)[0].")");
+                    while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                        $lth_solr_uuid['fe_users'][] = $row['lth_solr_uuid'];
+                    }
+                    $GLOBALS['TYPO3_DB']->sql_free_result($res);
+                }
+                if(count($lth_solr_uuid > 0)) {
+                    $scope = urlencode(json_encode($lth_solr_uuid));
+                }
+                if($display === "tagcloud" && !$keyword) {
+                    $content .= $this->listTagCloud($scope, $detailPage, $noItemsToShow, $selection, $categories);
+                } else {
+                    if($keyword) {
+                        $keyword = urlencode($keyword);
+                    }
+                    $content .= $this->listPublications($scope, $detailPage, $noItemsToShow, $selection, $categories, $keyword);
+                }
             }
         
             //$this->debug($content);
@@ -129,7 +149,18 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	}
         
         
-        private function showPublication($uuid, $staffDetailPage, $projectDetailPage, $syslang)
+        private function listTagCloud($scope, $detailPage, $noItemsToShow, $selection, $categories)
+        {
+            $content = '<div id="lthsolr_tagcloud_container"></div>';
+                                    
+            $content .= '
+                <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+                <input type="hidden" id="lth_solr_action" value="listTagCloud" />';
+            return $content;
+        }
+        
+        
+        private function showPublication($uuid, $staffDetailPage, $projectDetailPage)
         {
             $content = '<div id="lth_solr_container" ></div>';
             
@@ -141,29 +172,27 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 <input type="hidden" id="lth_solr_staffdetailpage" value="' . $staffDetailPage . '" />
                 <input type="hidden" id="lth_solr_projectdetailpage" value="' . $projectDetailPage . '" />
                 <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
-                <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
                 <input type="hidden" id="lth_solr_action" value="showPublication" />';
             
             return $content;
         }
         
         
-        private function listPublications($scope, $detailPage, $syslang, $noItemsToShow, $hideFilter, $selection)
-        {
-            $content .= '<style>.glyphicon-search {font-size: 25px;}.glyphicon-filter {font-size: 15px;}</style>';
+        private function listPublications($scope, $detailPage, $noItemsToShow, $selection, $categories, $keyword)
+        {   
+            $content .= '<style>.glyphicon-search {font-size: 25px;}.glyphicon-filter, .glyphicon-export {font-size: 15px;}</style>';
             $content .= '<div class="lth_solr_filter_container">';
-            
-                //$content .= '<div style="font-weight:bold;">' . $this->pi_getLL("filter") . '</div>';
               
-                $content .= '<div style="clear:both;height:50px;">';
-                if(!$hideFilter) {
-                    $content .= '<div id="refine" style="float:left;width:30%;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:16px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">Filter</span></div>';
-                    $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
-                    $content .= '<div style="float:left;padding-top:10px;width:60%">';
-                    $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_publications_filter" class="lthsolr_filter" placeholdera="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
-                    $content .= '</div>';
-                }
-                $content .= '</div>';
+            $content .= '<div style="clear:both;height:50px;">';
+            if($categories != "no_categories") {
+                $content .= '<div id="refine" style="float:left;width:30%;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:16px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">Filter</span></div>';
+            }
+            $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
+            $content .= '<div style="float:left;padding-top:10px;width:50%">';
+            $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_publications_filter" class="lthsolr_filter" placeholdera="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
+            $content .= '</div>';
+
+            $content .= '</div>';
                 
             $content .= '</div>';    
             
@@ -178,12 +207,11 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple.html");
             
             $content .= '
-                    <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-                    <input type="hidden" id="lth_solr_publicationdetailpage" value="' . $detailPage . '" />
-                    <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />    
-                    <input type="hidden" id="lth_solr_action" value="listPublications" />
-                    <input type="hidden" id="lth_solr_selection" value="' . $selection . '" />    
-                    <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
+                <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+                <input type="hidden" id="lth_solr_publicationdetailpage" value="' . $detailPage . '" />
+                <input type="hidden" id="lth_solr_action" value="listPublications" />
+                <input type="hidden" id="lth_solr_keyword" value="' . $keyword . '" />    
+                <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';          
             
             return $content;
         }

@@ -1,75 +1,100 @@
 <T3DataStructure>
- <meta>
+    <meta>
        <langDisable>1</langDisable>
- </meta>
-<sheets>
-  <sDEF>
-        <ROOT>
-         <TCEforms>
-          <sheetTitle>General</sheetTitle>
-         </TCEforms>
-         <type>array</type>
-         <el>
-            <scope>
+    </meta>
+    <sheets>
+        <sDEF>
+            <ROOT>
                 <TCEforms>
-                    <label>Urval på institutioner, avdelningar och personer (en per rad). OBS LUCRIS interna uuid</label>
-                    <config>
-                        <type>text</type>
-                        <cols>50</cols>
-                        <rows>5</rows>
-                    </config>
+                    <sheetTitle>General</sheetTitle>
                 </TCEforms>
-            </scope>
-            
-            <detailpage>
-                <TCEforms>
-                   <label>Page with details</label>
-                   <config>
-                       <type>group</type>
-                       <internal_type>db</internal_type>
-                       <allowed>pages</allowed>
-                       <size>1</size>
-                       <maxitems>1</maxitems>
-                       <minitems>0</minitems>
-                       <show_thumbs>0</show_thumbs>
-                   </config>
-                </TCEforms>
-            </detailpage>
-            
-            <noItemsToShow>
-                <TCEforms>
-                    <label>No of items to show</label>
-                    <config>
-                    <type>select</type>
-                    <items type="array">
-                    <numIndex index="0" type="array">
-                    <numIndex index="0">10</numIndex>
-                    <numIndex index="1">10</numIndex>
-                    </numIndex>
-                    <numIndex index="1" type="array">
-                    <numIndex index="0">25</numIndex>
-                    <numIndex index="1">25</numIndex>
-                    </numIndex>
-                    <numIndex index="2" type="array">
-                    <numIndex index="0">50</numIndex>
-                    <numIndex index="1">50</numIndex>
-                    </numIndex>
-                    <numIndex index="3" type="array">
-                    <numIndex index="0">All</numIndex>
-                    <numIndex index="1">-1</numIndex>
-                    </numIndex>
-                    </items>
-                    <maxitems>1</maxitems>
-                    <size>1</size>
-                    <default>25</default>
-                    <selectedListStyle>width:200px</selectedListStyle>
-                    <itemListStyle>width:200px</itemListStyle>
-                    </config>
-                </TCEforms>
-         </noItemsToShow>
-         </el>
-     </ROOT>
-</sDEF>
+                <type>array</type>
+                <el>
+                    <fe_groups>
+                        <TCEforms type="array">
+                            <label>Välj en eller flera användargrupper</label>
+                            <config>
+                                <type>select</type>
+                                <size>10</size>
+                                <maxitems>10</maxitems>
+                                <items type="array">
+                                    <numIndex index="0" type="array">
+                                        <numIndex index="0"></numIndex>
+                                        <numIndex index="1"></numIndex>
+                                    </numIndex>
+                                </items>
+                                <foreign_table>fe_groups</foreign_table>
+                            </config>
+                        </TCEforms>
+                    </fe_groups>
 
-</sheets>
+                    <fe_users>
+                        <TCEforms type="array">
+                            <label>Välj en eller flera användare</label>
+                            <config>
+                                <type>select</type>
+                                <size>10</size>
+                                <maxitems>10</maxitems>
+                                <items type="array">
+                                    <numIndex index="0" type="array">
+                                        <numIndex index="0"></numIndex>
+                                        <numIndex index="1"></numIndex>
+                                    </numIndex>
+                                </items>
+                                <foreign_table>fe_users</foreign_table>
+                                <foreign_table_where>ORDER BY username ASC</foreign_table_where>
+                            </config>
+                        </TCEforms>
+                    </fe_users>
+
+                    <detailpage>
+                        <TCEforms>
+                           <label>Page with details</label>
+                           <config>
+                               <type>group</type>
+                               <internal_type>db</internal_type>
+                               <allowed>pages</allowed>
+                               <size>1</size>
+                               <maxitems>1</maxitems>
+                               <minitems>0</minitems>
+                               <show_thumbs>0</show_thumbs>
+                           </config>
+                        </TCEforms>
+                    </detailpage>
+
+                    <noItemsToShow>
+                        <TCEforms>
+                            <label>No of items to show</label>
+                            <config>
+                            <type>select</type>
+                            <items type="array">
+                            <numIndex index="0" type="array">
+                            <numIndex index="0">10</numIndex>
+                            <numIndex index="1">10</numIndex>
+                            </numIndex>
+                            <numIndex index="1" type="array">
+                            <numIndex index="0">25</numIndex>
+                            <numIndex index="1">25</numIndex>
+                            </numIndex>
+                            <numIndex index="2" type="array">
+                            <numIndex index="0">50</numIndex>
+                            <numIndex index="1">50</numIndex>
+                            </numIndex>
+                            <numIndex index="3" type="array">
+                            <numIndex index="0">All</numIndex>
+                            <numIndex index="1">-1</numIndex>
+                            </numIndex>
+                            </items>
+                            <maxitems>1</maxitems>
+                            <size>1</size>
+                            <default>25</default>
+                            <selectedListStyle>width:200px</selectedListStyle>
+                            <itemListStyle>width:200px</itemListStyle>
+                            </config>
+                        </TCEforms>
+                    </noItemsToShow>
+                </el>
+            </ROOT>
+        </sDEF>
+    </sheets>
 </T3DataStructure>

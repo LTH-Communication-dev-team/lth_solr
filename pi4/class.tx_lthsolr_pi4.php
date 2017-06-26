@@ -54,7 +54,8 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $index = $GLOBALS["TSFE"]->sys_language_uid;
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
-            $scope = $this->pi_getFFvalue($piFlexForm, "scope", "sDEF", $lDef[$index]);
+            $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
+            $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
             $detailPage = $this->pi_getFFvalue($piFlexForm, "detailpage", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             $detailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
@@ -66,6 +67,10 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
             
+            if(strstr($uuid,")")) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),")");
+            }
+            
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
             if(!$syslang) {
                 $syslang = 'en';
@@ -74,18 +79,24 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $syslang='sv';
             }
             
-            /*load files needed for datatables
-            $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";
-            $GLOBALS["TSFE"]->additionalHeaderData["responsive.dataTables.min"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/responsive.dataTables.min.css\" />";
-            $GLOBALS["TSFE"]->additionalHeaderData["buttons.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/buttons.dataTables.min.css\" />";
-            $GLOBALS["TSFE"]->additionalFooterData["jquery.dataTables.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/jquery.dataTables.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["dataTables.buttons.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.buttons.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["jszip.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["pdfmake.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["vfs_fonts.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["buttons.html5.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/buttons.html5.min.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["dataTables.responsive.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.responsive.min.js\"></script>";
-*/
+            $lth_solr_uuid = array();
+            if($fe_groups) {
+                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
+                while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                    $lth_solr_uuid['fe_groups'][] = explode('__', $row['title'])[0];
+                }
+                $GLOBALS['TYPO3_DB']->sql_free_result($res);
+            } 
+            if($fe_users) {
+                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . explode('|',$fe_users)[0].")");
+                while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                    $lth_solr_uuid['fe_users'][] = $row['lth_solr_uuid'];
+                }
+                $GLOBALS['TYPO3_DB']->sql_free_result($res);
+            }
+            if(count($lth_solr_uuid > 0)) {
+                $scope = urlencode(json_encode($lth_solr_uuid));
+            }
             
             //Load main js- and css-files
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
@@ -116,7 +127,7 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $content = '<div id="lth_solr_projects_container"><div id="lthsolr_projects_header"></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_presentation.html");
             
-            $content = '<input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
+            $content .= '<input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
                     <input type="hidden" id="lth_solr_action" value="showProject" />
                     <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />';
             return $content;
@@ -125,7 +136,18 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
         
         private function listProjects($scope, $detailUrl, $syslang, $noItemsToShow)
         {
-            $content = '<div id="lth_solr_projects_container" ></div>';
+            $content .= '<style>.glyphicon-search {font-size: 25px;}.glyphicon-filter, .glyphicon-export {font-size: 15px;}</style>';
+            $content .= '<div class="lth_solr_filter_container">';
+            $content .= '<div style="clear:both;height:50px;">';
+            $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
+            $content .= '<div style="float:left;padding-top:10px;width:50%">';
+            $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_projects_filter" class="lthsolr_filter" placeholdera="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
+            $content .= '</div>';
+            $content .= '</div>';
+            $content .= '</div>'; 
+            
+            $content .= '<div id="lthsolr_projects_container" ><div style="clear:both;height:20px;" id="lthsolr_projects_header"></div></div>';
+            
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_simple.html");
             
             $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />

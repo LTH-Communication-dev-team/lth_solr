@@ -10,7 +10,6 @@
                 </TCEforms>
                 <type>array</type>
                 <el>
-             
                     <papertype>
                         <TCEforms>
                             <label>Template</label>
@@ -63,73 +62,92 @@
                         </TCEforms>
                     </papertype>
          
-          <scope>
-           <TCEforms type="array">
-            <label>Välj en eller flera användargrupper</label>
-            <config>
-              <type>select</type>
-              <size>10</size>
-              <maxitems>10</maxitems>
-              <items type="array">
-                <numIndex index="0" type="array">
-                  <numIndex index="0"></numIndex>
-                  <numIndex index="1"></numIndex>
-                </numIndex>
-              </items>
-              <foreign_table>fe_groups</foreign_table>
-            </config>
-           </TCEforms>
-         </scope>
+                    <scope>
+                        <TCEforms type="array">
+                            <label>Välj en eller flera användargrupper</label>
+                            <config>
+                                <type>select</type>
+                                <size>10</size>
+                                <maxitems>10</maxitems>
+                                <items type="array">
+                                    <numIndex index="0" type="array">
+                                        <numIndex index="0"></numIndex>
+                                        <numIndex index="1"></numIndex>
+                                    </numIndex>
+                                </items>
+                                <foreign_table>fe_groups</foreign_table>
+                            </config>
+                        </TCEforms>
+                    </scope>
             
-            <detailPage>
-                <TCEforms>
-                   <label>Page with publication details</label>
-                   <config>
-                       <type>group</type>
-                       <internal_type>db</internal_type>
-                       <allowed>pages</allowed>
-                       <size>1</size>
-                       <maxitems>1</maxitems>
-                       <minitems>0</minitems>
-                       <show_thumbs>0</show_thumbs>
-                   </config>
-                </TCEforms>
-            </detailPage>
+                    <!-- <detailPage>
+                        <TCEforms>
+                           <label>Page with publication details</label>
+                           <config>
+                               <type>group</type>
+                               <internal_type>db</internal_type>
+                               <allowed>pages</allowed>
+                               <size>1</size>
+                               <maxitems>1</maxitems>
+                               <minitems>0</minitems>
+                               <show_thumbs>0</show_thumbs>
+                           </config>
+                        </TCEforms>
+                    </detailPage> -->
+                    
+                    <categories>
+                        <TCEforms>
+                            <label>Kategorivisningsläge</label>
+                            <config>
+                                <default>no_categories</default>
+                                <type>radio</type>
+                                   <items type="array">
+                                     <numIndex index="0" type="array">
+                                       <numIndex index="0">Inga kategorier</numIndex>
+                                       <numIndex index="1">no_categories</numIndex>
+                                     </numIndex>
+                                     <numIndex index="1" type="array">
+                                       <numIndex index="0">Standardkategorier</numIndex>
+                                       <numIndex index="1">standard_category</numIndex>
+                                     </numIndex>
+                                   </items>
+                            </config>
+                        </TCEforms>
+                    </categories>
             
-            <noItemsToShow>
-                <TCEforms>
-                    <label>No of items to show</label>
-                    <config>
-                    <type>select</type>
-                    <items type="array">
-                    <numIndex index="0" type="array">
-                    <numIndex index="0">10</numIndex>
-                    <numIndex index="1">10</numIndex>
-                    </numIndex>
-                    <numIndex index="1" type="array">
-                    <numIndex index="0">25</numIndex>
-                    <numIndex index="1">25</numIndex>
-                    </numIndex>
-                    <numIndex index="2" type="array">
-                    <numIndex index="0">50</numIndex>
-                    <numIndex index="1">50</numIndex>
-                    </numIndex>
-                    <numIndex index="3" type="array">
-                    <numIndex index="0">All</numIndex>
-                    <numIndex index="1">-1</numIndex>
-                    </numIndex>
-                    </items>
-                    <maxitems>1</maxitems>
-                    <size>1</size>
-                    <default>25</default>
-                    <selectedListStyle>width:200px</selectedListStyle>
-                    <itemListStyle>width:200px</itemListStyle>
-                    </config>
-                </TCEforms>
-         </noItemsToShow>
-         </el>
-     </ROOT>
-</sDEF>
-
-</sheets>
+                    <noItemsToShow>
+                        <TCEforms>
+                            <label>No of items to show</label>
+                            <config>
+                            <type>select</type>
+                            <items type="array">
+                            <numIndex index="0" type="array">
+                            <numIndex index="0">10</numIndex>
+                            <numIndex index="1">10</numIndex>
+                            </numIndex>
+                            <numIndex index="1" type="array">
+                            <numIndex index="0">25</numIndex>
+                            <numIndex index="1">25</numIndex>
+                            </numIndex>
+                            <numIndex index="2" type="array">
+                            <numIndex index="0">50</numIndex>
+                            <numIndex index="1">50</numIndex>
+                            </numIndex>
+                            <numIndex index="3" type="array">
+                            <numIndex index="0">All</numIndex>
+                            <numIndex index="1">-1</numIndex>
+                            </numIndex>
+                            </items>
+                            <maxitems>1</maxitems>
+                            <size>1</size>
+                            <default>25</default>
+                            <selectedListStyle>width:200px</selectedListStyle>
+                            <itemListStyle>width:200px</itemListStyle>
+                            </config>
+                        </TCEforms>
+                    </noItemsToShow>
+                </el>
+            </ROOT>
+        </sDEF>
+    </sheets>
 </T3DataStructure>

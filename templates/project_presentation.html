@@ -5,21 +5,16 @@
     </tbody>
 </table>-->
 
-<script id="solrTemplate" type="text/x-jquery-templ">
-    <div><div class="textblock more-content" style="height: 80px; overflow: hidden;">###abstract###</div>
+<script id="solrProjectTemplate" type="text/x-jquery-templ">
+    <div>
+        <div class="textblock more-content" style="height: 80px; overflow: hidden;">###description###</div>
 
-    <a href="#" onclick="showMore(this);return false;" class="readmore" data-height="144">More</a></div>
+        <a href="#" onclick="showMore(this);return false;" class="readmore" data-height="144">More</a>
+    </div>
     
     <div>
-        <p>###authors###</p>
-        <p>###organisations###</p>
-        <p>###externalOrganisations###</p>
-        <p>###language###</p>
-        <p>###pages###</p>
-        <p>###numberOfPages###</p>
-        <p>###volume###</p>
-        <p>###journalNumber###</p>
-        <p>###publicationStatus###</p>
-        <p>###peerReview###</p>
+        <p>###participants###</p>
+        <p>###projectStartDate### -- ###projectEndDate###</p>
+        <p>###projectStatus###</p>    
     </div>
 </script>

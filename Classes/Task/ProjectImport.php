@@ -22,17 +22,28 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
+        $syslang = "sv";
+        
         $config = array(
             'endpoint' => array(
                 'localhost' => array(
                     'host' => $settings['solrHost'],
                     'port' => $settings['solrPort'],
-                    'path' => $settings['solrPath'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
                     'timeout' => $settings['solrTimeout']
                 )
             )
         );
         
+        $dbhost = $settings['dbhost'];
+        $db = $settings['db'];
+        $user = $settings['user'];
+        $pw = $settings['pw'];
+
+        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("43; ".mysqli_error());
+        
+        $heritageArray = $this->getHeritage($con);
+        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($heritageArray, true), 'crdate' => time()));
         $client = new \Solarium\Client($config);
         
         $buffer = $client->getPlugin('bufferedadd');
@@ -42,18 +53,18 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         //Get last modified
         $query = $client->createSelect();
-        $query->setQuery('doctype:upmproject');
-        $query->addSort('tstamp', $query::SORT_DESC);
+        $query->setQuery('docType:upmproject');
+        //$query->addSort('tstamp', $query::SORT_DESC);
         $query->setStart(0)->setRows(1);
         $response = $client->select($query);
         $idArray = array();
         foreach ($response as $document) {
-            $lastModified = $document->tstamp;
+            $lastModified = $document->changed;
         }
 
         //$GLOBALS['TYPO3_DB']->exec_DELETEquery("tx_lthsolr_lucrisdata", "lucris_type='upmproject'");
 
-	$executionSucceeded = $this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified);
+	$executionSucceeded = $this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified, $heritageArray,  $syslang);
         
         //$executionSucceeded = $this->deleteOldProjects($client);
         
@@ -61,7 +72,7 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    function deleteOldProjects($client)
+    /*function deleteOldProjects($client)
     {
         try {
             $query = $client->createSelect();
@@ -89,11 +100,12 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         return TRUE;
     }
-
+*/
     
-    function getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified)
+    function getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified, $heritageArray,  $syslang)
     {
         $lucrisProjectsArray = array();
+        $heritageArray = $heritageArray[0];
         $i = 0;
         for($i = 0; $i < $numberofloops; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
@@ -105,6 +117,8 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $lucrisPw = $settings['solrLucrisPw'];
 
             $xmlpath = "https://lucris.lub.lu.se/ws/rest/upmprojects?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/upmprojects?window.size=1&window.offset=1&orderBy.property=id&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/upmprojects?uuids.uuid=e5df23b5-415b-4a1b-82fa-3bafb26fbaba&rendering=xml_long";
 
             try {
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
@@ -125,19 +139,28 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $portalUrl = '';
                 $created = '';
                 $modified = '';
-                $title_en = array();
-                $title_sv = array();
+                $title_en = '';
+                $title_sv = '';
+                $title = '';
                 $startDate = '';
                 $endDate = '';
                 $status = '';
+                $managedById = '';
+                $managedByName_en = '';
+                $managedByName_sv = '';
+                $managedByName = '';
                 $organisationId = array();
                 $organisationName_en = array();
                 $organisationName_sv = array();
+                $organisationName = array();
+                $organisationSourceId = array();
                 $participants = array();
-                $participantId = array();
-                $descriptions_en = array();
-                $descriptions_sv = array();
-
+                $participantsId = array();
+                $descriptions_en = '';
+                $descriptions_sv = '';
+                $descriptions = '';
+                $heritage = array();
+                
                 //id
                 $id = (string)$content->attributes();
 
@@ -183,10 +206,10 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         if($descriptions->children('extensions-core',true)->classificationDefinedField) {
                             foreach($descriptions->children('extensions-core',true)->classificationDefinedField->children('extensions-core',true)->value->children('core',true)->localizedString as $localizedString) {
                                 if($localizedString->attributes()->locale == 'en_GB') {
-                                    $descriptions_en[] = (string)$localizedString;
+                                    $descriptions_en = (string)$localizedString;
                                 }
                                 if($localizedString->attributes()->locale == 'sv_SE') {
-                                    $descriptions_sv[] = (string)$localizedString;
+                                    $descriptions_sv = (string)$localizedString;
                                 }
                             }
                         }
@@ -197,9 +220,31 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 if($content->children('stab',true)->participants) {
                     foreach($content->children('stab',true)->participants->children('stab',true)->participantAssociation as $participantAssociation) {
                         if($participantAssociation->children('person-template',true)->person) {
-                            $participantId[] = (string)$participantAssociation->children('person-template',true)->person->attributes();
+                            $participantsId[] = (string)$participantAssociation->children('person-template',true)->person->attributes();
                             $participants[] = $participantAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName . ' ' . 
-                                    $participantAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                                $participantAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                        }
+                    }
+                }
+                
+                                
+                //managedBy
+                if($content->children('stab1',true)->managedBy) {
+                    foreach($content->children('stab1',true)->managedBy as $managedBy) {
+                        if($managedBy->children('organisation-template',true)->name) {
+                            foreach($managedBy->children('organisation-template',true)->name->children('core',true)->localizedString as $localizedString) {
+                                if($localizedString->attributes()->locale == 'en_GB') {
+                                    $managedByName_en = (string)$localizedString;
+                                }
+                                if($localizedString->attributes()->locale == 'sv_SE') {
+                                    $managedByName_sv = (string)$localizedString;
+                                }
+                            }
+                            
+                        }
+                        if($managedBy->children('organisation-template',true)->external) {
+                            $organisationSourceId[] = (string)$managedBy->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
+                            $managedById = (string)$managedBy->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
                         }
                     }
                 }
@@ -218,35 +263,104 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 }
                             }
                         }
+                        if($organisation->children('organisation-template',true)->external) {
+                            $organisationSourceId[] = (string)$organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
+                        }
+                    }
+                }
+                       
+                foreach($organisationSourceId as $key1 => $value1) {
+                    $heritage[] = $value1;
+                    $parent = $heritageArray[$value1];
+
+                    if($parent) { 
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
                     }
                 }
 
-                //sourceId
-                /*if($content->children('stab1',true)->external->children('extensions-core',true)->sourceId) {
-                    $sourceId = (string)$content->children('stab1',true)->external->children('extensions-core',true)->sourceId;
-                }*/
-                $title_sort = $title_en;
-                if($title_en==='') {
-                    $title_sort = $title_sv;
+                if($heritage) {
+                    array_filter($heritage);
+                    $organisationSourceId = array_unique($heritage);
+                }
+                
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($organisationSourceId, true), 'crdate' => time()));
+
+                if($syslang==="sv") {
+                    $title = $title_sv;
+                    $organisationName = $organisationName_sv;
+                    $descriptions = $descriptions_sv;
+                    $managedByName = $managedByName_sv;
+                } else {
+                    $title = $title_en;
+                    $organisationName = $organisationName_en;
+                    $descriptions = $descriptions_en;
+                    $managedByName = $managedByName_en;
+                }
+                
+                if(!$title && $title_en) {
+                    $title = $title_en;
+                }
+                if(!$title && $title_sv) {
+                    $title = $title_sv;
+                }
+                
+                if(!$descriptions && $descriptions_en) {
+                    $descriptions = $descriptions_en;
+                }
+                if(!$descriptions && $descriptions_sv) {
+                    $descriptions = $descriptions_sv;
                 }
                 
                 $data = array(
+                    'abstract' => $descriptions,
+                    'appKey' => 'lthsolr',
                     'id' => $id,
-                    'doctype' => 'upmproject',
+                    'docType' => 'upmproject',
+                    'managedById' => $managedById,
+                    'managedByName' => $managedByName,
+                    'organisationId' => $organisationId,
+                    'organisationName' => $organisationName,
+                    'organisationSourceId' => $organisationSourceId,                   
                     'portalUrl' => $portalUrl,
-                    'title_en' => $title_en,
-                    'title_sv' => $title_sv,
-                    'title_sort2' => $title_sort,
                     'projectStartDate' => $this->makeGmDate($startDate),
                     'projectEndDate' => $this->makeGmDate($endDate),
                     'projectStatus' => $status,
-                    'organisationId' => $organisationId,
-                    'organisationName_en' => $organisationName_en,
-                    'organisationName_sv' => $organisationName_sv,
                     'participants' => $participants,
-                    'participantId' => $participantId,
-                    'descriptions_en' => $descriptions_en,
-                    'descriptions_sv' => $descriptions_sv,
+                    'participantsId' => $participantsId,
+                    'projectTitle' => $title,
+                    'type' => 'upmproject',
                     'boost' => '1.0',
                     'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
                     'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
@@ -265,6 +379,22 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         return TRUE;
     }
     
+    
+    private function getHeritage($con)
+    {
+        $heritageArray = array();
+        
+        $sql = "SELECT orgid, parent FROM lucache_vorg";
+        
+        $res = mysqli_query($con, $sql);
+        
+        while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
+            $heritageArray[$row['orgid']] = $row['parent'];
+        }
+        return array($heritageArray);
+    }
+    
+    
     private function makeGmDate($input)
     {
         if($input && $input != '') {
@@ -275,6 +405,7 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         }
         
     }
+    
     
     private function debug($input)
     {

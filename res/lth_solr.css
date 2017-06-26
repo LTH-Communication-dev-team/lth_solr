@@ -15,6 +15,10 @@ and open the template in the editor.
   }
 }
 
+.refine {
+    cursor:pointer;
+}
+
 .dt-buttons {
     clear:both;
 }
@@ -27,7 +31,7 @@ and open the template in the editor.
     padding:0px;
 }
 
-.item-list ul li, #lthsolr_staff_container ul li {
+#lth_solr_facet_container ul li, #lthsolr_staff_container ul li {
     list-style:none !important;
 }
 
@@ -36,8 +40,13 @@ and open the template in the editor.
     width:30%;
     display:none;
     background-color:#353838;
-    padding:10px;
+    padding-right:10px;
     color:#ffffff;
+}
+
+#lthsolr_tagcloud_container {
+    height:700px;
+    width:650px;
 }
 
 #lthsolrAbstract {
@@ -98,26 +107,32 @@ tr.details td.details-control {
     min-height:110px;
 }
 
-.lthsolr_publication_row, .lthsolr_project_row {
+#lthsolr_search_container ul li {
+    list-style:none !important;
+}
+
+#lthsolr_search_container li {
+    float:left;
+    min-width:220px;
+    min-height:100px;
+    display: inline-block;
+}
+
+.lthsolr_publication_row, .lthsolr_project_row, .lthsolr_staff_row {
     border-bottom: 1px solid #dedede;
     margin-top:15px;
     padding-bottom:15px;
 }
 
 .item-list li {
-    float:left;
-}
-
-#lthsolr_staff_container {
-    clear:both;
-    max-width:500px;
+    display:block;
 }
 
 .expand {
     padding:10px;
 }
 
-#lthsolr_publications_container {
+#lthsolr_publications_container, #lthsolr_staff_container, #lthsolr_projects_container {
     width:450px;
     padding-top:10px;
 }
@@ -142,6 +157,7 @@ tr.details td.details-control {
 
 .maxlist-more {
     clear: both;
+    margin-left:10px;
 }
 
 .maxlist-more a {
@@ -329,7 +345,6 @@ color:#ffffff;
     width: 150px;
 }
 /* Styling LU widget end */
-
 
 /* DESKTOP CHANGES */
 @media all and (min-width: 641px) {

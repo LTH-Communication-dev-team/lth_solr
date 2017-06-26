@@ -21,6 +21,8 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $maximumrecords = 20;
         $numberofloops = 1;
         
+        $syslang = "sv";
+        
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
         $config = array(
@@ -28,7 +30,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'localhost' => array(
                     'host' => $settings['solrHost'],
                     'port' => $settings['solrPort'],
-                    'path' => $settings['solrPath'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
                     'timeout' => $settings['solrTimeout']
                 )
             )
@@ -36,17 +38,22 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $client = new \Solarium\Client($config);
 
-	$executionSucceeded = $this->getCourses($client);
+	$executionSucceeded = $this->getCourses($client, $syslang);
+        
+        $executionSucceeded = $this->getPrograms($client, $syslang);
         
 	return $executionSucceeded;
     }
 
-    public function getCourses($client)
+    
+    public function getCourses($client, $syslang)
     {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(250);
-                
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, KI.Webbsida", "LubasPP_dbo.Kurs K JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK", "K.KursID", "K.KursID", "", "");
+        //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, KI.Webbsida", 
+                "LubasPP_dbo.Kurs K JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK", "", "K.Kurskod", "K.KursID", "");
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
             $KursID = $row['KursID'];
             $KursSve = $row['KursSve'];
@@ -55,13 +62,14 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $Hskpoang = $row['Hskpoang'];
             $Webbsida = $row['Webbsida'];
             $data = array(
+                'appKey' => 'lth_solr',
+                'type' => 'course',
                 'id' => 'course_' . $row['KursID'],
-                'doctype' => 'course',
-                'title_sv' =>  $row['KursSve'],
-                'title_en' =>  $row['KursEng'],
-                'course_code' => $row['Kurskod'],
+                'docType' => 'course',
+                'title' =>  $this->titleChoice(array($row['KursSve'], $row['KursEng']), $syslang),
+                'courseCode' => $row['Kurskod'],
                 'credit' => $row['Hskpoang'],
-                'url' => $row['Webbsida'],
+                'homepage' => $row['Webbsida'],
                 'boost' => '1.0'
             );
             try {
@@ -73,5 +81,46 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         $buffer->commit();
         return TRUE;
+    }
+    
+    
+    public function getPrograms($client, $syslang)
+    {
+        $buffer = $client->getPlugin('bufferedadd');
+        $buffer->setBufferSize(250);
+        //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("P.ProgramID, P.ProgramEng, P.ProgramSve, P.ProgramKod, K.kursOrtEng, kursOrtSve", 
+                "LubasPP_dbo.Program P JOIN LubasPP_dbo.KursOrt K ON kursOrtKod = Ort", "P.Nedlagd = 0", "", "", "");
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
+        while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+            $data = array(
+                'appKey' => 'lth_solr',
+                'type' => 'program',
+                'id' => 'program_' . $row['ProgramID'],
+                'docType' => 'program',
+                'title' =>  $this->titleChoice(array($row['ProgramSve'], $row['ProgramEng']), $syslang),
+                'courseCode' => $row['ProgramKod'],
+                'courseLocation' =>  $this->titleChoice(array($row['kursOrtSve'], $row['kursOrtEng']), $syslang),
+                'boost' => '1.0'
+            );
+            try {
+                $buffer->createDocument($data);
+            } catch(Exception $e) {
+                echo 'Message: ' .$e->getMessage();
+            }
+        }
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        $buffer->commit();
+        return TRUE;
+    }
+    
+    
+    function titleChoice($titleArray, $syslang)
+    {
+        if($syslang === "sv") {
+            return $titleArray[0];
+        } else {
+            return $titleArray[1];
+        }
     }
 }
