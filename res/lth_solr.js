@@ -1007,9 +1007,9 @@ function listPublications(tableStart, facet, query, noQuery, more)
                     }
                 }
 
-                var publicationDetailPage = 'publikationer';
+                var publicationDetailPage = 'visa';
                 if(syslang=='en') {
-                    publicationDetailPage = 'publications';
+                    publicationDetailPage = 'show';
                 }
                 
                 $.each( d.data, function( key, aData ) {
