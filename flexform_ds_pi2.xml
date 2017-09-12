@@ -86,12 +86,31 @@
                         </TCEforms>
                     </fe_groups>
 
-                    <fe_users>
+                    <!-- <fe_users>
                         <TCEforms>
                             <label>Lägg till personer</label>
                             <config>
                                 <type>user</type>
                                 <userFunc>user_sampleflex_addFieldsToFlexForm->addPeople</userFunc>
+                            </config>
+                        </TCEforms>
+                    </fe_users>
+                    -->
+                    <fe_users>
+                        <TCEforms type="array">
+                            <label>Välj en eller flera användare</label>
+                            <config>
+                                <type>select</type>
+                                <size>10</size>
+                                <maxitems>300</maxitems>
+                                <items type="array">
+                                    <numIndex index="0" type="array">
+                                        <numIndex index="0"></numIndex>
+                                        <numIndex index="1"></numIndex>
+                                    </numIndex>
+                                </items>
+                                <foreign_table>fe_users</foreign_table>
+                                <foreign_table_where>ORDER BY username ASC</foreign_table_where>
                             </config>
                         </TCEforms>
                     </fe_users>

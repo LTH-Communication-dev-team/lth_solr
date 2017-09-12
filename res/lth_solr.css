@@ -111,12 +111,16 @@ tr.details td.details-control {
     list-style:none !important;
 }
 
-#lthsolr_search_container li {
+#lthsolr_search_container ul {
+    padding-left:0px !important;
+}
+
+/*#lthsolr_search_container li {
     float:left;
     min-width:220px;
     min-height:100px;
     display: inline-block;
-}
+}*/
 
 .lthsolr_publication_row, .lthsolr_project_row, .lthsolr_staff_row {
     border-bottom: 1px solid #dedede;
@@ -130,11 +134,6 @@ tr.details td.details-control {
 
 .expand {
     padding:10px;
-}
-
-#lthsolr_publications_container, #lthsolr_staff_container, #lthsolr_projects_container {
-    width:450px;
-    padding-top:10px;
 }
 
 #lthsolr_publications_container a {
@@ -205,7 +204,7 @@ h2 {
     color: #006621 !important;
 }
 
-#lthsolr_people_header {
+#lthsolr_people_headera {
     margin-top:20px;
 }
 
@@ -213,9 +212,9 @@ h2 {
     border:0px;
 }
 
-.lthsolr_table_wrapper {
+.lthsolr_table_wrappera {
     background-color: #fbfbfb;
-     border-radius: 10px;
+    border-radius: 10px;
     padding-left:15px;
     padding-top:5px;
     margin-top:15px;
@@ -226,6 +225,7 @@ h2 {
     min-width:220px;
     padding:15px 15px 0px 0px;
     border:0px;
+    height: 130px;
 }
 
 .lth_solr_res {

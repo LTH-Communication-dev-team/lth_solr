@@ -56,7 +56,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         foreach ($response as $document) {
             $lastModified = $document->changed;
         }
-        
+
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(200);
 
@@ -64,11 +64,200 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $heritageArray = $this->getHeritage($con);
         
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("COUNT(DISTINCT msg) AS nor","tx_devlog_atom","");
+        $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+        $numFound = $row['nor'];
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        
         $startFromHere = $numFound;
-        
+        //$startFromHere = 0;
 	$executionSucceeded = $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
-        
+      	//$executionSucceeded = $this->updateAtoms($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
+        //$executionSucceeded = $this->compare($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
+
 	return $executionSucceeded;
+    }  
+    
+    function compare($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
+    {
+        $idArray = array();
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("msg","tx_devlog_ids","","","","");
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $idArray[] = $row["msg"];
+        }
+        //print_r($idArray);
+        $query = $client->createSelect();
+        $query->setQuery('docType:publication');
+        //$query->addSort('changed', $query::SORT_DESC);
+        $query->setStart(0)->setRows(10000);
+        //Nästa körning är $query->setStart(10001)->setRows(10000);
+        $response = $client->select($query);
+        
+        $numFound = $response->getNumFound();
+        foreach ($response as $document) {
+            $id = $document->id;
+           // echo $id;
+            if(in_array($id, $idArray)) {
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery("tx_devlog_ids", "msg='$id'", array("msg" => $id."_ok"));
+            }
+        }
+        return true;
+    }
+    
+    function updateAtoms($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
+    {
+        $heritageArray = $heritageArray[0];
+        //$this->debug($heritageArray[0]);
+        $varArray = array('publication-base_uk','stab');
+        
+        $update = $client->createUpdate();
+
+        //for($i = 0; $i < $numberofloops; $i++) {
+        for($i = 0; $i < 100; $i++) {
+            //echo $i.':'. $numberofloops . '<br />';
+            
+            $startrecord = 1950 + intval($startFromHere) + ($i * $maximumrecords);
+            if($startrecord > 0) $startrecord++;
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property[0]=publicationYearMonthDay&orderBy.property[0].descending=false";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=c9c61408-4194-4b81-adc6-a15f4529b0bf&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=BIBTEX";
+            
+            $xml = @file_get_contents($xmlpath);
+            if(!$xml) {
+                
+                return TRUE;
+            }
+            try {
+                $xml = simplexml_load_string($xml);
+            } catch(Exception $e) {
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_error', array('msg' => $xmlpath, 'crdate' => time()));
+            }
+                  
+            
+            if($xml->children('core', true)->count == 0) {
+                return "no items";
+            }
+
+            //$numberofloops = ceil($xml->children('core', true)->count / 200);
+
+            foreach($xml->xpath('//core:result//core:content') as $content) {
+                $authorExternal = array();
+                $authorExternalOrganisation = array();
+                $authorOrganisation = array();
+                $authorId = array();
+                $authorName = array();
+                $authorFirstName = array();
+                $authorLastName = array();
+                
+                $id = (string)$content->attributes();
+
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_atom', array('msg' => $id, 'crdate' => time()));
+                
+                //Authors
+                foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->persons) {
+                        foreach($content->children($varVal,true)->persons->children('person-template',true)->personAssociation as $personAssociation) {
+                            $authorExternalTemp = 0;
+                            $authorIdTemp = "";
+                            $authorNameTemp = "";
+                            $authorFirstNameTemp = "";
+                            $authorLastNameTemp = "";
+                            $authorExternalOrganisationTemp = "";
+                            $authorOrganisationTemp = "";
+                            if($personAssociation->children('person-template',true)->person) {
+                                $authorIdTemp = (string)$personAssociation->children('person-template',true)->person->attributes();
+                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName . ' ' . (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                                $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
+                                $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                                if($personAssociation->children('person-template',true)->person->children('person-template',true)->organisationAssociations->children('person-template',true)->organisationAssociation) {
+                                    //->children('organisation-template',true)->external->children('person-template',true)->organisation
+                                    $authorOrganisationTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->organisationAssociations->children('person-template',true)->organisationAssociation->children('person-template',true)->organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
+                                }
+                            } else if($personAssociation->children('person-template',true)->externalPerson) {
+                                $authorExternalTemp = 1;
+                                $authorIdTemp = (string)$personAssociation->children('person-template',true)->externalPerson->attributes();
+                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName . ' ' . (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
+                                $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
+                                $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
+                                $authorOrganisationTemp = '';
+                            }
+                            if($personAssociation->children('person-template',true)->externalOrganisation) {
+                                $authorExternalOrganisationTemp = (string)$personAssociation->children('person-template',true)->externalOrganisation;
+                            }
+                            $authorExternal[] = $authorExternalTemp;
+                            $authorId[] = $authorIdTemp;
+                            $authorName[] = $authorNameTemp;
+                            $authorFirstName[] = $authorFirstNameTemp;
+                            $authorLastName[] = $authorLastNameTemp;
+                            $authorExternalOrganisation[] = $authorExternalOrganisationTemp;
+                            if($authorOrganisationTemp) {
+                                $heritage = array();
+                                $heritage[] = $authorOrganisationTemp;
+                                $parent = $heritageArray[$authorOrganisationTemp];
+                                if($parent) { 
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                if($heritage) {
+                                    array_filter($heritage);
+                                    $authorOrganisationTemp = implode(',',array_unique($heritage));
+                                }
+                            }
+                            $authorOrganisation[] = $authorOrganisationTemp;
+                        }
+                    }
+                }
+                
+                ${"doc"} = $update->createDocument();
+                ${"doc"}->setKey('id', $id);
+                ${"doc"}->addField('authorOrganisation', $authorOrganisation);
+                ${"doc"}->setFieldModifier('authorOrganisation', 'set');
+                ${"doc"}->addField('appKey', 'lthsolr');
+                ${"doc"}->setFieldModifier('appKey', 'set');
+                ${"doc"}->addField('type', 'publication');
+                ${"doc"}->setFieldModifier('type', 'set');
+                $docArray[] = ${"doc"};
+                
+            }
+            $update->addDocuments($docArray);
+            $update->addCommit();
+            $result = $client->update($update);
+            $docArray = array();
+        }
+        return TRUE;
     }
     
 
@@ -79,21 +268,24 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $varArray = array('publication-base_uk','stab');
 
         //for($i = 0; $i < $numberofloops; $i++) {
-        for($i = 0; $i < $numberofloops; $i++) {
+        for($i = 0; $i < 3; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
             
             $startrecord = $startFromHere + ($i * $maximumrecords);
-            if($startrecord > 0) $startrecord++;
             
-            $lucrisId = $settings['solrLucrisId'];
-            $lucrisPw = $settings['solrLucrisPw'];
+            //$lucrisId = $settings['solrLucrisId'];
+            //$lucrisPw = $settings['solrLucrisPw'];
 
-            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
+            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?createdDate.toDate=2017-09-05T15:39:00&window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property[0]=publicationYearMonthDay&orderBy.property[0].descending=false&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=c9c61408-4194-4b81-adc6-a15f4529b0bf&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=d89c2288-4367-4e94-9244-c1dec83fa364&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=BIBTEX";
             
-            $xml = file_get_contents($xmlpath);         
+            $xml = @file_get_contents($xmlpath);
+            if(!$xml) {
+                return TRUE;
+            }
             $xml = simplexml_load_string($xml);        
             
             if($xml->children('core', true)->count == 0) {
@@ -113,6 +305,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $abstract_sv = '';
                 $authorExternal = array();
                 $authorExternalOrganisation = array();
+                $authorOrganisation = array();
                 $authorId = array();
                 $authorName = array();
                 $authorFirstName = array();
@@ -177,7 +370,6 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 //id
                 $id = (string)$content->attributes();
 
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $id, 'crdate' => time()));
                 //portalUrl
                 $portalUrl = (string)$content->children('core',true)->portalUrl;
                 
@@ -252,17 +444,22 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $authorFirstNameTemp = "";
                             $authorLastNameTemp = "";
                             $authorExternalOrganisationTemp = "";
+                            $authorOrganisationTemp = "";
                             if($personAssociation->children('person-template',true)->person) {
                                 $authorIdTemp = (string)$personAssociation->children('person-template',true)->person->attributes();
                                 $authorNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName . ' ' . (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
                                 $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
                                 $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                                if($personAssociation->children('person-template',true)->person->children('person-template',true)->organisationAssociations->children('person-template',true)->organisationAssociation) { //->children('person-template',true)->organisation->children('organisation-template',true)->external) {
+                                    $authorOrganisationTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->organisationAssociations->children('person-template',true)->organisationAssociation->children('person-template',true)->organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
+                                }
                             } else if($personAssociation->children('person-template',true)->externalPerson) {
                                 $authorExternalTemp = 1;
                                 $authorIdTemp = (string)$personAssociation->children('person-template',true)->externalPerson->attributes();
                                 $authorNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName . ' ' . (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
                                 $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
                                 $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
+                                $authorOrganisationTemp = '';
                             }
                             if($personAssociation->children('person-template',true)->externalOrganisation) {
                                 $authorExternalOrganisationTemp = (string)$personAssociation->children('person-template',true)->externalOrganisation;
@@ -273,6 +470,51 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $authorFirstName[] = $authorFirstNameTemp;
                             $authorLastName[] = $authorLastNameTemp;
                             $authorExternalOrganisation[] = $authorExternalOrganisationTemp;
+                            if($authorOrganisationTemp) {
+                                $heritage = array();
+                                $heritage[] = $authorOrganisationTemp;
+                                $parent = $heritageArray[$authorOrganisationTemp];
+                                if($parent) { 
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                $parent = $heritageArray[$parent];
+                                if($parent) {
+                                    $heritage[] = $parent;
+                                }
+                                if($heritage) {
+                                    array_filter($heritage);
+                                    $authorOrganisationTemp = implode(',',array_unique($heritage));
+                                }
+                            }
+                            $authorOrganisation[] = $authorOrganisationTemp;
                         }
                     }
                 }
@@ -298,10 +540,10 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     }
                 }
 
+                $heritage = array();
                 foreach($organisationSourceId as $key1 => $value1) {
                     $heritage[] = $value1;
                     $parent = $heritageArray[$value1];
-
                     if($parent) { 
                         $heritage[] = $parent;
                     }
@@ -557,8 +799,13 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $cite = "";
                 $bibtex = "";
                 foreach($citeArray as $citebibKey => $citebib) {
-                    $citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&rendering=$citebib";
-                    $citebibxml = file_get_contents($citebibxmlpath);
+                    $citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=$publicationTypeUri&rendering=$citebib";
+                    for( $ii=0; $ii<9; $ii++ ) { 
+                        $citebibxml = file_get_contents($citebibxmlpath);
+                        if( $citebibxml !== FALSE ) { 
+                            break;
+                        }
+                    }
                     $citebibxml = str_replace('$$$', '', $citebibxml);
                     $citebibxml = preg_replace('/<div/', '$$$<div', $citebibxml, 1);
                     $citebibxml = $this->lreplace('</div>', '</div>$$$', $citebibxml);
@@ -615,6 +862,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     //'authorName_sort' => array_unique($authorName),
                     'authorFirstName' => $authorFirstName,
                     'authorLastName' => $authorLastName,
+                    'authorOrganisation' => $authorOrganisation,
                     'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
                     'bibliographicalNote' => $bibliographicalNote,
                     //'bibliographicalNote_en' => $bibliographicalNote_en,
@@ -674,6 +922,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 );
                 // $this->debug($data);
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_atom', array('msg' => $id, 'crdate' => time()));
                 $buffer->createDocument($data);
             }
         }

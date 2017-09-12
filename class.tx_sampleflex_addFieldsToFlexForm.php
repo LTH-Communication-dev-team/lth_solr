@@ -339,13 +339,14 @@ class user_sampleflex_addFieldsToFlexForm
         $catVar = 'lth_solr_cat_' . $pid . '_' . $sys_language_uid . '_ss';
         $hideVar = 'lth_solr_hide_' . $pid . '_' . $sys_language_uid . '_i';
         $fe_groups = $pi_flexform['fe_groups']['vDEF'];
-    
+        $fe_users = $pi_flexform['fe_users']['vDEF'];
+        
         $categories = $pi_flexform['categories']['vDEF'];
         $customcategories = $pi_flexform['customcategories'];
         
-        $showVal = 'lth_solr_show_' . $pid . '_i';
+        //$showVal = 'lth_solr_show_' . $pid . '_i';
         
-        if($fe_groups) {
+        /*if($fe_groups) {
             $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . implode(',',$fe_groups) . ")");
             while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                 $title[] = explode('__', $row['title'])[0];
@@ -368,6 +369,35 @@ class user_sampleflex_addFieldsToFlexForm
             $scope .= " OR $showVal:1)";
         } else {
             $scope = " OR $showVal:1";
+        }*/
+        
+        $scope = array();
+        if($fe_groups) {
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . implode(',',$fe_groups) .")");
+            while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                $scope['fe_groups'][] = explode('__', $row['title'])[0];
+            }
+            $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        } 
+        if($fe_users) {
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('username','fe_users',"uid in(" . implode(',',$fe_users) .")");
+            while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                $scope['fe_users'][] = $row['username'];
+            }
+            $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        }
+        
+        if($scope) {
+            foreach($scope as $key => $value) {
+                if($term) {
+                    $term .= " OR ";
+                }
+                if($key === "fe_groups") {
+                    $term .= "heritage:" . implode(' OR heritage:', $value);
+                } else {
+                    $term .= "primaryUid:" . implode(' OR primaryUid:', $value);
+                }
+            }
         }
         
         $queryFilterString = '';
@@ -401,7 +431,7 @@ echo '</pre>';*/
         $client = new Solarium\Client($sconfig);
         $query = $client->createSelect();
         
-        $queryToSet = '(docType:"staff"'.$scope. ' AND hideOnWeb:0 AND disable_i:0)';
+        $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_i:0)';
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
         $query->setQuery($queryToSet);
         //$query->setQuery("$showVar:1");

@@ -44,11 +44,12 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             )
         );
 
-	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout'] || !$settings['dbhost'] || !$settings['db'] || !$settings['grsp'] || !$settings['user'] || !$settings['pw']) {
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout'] || !$settings['dbhost'] || !$settings['db'] || !$settings['grsp'] || !$settings['studentGrsp'] || !$settings['user'] || !$settings['pw']) {
 	    return 'Please make all settings in extension manager';
 	}
                 
         $grsp = $settings['grsp'];
+        $studentGrsp = $settings['studentGrsp'];
 
         //tslib_eidtools::connectDB();
 
@@ -85,7 +86,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $feGroupsArray = $this->getFeGroups();
         
-        $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray);
+        $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp);
 
         $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang);
         
@@ -438,7 +439,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function createFeUsers($folderArray, $employeeArray, $feGroupsArray)
+    private function createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp)
     {
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $title;
@@ -488,6 +489,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     if(!$value['roomnumber']) {
                         $value['roomnumber'] = '';
                     }
+                    if($value['primary_affiliation'] === 'student') {
+                        $usergroupArray[1] = $studentGrsp;
+                    }
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
@@ -514,6 +518,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $employeeArray[$key]['lth_solr_intro'] = $feUsersArray[$key]['lth_solr_intro'];
                     $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
                 } else if($usergroupArray[1]) {
+                    if($value['primary_affiliation'] === 'student') {
+                        $usergroupArray[1] = $studentGrsp;
+                    }
                     $insertArray = array(
                         'username' => $value['primary_uid'],
                         'password' => $this->setRandomPassword(),
@@ -740,7 +747,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             //New
                             'appKey' => 'lthsolr',
                             'id' => $value['id'],
-                            'primary_uid' => $value['primary_uid'],
+                            'primaryUid' => $key,
                             'docType' => 'staff',
                             'type' => 'staff',
                             'name' => $display_name_t,

@@ -18,7 +18,7 @@ class lth_solr_ajax {
         $pid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('pid');
         $syslang = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('syslang');
         $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sid');
-        
+        $syslang = "sv";
         $config = array(
             'endpoint' => array(
                 'localhost' => array(
@@ -389,7 +389,7 @@ class lth_solr_ajax {
         $introText = $valueArray[0];
         $imageId = $valueArray[1];
 
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('identifier, mime_type', 'sys_file', 'uid='.intval($imageId), '', '', '') or die('285; '.mysql_error());
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('identifier, mime_type', 'sys_file', 'uid='.intval($imageId), '', '', '') or die('392; '.mysql_error());
 	$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 	$identifier = $row['identifier'];
 	$mime_type = $row['mime_type'];
@@ -432,6 +432,7 @@ class lth_solr_ajax {
             if($introText) {
                 $data[$introVar] = $introText;
             }
+            $data['appKey'] = 'lthsolr';
         }
 
         $buffer->createDocument($data);

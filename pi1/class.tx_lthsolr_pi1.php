@@ -60,13 +60,20 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
             if(!$syslang) {
                 $syslang = 'en';
+                
             }
             if($syslang=='se') {
                 $syslang='sv';
+                
+            }
+            if($syslang==='sv') {
+                $pageHeader = 'Sök';
+            } else {
+                $pageHeader = 'Search';
             }
             
                 //Load main js- and css-files
-            $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
+            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js?" . rand(1,100000000) . "\"></script>"; 
 
@@ -77,7 +84,7 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $content = '';
 
             if(stristr($actual_link, "/demo/") || stristr($actual_link, "vkans-th0")) {
-                $content .= $this->searchResult($query, $noItemsToShow);
+                $content .= $this->searchResult($query, $noItemsToShow, $pageHeader);
             } else {
                 $content .= $this->widget($query, $display);
             }
@@ -87,13 +94,12 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	}
         
         
-        private function searchResult($query, $noItemsToShow)
+        private function searchResult($query, $noItemsToShow, $pageHeader)
         {
             $content;
-            //searchbox
-            //                
+            //$content .= "<header id=\"page_title\"><h1>$pageHeader</h1>";
 
-            $content .= '<form id="lthsolr_form" class="form-inline" action="" method="post" accept-charset="UTF-8">
+            $content .= '<form style="display:none;" id="lthsolr_form" class="form-inline" action="" method="post" accept-charset="UTF-8">
             <div class="form-group">
                 <input type="text" class="form-control" id="searchSiteMain" name="query" value="' . $query . '" />
             </div>
@@ -102,15 +108,17 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 <input type="submit" id="edit-submit" name="op" value="' . $this->pi_getLL("search") . '"  class="btn btn-default" />
             
             </form>';
+            //$content .= "</header>";
+            
             $content .= '<div id="lthsolr_search_container">';
             //people
-            $content .= '<div id="lthsolr_people_header"></div>';
-            $content .= '<ul id="lthsolr_staff_container"></ul>';
+            $content .= '<div style="clear:both;" class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_people_header"></div>';
+            $content .= '<table id="lthsolr_staff_container"></table></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_search.html");
             
             //pages
             $content .= '<div style="clear:both;" class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_pages_header"></div>';
-            $content .= '<table id="lthsolr_pages_container" class="table"></table></div>';
+            $content .= '<ul id="lthsolr_pages_container" class="table"></ul></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/pages_search.html");
             
             //documents

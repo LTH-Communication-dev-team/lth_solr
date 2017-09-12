@@ -23,6 +23,7 @@
                         <label>What to display</label>
                         <config>
                             <type>radio</type>
+                            <default>list</default>
                             <items type="array">
                                 <numIndex index="0" type="array">
                                     <numIndex index="0">Publication list</numIndex>
@@ -43,7 +44,7 @@
                         <config>
                             <type>select</type>
                             <size>10</size>
-                            <maxitems>10</maxitems>
+                            <maxitems>100</maxitems>
                             <items type="array">
                                 <numIndex index="0" type="array">
                                     <numIndex index="0"></numIndex>
@@ -61,7 +62,7 @@
                         <config>
                             <type>select</type>
                             <size>10</size>
-                            <maxitems>10</maxitems>
+                            <maxitems>300</maxitems>
                             <items type="array">
                                 <numIndex index="0" type="array">
                                     <numIndex index="0"></numIndex>

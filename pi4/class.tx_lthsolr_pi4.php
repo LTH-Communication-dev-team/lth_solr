@@ -56,14 +56,17 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $lDef = array_keys($sDef);
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
-            $detailPage = $this->pi_getFFvalue($piFlexForm, "detailpage", "sDEF", $lDef[$index]);
+            $staffDetailPage = $this->pi_getFFvalue($piFlexForm, "staffDetailPage", "sDEF", $lDef[$index]);
+            $publicationDetailPage = $this->pi_getFFvalue($piFlexForm, "publicationDetailpage", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
-            $detailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
-                array(
-                    'parameter' => $detailPage,
-                    'forceAbsoluteUrl' => true,
-                )
-            );
+            
+            if($staffDetailPage) {
+                $staffDetailPage = $this->detailUrl($staffDetailPage);
+            }
+            
+            if($publicationDetailPage) {
+                $publicationDetailPage = $this->detailUrl($publicationDetailPage);
+            }
             
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
             
@@ -111,7 +114,7 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $content = '';
                                 
             if($uuid) {
-                $content .= $this->showProject($uuid, $syslang);
+                $content .= $this->showProject($uuid, $staffDetailPage, $publicationDetailPage, $syslang);
             } else {
                 $content .= $this->listProjects($scope, $detailUrl, $syslang, $noItemsToShow);
             }
@@ -122,12 +125,14 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	}
         
         
-        private function showProject($uuid, $syslang)
+        private function showProject($uuid, $staffDetailPage, $publicationDetailPage, $syslang)
         {
             $content = '<div id="lth_solr_projects_container"><div id="lthsolr_projects_header"></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_presentation.html");
             
             $content .= '<input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
+                <input type="hidden" id="lth_solr_staffdetailpage" value="' . $staffDetailPage . '" />
+                <input type="hidden" id="lth_solr_publicationdetailpage" value="' . $publicationDetailPage . '" />
                     <input type="hidden" id="lth_solr_action" value="showProject" />
                     <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />';
             return $content;
@@ -158,8 +163,20 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             return $content;
         }
         
+        
+        private function detailUrl($detailPage)
+        {
+            $detailUrl = $GLOBALS['TSFE']->cObj->typoLink_URL(
+                array(
+                    'parameter' => $detailPage,
+                    'forceAbsoluteUrl' => true,
+                )
+            );
+            return $detailUrl;
+        }
+        
                
-        private function searchBox($query)
+        /*private function searchBox($query)
         {
             $content = '<form action="" method="post" accept-charset="UTF-8">
             <div class="form-item form-type-textfield form-item-search" role="application">
@@ -270,7 +287,7 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $content .=  '</table>';
             }
             return $content;
-        }
+        }*/
 }
 
 

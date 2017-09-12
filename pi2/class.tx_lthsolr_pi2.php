@@ -60,21 +60,24 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
             $staffHomepagePath = $this->pi_getFFvalue($piFlexForm, "staffHomepagePath", "sDEF", $lDef[$index]);
             
+            $scope = array();
             if($fe_groups) {
                 $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
                 while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                    $title[] = explode('__', $row['title'])[0];
-                }
-                if($title) {
-                    $scope = implode(',', $title);
+                    $scope['fe_groups'][] = explode('__', $row['title'])[0];
                 }
                 $GLOBALS['TYPO3_DB']->sql_free_result($res);
-            } else if($fe_users) {
-                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid = " . intval($fe_users));
-                $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
-                $scope = $row['lth_solr_uuid'];
+            } 
+            if($fe_users) {
+                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('username','fe_users',"uid in(" . explode('|',$fe_users)[0].")");
+                while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                    $scope['fe_users'][] = $row['username'];
+                }
                 $GLOBALS['TYPO3_DB']->sql_free_result($res);
-            }   
+            }
+            if(count($scope > 0)) {
+                $scope = urlencode(json_encode($scope));
+            }
             
             $clientIp = $_SERVER['REMOTE_ADDR'];
             
@@ -104,6 +107,9 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             }
             
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
+            if(strstr($uuid,")")) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),")");
+            }
             $pid = $GLOBALS['TSFE']->page['pid'];
             //$solrId = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('solrid');
             $link = $_SERVER['PHP_SELF'];
@@ -268,7 +274,7 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
         
         private function showStaff($uuid, $html_template, $noItemsToShow, $selection, $publicationDetailPage)
         {
-            $uuid =  substr(array_pop(explode('[', $uuid)),0,-1);
+            //$uuid =  substr(array_pop(explode('[', $uuid)),0,-1);
             //Staff center
             //if($show[0]) {
                 $content .= '<div id="lthsolr_staff_container"></div>';

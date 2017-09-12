@@ -21,6 +21,8 @@ class DocumentImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $maximumrecords = 20;
         $numberofloops = 1;
         
+        $syslang = "sv";
+        
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
         $config = array(
@@ -28,7 +30,7 @@ class DocumentImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'localhost' => array(
                     'host' => $settings['solrHost'],
                     'port' => $settings['solrPort'],
-                    'path' => $settings['solrPath'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
                     'timeout' => $settings['solrTimeout']
                 )
             )
@@ -79,7 +81,7 @@ class DocumentImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         /*$sql = "SELECT uid,identifier,NAME FROM sys_file WHERE mime_type IN('" . implode("','", $mimeArray) . "') AND FROM_UNIXTIME(tstamp) >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) ORDER BY uid";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);*/
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,identifier,name","sys_file","lth_solr_index = 0 AND identifier NOT LIKE '%.css' AND identifier NOT LIKE '%.js' AND identifier NOT LIKE '%/templates/%' AND identifier NOT LIKE '%/template/%' AND mime_type IN('" . implode("','", $mimeArray) . "')","","size","$startPage,100");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,identifier,name", "sys_file", "lth_solr_index = 0 AND identifier NOT LIKE '%.css' AND identifier NOT LIKE '%.js' AND identifier NOT LIKE '%/.htaccess/%' AND identifier NOT LIKE '%/template/%' AND mime_type IN('" . implode("','", $mimeArray) . "')","","size","$startPage,100");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $uid = $row['uid'];
             $identifier = $row['identifier'];
@@ -99,7 +101,7 @@ class DocumentImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             //echo $filePath;
             // get an extract query instance and add settings
             $query = $client->createExtract();
-            $query->addFieldMapping('content', 'body');
+            $query->addFieldMapping('content', 'content');
             $query->setUprefix('attr_');
             $query->setFile($filePath);
             $query->setCommit(true);
@@ -109,7 +111,10 @@ class DocumentImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $doc = $query->createDocument();
             $doc->id = "document$uid";
             $doc->title = $name;
-            $doc->doctype = 'document';
+            $doc->docType = 'document';
+            $doc->url = $filePath;
+            $doc->type = 'document';
+            $doc->appKey = 'lthsolr';
             $query->setDocument($doc);
 
             // this executes the query and returns the result

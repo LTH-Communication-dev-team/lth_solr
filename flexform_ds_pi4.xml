@@ -47,9 +47,9 @@
                         </TCEforms>
                     </fe_users>
 
-                    <detailpage>
+                    <staffDetailPage>
                         <TCEforms>
-                           <label>Page with details</label>
+                           <label>Page with STAFF details (in detail view only)</label>
                            <config>
                                <type>group</type>
                                <internal_type>db</internal_type>
@@ -60,7 +60,22 @@
                                <show_thumbs>0</show_thumbs>
                            </config>
                         </TCEforms>
-                    </detailpage>
+                    </staffDetailPage>
+
+                    <publicationDetailPage>
+                        <TCEforms>
+                           <label>Page with PUBLICATION details (in detail view only)</label>
+                           <config>
+                               <type>group</type>
+                               <internal_type>db</internal_type>
+                               <allowed>pages</allowed>
+                               <size>1</size>
+                               <maxitems>1</maxitems>
+                               <minitems>0</minitems>
+                               <show_thumbs>0</show_thumbs>
+                           </config>
+                        </TCEforms>
+                    </publicationDetailPage>
 
                     <noItemsToShow>
                         <TCEforms>
