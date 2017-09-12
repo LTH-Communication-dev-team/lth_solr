@@ -44,21 +44,20 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             )
         );
 
-	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout'] || !$settings['dbhost'] || !$settings['db'] || !$settings['grsp'] || !$settings['studentGrsp'] || !$settings['user'] || !$settings['pw']) {
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout'] || !$settings['dbhost'] || !$settings['db'] || !$settings['grsp'] || !$settings['studentGrsp'] || !$settings['hideonwebGrsp'] || !$settings['user'] || !$settings['pw']) {
 	    return 'Please make all settings in extension manager';
 	}
                 
         $grsp = $settings['grsp'];
         $studentGrsp = $settings['studentGrsp'];
-
-        //tslib_eidtools::connectDB();
+        $hideonwebGrsp = $settings['hideonwebGrsp'];
 
         $dbhost = $settings['dbhost'];
         $db = $settings['db'];
         $user = $settings['user'];
         $pw = $settings['pw'];
 
-        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("57; ".mysqli_error());
+        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("60; ".mysqli_error());
        
         $employeeArray = $this->getEmployee($con);
 
@@ -86,7 +85,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $feGroupsArray = $this->getFeGroups();
         
-        $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp);
+        $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp);
 
         $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang);
         
@@ -439,7 +438,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp)
+    private function createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp)
     {
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $title;
@@ -491,6 +490,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     }
                     if($value['primary_affiliation'] === 'student') {
                         $usergroupArray[1] = $studentGrsp;
+                    } else if($value['hide_on_web']) {
+                        $usergroupArray[1] = $hideonwebGrsp;
                     }
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
@@ -520,6 +521,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 } else if($usergroupArray[1]) {
                     if($value['primary_affiliation'] === 'student') {
                         $usergroupArray[1] = $studentGrsp;
+                    } else if($value['hide_on_web']) {
+                        $usergroupArray[1] = $hideonwebGrsp;
                     }
                     $insertArray = array(
                         'username' => $value['primary_uid'],

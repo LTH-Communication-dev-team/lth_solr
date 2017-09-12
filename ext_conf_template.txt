@@ -10,25 +10,27 @@ solrTimeout=
 grsp=
   # cat=basic/dev/165; type=input; label=Solr student grsp
 studentGrsp=
-  # cat=basic/dev/166; type=input; label=Solr dbhost
+  # cat=basic/dev/166; type=input; label=Solr hideonweb grsp
+hideonwebGrsp=
+  # cat=basic/dev/167; type=input; label=Solr dbhost
 dbhost=
-  # cat=basic/dev/167; type=input; label=Solr db
+  # cat=basic/dev/168; type=input; label=Solr db
 db=
-  # cat=basic/dev/168; type=input; label=Solr user
+  # cat=basic/dev/169; type=input; label=Solr user
 user=
-  # cat=basic/dev/169; type=input; label=Solr pw
+  # cat=basic/dev/170; type=input; label=Solr pw
 pw=
-  # cat=basic/dev/170; type=input; label=Lucris Id
+  # cat=basic/dev/171; type=input; label=Lucris Id
 solrLucrisId=
-  # cat=basic/dev/171; type=input; label=Lucris pw
+  # cat=basic/dev/172; type=input; label=Lucris pw
 solrLucrisPw=
-  # cat=basic/dev/172; type=input; label=LOT db
+  # cat=basic/dev/173; type=input; label=LOT db
 solrLotDb=
-  # cat=basic/dev/173; type=input; label=Solr Host 2
+  # cat=basic/dev/174; type=input; label=Solr Host 2
 solrHost2=
-  # cat=basic/dev/174; type=input; label=Solr Path 2
+  # cat=basic/dev/175; type=input; label=Solr Path 2
 solrPath2=
-  # cat=basic/dev/175; type=input; label=Solr Port 2
+  # cat=basic/dev/176; type=input; label=Solr Port 2
 solrPort2=
-  # cat=basic/dev/176; type=input; label=Solr Timeout 2
+  # cat=basic/dev/177; type=input; label=Solr Timeout 2
 solrTimeout2=
