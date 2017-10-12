@@ -1377,7 +1377,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
     
     $hideVal = 'lth_solr_hide_' . $pageid . '_i';
     
-    $autoVal = 'lth_solr_autohomepage_' . $pageid . '_s';
+    //$autoVal = 'lth_solr_autohomepage_' . $pageid . '_s';
 
     $client = new Solarium\Client($config);
 
@@ -1501,9 +1501,9 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
     // show documents using the resultset iterator
     foreach ($response as $document) {
         $image = '';
-        $intro_t = '';
+        $intro = '';
         if($document->$introVar) {
-            $intro_t = '<p class="lthsolr_intro">' . $document->$introVar . '</p>';
+            $intro = '<p class="lthsolr_intro">' . $document->$introVar . '</p>';
         }
 
         if($document->image) {
@@ -1515,25 +1515,22 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
         }
         
         $data[] = array(           
-            mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8"),
-            mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
-            $document->title,
-            $document->title,
-            $document->phone,
-            $document->id,
-            $document->email,
-            $document->organisationName,
-            $document->organisationName,
-            $document->primaryAffiliation,
-            $document->homepage,
-            $image,
-            $intro_t,
-            fixRoomNumber($document->roomNumber),
-            $document->mobile,
-            $document->$autoVal,
-            $document->organisationId,
-            $document->guid,
-            $document->uuid
+            "firstName" => mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8"),
+            "lastName" => mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
+            "title" => $document->title,
+            "phone" => $document->phone,
+            "id" => $document->id,
+            "email" => $document->email,
+            "organisationName" => $document->organisationName,
+            "primaryAffiliation" => $document->primaryAffiliation,
+            "homepage" => $document->homepage,
+            "image" => $image,
+            "intro" => $intro,
+            "roomNumber" => fixRoomNumber($document->roomNumber),
+            "mobile" => $document->mobile,
+            "organisationId" => $document->organisationId,
+            "guid" => $document->guid,
+            "uuid" => $document->uuid
         );
     }
     $resArray = array('data' => $data, 'numFound' => $numFound,'facet' => $facetResult, 'draw' => 1, 'debug' => $debug);

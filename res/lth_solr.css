@@ -283,6 +283,10 @@ h2 {
     overflow: hidden;
 }
 
+.lthsolr_filter {
+    font-size: 16px;
+}
+
 .table {
     margin-bottom: 5px;
 }
@@ -317,6 +321,14 @@ h2 {
 
 .lth_solr_hide {
     display: none;
+}
+
+#lthsolr_map {
+    position:absolute;
+    top:120px;
+    right:10px;
+    z-index:999;
+    display:none;
 }
 
 /* Styling LU widget start */
@@ -419,17 +431,26 @@ color:#ffffff;
 }
 
 @media screen and (max-width: 600px) {
-  .refine {
-    visibility: hidden;
-    display: none;
-  }
-  #lth_solr_facet_container {
+    #refine {
+        visibility: hidden;
+        display: none;
+    }
+    
+    #lth_solr_facet_container {
         margin-bottom:10px;
         width:100%;
         display:none;
         background-color:#353838;
         padding:10px;
         color:#ffffff;
+    }
+    
+    #lthsolr_map {
+        position:relative;
+        top:10px;
+        right:10px;
+        z-index:999;
+        display:none;
     }
 
   table {

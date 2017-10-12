@@ -266,6 +266,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                 var more = '';
                 var count = '';
                 var facet = '';
+                var facetHeader = '';
                 var content = '';
                 var more = '<p class="maxlist-more"></p>';
                 
@@ -311,108 +312,84 @@ function listStaff(tableStart, facet, query, noQuery, more)
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrTemplate').html();
 
-                    var id = aData[15];
+                    var id = aData.id;
                     template = template.replace('###id###', id);
 
-                    var display_name = aData[0] + ' ' + aData[1];
-                    var uuid = aData[18];
-                    if(!uuid) {
-                        uuid = aData[17];
-                    }
+                    var displayName = aData.firstName + ' ' + aData.lastName;
+                    var guid = aData.guid;
 
-                    //template = template.replace(/###display_name_t###/g, display_name_t);
-                    var homepage = window.location.href + staffDetailPage + '/' + display_name.replace(' ','-') + '('+uuid+')';
-                    if(aData[10]) {
-                        homepage = aData[10];
+                    var homepage = window.location.href + staffDetailPage + '/' + displayName.replace(' ','-') + '('+guid+')';
+                    if(aData.homepage) {
+                        homepage = aData.homepage;
                     }
-                    template = template.replace(/###display_name_t###/g, '<a href="'+homepage+'">' + display_name + '</a>');
-                    var title, title_t = '', title_en_t = '', oname = '', oname_t = '', oname_en_t = '', phone = '', roomNumber = '', homePage = '';
+                    template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
+                    var title, organisationName = '', phone = '', roomNumber = '', homepage = '';
 
-                    template = template.replace(/###email_t###/g, aData[6]);
+                    if(aData.email) template = template.replace(/###email###/g, aData.email);
 
                     i=0;
-                    curI = 0;
-                    for (i = 0; i < aData[16].length; i++) {
-                        if(scope===aData[16][i]) {
-                            curI = i;
+                    curI=0;
+                    for (i=0; i<aData.organisationId.length; i++) {
+                        if(scope===aData.organisationId[i]) {
+                            curI=i;
                         }
                     }
-                    //if(aData[17]) {
-                        //
-                            //if(inArray(scope, aData[17][i].split(','))) {
-                    if(aData[2]) title_t = aData[2][curI];
-                    if(aData[3]) title_en_t = aData[3][curI];
-                    if(aData[7]) oname_t = aData[7][curI];
-                    if(aData[8]) oname_en_t = aData[8][curI];
-                    if(aData[4]) {
-                        if(aData[4][curI]) {
-                            phone = aData[4][curI];
-                        } else {
-                            phone = aData[4][0];
-                        }
 
+                    if(aData.title) title = aData.title[curI];
+                    if(aData.organisationName) organisationName = aData.organisationName[curI];
+
+                    if(aData.phone) {
+                        if(aData.phone[curI]) {
+                            phone = aData.phone[curI];
+                        } else {
+                            phone = aData.phone[0];
+                        }
                     }
                     if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
-                    if(aData[14]) {
+                    if(aData.mobile) {
                         if(phone) phone += ', ';
-                        phone += '+46 ' + aData[14][0].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");;
+                        phone += '+46 ' + aData.mobile[0].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");;
                     }
 
-                            //}
-                        //}
-                    //}
-                        
-                    if(syslang == 'en' && title_en_t) {
-                        title = title_en_t;
-                    } else if(title_t) {
-                        title = title_t;
-                    } 
+                    template = template.replace('###title###', titleCase(title));
+                    template = template.replace('###phone###', phone);
 
-                    template = template.replace('###title_t###', titleCase(title));
-                    template = template.replace('###phone_t###', phone);
+                    template = template.replace('###organisationName###', organisationName);
 
-                    if(syslang == 'en' && oname_en_t) {
-                        oname = oname_en_t;
-                    } else if(oname_t) {
-                        oname = oname_t;
-                    } 
-                    template = template.replace('###oname_t###', oname);
+                    template = template.replace('###primaryAffiliation###', aData.primaryAffiliation);
 
-                    template = template.replace('###primary_affiliation_t###', aData[9]);
-
-                    if(aData[10]) {
-                        homePage = lth_solr_messages.personal_homepage + ': <a data-homepage="' + aData[10] + '" href="' + aData[10] + '">' + aData[10] + '</a>';
-                    } else if(aData[15]) {
-                        homePage = lth_solr_messages.personal_homepage + ': <a data-homepage="' + aData[15] + '" href="' + aData[15] + '">' + aData[15] + '</a>';
+                    if(aData.homepage) {
+                        homepage = lth_solr_messages.personal_homepage + ': <a data-homepage="' + aData[10] + '" href="' + aData[10] + '">' + aData[10] + '</a>';
                     }
-                    template = template.replace('###homepage_t###', '<p>' + homePage + '</p>');
+                    template = template.replace('###homepage###', '<p>' + homepage + '</p>');
 
                     var image = '';
-                    if(aData[11]) image = '<div class="align_left" style="height:100px;"><img style="max-height: 100%; max-width: 100%" src="' + aData[11] + '" /></div>';
-                    template = template.replace('###image_t###', image);
+                    if(aData.image) image = '<div class="align_left" style="width:100px;"><img style="width:100%;height:auto;" src="' + aData.image + '" /></div>';
+                    template = template.replace('###image###', image);
                     
-                    template = template.replace('###lth_solr_intro###', aData[12].replace('\n','<br />'));
+                    template = template.replace('###lth_solr_intro###', aData.intro.replace('\n','<br />'));
 
-                    roomNumber = aData[13];
+                    roomNumber = aData.roomNumber;
                     if(roomNumber) {
-                        roomNumber = '(' + lth_solr_messages.room + ' ' + aData[13] + ')';
+                        roomNumber = '(' + lth_solr_messages.room + ' ' + aData.roomNumber + ')';
                     } else {
                         roomNumber = '';
                     }
-                    template = template.replace('###room_number_s###', roomNumber);
+                    template = template.replace('###roomNumber###', roomNumber);
                     $('#lthsolr_staff_container').append(template);
                 });
                 $('.lthsolr_loader').remove();
                 
                 $('#lthsolr_staff_header').html('<div style="float:left;">1-' + maxLength(parseInt(tableStart),parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</div>');
-                if($('#lth_solr_lu').val() === "yes") {
-                    $('#lthsolr_staff_header').append('<div style="float:right;"><span class="glyphicon glyphicon-export"></span></div>');
+                if($('#lth_solr_lu').val() === "yes" && $('.glyphicon-export').length < 1) {
+                    $('.lth_solr_filter_container div:last').after('<div style="float:left;width:10%;padding:20px 0px 0px 30px;height:50px;">\n\
+                        <span class="glyphicon glyphicon-export"></span></div>');
                     $('.glyphicon-export').click(function() {
                         exportStaff('csv');
                     });
                 }
                 if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
-                    var tempMore = '<div style="margin-top:20px;" class="lthsolr_more"><button style="height:30px;" class="btn btn-default btn-lg btn-block" \n\
+                    var tempMore = '<div style="margin-top:20px;" class="lthsolr_more"><button style="height:40px;" class="btn btn-default btn-lg btn-block" \n\
                         onclick="listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',\'\',\'\',\'\',\'more\');">' + 
                             lth_solr_messages.show_more + ' ' + lth_solr_messages.people + 
                             ' <span class="glyphicon glyphicon-chevron-down"></span></button>';
@@ -427,6 +404,8 @@ function listStaff(tableStart, facet, query, noQuery, more)
                     $('#lthsolr_staff_container').parent().height($('#lthsolr_staff_container').height());
                     $('#lth_solr_facet_container').height($('#lthsolr_staff_container').height());
                     $('#lthsolr_staff_container, #lth_solr_facet_container').css('float','left');
+                    $('#lthsolr_staff_container').css('width','70%');
+                    $('#lth_solr_facet_container').css('width','30%');
                 }
             }
             
@@ -645,16 +624,16 @@ function searchLong(term, startPeople, startPages, startCourses, more)
 
                     template = template.replace('###organisationName###', organisationName);
 
-                    template = template.replace('###primary_affiliation_t###', aData[7]);
+                    template = template.replace('###primaryAffiliation###', aData[7]);
 
                     /*if(aData[10]) {
                         homePage = lth_solr_messages.personal_homepage + ': <a data-homepage="' + aData[10] + '" href="' + aData[10] + '">' + aData[10] + '</a>';
                     } else if(aData[15]) {
                         homePage = lth_solr_messages.read_more_about + ' ' + display_name_t;
                     }
-                    template = template.replace('###homepage_t###', '<p>' + homePage + '</p>');
+                    template = template.replace('###homepage###', '<p>' + homePage + '</p>');
                     */
-                    //template = template.replace('###homepage_t###', '');                  
+                    //template = template.replace('###homepage###', '');                  
                     
                     //if(aData[12]) intro = aData[12].replace('\n','<br />');
                     //template = template.replace('###lth_solr_intro###', intro);
@@ -1229,7 +1208,7 @@ function listPublications(tableStart, facet, query, sorting, more)
                 $('#lthsolr_publications_header h3').append(' (1-' + maxLength(parseInt(tableStart),parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound + ')');
 
                 if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
-                    var tempMore = '<div style="margin-top:20px;" class="lthsolr_more"><button style="height:30px;" class="btn btn-default btn-lg btn-block"\n\
+                    var tempMore = '<div style="margin-top:20px;" class="lthsolr_more"><button style="height:40px;" class="btn btn-default btn-lg btn-block"\n\
                      onclick="listPublications(' + (parseInt(tableStart) + parseInt(tableLength)) + ',\'\',\'\',' + sorting + ',\'more\');">' + lth_solr_messages.show_more + ' ' + lth_solr_messages.publications + ' <span class="glyphicon glyphicon-chevron-down"></span></button>';
                     /*if(d.numFound < 300) {
                         tempMore += ' | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listPublications(' + (parseInt(tableStart) + parseInt(tableLength)) + ',\'\',\'\',\'\',\'more\');">' + lth_solr_messages.show_all + ' ' + d.numFound + '</a>';
@@ -1949,7 +1928,7 @@ function titleCase(string)
 
 function showLocation(position)
 {
-    console.log('lll');
+    //console.log(position);
     //var latitude = position.coords.latitude.toFixed(6); //55.7046601
     //var longitude = position.coords.longitude.toFixed(6); //13.191007299999999
     if(position) {
@@ -1957,18 +1936,15 @@ function showLocation(position)
         var latitude = parseFloat(positionArray[0]).toFixed(6);
         var longitude = parseFloat(positionArray[1]).toFixed(6);
         //55.712544,13.211670
-        var multiConst = 8500;
-        var cornerLatitude = parseFloat(55.716008).toFixed(6);
-        var cornerLongitude = parseFloat(13.206647).toFixed(6);
-        var diffLatitude = (cornerLatitude - latitude) * multiConst;
-        var diffLongitude = (longitude - cornerLongitude) * multiConst;
-        $('#lthsolr_pin').show().css('top',diffLatitude + 'px').css('left', diffLongitude + 'px');
-        
+        var cornerLatitude = parseFloat(55.716760).toFixed(6);
+        var cornerLongitude = parseFloat(13.198662).toFixed(6);//55.716760, 13.198662
+        var diffLatitude = (cornerLatitude - latitude) * 7500;
+        var diffLongitude = (longitude - cornerLongitude) * 4500;
+        $('#lthsolr_map').show();
+        $('#lthsolr_pin').show().css('top',diffLatitude + '%').css('left', diffLongitude + '%');
     }
     
-    
-    //$('#lthsolr_pinPf').show().css('top',diffPfLatitude + 'px').css('left', diffPfLongitude + 'px');
-    console.log(diffLatitude+'px, ' + diffLongitude + 'px');
+    console.log(diffLatitude+'%, ' + diffLongitude + '%');
 }
 
 
@@ -2028,7 +2004,7 @@ function showStaff()
 
                     var displayName = aData.firstName + ' ' + aData.lastName;
                     
-                    //template = template.replace('###display_name_t###', display_name);
+                    //template = template.replace('###displayName###', display_name);
                     var title, ophone = '', ostreet = '', organisationName = '', ocity = '', organisationPostalAddress = '', phone = '', roomNumber = '', homePage = '', opostal_address = '';
 
                     template = template.replace(/###email###/g, aData.email);
@@ -2046,33 +2022,35 @@ function showStaff()
                     }
                     
                     //Map
-                    console.log(aData.coordinates);
+                    console.log(aData.coordinates.split(', ').pop());
                     if(aData.coordinates) {
-                        showLocation(aData.coordinates);
+                        showLocation(aData.coordinates.split(', ').pop());
                     }
 
                     //Change page main header
                     $('#page_title h1').text(displayName).append('<h2>'+title+'</h2>');
                     
-                    //template = template.replace('###title_t###', titleCase(title));
+                    //template = template.replace('###title###', titleCase(title));
                     template = template.replace('###phone###', addBreak(phone));
 
                     template = template.replace('###organisationName###', organisationName);
 
-                    //template = template.replace('###primary_affiliation_t###', aData.primaryAffiliation);
+                    //template = template.replace('###primaryAffiliation###', aData.primaryAffiliation);
 
                     /*if(aData[10]) {
                         homePage = lth_solr_messages.personal_homepage + ': <a data-homepage="' + aData[10] + '" href="' + aData[10] + '">' + aData[10] + '</a>';
                     } else if(aData[15]) {
                         homePage = lth_solr_messages.read_more_about + ' ' + display_name;
                     }
-                    template = template.replace('###homepage_t###', '<p>' + homePage + '</p>');
+                    template = template.replace('###homepage###', '<p>' + homePage + '</p>');
                     */
-                    template = template.replace('###homepage_t###', '');
+                    template = template.replace('###homepage###', '');
 
-                    //template = template.replace('###image_t###', '<div style="height: 100px"><img style="max-height: 100%; max-width: 100%" src="' + aData[11] + '" /></div>');
-                    var image = '';
-                    if(aData.image) image = '<div class="align_left" style="width:180px;"><img style="max-height: 100%; max-width: 100%" src="' + aData.image + '" /></div>';
+                    //template = template.replace('###image###', '<div style="height: 100px"><img style="max-height: 100%; max-width: 100%" src="' + aData[11] + '" /></div>');
+                    if(!aData.image) {
+                        aData.image = '/typo3conf/ext/lth_solr/res/noimage.gif';
+                    } 
+                    var image = '<div class="align_left" style="width:180px;min-height:167px;"><img style="max-height: 100%; max-width: 100%" src="' + aData.image + '" /></div>';
                     template = template.replace('###image###', image);
                     
                     if(aData.intro) intro = aData.intro.replace('\n','<br />');

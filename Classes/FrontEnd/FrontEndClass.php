@@ -35,28 +35,30 @@ class FrontEndClass
         }
                 
         $content .= '<div style="max-width:500px;min-height:500px;">';
-        //Staff 
+            //Staff 
             $content .= '<div id="lthsolr_staff_container"></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_large.html");
 
-        //Publications
+            //Publications
             $content .= '<div style="clear:both;" id="lthsolr_publications_container"><div id="lthsolr_publications_header"></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple.html");
-        //}
 
-        //Projects
+            //Projects
             $content .= '<div id="lthsolr_projects_container"><div id="lthsolr_projects_header"></div></div>';
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_simple.html");
-        //}
-
-        //Map
-            $content .= '<div style="cursor:pointer;position:absolute;top:10px;right:10px;z-index:999;"><div style="position:relative;"><img id="lthsolr_map" onclick="$(\'#myModal\').modal(\'toggle\');" style="" src="typo3conf/ext/lth_solr/res/lthmap.gif" />'
-                    . '<img id="lthsolr_pin" style="position:absolute;top:0px;right:0px;z-index:1000;display;none;" src="typo3conf/ext/lth_solr/res/pin.gif" />'
-                    //. '<img id="lthsolr_pinPf" style="position:absolute;top:0px;right:0px;z-index:1000;display;none;" src="typo3conf/ext/lth_solr/res/pin.gif" />'
-                    . '</div></div>';
-
-            $content .= '</div>';
-        //Modal
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_simple.html");        
+ 
+        $content .= '</div>';
+            
+                    //Map
+        $content .= '<div id="lthsolr_map" style="">'
+                . '<div style="position:relative;">'
+                . '<img style="display;none;"style="" src="typo3conf/ext/lth_solr/res/lthmap.gif" />'
+                . '<img id="lthsolr_pin" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1000;display:none;" src="typo3conf/ext/lth_solr/res/pin.png" />'
+                //. '<img id="lthsolr_pinPf" style="position:absolute;top:0px;right:0px;z-index:1000;display;none;" src="typo3conf/ext/lth_solr/res/pin.gif" />'
+                . '</div>'
+                . '</div>';
+            //onclick="$(\'#myModal\').modal(\'toggle\');"
+        /*Modal
             $content .= '<!-- Modal -->
                 <div id="myModal" class="modal fade" role="dialog">
                   <div class="modal-dialog">
@@ -76,7 +78,7 @@ class FrontEndClass
                     </div>
 
                   </div>
-                </div>';
+                </div>';*/
 
         //hidden fields
         $content .= '
@@ -102,11 +104,13 @@ class FrontEndClass
               
             $content .= '<div style="clear:both;height:50px;">';
             if($categories != "no_categories") {
-                $content .= '<div id="refine" style="float:left;width:30%;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:16px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">Filter</span></div>';
+                $content .= '<div id="refine" style="float:left;width:30%;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:100%;">'
+                        . '<span class="glyphicon glyphicon-filter"></span><span class="refine">Staff categories</span>'
+                        . '</div>';
             }    
             $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
-            $content .= '<div style="float:left;padding-top:10px;width:60%">';
-            $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholdera="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
+            $content .= '<div style="float:left;padding-top:10px;width:50%">';
+            $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholder="Free text" name="lthsolr_filter" value="" />';
             $content .= '</div>';
             
             $content .= '</div>';
@@ -117,7 +121,7 @@ class FrontEndClass
             
             $content .= '<div id="lth_solr_facet_container"></div>';
             
-            $content .= '<div id="lthsolr_staff_container"><div style="clear:both;height:20px;" id="lthsolr_staff_header"></div></div>';
+            $content .= '<div id="lthsolr_staff_container"><div style="clear:both;height:40px;width:250px;" id="lthsolr_staff_header"></div></div>';
             
             $content .= '</div>'; 
             
