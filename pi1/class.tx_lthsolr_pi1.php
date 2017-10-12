@@ -22,7 +22,7 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-// require_once(PATH_tslib . 'class.tslib_pibase.php');
+include __DIR__ . "/../Classes/FrontEnd/FrontEndClass.php";
 
 /**
  * Plugin 'LTH Solr' for the 'lth_solr' extension.
@@ -36,6 +36,7 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	public $scriptRelPath = 'pi1/class.tx_lthsolr_pi1.php';	// Path to this script relative to the extension dir.
 	public $extKey        = 'lth_solr';	// The extension key.
 	public $pi_checkCHash = TRUE;
+        
 	
 	/**
 	 * The main method of the Plugin.
@@ -54,8 +55,10 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $index = $GLOBALS["TSFE"]->sys_language_uid;
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
-            $display = $this->pi_getFFvalue($piFlexForm, "display", "sDEF", $lDef[$index]);
+            $displayOrder = $this->pi_getFFvalue($piFlexForm, "displayOrder", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
+            
+            $FrontEndClass = new FrontEndClass();
             
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
             if(!$syslang) {
@@ -77,57 +80,65 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js?" . rand(1,100000000) . "\"></script>"; 
 
-            $query = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query'));
+            $query = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query')) . htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP('term'));;
             $tab = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tab');
             $actual_link = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 
             $content = '';
+            
+            $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
+            if(strstr($uuid,")")) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),")");
+            }
 
-            if(stristr($actual_link, "/demo/") || stristr($actual_link, "vkans-th0")) {
-                $content .= $this->searchResult($query, $noItemsToShow, $pageHeader);
+            if($uuid) {
+                $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection, $publicationDetailPage);
+            } else if(stristr($actual_link, "/demo/") || stristr($actual_link, "vkans-th0")) {
+                $content .= $this->searchResult($query, $displayOrder, $pageHeader);
             } else {
                 $content .= $this->widget($query, $display);
             }
             //$this->debug($content);
 	
-            return $content;
+            return '<div style="position:relative;">' . $content . '</div>';
 	}
         
         
-        private function searchResult($query, $noItemsToShow, $pageHeader)
+        private function searchResult($query, $displayOrder, $pageHeader)
         {
             $content;
             //$content .= "<header id=\"page_title\"><h1>$pageHeader</h1>";
 
-            $content .= '<form style="display:none;" id="lthsolr_form" class="form-inline" action="" method="post" accept-charset="UTF-8">
-            <div class="form-group">
+            $content .= '<form id="lthsolr_form" action="" method="post" accept-charset="UTF-8">
+                <div class="input-group" style="width:76%;">
                 <input type="text" class="form-control" id="searchSiteMain" name="query" value="' . $query . '" />
-            </div>
+                <div class="input-group-btn">  
+                <button class="btn btn-lg btn-primary" style="height:38px;" type="submit"> Search </button>
+                </div>
+                </div>
                 <input type="hidden" id="no_cache" name="no_cache" value="1" />
-                <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />
-                <input type="submit" id="edit-submit" name="op" value="' . $this->pi_getLL("search") . '"  class="btn btn-default" />
-            
+                <input type="hidden" id="lthsolr_display_order" value="' . $displayOrder . '" />            
             </form>';
             //$content .= "</header>";
             
             $content .= '<div id="lthsolr_search_container">';
             //people
-            $content .= '<div style="clear:both;" class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_people_header"></div>';
-            $content .= '<table id="lthsolr_staff_container"></table></div>';
+            $content .= '<div style="clear:both;display:none;" class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_people_header"></div>';
+            $content .= '<table id="lthsolr_staff_container" class="table"><tbody></tbody></table></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_search.html");
             
             //pages
-            $content .= '<div style="clear:both;" class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_pages_header"></div>';
+            $content .= '<div style="clear:both;display:none;" class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_pages_header"></div>';
             $content .= '<ul id="lthsolr_pages_container" class="table"></ul></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/pages_search.html");
             
             //documents
-            $content .= '<div class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_documents_header"></div>';
+            /*$content .= '<div class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_documents_header"></div>';
             $content .= '<table id="lthsolr_documents_container" class="table"></table></div>';
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/documents_search.html");
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/documents_search.html");*/
             
             //courses
-            $content .= '<div class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_courses_header"></div>';
+            $content .= '<div style="display:none;" class="table-responsive lthsolr_table_wrapper"><div id="lthsolr_courses_header"></div>';
             $content .= '<table id="lthsolr_courses_container" class="table"></table></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/courses_search.html");
             $content .= '</div>';
@@ -165,19 +176,6 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             return $content;
         }
-       /* 
-        private function getXMLDoc($uri)
-	{
-            $xmlDoc = new DOMDocument('1.0', 'UTF-8');
-            $success = $xmlDoc->loadXML(\TYPO3\CMS\Core\Utility\GeneralUtility::getURL($uri));
-		if(!$success)
-		{
-			\TYPO3\CMS\Core\Utility\GeneralUtility::devlog(microtime(). 'XML is not loaded. Is it valid xml? Check url.', 'pure', 2,  array('url' => $uri));
-			return null;
-		}
-
-		return $xmlDoc;
-	}*/
         
         
         private function debug($input)

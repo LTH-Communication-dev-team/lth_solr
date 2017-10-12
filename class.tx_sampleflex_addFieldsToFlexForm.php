@@ -416,14 +416,14 @@ class user_sampleflex_addFieldsToFlexForm
                 'localhost' => array(
                     'host' => $settings['solrHost'],
                     'port' => $settings['solrPort'],
-                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
                     'timeout' => $settings['solrTimeout']
                 )
             )
         );
-         /*   echo '<pre>';
-print_r($config);
-echo '</pre>';*/
+        /*echo '<pre>';
+        print_r($sconfig);
+        echo '</pre>';*/
 	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
 	    die('Please make all settings in extension manager');
 	}
@@ -535,7 +535,7 @@ echo '</pre>';*/
         $autohomepageVar = 'lth_solr_autohomepage_' . $pid . '_s';
         
         $numFound = $response->getNumFound();
-
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($response,true), 'crdate' => time()));
         $content .= '<table id="lth_solr_manage_staff_list" class="lth_solr_manage_staff_list"><tbody class="selections">';
         if($response && $numFound < 1000) {
             foreach ($response as $document) {

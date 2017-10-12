@@ -11,29 +11,25 @@
             <type>array</type>
             <el>
                 
-                <display>
+                <displayOrder>
                     <TCEforms>
-                        <label>What to display</label>
+                        <label>Display order</label>
                         <config>
-                            <default>all</default>
+                            <default>local</default>
                             <type>radio</type>
                                 <items type="array">
                                     <numIndex index="0" type="array">
-                                        <numIndex index="0">Search Lund university and LTH</numIndex>
-                                        <numIndex index="1">all</numIndex>
+                                        <numIndex index="0">Display local search first</numIndex>
+                                        <numIndex index="1">local</numIndex>
                                     </numIndex>
                                     <numIndex index="1" type="array">
-                                        <numIndex index="0">Search just Lund university</numIndex>
-                                        <numIndex index="1">lu</numIndex>
-                                    </numIndex>
-                                    <numIndex index="2" type="array">
-                                        <numIndex index="0">Search just LTH</numIndex>
-                                        <numIndex index="1">lth</numIndex>
+                                        <numIndex index="0">Display global search first</numIndex>
+                                        <numIndex index="1">global</numIndex>
                                     </numIndex>
                                </items>
                         </config>
                     </TCEforms>
-                </display>
+                </displayOrder>
                 
                 <noItemsToShow>
                     <TCEforms>

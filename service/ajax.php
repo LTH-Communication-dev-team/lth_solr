@@ -13,7 +13,6 @@ $sid = '';
 $term = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("term");
 $peopleOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("peopleOffset"));
 $pageOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("pageOffset"));
-$documentOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("documentOffset"));
 $courseOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("courseOffset"));
 $more = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("more"));
 $query = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("query"));
@@ -33,6 +32,9 @@ $addPeople = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('addPeople');
 $keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
 $papertype = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('papertype');
 $selection = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('selection');
+$displayOrder = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('displayOrder');
+$sorting = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sorting');
+        
 $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("sid");
 date_default_timezone_set('Europe/Stockholm');
 
@@ -56,7 +58,7 @@ if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] |
 }
 
 //tslib_eidtools::connectDB();
-//$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $query, 'crdate' => time()));
+//  $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $term, 'crdate' => time()));
 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $sys_language_uid, 'crdate' => time()));
 
 switch($action) {
@@ -64,10 +66,10 @@ switch($action) {
         $content = searchListShort($term, $config);
         break;
     case 'searchShort':
-        $content = searchShort($term, $config);
+        $content = searchShort($query, $config);
         break;
     case 'searchLong':
-        $content = searchLong($term, $table_length, $peopleOffset, $pageOffset, $documentOffset, $courseOffset, $more, $config);
+        $content = searchLong($term, $query, $table_length, $peopleOffset, $pageOffset, $courseOffset, $displayOrder, $more, $config);
         break;
     case 'searchMorePeople':
         $content = searchMore($term, 'people', $peopleOffset, $pageOffset, $documentOffset, $config);
@@ -79,7 +81,7 @@ switch($action) {
         $content = searchMore($term, 'documents', $peopleOffset, $pageOffset, $documentOffset, $config);
         break;
     case 'listPublications':
-        $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $query, $selection, $keyword);
+        $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $query, $selection, $keyword, $sorting);
         break;
     case 'listStudentPapers':
         $content = listStudentpapers($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $categories, $query, $papertype);
@@ -145,33 +147,50 @@ function searchShort($term, $config)
 
     $groupComponent = $query->getGrouping();
     if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
-        $groupComponent->addQuery('docType:staff AND (nameSearch:' . str_replace(' ','\\ ',$term) . ' OR phone:' . str_replace(' ','',$term) . ' OR email:' . $term . ')');
+        $groupComponent->addQuery('docType:staff AND (name:' . str_replace(' ','\\ ',$term) . ' OR phone:' . str_replace(' ','',$term) . ' OR email:' . $term . ')');
     } else {
-        $groupComponent->addQuery('docType:staff AND (nameSearch:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
+        $groupComponent->addQuery('docType:staff AND (name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
     }
-    $groupComponent->addQuery('type:pages AND content:*' . str_replace(' ','\\ ',$term) . '*');
-    $groupComponent->addQuery('docType:document AND content:*' . str_replace(' ','\\ ',$term) . '*');
+    //$groupComponent->addQuery('type:pages AND content:*' . str_replace(' ','\\ ',$term) . '*');
+    //$groupComponent->addQuery('docType:document AND content:*' . str_replace(' ','\\ ',$term) . '*');
     $groupComponent->addQuery('docType:course AND (title:*' . str_replace(' ','\\ ',$term) . '* OR courseCode:*' . str_replace(' ','',$term) . '*)');
     $groupComponent->addQuery('docType:program AND title:*' . str_replace(' ','\\ ',$term) . '*');
     $groupComponent->setSort('lastNameExact asc');
     $groupComponent->setLimit(5);    
     $resultset = $client->select($query);
     $groups = $resultset->getGrouping();
+    //LTH: http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/havn/customsites/1/undefined?1505980697453-sid-07856cbc0c3c046c4f20--1261231745
+    //LU:  http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/havn/all/1/undefined?1505980697453-sid-07856cbc0c3c046c4f20--1261231745
+    $luRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/1/undefined?1505829015363");
+    $lthRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/customsites/1/undefined?1505829015363");
+    
+    $luResArray = explode('<div class="hit-wrapper">', $luRes);
+    $lthResArray = explode('<div class="hit-wrapper">', $lthRes);
+    $luRes = $luResArray[2];
+    $lthRes = $lthResArray[1];
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $lthRes, 'crdate' => time()));
+    $luResArray = explode('<div class="pager-wrapper item-list">', $luRes);
+    $lthResArray = explode('<div class="pager-wrapper item-list">', $lthRes);
+    $luRes = array_shift($luResArray);
+    $lthRes = array_shift($lthResArray);
+    //$luRes = implode('<div class="hit-wrapper">', $luResArray);
+    
     foreach ($groups as $groupKey => $group) {
         foreach ($group as $document) {        
             
             $docType = $document->docType;
             
             if($docType === 'staff') {
-                $id = $document->id;
+                $email   = $document->email;
                 $value = $document->id;
                 $label = fixArray($document->name);
                 if($document->phone) $label .= ', ' . fixPhone(fixArray($document->phone));
+                if($email) $label .= ', ' . fixArray($email);
                 $data[] = array(
-                    'id' => $id,
+                    'email' => $email,
                     'label' => $label,
-                    'type' => 'staff',
-                    'value' => 'lucat_' . $value
+                    'type' => $email,
+                    'value' => $label
                 );
             } else if($docType === 'course') {
                 $id = $document->id;
@@ -193,7 +212,7 @@ function searchShort($term, $config)
                     'type' => 'program',
                     'value' => $value
                 );
-            } else if($docType === 'document') {
+            } /*else if($docType === 'document') {
                 $id = $document->id;
                 $value = $document->id;
                 $label = fixArray($document->title);
@@ -212,17 +231,33 @@ function searchShort($term, $config)
                     'label' => $label,
                     'value' => $value
                 );
-            }
+            }*/
         }
     }
+    $data[] = array(
+                    'id' => 'lu',
+                    'label' => 'lu',
+                    'value' => $luRes
+                );
+    $data[] = array(
+                    'id' => 'lth',
+                    'label' => 'lth',
+                    'value' => $lthRes
+                );
     return json_encode($data);
 }
 
 
-function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOffset, $courseOffset, $more, $config)
+function file_get_contents_utf8($fn) {
+     $content = file_get_contents($fn);
+      return mb_convert_encoding($content, 'UTF-8',
+          mb_detect_encoding($content, 'UTF-8, ISO-8859-1', true));
+}
+
+
+function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset, $courseOffset, $displayOrder, $more, $config)
 {
     $people;
-    $documents;
     $facet;
     $doktype;
     $display_name;
@@ -236,46 +271,82 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
     $facetResult = array();
     $peopleData = array();
     $pageData = array();
-    $documentData = array();
     $courseData = array();
     
     $client = new Solarium\Client($config);
     $query = $client->createSelect();
     $query->setStart($table_start)->setRows($table_length);
     
+    if($term) {
+        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $term, 'crdate' => time()));
+        $term = array_pop(explode(',', htmlspecialchars_decode($term)));
+    } else {
+        $term = $inputQuery;
+    }
     $term = trim($term);
+
     if(substr($term, 0,1) == '"' && substr($term,-1) != '"') {
         $term = ltrim($term,'"');
     }
-
-    $groupComponent = $query->getGrouping();
     
-    if($more != 'pages' && $more != 'documents' && $more != 'courses') {  
+    if($more != 'local' && $more != 'global') {
+        $groupComponent = $query->getGrouping();
+    }
+    
+    if($more != 'local' && $more != 'global' && $more != 'courses') {  
         if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
             $groupComponent->addQuery('docType:staff AND primaryAffiliation:employee AND (name:*'.$term . '* OR phone:*' . $term . '* OR email:*' . $term . '*)');
             //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'doctype:lucat AND (display_name:'.$term . ' OR phone:' . $term . ' OR email:' . $term . ')', 'crdate' => time()));
         } else {
             $groupComponent->addQuery('docType:staff AND primaryAffiliation:employee AND (name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
+            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'docType:staff AND primaryAffiliation:employee AND (name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")', 'crdate' => time()));
         }
     }
-    if($more != 'people' && $more != 'documents' && $more != 'courses') {
+    /*if($more != 'people' && $more != 'documents' && $more != 'courses') {
         $term = str_replace(' ','\\ ',$term);
-        $groupComponent->addQuery('type:pages AND ((title:' . $term . ' OR title:"' . $term . '"^10' . ') OR content:' . $term . ')');
-        //title:foo OR (title:foo AND title:bar)^2.0 OR title:"foo bar"^10
-        
-    }
-    if($more != 'pages' && $more != 'people' && $more != 'courses') {
+        $groupComponent->addQuery('type:pages AND ((title:' . $term . ' OR title:"' . $term . '"^10' . ') OR content:' . $term . ')');      
+    }*/
+    /*if($more != 'pages' && $more != 'people' && $more != 'courses') {
         $groupComponent->addQuery('docType:document AND attr_body:' . str_replace(' ','\\ ',$term));
-    }
-    if($more != 'pages' && $more != 'documents' && $more != 'people') {
+    }*/
+    if($more != 'local' && $more != 'global' && $more != 'people') {
         $groupComponent->addQuery('docType:course AND (title:' . str_replace(' ','\\ ',$term) . '* OR courseCode:' . strtolower(str_replace(' ','\\ ',$term.'*')).')');
     }
     
-    if($pageOffset == '0' && $documentOffset == '0') $groupComponent->setSort('lastNameExact asc');
-    $groupComponent->setLimit($tableLength);
-    $groupComponent->setOffset(intval($peopleOffset) + intval($pageOffset) + intval($documentOffset) + intval($courseOffset));
-    $resultset = $client->select($query);
+    if($more != 'local' && $more != 'global') {
+        $groupComponent->setSort('lastNameExact asc');
+
+        $groupComponent->setLimit($tableLength);
+        $groupComponent->setOffset(intval($peopleOffset) + intval($pageOffset) + intval($courseOffset));
+        $resultset = $client->select($query);
+    }
     
+    
+    if($pageOffset==0) {
+        $pageOffset = 1;
+    } else {
+        $pageOffset = 1 + ceil(20/$pageOffset);
+    }
+
+    if(($displayOrder==='global' || $more==='global') && $more != 'people' && $more != 'courses') {
+        $pageRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/$pageOffset?1505829015363");
+        preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
+        $pageNumFound = trim($matches[1][1]);
+        $pageResArray = explode('<div class="hit-wrapper">', $pageRes);
+        $pageRes = $pageResArray[2];
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $pageResArray[2], 'crdate' => time()));
+    } else if(($displayOrder==='local' || $more==='local') && $more != 'people' && $more != 'courses') {
+        $pageRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/customsites/$pageOffset?1505829015363");
+        preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
+        $pageNumFound = trim($matches[1][0]);
+        $pageResArray = explode('<div class="hit-wrapper">', $pageRes);
+        $pageRes = $pageResArray[1];
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $pageResArray[1], 'crdate' => time()));
+    }
+    $pageResArray = explode('<div class="pager-wrapper item-list">', $pageRes);
+    $pageRes = array_shift($pageResArray);
+    
+    if($more != 'local' && $more != 'global') {
     $groups = $resultset->getGrouping();
 
     foreach ($groups as $groupKey => $group) {
@@ -285,48 +356,23 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
             $docType = $document->docType;
             $type = $document->type;
             if($docType === 'staff') {
-                /*$display_name = $document->display_name;
-                $email = $document->email;
-                $phone = fixArray($document->phone);
-                $oname = fixArray($document->oname);
-                $facetResult[] = fixArray($document->oname);
-                $title = fixArray($document->title);
-                $room_number = $document->room_number;
-                if($room_number) $room_number = " (Rum " . fixArray($room_number) . ")";
-                $people .= '<li>';
-
-                $people .= "<p><b>$display_name</b>, $title, $oname$room_number<br />";
-                if($email) $people .= "<a href=\"mailto:$email\">$email</a>, ";
-                if($phone) $people .= "Telefon: $phone";
-                $people .= "</p></li>";*/
                 $peopleData[] = array(
-                    ucwords(strtolower($document->firstName)),
-                    ucwords(strtolower($document->lastName)),
-                    $document->title,
-                    $document->phone,
-                    $document->id,
-                    $document->email,
-                    $document->organisation,
-                    $document->primary_affiliation,
-                    $document->homepage,
-                    $document->imageId,
-                    $document->lucrisPhoto,
-                    $document->roomNumber,
-                    $document->mobile,
-                    $document->uuid,
-                    $document->orgid
+                    "firstName" => ucwords(strtolower($document->firstName)),
+                    "lastName" => ucwords(strtolower($document->lastName)),
+                    "title" => $document->title,
+                    "phone" => $document->phone,
+                    "email" => $document->email,
+                    "organisationName" => $document->organisationName,
+                    "primary_affiliation" => $document->primary_affiliation,
+                    "homepage" => $document->homepage,
+                    "imageId" => $document->imageId,
+                    "lucrisPhoto" => $document->lucrisPhoto,
+                    "roomNumber" => $document->roomNumber,
+                    "mobile" => $document->mobile,
+                    "guid" => $document->guid,
+                    "orgid" => $document->orgid
                 );
-            } else if($type == 'pages') {
-                /*$content = $document->content;
-                if (is_array($content)) {
-                    $content = implode(' ', $content);
-                }
-                $title = $document->title;
-                preg_match("/ltharticlebegin(.*)ltharticleend/s",$content, $results);
-                $introText = substr($results[1], 0, 200);
-                $url = $document->url;
-                $documents .= '<li><h3><a href="' . $url . '">' . fixArray($title) . '</a></h3><p>' . $introText . '</p><p>' . $url . '</p></li>';
-                 */
+            } /*else if($type == 'pages') {
                 $pageData[] = array(
                     $document->id,
                     $document->title,
@@ -340,7 +386,7 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
                     $document->teaser,
                     $document->stream_name
                 );
-            } else if($docType == 'course') {
+            } */ else if($docType == 'course') {
                 $courseData[] = array(
                     "id" => $document->id,
                     "title" => $document->title,
@@ -354,22 +400,24 @@ function searchLong($term, $tableLength, $peopleOffset, $pageOffset, $documentOf
 
     if($more == 'people') {
         $peopleNumFound = $numRow[0];
-    } else if($more == 'pages') {
+    } /*else if($more == 'pages') {
         $pageNumFound = $numRow[0];
     } else if($more == 'documents') {
         $documentNumFound = $numRow[0];
-    } else if($more == 'courses') {
+    } */else if($more == 'courses') {
         $courseNumFound = $numRow[0];
     } else {
         $peopleNumFound = $numRow[0];
-        $pageNumFound = $numRow[1];
-        $documentNumFound = $numRow[2];
-        $courseNumFound = $numRow[3];
+        //$pageNumFound = $numRow[1];
+        //$documentNumFound = $numRow[2];
+        $courseNumFound = $numRow[1];
     }
-    
+    }
     $facetResult = array_unique($facetResult);
 
-    return json_encode(array('peopleData' => $peopleData, 'peopleNumFound' => $peopleNumFound, 'pageData' => $pageData, 'pageNumFound' => $pageNumFound, 'documentData' => $documentData, 'documentNumFound' => $documentNumFound, 'courseData' => $courseData, 'courseNumFound' => $courseNumFound, 'facet' => $facetResult));
+    return json_encode(array('peopleData' => $peopleData, 'peopleNumFound' => $peopleNumFound, 'pageData' => $pageRes, 
+        'pageNumFound' => $pageNumFound, 'courseData' => $courseData, 
+        'courseNumFound' => $courseNumFound, 'facet' => $facetResult));
 }
 
 
@@ -445,7 +493,7 @@ function searchMore($term, $type, $peopleOffset, $pageOffset, $documentOffset, $
 }
 
 
-function listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $filterQuery, $selection, $keyword)
+function listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $filterQuery, $selection, $keyword, $sorting)
 {
     $currentDate = gmDate("Y-m-d\TH:i:s\Z");
     
@@ -513,13 +561,55 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
         $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
     }
 
-    $sortArray = array(
-        'lth_solr_sort_' . $pageid . '_i' => 'asc',
-        'publicationDateYear' => 'desc',
-        'publicationDateMonth' => 'desc',
-        'publicationDateDay' => 'desc',
-        'documentTitle' => 'asc'
-    );
+    if($sorting) {
+        switch($sorting) {
+            case 'publicationType':
+                $sortArray = array(
+                    'publicationType' => 'asc',
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                    'documentTitle' => 'asc'
+                );
+                break;
+            case 'publicationYear':
+                $sortArray = array(
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                    'documentTitle' => 'asc'
+                );
+                break;
+            case 'documentTitle':
+                $sortArray = array(
+                    'documentTitle' => 'asc',
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                );
+                break;
+            case 'authorName':
+                $sortArray = array(
+                    'authorLastName' => 'asc',
+                    'authorFirstName' => 'asc',
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                    'documentTitle' => 'asc',
+                );
+                break;
+        }
+    } else {
+        $sortArray = array(
+            'lth_solr_sort_' . $pageid . '_i' => 'asc',
+            'publicationDateYear' => 'desc',
+            'publicationDateMonth' => 'desc',
+            'publicationDateDay' => 'desc',
+            'documentTitle' => 'asc'
+        );
+    }
+
+
     $query->addSorts($sortArray);
 
     $response = $client->select($query);
@@ -567,16 +657,16 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
         
     foreach ($response as $document) {     
         $data[] = array(
-            $document->id,
-            $document->documentTitle,
-            ucwords(strtolower(fixArray($document->authorName))),
-            fixArray($document->publicationType),
-            $document->publicationDateYear,
-            $document->publicationDateMonth,
-            $document->publicationDateDay,
-            $document->pages,
-            $document->journalTitle,
-            $document->journalNumber
+            "id" => $document->id,
+            "documentTitle" => $document->documentTitle,
+            "authorName" => ucwords(strtolower(fixArray($document->authorName))),
+            "publicationType" => fixArray($document->publicationType),
+            "publicationDateYear" => $document->publicationDateYear,
+            "publicationDateMonth" => $document->publicationDateMonth,
+            "publicationDateDay" => $document->publicationDateDay,
+            "pages" => $document->pages,
+            "journalTitle" => $document->journalTitle,
+            "journalNumber" => $document->journalNumber
         );
     }
     $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult, 'query' => $debugQuery);
@@ -685,8 +775,12 @@ function showPublication($term, $syslang, $config)
         $peerReview = $document->peerReview;
         $doi = $document->doi;
         $issn = $document->issn;
-        $isbn = $document->isbn;
+        $printIsbns = $document->printIsbns;
+        $electronicIsbns = $document->electronicIsbns;
+        $edition = $document->edition;
+        $placeOfPublication = $document->placeOfPublication;
         $publisher = $document->publisher;
+        $supervisors = $document->supervisorName;
         
         $standardCategory = $document->standardCategory;
         
@@ -726,11 +820,15 @@ function showPublication($term, $syslang, $config)
             'publicationTypeUri' => $publicationTypeUri,
             'doi' => $doi,
             'issn' => $issn,
-            'isbn' => $isbn,
+            'printIsbns' => $printIsbns,
+            'electronicIsbns' => $electronicIsbns,
+            'edition' => $edition,
+            'placeOfPublication' => $placeOfPublication,
             'standard_category_en' => $standardCategory,
             'publisher' => $publisher,
             'bibtex' => $bibtex,
-            'cite' => $cite
+            'cite' => $cite,
+            'supervisors' => $supervisors
         );
 
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
@@ -1266,7 +1364,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
         //    $catVal = 'lth_solr_cat_ss';
         //} else {
             $catVal = 'lth_solr_cat_' . $pageid . '_ss';
-        //} 
+        //lth_solr_cat_40458_ss} 
     }
 
     //if(!$introThisPage || $introThisPage == '') {
@@ -1399,7 +1497,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
             }
         }*/
     //}
-    
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($facetResult,true), 'crdate' => time()));
     // show documents using the resultset iterator
     foreach ($response as $document) {
         $image = '';
@@ -1475,6 +1573,12 @@ function showStaff($scope, $config, $table_length, $syslang)
     
     if(!$table_length) $table_length = 10;
     
+    if($scope) {
+        //$debugQuery = urldecode($scope);
+        $scope = json_decode(urldecode($scope),true);
+        $scope = $scope['fe_users'][0];
+    }
+    
     $publicationType = "publicationType_$syslang";
 
     $client = new Solarium\Client($config);
@@ -1507,46 +1611,47 @@ function showStaff($scope, $config, $table_length, $syslang)
             if($docType === 'staff') {
                 if($document->image) {
                     $image = '/fileadmin' . $document->image;
-                } else if($document->lucrisphoto) {
-                    $image = $document->lucrisphoto;
+                } else if($document->lucrisPhoto) {
+                    $image = $document->lucrisPhoto;
                 } else {
                     $image = '/typo3conf/ext/lth_solr/res/placeholder_noframe.gif';
                 }
                 
                 $personData[] = array(
-                    ucwords(strtolower($document->firstName)),
-                    ucwords(strtolower($document->lastName)),
-                    $document->title,
-                    $document->phone,
-                    $document->id,
-                    $document->email,
-                    $document->organisationName,
-                    $document->primaryAffiliation,
-                    $document->homepage,
-                    $image,
-                    $intro,
-                    $document->roomNumber,
-                    $document->mobile,
-                    $document->uuid,
-                    $document->organisationId,
-                    $document->organisationPhone,
-                    $document->organisationStreet,
-                    $document->organisationCity,
-                    $document->organisationPostalAddress,
-                    $document->profileInformation
+                    "firstName" => ucwords(strtolower($document->firstName)),
+                    "lastName" => ucwords(strtolower($document->lastName)),
+                    "title" => $document->title,
+                    "phone" => $document->phone,
+                    "id" => $document->id,
+                    "email" => $document->email,
+                    "organisationName" => $document->organisationName,
+                    "primaryAffiliation" => $document->primaryAffiliation,
+                    "homepage" => $document->homepage,
+                    "image" => $image,
+                    "intro" => $intro,
+                    "roomNumber" => $document->roomNumber,
+                    "mobile" => $document->mobile,
+                    "uuid" => $document->uuid,
+                    "organisationId" => $document->organisationId,
+                    "organisationPhone" => $document->organisationPhone,
+                    "organisationStreet" => $document->organisationStreet,
+                    "organisationCity" => $document->organisationCity,
+                    "organisationPostalAddress" => $document->organisationPostalAddress,
+                    "profileInformation" => $document->profileInformation,
+                    "coordinates" => fixArray($document->coordinates)
                 );
             } else if($docType === 'publication') {
                 $publicationData[] = array(
-                    $document->id,
-                    fixArray($document->documentTitle),
-                    ucwords(strtolower(fixArray($document->authorName))),
-                    fixArray($document->publicationType),
-                    $document->publicationDateYear,
-                    $document->publicationDateMonth,
-                    $document->publicationDateDay,
-                    $document->pages,
-                    $document->journalTitle,
-                    $document->journalNumber
+                    "id" => $document->id,
+                    "documentTitle" => fixArray($document->documentTitle),
+                    "authorName" => ucwords(strtolower(fixArray($document->authorName))),
+                    "publicationType" => fixArray($document->publicationType),
+                    "publicationDateYear" => $document->publicationDateYear,
+                    "publicationDateMonth" => $document->publicationDateMonth,
+                    "publicationDateDay" => $document->publicationDateDay,
+                    "pages" => $document->pages,
+                    "journalTitle" => $document->journalTitle,
+                    "journalNumber" => $document->journalNumber
                 );
                 
             } else if($docType === 'upmproject') {
@@ -1563,7 +1668,7 @@ function showStaff($scope, $config, $table_length, $syslang)
         }
     }
     
-    $resArray = array('personData' => $personData, 'publicationData' => $publicationData, 'publicationNumFound' => $numRow[1], 'projectData' => $projectData, 'projectNumFound' => $numRow[2]);
+    $resArray = array('personData' => $personData, 'publicationData' => $publicationData, 'publicationNumFound' => $numRow[1], 'projectData' => $projectData, 'projectNumFound' => $numRow[2],'debug' => $scope);
     
     return json_encode($resArray);
 }

@@ -39,6 +39,17 @@ var lth_solr_messages = {
     publicationDateYear: "År",
     supervisor: "Handledare",
     type: "Typ",
-    fulltext: "Fulltext"
+    fulltext: "Fulltext",
+    printIsbns: "Tryckta ISBN",
+    electronicIsbns: "Elektroniska ISBN",
+    edition: "Utgåva",
+    placeOfPublication: "Utgivningsort",
+    publisher: "Förlag",
+    state: "Status",
+    supervisors: "Handledare",
+    hits: "träffar",
+    on: "på",
+    No: "Inga",
+    within: "träffar"
 };
 

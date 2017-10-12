@@ -92,9 +92,11 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $syslang='sv';
             }
             //Load main js- and css-files
+            $GLOBALS["TSFE"]->additionalHeaderData["font-awesome.min"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/font-awesome.min.css?" . rand(1,100000000) . "\" />";
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
             $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
             $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
+           
             //$GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_download"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/download/download.js\"></script>"; 
             if($display === "tagcloud") {
                 $GLOBALS["TSFE"]->additionalFooterData["jqcloud.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/jqcloud/jqcloud.js?" . rand(1,100000000) . "\"></script>"; 
@@ -200,10 +202,13 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             $content .= '<div id="lth_solr_facet_container"></div>';
             
-            $content .= '<div id="lthsolr_publications_container"><div style="clear:both;height:20px;" id="lthsolr_publications_header"></div></div>';
-            
-            $content .= '</div>'; 
-            
+            $content .= '<div id="lthsolr_publications_container">'
+                    . '<div style="clear:both;width:100%;height:30px;">'
+                    . '<div style="float:left;height:20px;width:70%;" id="lthsolr_publications_header"></div>'
+                    . '<div id="lthsolr_publications_sort" style="width:30%;float:left;padding-top:12px;"></div>'
+                    . '</div>'
+                    . '</div>';
+                        
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple.html");
             
             $content .= '

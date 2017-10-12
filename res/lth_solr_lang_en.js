@@ -39,7 +39,18 @@ var lth_solr_messages = {
     publicationDateYear: "Year",
     supervisor: "Supervisor",
     type: "Type",
-    fulltext: "Full text"
+    fulltext: "Full text",
+    printIsbns: "Print ISBN",
+    electronicIsbns: "Electronic ISBN",
+    edition: "Edition",
+    placeOfPublication: "Place of Publication",
+    publisher: "Publisher",
+    state: "Status",
+    supervisors: "Supervisors/Advisors",
+    hits: "hits",
+    on: "on",
+    No: "No",
+    within: "within"
 };
 
 

@@ -64,19 +64,118 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $heritageArray = $this->getHeritage($con);
         
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("COUNT(DISTINCT msg) AS nor","tx_devlog_atom","");
+        /*$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("COUNT(DISTINCT msg) AS nor","tx_devlog_dump","");
         $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
         $numFound = $row['nor'];
-        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);*/
         
-        $startFromHere = $numFound;
-        //$startFromHere = 0;
-	$executionSucceeded = $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
+        //$startFromHere = $numFound;
+        $startFromHere = 0;
+        //$executionSucceeded = $this->jsonTest();
+	//$executionSucceeded = $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
       	//$executionSucceeded = $this->updateAtoms($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
         //$executionSucceeded = $this->compare($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
-
+$executionSucceeded = $this->getCiteBib($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
 	return $executionSucceeded;
-    }  
+    }
+    
+    function jsonTest()
+    {
+        $numberofloops = 10;
+        $startFromHere = 0;
+        $maximumrecords = 20;
+        for($i = 0; $i < 10; $i++) {
+            $startrecord = $startFromHere + ($i * $maximumrecords);
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=73b902e4-1c54-49f7-9a5c-68f78498b237&rendering=xml_long";
+            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
+            //echo $xmlpath;
+            $xml = @file_get_contents($xmlpath);
+            //$xmlNode = simplexml_load_string($xml);
+            //$numberofloops = ceil($xmlNode->children('core', true)->count / 20);
+            $arrayData = '';
+            //$arrayData = $this->xmlToArray($xmlNode);
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_atom', array('msg' => $xmlpath));
+            //echo json_encode($arrayData, JSON_PRETTY_PRINT);
+        }
+        return TRUE;
+    }
+    
+function xmlToArray($xml, $options = array()) {
+    $defaults = array(
+        'namespaceSeparator' => ':',//you may want this to be something other than a colon
+        'attributePrefix' => '@',   //to distinguish between attributes and nodes with the same name
+        'alwaysArray' => array(),   //array of xml tag names which should always become arrays
+        'autoArray' => true,        //only create arrays for tags which appear more than once
+        'textContent' => '$',       //key used for the text content of elements
+        'autoText' => true,         //skip textContent key if node has no attributes or child nodes
+        'keySearch' => false,       //optional search and replace on tag and attribute names
+        'keyReplace' => false       //replace values for above search values (as passed to str_replace())
+    );
+    $options = array_merge($defaults, $options);
+    $namespaces = $xml->getDocNamespaces();
+    $namespaces[''] = null; //add base (empty) namespace
+ 
+    //get attributes from all namespaces
+    $attributesArray = array();
+    foreach ($namespaces as $prefix => $namespace) {
+        foreach ($xml->attributes($namespace) as $attributeName => $attribute) {
+            //replace characters in attribute name
+            if ($options['keySearch']) $attributeName =
+                    str_replace($options['keySearch'], $options['keyReplace'], $attributeName);
+            $attributeKey = $options['attributePrefix']
+                    . ($prefix ? $prefix . $options['namespaceSeparator'] : '')
+                    . $attributeName;
+            $attributesArray[$attributeKey] = (string)$attribute;
+        }
+    }
+ 
+    //get child nodes from all namespaces
+    $tagsArray = array();
+    foreach ($namespaces as $prefix => $namespace) {
+        foreach ($xml->children($namespace) as $childXml) {
+            //recurse into child nodes
+            $childArray = $this->xmlToArray($childXml, $options);
+            list($childTagName, $childProperties) = each($childArray);
+ 
+            //replace characters in tag name
+            if ($options['keySearch']) $childTagName =
+                    str_replace($options['keySearch'], $options['keyReplace'], $childTagName);
+            //add namespace prefix, if any
+            if ($prefix) $childTagName = $prefix . $options['namespaceSeparator'] . $childTagName;
+ 
+            if (!isset($tagsArray[$childTagName])) {
+                //only entry with this key
+                //test if tags of this type should always be arrays, no matter the element count
+                $tagsArray[$childTagName] =
+                        in_array($childTagName, $options['alwaysArray']) || !$options['autoArray']
+                        ? array($childProperties) : $childProperties;
+            } elseif (
+                is_array($tagsArray[$childTagName]) && array_keys($tagsArray[$childTagName])
+                === range(0, count($tagsArray[$childTagName]) - 1)
+            ) {
+                //key already exists and is integer indexed array
+                $tagsArray[$childTagName][] = $childProperties;
+            } else {
+                //key exists so convert to integer indexed array with previous value in position 0
+                $tagsArray[$childTagName] = array($tagsArray[$childTagName], $childProperties);
+            }
+        }
+    }
+ 
+    //get text content of node
+    $textContentArray = array();
+    $plainText = trim((string)$xml);
+    if ($plainText !== '') $textContentArray[$options['textContent']] = $plainText;
+ 
+    //stick it all together
+    $propertiesArray = !$options['autoText'] || $attributesArray || $tagsArray || ($plainText === '')
+            ? array_merge($attributesArray, $tagsArray, $textContentArray) : $plainText;
+ 
+    //return node as array
+    return array(
+        $xml->getName() => $propertiesArray
+    );
+}
     
     function compare($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
     {
@@ -98,7 +197,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $id = $document->id;
            // echo $id;
             if(in_array($id, $idArray)) {
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery("tx_devlog_ids", "msg='$id'", array("msg" => $id."_ok"));
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery("tx_devlog_ids", "msg='$id'", array("msg" => $id."_ok"));
             }
         }
         return true;
@@ -267,39 +366,36 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$this->debug($heritageArray[0]);
         $varArray = array('publication-base_uk','stab');
 
-        //for($i = 0; $i < $numberofloops; $i++) {
-        for($i = 0; $i < 3; $i++) {
-            //echo $i.':'. $numberofloops . '<br />';
+        for($i = 0; $i < $numberofloops; $i++) {
             
             $startrecord = $startFromHere + ($i * $maximumrecords);
-            
-            //$lucrisId = $settings['solrLucrisId'];
-            //$lucrisPw = $settings['solrLucrisPw'];
 
-            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?createdDate.toDate=2017-09-05T15:39:00&window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property[0]=publicationYearMonthDay&orderBy.property[0].descending=false&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
+            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=d89c2288-4367-4e94-9244-c1dec83fa364&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=73b902e4-1c54-49f7-9a5c-68f78498b237&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=BIBTEX";
-            
+    
             $xml = @file_get_contents($xmlpath);
-            if(!$xml) {
+          
+
+            $xml = @simplexml_load_string($xml);
+            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => var_dump($xml), 'crdate' => time()));
+            if(!$xml || $xml==="") {
+                return TRUE;
+            }            
+            if($xml->children('core', true)->count == 0) {
                 return TRUE;
             }
-            $xml = simplexml_load_string($xml);        
-            
-            if($xml->children('core', true)->count == 0) {
-                return "no items";
-            }
 
-            //$numberofloops = ceil($xml->children('core', true)->count / 20);
+            $numberofloops = ceil($xml->children('core', true)->count / 20);
 
             foreach($xml->xpath('//core:result//core:content') as $content) {
-                $id;
-                $type;
-                $portalUrl;
-                $created;
-                $modified;
+                $id = '';
+                $type = '';
+                $portalUrl = '';
+                $created = '';
+                $modified = '';
                 //$title = array();
                 $abstract_en = '';
                 $abstract_sv = '';
@@ -317,55 +413,54 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $externalOrganisationsId = array();
                 $language_en = array();
                 $language_sv = array();
-                $pages;
-                $numberOfPages;
-                $volume;
-                $journalNumber;
-                $journalTitle;
-                $publicationStatus_en;
-                $publicationStatus_sv;
-                $publicationDateYear;
-                $publicationDateMonth;
-                $publicationDateDay;
-                $peerReview;
-                $doi;
+                $pages = '';
+                $numberOfPages = '';
+                $volume = '';
+                $journalNumber = '';
+                $journalTitle = '';
+                $publicationDateYear = '';
+                $publicationDateMonth = '';
+                $publicationDateDay = '';
+                $peerReview = '';
+                $doi = '';
                 $publicationType_en = '';
                 $publicationType_sv = '';
                 $publicationTypeUri = '';
-                $standard_category_sv;
-                $standard_category_en;
+                $standardCategory = '';
                 $organisationSourceId = array();
                 $hertitage = array();
                 $keywords_uka_en = array();
                 $keywords_uka_sv = array();
                 $keywords_user_en = array();
                 $keywords_user_sv = array();
-                $document_url = "";
-                $document_title = "";
-                $document_limitedVisibility = "";
-                $hostPublicationTitle;
-                $publisher;
-                $event_en;
-                $event_sv;
-                $event_city;
-                $event_country_en;
-                $event_country_sv;
+                $document_url = '';
+                $document_title = '';
+                $document_limitedVisibility = '';
+                $hostPublicationTitle = '';
+                $publisher = '';
                 $heritage = array();
                 $awardDate;
                 $bibliographicalNote_sv;
                 $bibliographicalNote_en;
                 $issn = '';
-                $isbn = '';
+                $printIsbns = '';
+                $electronicIsbns = '';
                 $abstract = '';
                 $bibliographicalNote = '';
                 $event = '';
+                $eventCity = '';
                 $eventCountry = '';
+                $event_country_sv = '';
+                $event_country_en = '';
                 $keywordsUka = array();
                 $keywordsUser = array();
                 $language = '';
                 $organisationName = '';
                 $publicationStatus = '';
                 $publicationType = '';
+                $placeOfPublication = '';
+                $edition = '';
+                $supervisorName = '';
                 
                 //id
                 $id = (string)$content->attributes();
@@ -375,21 +470,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 
                 //awardDate
                 $awardDate = (string)$content->children('stab',true)->awardDate;
-                
-                //bibliographicalNote
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal, true)->bibliographicalNote) {
-                        foreach($content->children($varVal, true)->bibliographicalNote->children('core', true)->localizedString as $localizedString) {
-                            if($localizedString->attributes()->locale == 'en_GB') {
-                                $bibliographicalNote_en = (string)$localizedString;
-                            }
-                            if($localizedString->attributes()->locale == 'sv_SE') {
-                                $bibliographicalNote_sv = (string)$localizedString;
-                            }
-                        }
-                    }
-                }
-                
+               
                 //type
                 $type = (string)$content->children('core',true)->type;
                 if($type) {
@@ -421,10 +502,24 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             }
                         }
                     }
-                }
-
+                //}
+                
+                //bibliographicalNote
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal, true)->bibliographicalNote) {
+                        foreach($content->children($varVal, true)->bibliographicalNote->children('core', true)->localizedString as $localizedString) {
+                            if($localizedString->attributes()->locale == 'en_GB') {
+                                $bibliographicalNote_en = (string)$localizedString;
+                            }
+                            if($localizedString->attributes()->locale == 'sv_SE') {
+                                $bibliographicalNote_sv = (string)$localizedString;
+                            }
+                        }
+                    }
+                //}
+                
                 //documents
-                foreach($varArray as $varVal) {
+                //foreach($varArray as $varVal) {
                     if($content->children($varVal,true)->documents) {
                         foreach($content->children($varVal,true)->documents->children('extension-core',true)->document as $document) {
                             $document_url = (string)$document->children('core',true)->url;
@@ -432,10 +527,10 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $document_limitedVisibility = (string)$document->children('core',true)->limitedVisibility;
                         }
                     }
-                }
+                //}
 
                 //Authors
-                foreach($varArray as $varVal) {
+                //foreach($varArray as $varVal) {
                     if($content->children($varVal,true)->persons) {
                         foreach($content->children($varVal,true)->persons->children('person-template',true)->personAssociation as $personAssociation) {
                             $authorExternalTemp = 0;
@@ -517,10 +612,10 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $authorOrganisation[] = $authorOrganisationTemp;
                         }
                     }
-                }
+                //}
 
                 //Organisations
-                foreach($varArray as $varVal) {
+                //foreach($varArray as $varVal) {
                     if($content->children($varVal,true)->organisations && $content->children($varVal,true)->organisations->children('organisation-template',true)->association) {
                         foreach($content->children($varVal,true)->organisations->children('organisation-template',true)->association as $association) {
                             $organisationId[] = (string)$association->children('organisation-template',true)->organisation->attributes();
@@ -538,6 +633,170 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $organisationSourceId[] = (string)$association->children('organisation-template',true)->organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
                         }
                     }
+                //}
+                
+                //Language
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->language) {
+                        foreach($content->children($varVal,true)->language->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
+                            if($localizedString->attributes()->locale == 'en_GB') {
+                                $language_en = (string)$localizedString;
+                            }
+                            if($localizedString->attributes()->locale == 'sv_SE') {
+                                $language_sv = (string)$localizedString;
+                            }
+                        }
+                    }
+                //}
+                
+                //journal title
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->journal) {
+                        if($content->children($varVal,true)->journal->children('journal-template',true)->journal) {
+                            foreach($content->children($varVal,true)->journal->children('journal-template',true)->journal->children('journal-template',true)->titles->children('journal-template',true)->title as $jtitle) {
+                                $journalTitle = (string)$jtitle->children('extensions-core',true)->string;
+                            }
+                        }
+                    }
+                //}
+                
+                //issn
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->journal) {
+                        if($content->children($varVal,true)->journal->children('journal-template',true)->issn) {
+                            foreach($content->children($varVal,true)->journal->children('journal-template',true)->issn as $issn) {
+                                $issn = (string)$issn->children('extensions-core',true)->string;
+                            }
+                        }
+                    }
+                //}
+                
+                //isbn
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->journal) {
+                        if($content->children($varVal,true)->journal->children('journal-template',true)->isbn) {
+                            foreach($content->children($varVal,true)->journal->children('journal-template',true)->isbn as $isbn) {
+                                $isbn = (string)$isbn->children('extensions-core',true)->string;
+                            }
+                        }
+                    }
+                //}
+
+                //numberOfPages
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->numberOfPages) {
+                        $numberOfPages = (string)$content->children($varVal,true)->numberOfPages;
+                    }
+                //}
+                
+                //Pages
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->pages) {
+                        $pages = (string)$content->children($varVal,true)->pages;
+                    }
+                //}
+                
+                //Volume
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->volume) {
+                        $volume = (string)$content->children($varVal,true)->volume;
+                    }
+                //}
+                
+                //journalNumber
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->journalNumber) {
+                        $journalNumber = (string)$content->children($varVal,true)->journalNumber;
+                    }
+                //}
+                
+                //publicationStatus
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->publicationStatus) {
+                        foreach($content->children($varVal,true)->publicationStatus->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
+                            if($localizedString->attributes()->locale == 'en_GB') {
+                                $publicationStatus_en = (string)$localizedString;
+                            }
+                            if($localizedString->attributes()->locale == 'sv_SE') {
+                                $publicationStatus_sv = (string)$localizedString;
+                            }
+                        }
+                        $publicationStatus = (string)$content->children($varVal,true)->publicationStatus;
+                    }
+                //}
+                
+                //hostPublicationTitle
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->hostPublicationTitle) {
+                        $hostPublicationTitle = (string)$content->children($varVal,true)->hostPublicationTitle;
+                    }
+                //}
+                    
+                //publishers isbn, issn
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->associatedPublisher) {
+                        if($content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->placeOfPublication) {
+                            $placeOfPublication = (string)$content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->placeOfPublication;
+                        }
+                        if($content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->edition) {
+                            $edition = (string)$content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->edition;
+                        }                        
+                        if($content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->printIsbns) {
+                            foreach($content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->printIsbns as $printIsbns) {
+                                $printIsbns = (string)$printIsbns->children('core',true)->value;
+                            }
+                        }
+                        if($content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->electronicIsbns) {
+                            foreach($content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->electronicIsbns as $electronicIsbns) {
+                                $electronicIsbns = (string)$electronicIsbns->children('core',true)->value;
+                            }
+                        }
+                        if($content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->publisher) {
+                            foreach($content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->publisher as $publisher) {
+                                $publisher = (string)$publisher->children('publisher-template',true)->name;
+                            }
+                        }
+                    }
+                    
+                //}
+                
+                //Publication- year, month, day
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->publicationDate) {
+                        $publicationDateYear = (string)$content->children($varVal,true)->publicationDate->children('core',true)->year;
+                        $publicationDateMonth =  (string)$content->children($varVal,true)->publicationDate->children('core',true)->month;
+                        $publicationDateDay =  (string)$content->children($varVal,true)->publicationDate->children('core',true)->day;
+                    }
+                //}
+                
+                //peerReview
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->peerReview) {
+                        $peerReview = (string)$content->children($varVal,true)->peerReview->children('extensions-core',true)->peerReviewed;
+                    }
+                //}
+                
+                //Doi
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->dois) {
+                        $doi = (string)$content->children($varVal,true)->dois->children('core',true)->doi->children('core',true)->doi;
+                    }
+                //}
+                
+                //Publication type
+                //foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->typeClassification) {
+                        foreach($content->children($varVal,true)->typeClassification->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
+                            if($localizedString->attributes()->locale == 'en_GB') {
+                                $publicationType_en = (string)$localizedString;
+                            }
+                            if($localizedString->attributes()->locale == 'sv_SE') {
+                                $publicationType_sv = (string)$localizedString;
+                            }
+                        }
+                        $publicationTypeUri = (string)$content->children($varVal,true)->typeClassification->children('core',true)->uri;
+                    }
+                    
                 }
 
                 $heritage = array();
@@ -626,113 +885,16 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         }
                     }
                 }
-
-                //Language
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->language) {
-                        foreach($content->children($varVal,true)->language->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
-                            if($localizedString->attributes()->locale == 'en_GB') {
-                                $language_en = (string)$localizedString;
-                            }
-                            if($localizedString->attributes()->locale == 'sv_SE') {
-                                $language_sv = (string)$localizedString;
-                            }
-                        }
-                    }
-                }
                 
-                //journal title
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->journal) {
-                        if($content->children($varVal,true)->journal->children('journal-template',true)->journal) {
-                            foreach($content->children($varVal,true)->journal->children('journal-template',true)->journal->children('journal-template',true)->titles->children('journal-template',true)->title as $jtitle) {
-                                $journalTitle = (string)$jtitle->children('extensions-core',true)->string;
-                            }
-                        }
-                    }
-                }
-                
-                //issn
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->journal) {
-                        if($content->children($varVal,true)->journal->children('journal-template',true)->issn) {
-                            foreach($content->children($varVal,true)->journal->children('journal-template',true)->issn as $issn) {
-                                $issn = (string)$issn->children('extensions-core',true)->string;
-                            }
-                        }
-                    }
-                }
-                
-                //isbn
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->journal) {
-                        if($content->children($varVal,true)->journal->children('journal-template',true)->isbn) {
-                            foreach($content->children($varVal,true)->journal->children('journal-template',true)->isbn as $isbn) {
-                                $isbn = (string)$isbn->children('extensions-core',true)->string;
-                            }
+                //supervisorAdvisor
+                if($content->children('stab',true)->supervisorAdvisor) {
+                    if($content->children('stab',true)->supervisorAdvisor->children('stab', true)->classifiedInternalExternalPersonAssociation->children('stab',true)->person) {
+                        foreach($content->children('stab',true)->supervisorAdvisor->children('stab', true)->classifiedInternalExternalPersonAssociation->children('stab',true)->person->children('person-template',true)->name as $supervisor) {
+                            $supervisorName = (string)$supervisor->children('core', true)->firstName . (string)$supervisor->children('core', true)->lastName;
                         }
                     }
                 }
 
-                //numberOfPages
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->numberOfPages) {
-                        $numberOfPages = (string)$content->children($varVal,true)->numberOfPages;
-                    }
-                }
-                
-                //Pages
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->pages) {
-                        $pages = (string)$content->children($varVal,true)->pages;
-                    }
-                }
-                
-                //Volume
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->volume) {
-                        $volume = (string)$content->children($varVal,true)->volume;
-                    }
-                }
-                
-                //journalNumber
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->journalNumber) {
-                        $journalNumber = (string)$content->children($varVal,true)->journalNumber;
-                    }
-                }
-                
-                //publicationStatus
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->publicationStatus) {
-                        foreach($content->children($varVal,true)->publicationStatus->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
-                            if($localizedString->attributes()->locale == 'en_GB') {
-                                $publicationStatus_en = (string)$localizedString;
-                            }
-                            if($localizedString->attributes()->locale == 'sv_SE') {
-                                $publicationStatus_sv = (string)$localizedString;
-                            }
-                        }
-                        $publicationStatus = (string)$content->children($varVal,true)->publicationStatus;
-                    }
-                }
-                
-                //hostPublicationTitle
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->hostPublicationTitle) {
-                        $hostPublicationTitle = (string)$content->children($varVal,true)->hostPublicationTitle;
-                    }
-                }
-                    
-                //publishers
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->associatedPublishers) {
-                        foreach($content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->publisher as $publisher) {
-                            $publisher = (string)$publisher->children('publisher-template',true)->name;
-                        }
-                    }
-                }
-                
                 //event
                 if($content->children('stab',true)->event) {
                     foreach($content->children('stab',true)->event->children('event-template',true)->title->children('core',true)->localizedString as $localizedString) {
@@ -743,7 +905,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $event_sv = (string)$localizedString;
                         }
                     }
-                    $event_city = $content->children('stab',true)->event->children('event-template',true)->city;
+                    $eventCity = $content->children('stab',true)->event->children('event-template',true)->city;
                     if($content->children('stab',true)->event->children('event-template',true)->country) {
                         foreach($content->children('stab',true)->event->children('event-template',true)->country->children('core',true)->localizedString as $localizedString) {
                             if($localizedString->attributes()->locale == 'en_GB') {
@@ -756,44 +918,6 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     }
                 }
                 
-                //Publication- year, month, day
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->publicationDate) {
-                        $publicationDateYear = (string)$content->children($varVal,true)->publicationDate->children('core',true)->year;
-                        $publicationDateMonth =  (string)$content->children($varVal,true)->publicationDate->children('core',true)->month;
-                        $publicationDateDay =  (string)$content->children($varVal,true)->publicationDate->children('core',true)->day;
-                    }
-                }
-                
-                //peerReview
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->peerReview) {
-                        $peerReview = (string)$content->children($varVal,true)->peerReview->children('extensions-core',true)->peerReviewed;
-                    }
-                }
-                
-                //Doi
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->dois) {
-                        $doi = (string)$content->children($varVal,true)->dois->children('core',true)->doi->children('core',true)->doi;
-                    }
-                }
-                
-                //Publication type
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->typeClassification) {
-                        foreach($content->children($varVal,true)->typeClassification->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
-                            if($localizedString->attributes()->locale == 'en_GB') {
-                                $publicationType_en = (string)$localizedString;
-                            }
-                            if($localizedString->attributes()->locale == 'sv_SE') {
-                                $publicationType_sv = (string)$localizedString;
-                            }
-                        }
-                        $publicationTypeUri = (string)$content->children($varVal,true)->typeClassification->children('core',true)->uri;
-                    }
-                }
-                
                 //CITE OCH BIBTEX
                 $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
                 $cite = "";
@@ -801,7 +925,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 foreach($citeArray as $citebibKey => $citebib) {
                     $citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=$publicationTypeUri&rendering=$citebib";
                     for( $ii=0; $ii<9; $ii++ ) { 
-                        $citebibxml = file_get_contents($citebibxmlpath);
+                        $citebibxml = @file_get_contents($citebibxmlpath);
                         if( $citebibxml !== FALSE ) { 
                             break;
                         }
@@ -816,10 +940,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     } else {
                         $cite .= "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
                     }
-                }
-                
-                //$title_unique = preg_replace("/[^a-z0-9\s]/i", "", $title);
-                //$title_unique = preg_replace("/\s\s+/", " ", $title_unique); 
+                } 
                 
                 if($syslang==="sv") {
                     $abstract = $abstract_sv;
@@ -851,6 +972,12 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 if(!$abstract && $abstract_sv) {
                     $abstract = $abstract_sv;
                 }
+                if(!$keywordsUser && $keywords_user_en) {
+                    $keywordsUser = $keywords_user_en;
+                }
+                if(!$keywordsUser && $keywords_user_sv) {
+                    $keywordsUser = $keywords_user_sv;
+                }
 
                 $data = array(
                     'id' => $id,
@@ -875,7 +1002,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'externalOrganisationsId' => $externalOrganisationsId,
                     'event' => $event,
                     //'event_sv' => $event_sv,
-                    'eventCity' => $event_city,
+                    'eventCity' => $eventCity,
                     'eventCountry' => $event_country,
                     //'event_country_sv' => $event_country_sv,
                     'hostPublicationTitle' => $hostPublicationTitle,
@@ -911,14 +1038,18 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'standardCategory' => $publicationType,
                     //'standard_category_sv' => $publicationType_sv,
                     'issn' => $issn,
-                    'isbn' => $isbn,
+                    'printIsbns' => $printIsbns,
+                    'electronicIsbns' => $electronicIsbns,
                     'boost' => '1.0',
                     'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
                     'changed' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
                     'digest' => md5($id),
                     'bibtex' => $bibtex,
                     'cite' => $cite,
-                    'appKey' => 'lthsolr'
+                    'appKey' => 'lthsolr',
+                    'placeOfPublication' => $placeOfPublication,
+                    'edition' => $edition,
+                    'supervisorName' => $supervisorName
                 );
                 // $this->debug($data);
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
@@ -960,5 +1091,151 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         echo '<pre>';
         print_r($inputArray);
         echo '</pre>';
+    }
+    
+    
+    function getFiles($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
+    {
+        $files1 = scandir('/var/www/html/typo3/fileadmin/lucrisdump');
+        $startFromHere = 20 * (intval(count($files1))-2);
+        
+        //$varArray = array('publication-base_uk','stab');
+
+        for($i = 0; $i <= 200; $i++) {
+            
+            $startrecord = $startFromHere + ($i * 20);
+            $fileName = $startrecord . '.xml';
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
+            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=20&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=73b902e4-1c54-49f7-9a5c-68f78498b237&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=BIBTEX";
+
+            $xml = @file_get_contents($xmlpath);
+//$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_dump', array('location' => $xmlpath, 'msg' => (string)$xml, 'crdate' => time()));
+            //echo $xmlpath;
+            $xml = @simplexml_load_string($xml);
+            
+            $xml->asXml('/var/www/html/typo3/fileadmin/lucrisdump/' . $fileName);
+
+            /*foreach($xml->xpath('//core:result//core:content') as $content) {
+   
+                //id
+                $id = (string)$content->attributes();
+                $publicationTypeUri = '';
+                foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->typeClassification) {
+                        foreach($content->children($varVal,true)->typeClassification->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
+                            if($localizedString->attributes()->locale == 'en_GB') {
+                                $publicationType_en = (string)$localizedString;
+                            }
+                            if($localizedString->attributes()->locale == 'sv_SE') {
+                                $publicationType_sv = (string)$localizedString;
+                            }
+                        }
+                        $publicationTypeUri = (string)$content->children($varVal,true)->typeClassification->children('core',true)->uri;
+                    }
+                }
+
+                if($publicationTypeUri) {
+                    //CITE OCH BIBTEX
+                    $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", 
+                        "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
+                    $cite = "";
+                    $bibtex = "";
+                    foreach($citeArray as $citebibKey => $citebib) {
+                        $citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=$publicationTypeUri&rendering=$citebib";
+                        for( $ii=0; $ii<9; $ii++ ) { 
+                            $citebibxml = @file_get_contents($citebibxmlpath);
+                            if( $citebibxml !== FALSE ) { 
+                                break;
+                            }
+                        }
+                        if($citebibxml) {
+                            $GLOBALS['TYPO3_DB']->exec_INSERTquery('uid_citebib', array('location' => $id, 'msg' => $citebibxml, 'type' => $citebib));
+                        }
+                    }
+                }
+            }*/
+        }
+        return TRUE;
+    }
+    
+    
+    function getCiteBib($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
+    {
+        $directory = '/var/www/html/typo3/fileadmin/lucrisdump';
+        $varArray = array('publication-base_uk','stab');
+        
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('filename','tx_devlog_dump',"done=0",'filename','filename','0,20');
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $filename = $row['filename'];
+            $xml = @file_get_contents($directory . '/' . $filename);
+            $xml = @simplexml_load_string($xml);
+            
+            foreach($xml->xpath('//core:result//core:content') as $content) {
+   
+                $id = (string)$content->attributes();
+                //echo $id;
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_dump', array('uuid' => $id, 'crdate' => time()));
+                $publicationTypeUri = '';
+                foreach($varArray as $varVal) {
+                    if($content->children($varVal,true)->typeClassification) {
+                        foreach($content->children($varVal,true)->typeClassification->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
+                            if($localizedString->attributes()->locale == 'en_GB') {
+                                $publicationType_en = (string)$localizedString;
+                            }
+                            if($localizedString->attributes()->locale == 'sv_SE') {
+                                $publicationType_sv = (string)$localizedString;
+                            }
+                        }
+                        $publicationTypeUri = (string)$content->children($varVal,true)->typeClassification->children('core',true)->uri;
+                    }
+                }
+
+                if($publicationTypeUri) {
+                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_devlog_dump', "uuid='$id'", array('uri' => $publicationTypeUri));
+                    $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", 
+                        "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
+                    $cite = "";
+                    $bibtex = "";
+                    foreach($citeArray as $citebibKey => $citebib) {
+                        $citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=$publicationTypeUri&rendering=$citebib";
+                        //print '<p>' . $citebibxmlpath . '</p>';
+                        $citebibxml = @file_get_contents($citebibxmlpath);
+                        $citebibxml = @simplexml_load_string($citebibxml);
+                        //print '<p>' . $citebibxml . '</p>';
+                        if($citebibxml) {
+                            switch($citebib) {
+                                case 'standard':
+                                    $citebibxml->asXml('/var/www/html/typo3/fileadmin/lucrisdump/' . $id . '_standard.xml');
+                                    break;
+                                case 'harvard':
+                                    $citebibxml->asXml('/var/www/html/typo3/fileadmin/lucrisdump/' . $id . '_harvard.xml');
+                                    break;
+                                case 'apa':
+                                    $citebibxml->asXml('/var/www/html/typo3/fileadmin/lucrisdump/' . $id . '_apa.xml');
+                                    break;
+                                case 'vancouver':
+                                    $citebibxml->asXml('/var/www/html/typo3/fileadmin/lucrisdump/' . $id . '_vancouver.xml');
+                                    break;
+                                case 'author':
+                                    $citebibxml->asXml('/var/www/html/typo3/fileadmin/lucrisdump/' . $id . '_author.xml');
+                                    break;
+                                case 'RIS':
+                                    $citebibxml->asXml('/var/www/html/typo3/fileadmin/lucrisdump/' . $id . '_ris.xml');
+                                    break;
+                                case 'BIBTEX':
+                                    $citebibxml->asXml('/var/www/html/typo3/fileadmin/lucrisdump/' . $id . '_bibtex.xml');
+                                    break;
+                                }
+                        }
+                    }
+                }
+            }
+            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_devlog_dump', "filename='$filename'", array('done' => 1));
+        }
+
+        return TRUE;
     }
 }

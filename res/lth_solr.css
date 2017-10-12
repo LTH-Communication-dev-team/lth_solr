@@ -15,6 +15,20 @@ and open the template in the editor.
   }
 }
 
+.loader {
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 .refine {
     cursor:pointer;
 }
@@ -47,6 +61,26 @@ and open the template in the editor.
 #lthsolr_tagcloud_container {
     height:700px;
     width:650px;
+}
+
+#lthsolr_sort {
+    border:none;
+}
+
+select {
+
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    text-indent: 1px;
+    text-overflow: '';
+}
+
+select::-ms-expand {
+    display: none;
+}
+
+select {
+  font-family: 'FontAwesome', 'sans-serif', 'arial';
 }
 
 #lthsolrAbstract {
@@ -105,6 +139,10 @@ tr.details td.details-control {
 
 .lthsolr_image_template.lthsolr_row {
     min-height:110px;
+}
+
+#lthsolr_search_container {
+    max-width: 850px;
 }
 
 #lthsolr_search_container ul li {
@@ -204,28 +242,57 @@ h2 {
     color: #006621 !important;
 }
 
-#lthsolr_people_headera {
-    margin-top:20px;
+#lthsolr_people_header, #lthsolr_pages_header, #lthsolr_courses_header {
+    margin:20px 0px 10px 0px;
+    clear:both;
 }
 
-#lthsolr_staff_container, #lthsolr_pages_container, #lthsolr_documents_container, #lthsolr_courses_container {
+.lth_solr_search_header {
+    font-size:1.5em;
+    margin-right:15px;
+    border-bottoma:1px blue solid;
+}
+
+
+#lthsolr_staff_container, #lthsolr_pages_container, #lthsolr_courses_container {
     border:0px;
+    width:100%;
+    min-height:75px;
+}
+#lthsolr_pages_container {
+    padding-right:15px;
 }
 
-.lthsolr_table_wrappera {
-    background-color: #fbfbfb;
+
+#lthsolr_staff_container a, #lthsolr_pages_container a, #lthsolr_courses_container a {
+    text-decoration:none !important;
+    color: #000000 !important;
+}
+
+#lthsolr_pages_container li {
+    margin-bottom:15px;
+}
+
+.lthsolr_table_wrapper {
+    background-colorq: #fbfbfb;
     border-radius: 10px;
     padding-left:15px;
     padding-top:5px;
     margin-top:15px;
     border:2px #f7f7f7 solid;
+    overflow: hidden;
+}
+
+.table {
+    margin-bottom: 5px;
 }
 
 #lthsolr_staff_container td, #lthsolr_pages_container td, #lthsolr_documents_container td, #lthsolr_courses_container td {
-    min-width:220px;
-    padding:15px 15px 0px 0px;
+    min-width:270px;
     border:0px;
-    height: 130px;
+    white-space: normal !important;
+    /*padding:15px 15px 0px 0px;*/
+    /*height: 130px;*/
 }
 
 .lth_solr_res {
@@ -233,10 +300,6 @@ h2 {
     width:150px;
     min-height:500px;
     display:block;
-}
-
-.lth_solr_search_header {
-    font-size:1.5em;font-weight:bold;color:#576a7c;margin-right:15px;
 }
 
 #lth_solr_hidden_tools {
@@ -250,6 +313,10 @@ h2 {
 
 .readmore {
     margin-bottom:10px;
+}
+
+.lth_solr_hide {
+    display: none;
 }
 
 /* Styling LU widget start */
@@ -364,4 +431,45 @@ color:#ffffff;
         padding:10px;
         color:#ffffff;
     }
+
+  table {
+    border: 0;
+  }
+  table caption {
+    font-size: 1.3em;
+  }
+  table thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+  }
+  table tr {
+    /*border-bottom: 3px solid #ddd;*/
+    display: block;
+    margin-bottom: .625em;
+  }
+  table td {
+    border-bottom: 1px solid #ddd;
+    display: block;
+    font-size: .8em;
+    /*text-align: right;*/
+  }
+  table td:before {
+    /*
+    * aria-label has no advantage, it won't be read inside a table
+    content: attr(aria-label);
+    */
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  table td:last-child {
+    border-bottom: 0;
+  }
 }
