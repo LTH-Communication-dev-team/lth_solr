@@ -1932,6 +1932,7 @@ function showLocation(position)
     //var latitude = position.coords.latitude.toFixed(6); //55.7046601
     //var longitude = position.coords.longitude.toFixed(6); //13.191007299999999
     if(position) {
+        position = '55.710466,13.205075';
         var positionArray = position.split(',');
         var latitude = parseFloat(positionArray[0]).toFixed(6);
         var longitude = parseFloat(positionArray[1]).toFixed(6);

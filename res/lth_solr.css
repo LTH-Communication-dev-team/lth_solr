@@ -325,7 +325,7 @@ h2 {
 
 #lthsolr_map {
     position:absolute;
-    top:120px;
+    top:10px;
     right:10px;
     z-index:999;
     display:none;
