@@ -54,7 +54,8 @@ class FrontEndClass
                 . '<div style="position:relative;">'
                 . '<img style="display;none;"style="" src="typo3conf/ext/lth_solr/res/lthmap.gif" />'
                 . '<img id="lthsolr_pin" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1000;display:none;" src="typo3conf/ext/lth_solr/res/pin.png" />'
-                //. '<img id="lthsolr_pinPf" style="position:absolute;top:0px;right:0px;z-index:1000;display;none;" src="typo3conf/ext/lth_solr/res/pin.gif" />'
+                . '<img id="lthsolr_pinClient" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1000;display:none;" src="typo3conf/ext/lth_solr/res/pin.png" />'
+                . '<div id="lthsolr_googlelink" style="display:none;"></div>'
                 . '</div>'
                 . '</div>';
             //onclick="$(\'#myModal\').modal(\'toggle\');"

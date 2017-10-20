@@ -143,7 +143,7 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi6/class.tx_lthsolr_pi6.php', '_pi6', 'list_type', 1);
 
-$GLOBALS['TYPO3_CONF_VARS']['FE']['ContentObjects']['IMGTEXT'] = \Lth\Lthsolr\ContentObject\ImageTextContentObject::class;
+/*$GLOBALS['TYPO3_CONF_VARS']['FE']['ContentObjects']['IMGTEXT'] = \Lth\Lthsolr\ContentObject\ImageTextContentObject::class;
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript('lth_solr', 'setup', '
     #############################################
@@ -152,3 +152,5 @@ $GLOBALS['TYPO3_CONF_VARS']['FE']['ContentObjects']['IMGTEXT'] = \Lth\Lthsolr\Co
     
     config.no_cache=1
 ', 43);
+
+ */

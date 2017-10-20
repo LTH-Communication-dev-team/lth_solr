@@ -1610,8 +1610,6 @@ function showStaff($scope, $config, $table_length, $syslang)
                     $image = '/fileadmin' . $document->image;
                 } else if($document->lucrisPhoto) {
                     $image = $document->lucrisPhoto;
-                } else {
-                    $image = '/typo3conf/ext/lth_solr/res/placeholder_noframe.gif';
                 }
                 
                 $personData[] = array(

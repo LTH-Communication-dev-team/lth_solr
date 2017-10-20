@@ -1928,24 +1928,36 @@ function titleCase(string)
 
 function showLocation(position)
 {
-    //console.log(position);
-    //var latitude = position.coords.latitude.toFixed(6); //55.7046601
-    //var longitude = position.coords.longitude.toFixed(6); //13.191007299999999
+    //alert(position);
     if(position) {
-        position = '55.710466,13.205075';
-        var positionArray = position.split(',');
-        var latitude = parseFloat(positionArray[0]).toFixed(6);
-        var longitude = parseFloat(positionArray[1]).toFixed(6);
-        //55.712544,13.211670
+        var positionArray = $('#lthsolr_googlelink').text().split(',');
+
         var cornerLatitude = parseFloat(55.716760).toFixed(6);
-        var cornerLongitude = parseFloat(13.198662).toFixed(6);//55.716760, 13.198662
+        var cornerLongitude = parseFloat(13.198662).toFixed(6);
+        var latitude = position.coords.latitude.toFixed(6); //55.7046601
+        var longitude = position.coords.longitude.toFixed(6); //13.191007299999999
         var diffLatitude = (cornerLatitude - latitude) * 7500;
         var diffLongitude = (longitude - cornerLongitude) * 4500;
-        $('#lthsolr_map').show();
-        $('#lthsolr_pin').show().css('top',diffLatitude + '%').css('left', diffLongitude + '%');
+        //alert(latitude+';'+longitude);
+        $('#lthsolr_pinClient').show().css('top',diffLatitude + '%').css('left', diffLongitude + '%');
+        
+        //Add google maps link
+        $('#lthsolr_googlelink').html('').show().html('<a href="https://www.google.com/maps/dir/?api=1&origin='+positionArray[0]+','+positionArray[1]+'&destination='+latitude+','+longitude+'">Link to google maps</a>');
     }
     
-    console.log(diffLatitude+'%, ' + diffLongitude + '%');
+    //console.log(diffLatitude+'%, ' + diffLongitude + '%');
+}
+
+
+function errorHandler(err)
+{
+    if(err.code == 1) {
+       alert("Error: Access is denied!");
+    }
+
+    else if( err.code == 2) {
+       alert("Error: Position is unavailable!");
+    }
 }
 
 
@@ -2023,9 +2035,28 @@ function showStaff()
                     }
                     
                     //Map
-                    console.log(aData.coordinates.split(', ').pop());
+                    //console.log(aData.coordinates.split(', ').pop());
                     if(aData.coordinates) {
-                        showLocation(aData.coordinates.split(', ').pop());
+                        //position = '55.710466,13.205075';
+                        var positionArray = aData.coordinates.split(',');
+                        var latitude = parseFloat(positionArray[0]).toFixed(6);
+                        var longitude = parseFloat(positionArray[1]).toFixed(6);
+                        //55.712544,13.211670
+                        var cornerLatitude = parseFloat(55.716760).toFixed(6);
+                        var cornerLongitude = parseFloat(13.198662).toFixed(6);//55.716760, 13.198662
+                        var diffLatitude = (cornerLatitude - latitude) * 7500;
+                        var diffLongitude = (longitude - cornerLongitude) * 4500;
+
+                        $('#lthsolr_map').show();
+                        $('#lthsolr_pin').show().css('top',diffLatitude + '%').css('left', diffLongitude + '%');
+                        
+                        if(mobileCheck() ||1+1==2) {
+                            $('#lthsolr_googlelink').text(aData.coordinates);
+                            if(navigator.geolocation){
+                                var options = {timeout:60000,latitude:latitude,longitude:longitude};
+                                navigator.geolocation.getCurrentPosition(showLocation, errorHandler, options); 
+                            }
+                        }
                     }
 
                     //Change page main header
@@ -2049,9 +2080,10 @@ function showStaff()
 
                     //template = template.replace('###image###', '<div style="height: 100px"><img style="max-height: 100%; max-width: 100%" src="' + aData[11] + '" /></div>');
                     if(!aData.image) {
-                        aData.image = '/typo3conf/ext/lth_solr/res/noimage.gif';
-                    } 
-                    var image = '<div class="align_left" style="width:180px;min-height:167px;"><img style="max-height: 100%; max-width: 100%" src="' + aData.image + '" /></div>';
+                        var image = '<div class="lthsolr_noimage align_left" style="width:180px;min-height:167px;"><img style="max-height: 100%; max-width: 100%" src="/typo3conf/ext/lth_solr/res/noimage.gif" /></div>';
+                    } else {
+                        var image = '<div class="align_left" style="width:180px;min-height:167px;"><img style="max-height: 100%; max-width: 100%" src="' + aData.image + '" /></div>';
+                    }
                     template = template.replace('###image###', image);
                     
                     if(aData.intro) intro = aData.intro.replace('\n','<br />');

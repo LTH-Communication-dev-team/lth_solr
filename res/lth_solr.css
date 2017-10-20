@@ -452,6 +452,10 @@ color:#ffffff;
         z-index:999;
         display:none;
     }
+    
+    .lthsolr_noimage {
+        display:none;
+    }
 
   table {
     border: 0;
