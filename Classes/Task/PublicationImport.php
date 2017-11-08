@@ -41,14 +41,14 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $user = $settings['user'];
         $pw = $settings['pw'];
 
-        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("44; ".mysqli_error());
+        //$con = mysqli_connect($dbhost, $user, $pw, $db) or die("44; ".mysqli_error());
         
         $client = new \Solarium\Client($config);
         
         //Get last modified
         $query = $client->createSelect();
         $query->setQuery('docType:publication');
-        //$query->addSort('changed', $query::SORT_DESC);
+        $query->addSort('changed', $query::SORT_DESC);
         $query->setStart(0)->setRows(1);
         $response = $client->select($query);
         $idArray = array();
@@ -62,7 +62,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         $current_date = gmDate("Y-m-d\TH:i:s\Z");
         
-        $heritageArray = $this->getHeritage($con);
+        //$heritageArray = $this->getHeritage($con);
         
         /*$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("COUNT(DISTINCT msg) AS nor","tx_devlog_dump","");
         $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
@@ -71,12 +71,29 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         //$startFromHere = $numFound;
         $startFromHere = 0;
-        //$executionSucceeded = $this->jsonTest();
-	//$executionSucceeded = $this->getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
-      	//$executionSucceeded = $this->updateAtoms($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
+        $mode = '';
+        $executionSucceeded = $this->getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang);
+	if($executionSucceeded) {
+            $executionSucceeded = $this->getPublications($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
+      	
+            $syslang = "en";
+            $config = array(
+                'endpoint' => array(
+                    'localhost' => array(
+                        'host' => $settings['solrHost'],
+                        'port' => $settings['solrPort'],
+                        'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                        'timeout' => $settings['solrTimeout']
+                    )
+                )
+            );
+
+            $executionSucceeded = $this->getPublications($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
+        }
+        //$executionSucceeded = $this->updateAtoms($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
         //$executionSucceeded = $this->compare($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
-$executionSucceeded = $this->getCiteBib($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
-	return $executionSucceeded;
+        //$executionSucceeded = $this->getCiteBib($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
+        return $executionSucceeded;
     }
     
     function jsonTest()
@@ -359,36 +376,65 @@ function xmlToArray($xml, $options = array()) {
         return TRUE;
     }
     
+    
+    
+    
 
-    function getPublications($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
+    function getPublications($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode)
     {
         $heritageArray = $heritageArray[0];
         //$this->debug($heritageArray[0]);
         $varArray = array('publication-base_uk','stab');
+        $directory = '/var/www/html/typo3/lucrisdump';
+        if($mode==='reindex') {
+            $fileArray = scandir($directory . '/indexedfiles');
+        } else {
+            $fileArray = scandir($directory . '/filestoindex');
+        }
+        //$filename = '0.xml';
+        $fileArray = array_slice($fileArray, 2);
 
-        for($i = 0; $i < $numberofloops; $i++) {
+        foreach ($fileArray as $key => $filename) {
+        //for($i = 0; $i < $numberofloops; $i++) {
             
-            $startrecord = $startFromHere + ($i * $maximumrecords);
+            //$startrecord = $startFromHere + ($i * $maximumrecords);
 
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
-            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=73b902e4-1c54-49f7-9a5c-68f78498b237&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=BIBTEX";
-    
-            $xml = @file_get_contents($xmlpath);
-          
-
-            $xml = @simplexml_load_string($xml);
-            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => var_dump($xml), 'crdate' => time()));
-            if(!$xml || $xml==="") {
-                return TRUE;
-            }            
-            if($xml->children('core', true)->count == 0) {
-                return TRUE;
+            if($mode==='reindex') {
+                $xmlpath = $directory . '/indexedfiles/' . $filename;
+            } else {
+                $xmlpath = $directory . '/filestoindex/' . $filename;
             }
 
-            $numberofloops = ceil($xml->children('core', true)->count / 20);
+            $xml = @file_get_contents($xmlpath);
+            
+            
+$xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?>';
+$xmlPrefix .= '<publication-template:GetPublicationResponse xmlns:publication-template="http://atira.dk/schemas/pure4/wsdl/template/abstractpublication/stable"';
+$xmlPrefix .= ' xmlns:core="http://atira.dk/schemas/pure4/model/core/stable"';
+$xmlPrefix .= ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"';
+$xmlPrefix .= ' xmlns:publication-base_uk="http://atira.dk/schemas/pure4/model/template/abstractpublication/stable"';
+$xmlPrefix .= ' xmlns:extensions-core="http://atira.dk/schemas/pure4/model/core/extensions/stable"';
+$xmlPrefix .= ' xmlns:person-template="http://atira.dk/schemas/pure4/model/template/abstractperson/stable"';
+$xmlPrefix .= ' xmlns:organisation-template="http://atira.dk/schemas/pure4/model/template/abstractorganisation/stable"';
+$xmlPrefix .= ' xmlns:extensions-base_uk="http://atira.dk/schemas/pure4/model/base_uk/extensions/stable"';
+$xmlPrefix .= ' xmlns:externalorganisation-template="http://atira.dk/schemas/pure4/model/template/externalorganisation/stable"';
+$xmlPrefix .= ' xmlns:journal-template="http://atira.dk/schemas/pure4/model/template/abstractjournal/stable"';
+$xmlPrefix .= ' xmlns:externalperson-template="http://atira.dk/schemas/pure4/model/template/abstractexternalperson/stable"';
+$xmlPrefix .= ' xmlns:publisher-template="http://atira.dk/schemas/pure4/model/template/abstractpublisher/stable"';
+$xmlPrefix .= ' xmlns:event-template="http://atira.dk/schemas/pure4/model/template/abstractevent/stable" requestId="">';
+$xmlPrefix .= '<core:result>';
+
+$xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
+
+
+            $xml = @simplexml_load_string($xmlPrefix . $xml . $xmlSuffix);
+            
+            //$numberofloops = ceil($xml->children('core', true)->count / 20);
 
             foreach($xml->xpath('//core:result//core:content') as $content) {
                 $id = '';
@@ -919,17 +965,18 @@ function xmlToArray($xml, $options = array()) {
                 }
                 
                 //CITE OCH BIBTEX
-                $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
+                $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", "Vancouver" => "vancouver", "Author" => "author", "RIS" => "ris", "bibtex" => "bibtex");
                 $cite = "";
                 $bibtex = "";
                 foreach($citeArray as $citebibKey => $citebib) {
-                    $citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=$publicationTypeUri&rendering=$citebib";
+                    /*$citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=$publicationTypeUri&rendering=$citebib";
                     for( $ii=0; $ii<9; $ii++ ) { 
                         $citebibxml = @file_get_contents($citebibxmlpath);
                         if( $citebibxml !== FALSE ) { 
                             break;
                         }
-                    }
+                    }*/
+                    $citebibxml = @file_get_contents($directory . '/bibtexfiles/' . $filename . '_' . $citebib . '.xml');
                     $citebibxml = str_replace('$$$', '', $citebibxml);
                     $citebibxml = preg_replace('/<div/', '$$$<div', $citebibxml, 1);
                     $citebibxml = $this->lreplace('</div>', '</div>$$$', $citebibxml);
@@ -1053,7 +1100,12 @@ function xmlToArray($xml, $options = array()) {
                 );
                 // $this->debug($data);
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_atom', array('msg' => $id, 'crdate' => time()));
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_atom', array('msg' => $id, 'crdate' => time()));
+                //move file
+                if($mode!='reindex') {
+                    if($syslang==='en') rename($directory . '/filestoindex/' . $filename, $directory . '/indexedfiles/' . $filename);
+                }
+                
                 $buffer->createDocument($data);
             }
         }
@@ -1094,19 +1146,40 @@ function xmlToArray($xml, $options = array()) {
     }
     
     
-    function getFiles($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
+    function splitFiles($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
     {
-        $files1 = scandir('/var/www/html/typo3/fileadmin/lucrisdump');
-        $startFromHere = 20 * (intval(count($files1))-2);
+        $directory = '/var/www/html/typo3/lucrisdump';
+        $fileArray = scandir($directory);
+        //$filename = '0.xml';
+        $fileArray = array_slice($fileArray, 2);
+        foreach ($fileArray as $key => $filename) {
+            $xml = @file_get_contents($directory . '/' . $filename);
+            $xml = @simplexml_load_string($xml);
+            
+            foreach($xml->xpath('//core:result//core:content') as $content) {
+                $id = (string)$content->attributes();
+                $content->asXml($directory . '/singlefiles/' . $id . '.xml');
+            }
+            rename($directory . '/' . $filename, $directory . '/splitted/' . $filename);
+        }
+        return TRUE;
+    }
+    
+    
+    function getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang)
+    {
+        //$files1 = scandir('/var/www/html/typo3/fileadmin/lucrisdump');
+        //$startFromHere = 20 * (intval(count($files1))-2);
         
-        //$varArray = array('publication-base_uk','stab');
+        $varArray = array('publication-base_uk','stab');
+        $directory = '/var/www/html/typo3/lucrisdump';
 
-        for($i = 0; $i <= 200; $i++) {
+        for($i = 0; $i <= $numberofloops; $i++) {
             
             $startrecord = $startFromHere + ($i * 20);
-            $fileName = $startrecord . '.xml';
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
-            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=20&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
+            //$fileName = $startrecord . '.xml';
+            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=20&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=20&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=73b902e4-1c54-49f7-9a5c-68f78498b237&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=BIBTEX";
@@ -1115,13 +1188,11 @@ function xmlToArray($xml, $options = array()) {
 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_dump', array('location' => $xmlpath, 'msg' => (string)$xml, 'crdate' => time()));
             //echo $xmlpath;
             $xml = @simplexml_load_string($xml);
-            
-            $xml->asXml('/var/www/html/typo3/fileadmin/lucrisdump/' . $fileName);
+            $numberofloops = ceil($xml->children('core', true)->count / 20);
 
-            /*foreach($xml->xpath('//core:result//core:content') as $content) {
-   
-                //id
+            foreach($xml->xpath('//core:result//core:content') as $content) {
                 $id = (string)$content->attributes();
+                //citebibtex
                 $publicationTypeUri = '';
                 foreach($varArray as $varVal) {
                     if($content->children($varVal,true)->typeClassification) {
@@ -1136,27 +1207,47 @@ function xmlToArray($xml, $options = array()) {
                         $publicationTypeUri = (string)$content->children($varVal,true)->typeClassification->children('core',true)->uri;
                     }
                 }
-
                 if($publicationTypeUri) {
-                    //CITE OCH BIBTEX
                     $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", 
                         "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
                     $cite = "";
                     $bibtex = "";
                     foreach($citeArray as $citebibKey => $citebib) {
                         $citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=$publicationTypeUri&rendering=$citebib";
-                        for( $ii=0; $ii<9; $ii++ ) { 
-                            $citebibxml = @file_get_contents($citebibxmlpath);
-                            if( $citebibxml !== FALSE ) { 
-                                break;
-                            }
-                        }
+                        //print '<p>' . $citebibxmlpath . '</p>';
+                        $citebibxml = @file_get_contents($citebibxmlpath);
+                        $citebibxml = @simplexml_load_string($citebibxml);
+                        //print '<p>' . $citebibxml . '</p>';
                         if($citebibxml) {
-                            $GLOBALS['TYPO3_DB']->exec_INSERTquery('uid_citebib', array('location' => $id, 'msg' => $citebibxml, 'type' => $citebib));
+                            switch($citebib) {
+                                case 'standard':
+                                    $citebibxml->asXml($directory . '/bibtexfiles/' . $id . '_standard.xml');
+                                    break;
+                                case 'harvard':
+                                    $citebibxml->asXml($directory . '/bibtexfiles/' . $id . '_harvard.xml');
+                                    break;
+                                case 'apa':
+                                    $citebibxml->asXml($directory . '/bibtexfiles/' . $id . '_apa.xml');
+                                    break;
+                                case 'vancouver':
+                                    $citebibxml->asXml($directory . '/bibtexfiles/' . $id . '_vancouver.xml');
+                                    break;
+                                case 'author':
+                                    $citebibxml->asXml($directory . '/bibtexfiles/' . $id . '_author.xml');
+                                    break;
+                                case 'RIS':
+                                    $citebibxml->asXml($directory . '/bibtexfiles/' . $id . '_ris.xml');
+                                    break;
+                                case 'BIBTEX':
+                                    $citebibxml->asXml($directory . '/bibtexfiles/' . $id . '_bibtex.xml');
+                                    break;
+                                }
                         }
                     }
                 }
-            }*/
+                //save content as xml
+                $content->asXml($directory . '/filestoindex/' . $id . '.xml');
+            }
         }
         return TRUE;
     }

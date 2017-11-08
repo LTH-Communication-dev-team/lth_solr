@@ -11,25 +11,45 @@
             <type>array</type>
             <el>
                 
-                <displayOrder>
+                <webSearchScope>
                     <TCEforms>
-                        <label>Display order</label>
+                        <label>Search web pages</label>
                         <config>
                             <default>local</default>
                             <type>radio</type>
                                 <items type="array">
                                     <numIndex index="0" type="array">
-                                        <numIndex index="0">Display local search first</numIndex>
+                                        <numIndex index="0">Show LTH result first with LU option</numIndex>
                                         <numIndex index="1">local</numIndex>
                                     </numIndex>
                                     <numIndex index="1" type="array">
-                                        <numIndex index="0">Display global search first</numIndex>
+                                        <numIndex index="0">Show just LU results</numIndex>
                                         <numIndex index="1">global</numIndex>
                                     </numIndex>
                                </items>
                         </config>
                     </TCEforms>
-                </displayOrder>
+                </webSearchScope>
+                
+                <linkStaffDetailPage>
+                    <TCEforms>
+                        <label>Link to staff detail page</label>
+                        <config>
+                            <default>no</default>
+                            <type>radio</type>
+                                <items type="array">
+                                    <numIndex index="0" type="array">
+                                        <numIndex index="0">Yes</numIndex>
+                                        <numIndex index="1">yes</numIndex>
+                                    </numIndex>
+                                    <numIndex index="1" type="array">
+                                        <numIndex index="0">No</numIndex>
+                                        <numIndex index="1">no</numIndex>
+                                    </numIndex>
+                               </items>
+                        </config>
+                    </TCEforms>
+                </linkStaffDetailPage>
                 
                 <noItemsToShow>
                     <TCEforms>

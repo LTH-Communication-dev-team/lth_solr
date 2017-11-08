@@ -17,11 +17,32 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
 	$executionSucceeded = FALSE;
 
-	$executionSucceeded = $this->getPersonUuid($client);
+	//$executionSucceeded = $this->getPersonUuid();
+        $executionSucceeded = $this->getImageData();
         
 	return $executionSucceeded;
     }
 
+    
+    function getImageData()
+    {
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("id,lucris_photo","tx_lthsolr_lucrisdata","lucris_photo!='' AND lucris_photo_width=0");
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $id = $row['id'];
+            $lucris_photo = $row['lucris_photo'];
+        
+            if($lucris_photo) {
+                list($width, $height) = @getimagesize($lucris_photo);
+                if($width && $height) {
+                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_lthsolr_lucrisdata', 'id='.intval($id), array('lucris_photo_width' => $width, 'lucris_photo_height' => $height));
+                }
+            }
+        }    
+        return TRUE;
+        //$GLOBALS['TYPO3_DB']->sql_free_result($res);
+    }
+    
+    
     function getPersonUuid()
     {
         $current = array();

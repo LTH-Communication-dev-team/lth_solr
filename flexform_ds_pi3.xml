@@ -117,36 +117,6 @@
                        </config>
                     </TCEforms>
                 </projects> -->
-            
-                <staffDetailPage>
-                    <TCEforms>
-                       <label>Page with STAFF details (in detail view only)</label>
-                       <config>
-                           <type>group</type>
-                           <internal_type>db</internal_type>
-                           <allowed>pages</allowed>
-                           <size>1</size>
-                           <maxitems>1</maxitems>
-                           <minitems>0</minitems>
-                           <show_thumbs>0</show_thumbs>
-                       </config>
-                    </TCEforms>
-                </staffDetailPage>
-            
-                <projectDetailPage>
-                    <TCEforms>
-                       <label>Page with PROJECT details (in detail view only)</label>
-                       <config>
-                           <type>group</type>
-                           <internal_type>db</internal_type>
-                           <allowed>pages</allowed>
-                           <size>1</size>
-                           <maxitems>1</maxitems>
-                           <minitems>0</minitems>
-                           <show_thumbs>0</show_thumbs>
-                       </config>
-                    </TCEforms>
-                </projectDetailPage>
 
                 <categories>
                     <TCEforms>

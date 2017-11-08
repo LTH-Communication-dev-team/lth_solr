@@ -65,6 +65,8 @@ CREATE TABLE tx_lthsolr_lucrisdata (
     typo3_id varchar(255) DEFAULT NULL,
     lucris_id varchar(255) DEFAULT NULL,
     lucris_photo varchar(255) DEFAULT NULL,
+    lucris_photo_width int(10) unsigned NOT NULL,
+    lucris_photo_height int(10) unsigned NOT NULL,
     lucris_profile_information text DEFAULT '' NOT NULL,
     lucris_type varchar(25) DEFAULT NULL,
     PRIMARY KEY (id)

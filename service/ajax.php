@@ -16,6 +16,7 @@ $pageOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("page
 $courseOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("courseOffset"));
 $more = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("more"));
 $query = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("query"));
+if($query) $query = trim($query);
 $action = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("action"));
 $scope = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("scope"));
 $facet = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("facet");
@@ -31,8 +32,8 @@ $categories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('categories');
 $addPeople = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('addPeople');
 $keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
 $papertype = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('papertype');
-$selection = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('selection');
-$displayOrder = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('displayOrder');
+//$selection = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('selection');
+$webSearchScope = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('webSearchScope');
 $sorting = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sorting');
         
 $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("sid");
@@ -69,7 +70,7 @@ switch($action) {
         $content = searchShort($query, $config);
         break;
     case 'searchLong':
-        $content = searchLong($term, $query, $table_length, $peopleOffset, $pageOffset, $courseOffset, $displayOrder, $more, $config);
+        $content = searchLong($term, $query, $table_length, $peopleOffset, $pageOffset, $courseOffset, $webSearchScope, $more, $config);
         break;
     case 'searchMorePeople':
         $content = searchMore($term, 'people', $peopleOffset, $pageOffset, $documentOffset, $config);
@@ -81,13 +82,13 @@ switch($action) {
         $content = searchMore($term, 'documents', $peopleOffset, $pageOffset, $documentOffset, $config);
         break;
     case 'listPublications':
-        $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $query, $selection, $keyword, $sorting);
+        $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $query, $keyword, $sorting);
         break;
     case 'listStudentPapers':
         $content = listStudentpapers($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $categories, $query, $papertype);
         break;
     case 'showPublication':
-        $content = showPublication($term, $syslang, $config);
+        $content = showPublication('', $term, $syslang, $config);
         break;
     case 'showStudentPaper':
         $content = showStudentPaper($term, $syslang, $config);
@@ -101,6 +102,12 @@ switch($action) {
     case 'listStaff':
         $content = listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $table_start, $categories, 
                 $custom_categories, $config, $query);
+        break;
+    case 'exportStaff':
+        $content = exportStaff($syslang, $scope, $config, $query);
+        break;
+    case 'exportPublications':
+        $content = exportPublications($syslang, $scope, $config, $query);
         break;
     case 'showStaff':
         $content = showStaff($scope, $config, $table_length, $syslang);
@@ -117,6 +124,63 @@ switch($action) {
 }
 
 print $content;
+
+
+function exportStaff($syslang, $scope, $config, $filterQuery)
+{
+    $client = new Solarium\Client($config);
+    $query = $client->createSelect();
+    if($scope) {
+        //$debugQuery = urldecode($scope);
+        $scope = json_decode(urldecode($scope),true);
+        foreach($scope as $key => $value) {
+            if($term) {
+                $term .= " OR ";
+            }
+            if($key === "fe_groups") {
+                $term .= "heritage:" . implode(' OR heritage:', $value);
+            } else {
+                $term .= "primaryUid:" . implode(' OR primaryUid:', $value);
+            }
+        }
+    }
+    
+    if($filterQuery) {
+        $filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '*)';
+    }
+    
+    $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_i:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
+    //$debug = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_i:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
+    $query->setQuery($queryToSet);
+    $query->setStart(0)->setRows(1000000);
+    $sortArray = array(
+        'lastNameExact' => 'asc',
+        'firstNameExact' => 'asc'
+    );
+    $query->addSorts($sortArray);
+    $response = $client->select($query);
+    foreach ($response as $document) {      
+        $data[] = array(           
+            "firstName" => mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8"),
+            "lastName" => mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
+            "title" => $document->title,
+            "phone" => $document->phone,
+            "email" => $document->email,
+            "organisationName" => $document->organisationName,
+            "roomNumber" => fixRoomNumber($document->roomNumber),
+            "mobile" => $document->mobile,
+        );
+    }
+    $resArray = array('data' => $data, 'debug' => $debug);
+    return json_encode($resArray);
+}
+
+
+function exportPublications()
+{
+    
+}
 
 
 function searchShort($term, $config)
@@ -185,11 +249,11 @@ function searchShort($term, $config)
                 $value = $document->id;
                 $label = fixArray($document->name);
                 if($document->phone) $label .= ', ' . fixPhone(fixArray($document->phone));
-                if($email) $label .= ', ' . fixArray($email);
+                //if($email) $label .= ', ' . fixArray($email);
                 $data[] = array(
-                    'email' => $email,
+                    'id' => $email,
                     'label' => $label,
-                    'type' => $email,
+                    'type' => 'staff',
                     'value' => $label
                 );
             } else if($docType === 'course') {
@@ -255,7 +319,7 @@ function file_get_contents_utf8($fn) {
 }
 
 
-function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset, $courseOffset, $displayOrder, $more, $config)
+function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset, $courseOffset, $webSearchScope, $more, $config)
 {
     $people;
     $facet;
@@ -278,7 +342,7 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
     $query->setStart($table_start)->setRows($table_length);
     
     if($term) {
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $term, 'crdate' => time()));
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $term, 'crdate' => time()));
         $term = array_pop(explode(',', htmlspecialchars_decode($term)));
     } else {
         $term = $inputQuery;
@@ -328,14 +392,14 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
         $pageOffset = 1 + ceil(20/$pageOffset);
     }
 
-    if(($displayOrder==='global' || $more==='global') && $more != 'people' && $more != 'courses') {
+    if(($webSearchScope==='global' || $more==='global') && $more != 'people' && $more != 'courses') {
         $pageRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/$pageOffset?1505829015363");
         preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
         $pageNumFound = trim($matches[1][1]);
         $pageResArray = explode('<div class="hit-wrapper">', $pageRes);
         $pageRes = $pageResArray[2];
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $pageResArray[2], 'crdate' => time()));
-    } else if(($displayOrder==='local' || $more==='local') && $more != 'people' && $more != 'courses') {
+    } else if(($webSearchScope==='local' || $more==='local') && $more != 'people' && $more != 'courses') {
         $pageRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/customsites/$pageOffset?1505829015363");
         preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
         $pageNumFound = trim($matches[1][0]);
@@ -370,6 +434,7 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
                     "roomNumber" => $document->roomNumber,
                     "mobile" => $document->mobile,
                     "guid" => $document->guid,
+                    "uuid" => $document->uuid,
                     "orgid" => $document->orgid
                 );
             } /*else if($type == 'pages') {
@@ -392,7 +457,7 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
                     "title" => $document->title,
                     "courseCode" => $document->courseCode,
                     "credit" => $document->credit,
-                    "url" => $document->url
+                    "homepage" => $document->homepage
                 );
             }
         }
@@ -493,7 +558,7 @@ function searchMore($term, $type, $peopleOffset, $pageOffset, $documentOffset, $
 }
 
 
-function listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $filterQuery, $selection, $keyword, $sorting)
+function listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $filterQuery, $keyword, $sorting)
 {
     $currentDate = gmDate("Y-m-d\TH:i:s\Z");
     
@@ -506,10 +571,6 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
     if($filterQuery) {
         $filterQuery = str_replace(" ","\ ",$filterQuery);
         $filterQuery = " AND ((documentTitle:*$filterQuery*) OR authorName:*$filterQuery*)";
-    }
-    
-    if($selection == 'coming_dissertations') {
-        $selection = ' AND publicationType:Doctoral Thesis*';
     }
     
     if($keyword) {
@@ -532,10 +593,8 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
         }
     }
 
-    $query->setQuery('docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND (' . $term . ')' . $keyword . $selection . $filterQuery);
-    //   $debugQuery = 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND (' . $term . ')' . $keyword . $selection . $filterQuery;
-    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND ('.$term.')' . $keyword . $selection . $filterQuery, 'crdate' => time()));
-    //$query->addParam('rows', 1500);
+    $queryToSet = 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND (' . $term . ')' . $keyword . $selection . $filterQuery;
+    $query->setQuery($queryToSet);
     $query->setStart($table_start)->setRows($table_length);
     
     // get the facetset component
@@ -617,43 +676,41 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
     $numFound = $response->getNumFound();
     
     // display facet query count
-    //if(!$facet) {
-        $facet_standard = $response->getFacetSet()->getFacet('standard');
-        if($syslang==="en") {
-            $facetHeader = "Publication Type";
-        } else {
-            $facetHeader = "Publikationstyp";
-        }
-        foreach ($facet_standard as $value => $count) {
-            //if($count > 0) {
-                $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
-            //}
-        }
-        
-        $facet_language = $response->getFacetSet()->getFacet('language');
-        if($syslang==="en") {
-            $facetHeader = "Language";
-        } else {
-            $facetHeader = "Språk";
-        }
-        foreach ($facet_language as $value => $count) {
-            //if($count > 0) {
-                $facetResult["language"][] = array($value, $count, $facetHeader);
-            //}
-        }
-        
-        $facet_year = $response->getFacetSet()->getFacet('year');
-        if($syslang==="en") {
-            $facetHeader = "Publication Year";
-        } else {
-            $facetHeader = "Publikationsår";
-        }
-        foreach ($facet_year as $value => $count) {
-            //if($count > 0) {
-                $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
-            //}
-        }
-    //}
+    $facet_standard = $response->getFacetSet()->getFacet('standard');
+    if($syslang==="en") {
+        $facetHeader = "Publication Type";
+    } else {
+        $facetHeader = "Publikationstyp";
+    }
+    foreach ($facet_standard as $value => $count) {
+        //if($count > 0) {
+            $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+        //}
+    }
+
+    $facet_language = $response->getFacetSet()->getFacet('language');
+    if($syslang==="en") {
+        $facetHeader = "Language";
+    } else {
+        $facetHeader = "Språk";
+    }
+    foreach ($facet_language as $value => $count) {
+        //if($count > 0) {
+            $facetResult["language"][] = array($value, $count, $facetHeader);
+        //}
+    }
+
+    $facet_year = $response->getFacetSet()->getFacet('year');
+    if($syslang==="en") {
+        $facetHeader = "Publication Year";
+    } else {
+        $facetHeader = "Publikationsår";
+    }
+    foreach ($facet_year as $value => $count) {
+        //if($count > 0) {
+            $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
+        //}
+    }
         
     foreach ($response as $document) {     
         $data[] = array(
@@ -674,18 +731,19 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
 }
 
 
-function showPublication($term, $syslang, $config)
+function showPublication($response, $term, $syslang, $config)
 {
-    $client = new Solarium\Client($config);
+    if(!$response) {
+        $client = new Solarium\Client($config);
 
-    $query = $client->createSelect();
+        $query = $client->createSelect();
 
-    $query->setQuery('id:'.$term);
+        $query->setQuery('id:'.$term);
 
-    $response = $client->select($query);
-    
-    $content = '';
-    
+        $response = $client->select($query);
+
+        $content = '';
+    }
     $organisationNameHolder = 'organisationName_' . $syslang;
     $publicationTypeHolder = 'publicationType_' . $syslang;
     $languageHolder = 'language_' . $syslang;
@@ -1351,57 +1409,23 @@ function rest()
 
 function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $table_start, $categories, $custom_categories, $config, $filterQuery)
 {
-    $content = '';
-    $data = array();
     $facetResult = array();
-        
-    if($categories === 'standard_category') {
-        //$catVal = 'standard_category_sv_txt';
-        $catVal = 'standardCategory';
-    } elseif($categories === 'custom_category') {
-        //if(!$categoriesThisPage || $categoriesThisPage == '') {
-            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'global', 'crdate' => time()));
-        //    $catVal = 'lth_solr_cat_ss';
-        //} else {
-            $catVal = 'lth_solr_cat_' . $pageid . '_ss';
-        //lth_solr_cat_40458_ss} 
-    }
-
-    //if(!$introThisPage || $introThisPage == '') {
-    //    $introVar = 'staff_custom_text_s';
-    //} else {
-        $introVar = 'staff_custom_text_' . $pageid . '_s';
-    //}
-        
-    //$showVal = 'lth_solr_show_' . $pageid . '_i';
+    
+    $currentDate = gmDate("Y-m-d\TH:i:s\Z");
+    
+    $client = new Solarium\Client($config);
+    
+    $query = $client->createSelect();
     
     $hideVal = 'lth_solr_hide_' . $pageid . '_i';
     
-    //$autoVal = 'lth_solr_autohomepage_' . $pageid . '_s';
-
-    $client = new Solarium\Client($config);
-
-    $query = $client->createSelect();
+    if($filterQuery) {
+        $filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '*)';
+    }
     
-    /*if($scope) {
-        $scopeArray = explode(",", $scope);
-        $scope = '';
-        foreach($scopeArray as $key => $value) {
-            if($scope) {
-                $scope .= ' OR ';
-            } else {
-                $scope .= ' AND (organisationId:';
-            }
-            $scope .= '"' . $value . '" OR heritage:"' . $value . '"';
-        }
-        $scope .= " OR $showVal:1)";
-    } else {
-        $scope = " OR $showVal:1";
-    }*/
     if($scope) {
         //$debugQuery = urldecode($scope);
         $scope = json_decode(urldecode($scope),true);
-        //var_dump($scope);
         foreach($scope as $key => $value) {
             if($term) {
                 $term .= " OR ";
@@ -1414,91 +1438,70 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
         }
     }
     
-    if($filterQuery) {
-        $filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '*)';
-    }
-
     $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_i:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
-    //$debug = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_i:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
-    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
     $query->setQuery($queryToSet);
-    
     $query->setStart($table_start)->setRows($table_length);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
-    if($facet) {
-        $facetArray = json_decode($facet, true);
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facet, 'crdate' => time()));
-
-        $facetQuery = '';
-        foreach($facetArray as $key => $value) {
-            $facetTempArray = explode('###', $value);
-            if($facetQuery) {
-                $facetQuery .= ' OR ';
-            }
-            $facetQuery .= $facetTempArray[0] . ':' . $facetTempArray[1] . '';
-        }
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facetQuery, 'crdate' => time()));
-        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
-    } /*else {
-        $facetSet->createFacetField('title')->setField('title_sort');
-    }*/
+        
+    // create a facet field instance and set options
+    if($categories === 'standard_category') {
+        $catVal = 'standardCategory';
+    } elseif($categories === 'custom_category') {
+        $catVal = 'lth_solr_cat_' . $pageid . '_ss';
+    }
     if($categories === 'standard_category') {
         $facetSet->createFacetField('standard')->setField($catVal);
     } else if($categories === 'custom_category') {
         $facetSet->createFacetField('custom')->setField($catVal);
     }
+    
+    if($facet) {
+        $facetArray = json_decode($facet, true);
+        $facetQuery = '';
+        foreach($facetArray as $key => $value) {
+            $facetTempArray = explode('###', $value);
+            if($facetQuery) {
+                $facetQuery .= ' AND ';
+            }
+            $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"';
+        }
+        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
+        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facetQuery, 'crdate' => time()));
+    } 
         
     $sortArray = array(
         'lth_solr_sort_' . $pageid . '_i' => 'asc',
         'lastNameExact' => 'asc',
         'firstNameExact' => 'asc'
     );
-    
-    //$query->addSort('last_name_s', $query::SORT_ASC);
-    //$query->addSort('first_name_s', $query::SORT_ASC);
     $query->addSorts($sortArray);
-    
-    //$query->addParam('rows', 15000);
-    
-    // this executes the query and returns the result
+
     $response = $client->select($query);
 
-    // display the total number of documents found by solr
     $numFound = $response->getNumFound();
 
     // display facet query count
     $facetHeader = "";
-        if($syslang==="en") {
-            $facetHeader = "Staff category";
-        } else {
-            $facetHeader = "Personalkategori";
-        }
-    //if(!$facet) {
-        if($categories === 'standard_category') {
-            $facet_standard = $response->getFacetSet()->getFacet('standard');
-            foreach ($facet_standard as $value => $count) {
-                if($count > 0) $facetResult[$catVal][] = array($value, $count, $facetHeader);
-            }
-        } else if($categories === 'custom_category') {
-            $facet_custom = $response->getFacetSet()->getFacet('custom');
-            foreach ($facet_custom as $value => $count) {
-                if($count > 0) $facetResult[$catVal][] = array($value, $count, $facetHeader);
-            }
-        } 
-        //
-        /*else {
-            $facet_title = $response->getFacetSet()->getFacet('title');
-            //$facet_ou = $response->getFacetSet()->getFacet('ou');
+    if($syslang==="en") {
+        $facetHeader = "Staff category";
+    } else {
+        $facetHeader = "Personalkategori";
+    }
 
-            foreach ($facet_title as $value => $count) {
-                $facetResult['title_sort'][] = array($value, $count);
-            }
-        }*/
-    //}
-    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($facetResult,true), 'crdate' => time()));
-    // show documents using the resultset iterator
+    if($categories === 'standard_category') {
+        $facet_standard = $response->getFacetSet()->getFacet('standard');
+        foreach ($facet_standard as $value => $count) {
+            if($count > 0) $facetResult[$catVal][] = array($value, $count, $facetHeader);
+        }
+    } else if($categories === 'custom_category') {
+        $facet_custom = $response->getFacetSet()->getFacet('custom');
+        foreach ($facet_custom as $value => $count) {
+            if($count > 0) $facetResult[$catVal][] = array($value, $count, $facetHeader);
+        }
+    } 
+    $introVar = 'staff_custom_text_' . $pageid . '_s';
     foreach ($response as $document) {
         $image = '';
         $intro = '';
@@ -1571,30 +1574,28 @@ function showStaff($scope, $config, $table_length, $syslang)
     if(!$table_length) $table_length = 10;
     
     if($scope) {
-        //$debugQuery = urldecode($scope);
         $scope = json_decode(urldecode($scope),true);
         $scope = $scope['fe_users'][0];
     }
     
-    $publicationType = "publicationType_$syslang";
-
     $client = new Solarium\Client($config);
     $query = $client->createSelect();
     //$query->setStart($table_start)->setRows($table_length);
     $groupComponent = $query->getGrouping();
 
     $groupComponent->addQuery('guid:' . $scope . ' OR uuid:' . $scope);
-    $groupComponent->addQuery('authorId:' . $scope);
-    $groupComponent->addQuery('participantId:' . $scope);
-    $groupComponent->setSort('publicationDateYear desc');
-    $groupComponent->setLimit($table_length);
+    //$groupComponent->addQuery('id:' . $scope);
+    //$groupComponent->addQuery('authorId:' . $scope);
+//    $groupComponent->addQuery('participantId:' . $scope);
+    //$groupComponent->setSort('publicationDateYear desc');
+    //$groupComponent->setLimit($table_length);
 
     $resultset = $client->select($query);
     //var_dump($resultset);
     $groups = $resultset->getGrouping();
     foreach ($groups as $groupKey => $group) {
         //var_dump($group);
-        $numRow[] = $group->getNumFound();
+        //$numRow[] = $group->getNumFound();
 
         foreach ($group as $document) {        
             $id = $document->id;
@@ -1612,7 +1613,7 @@ function showStaff($scope, $config, $table_length, $syslang)
                     $image = $document->lucrisPhoto;
                 }
                 
-                $personData[] = array(
+                $data[] = array(
                     "firstName" => ucwords(strtolower($document->firstName)),
                     "lastName" => ucwords(strtolower($document->lastName)),
                     "title" => $document->title,
@@ -1627,6 +1628,7 @@ function showStaff($scope, $config, $table_length, $syslang)
                     "roomNumber" => $document->roomNumber,
                     "mobile" => $document->mobile,
                     "uuid" => $document->uuid,
+                    "guid" => $document->guid,
                     "organisationId" => $document->organisationId,
                     "organisationPhone" => $document->organisationPhone,
                     "organisationStreet" => $document->organisationStreet,
@@ -1635,19 +1637,8 @@ function showStaff($scope, $config, $table_length, $syslang)
                     "profileInformation" => $document->profileInformation,
                     "coordinates" => fixArray($document->coordinates)
                 );
-            } else if($docType === 'publication') {
-                $publicationData[] = array(
-                    "id" => $document->id,
-                    "documentTitle" => fixArray($document->documentTitle),
-                    "authorName" => ucwords(strtolower(fixArray($document->authorName))),
-                    "publicationType" => fixArray($document->publicationType),
-                    "publicationDateYear" => $document->publicationDateYear,
-                    "publicationDateMonth" => $document->publicationDateMonth,
-                    "publicationDateDay" => $document->publicationDateDay,
-                    "pages" => $document->pages,
-                    "journalTitle" => $document->journalTitle,
-                    "journalNumber" => $document->journalNumber
-                );
+            } /*else if($docType === 'publication') {
+                $publicationData[] = showPublication($group, '', $syslang, $config);
                 
             } else if($docType === 'upmproject') {
                 $projectData[] = array(
@@ -1659,11 +1650,11 @@ function showStaff($scope, $config, $table_length, $syslang)
                     ucwords(strtolower(str_replace('_',' ',$document->projectStatus)))
                 );
                 
-            }
+            }*/
         }
     }
     
-    $resArray = array('personData' => $personData, 'publicationData' => $publicationData, 'publicationNumFound' => $numRow[1], 'projectData' => $projectData, 'projectNumFound' => $numRow[2],'debug' => $scope);
+    $resArray = array('data' => $data, 'debug' => $scope);
     
     return json_encode($resArray);
 }

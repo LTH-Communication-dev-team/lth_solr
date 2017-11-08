@@ -15,6 +15,11 @@ and open the template in the editor.
   }
 }
 
+.ui-menu-item-wrapper {
+    white-space: nowrap;
+    max-width:273px;
+}
+
 .loader {
     border: 16px solid #f3f3f3; /* Light grey */
     border-top: 16px solid #3498db; /* Blue */
@@ -51,7 +56,7 @@ and open the template in the editor.
 
 #lth_solr_facet_container {
     margin-bottom:10px;
-    width:30%;
+    width:200px;
     display:none;
     background-color:#353838;
     padding-right:10px;
@@ -92,6 +97,7 @@ select {
     margin-bottom:0px;
     background-color:#fafafa;
     border-bottom: 1px #ebebeb solid;
+    max-width: 650px;
 }
 
 .search-wrapper {
@@ -171,7 +177,8 @@ tr.details td.details-control {
 }
 
 .expand {
-    padding:10px;
+    max-width:450px;
+    padding-left:10px;
 }
 
 #lthsolr_publications_container a {
@@ -181,6 +188,10 @@ tr.details td.details-control {
 #lthsolr_publications_container p {
     margin:0px;
     padding:0px;
+}
+
+#lthsolr_publications_container h3 {
+    line-height:14px;
 }
 
 #lthsolr_staff_header {
@@ -257,8 +268,9 @@ h2 {
 #lthsolr_staff_container, #lthsolr_pages_container, #lthsolr_courses_container {
     border:0px;
     width:100%;
-    min-height:75px;
+    min-height:200px;
 }
+
 #lthsolr_pages_container {
     padding-right:15px;
 }
@@ -275,7 +287,7 @@ h2 {
 
 .lthsolr_table_wrapper {
     background-colorq: #fbfbfb;
-    border-radius: 10px;
+    border-radius: 5px;
     padding-left:15px;
     padding-top:5px;
     margin-top:15px;
@@ -291,10 +303,19 @@ h2 {
     margin-bottom: 5px;
 }
 
+.glyphicon-search {
+    font-size: 25px;
+}
+
+.glyphicon-filter, .glyphicon-export {
+    font-size: 15px;
+}
+
 #lthsolr_staff_container td, #lthsolr_pages_container td, #lthsolr_documents_container td, #lthsolr_courses_container td {
     min-width:270px;
     border:0px;
     white-space: normal !important;
+    padding-bottom:15px;
     /*padding:15px 15px 0px 0px;*/
     /*height: 130px;*/
 }

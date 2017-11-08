@@ -58,7 +58,6 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $html_template = $this->pi_getFFvalue($piFlexForm, "html_template", "sDEF", $lDef[$index]);
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
-            $staffHomepagePath = $this->pi_getFFvalue($piFlexForm, "staffHomepagePath", "sDEF", $lDef[$index]);
             
             $scope = array();
             if($fe_groups) {
@@ -81,224 +80,31 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             $clientIp = $_SERVER['REMOTE_ADDR'];
             
-            /*if($scope) {
-                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in($scope)");
-                while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                    $title[] = explode('__', $row['title'])[0];
-                }
-                if($title) {
-                    $scope = implode(',', $title);
-                }
-                $GLOBALS['TYPO3_DB']->sql_free_result($res);
-            }*/
-            //$detailPage = $this->pi_getFFvalue($piFlexForm, "detailpage", "sDEF", $lDef[$index]);
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $customCategories = $this->pi_getFFvalue($piFlexForm, "customcategories", "sDEF", $lDef[$index]);
-            $categoriesThisPage = $this->pi_getFFvalue($piFlexForm, "categoriesthispage", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
-            $publicationDetailPage = $this->pi_getFFvalue($piFlexForm, "publicationDetailPage", "sDEF", $lDef[$index]);
-            if($publicationDetailPage) {
-                $publicationDetailPage = $GLOBALS['TSFE']->cObj->typoLink_URL(
-                    array(
-                        'parameter' => $publicationDetailPage,
-                        'forceAbsoluteUrl' => true,
-                    )
-                );
-            }
             
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
             if(strstr($uuid,")")) {
                 $uuid = rtrim(array_pop(explode('(',$uuid)),")");
             }
             $pid = $GLOBALS['TSFE']->page['pid'];
-            //$solrId = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('solrid');
-            $link = $_SERVER['PHP_SELF'];
-            $link_array = explode('/',$link);
-            //$solrId = end($link_array);
-            //$solrId = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("query");
             $ip = $_SERVER['REMOTE_ADDR'];
             
             $action = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('action');
             $query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
-            if($action=='detail' && $query) {
-                $solrId = $query;
-            }
-            
-            $syslang = $GLOBALS['TSFE']->config['config']['language'];
-            if(!$syslang) {
-                $syslang = 'en';
-            }
-            if($syslang=='se') {
-                $syslang='sv';
-            }
-            
-            /*load files needed for datatables
-            $GLOBALS["TSFE"]->additionalHeaderData["jquery.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/jquery.dataTables.min.css\" />";
-            $GLOBALS["TSFE"]->additionalHeaderData["responsive.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/responsive.dataTables.min.css\" />";
-            $GLOBALS["TSFE"]->additionalHeaderData["buttons.dataTables.min.css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/vendor/datatables/css/buttons.dataTables.min.css\" />";
-            $GLOBALS["TSFE"]->additionalFooterData["jquery.dataTables.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/jquery.dataTables.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["dataTables.buttons.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.buttons.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["jszip.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["pdfmake.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["vfs_fonts.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["buttons.html5.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/buttons.html5.min.js\"></script>";
-            $GLOBALS["TSFE"]->additionalFooterData["dataTables.responsive.min.js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/datatables/js/dataTables.responsive.min.js\"></script>";
-*/          
-            //Load main js- and css-files
-            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
-            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js\"></script>"; 
-            $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css\" />";
-            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_download"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/vendor/download/download.js\"></script>"; 
-
-                    
-            /*$content = '';
-            $facetContent = '';
-            $staffList = '';
-            $facets = '';
-            $lu_user = '';
-            
-            if($hideFilter && $categories == 'no_categories') {
-            } else {
-                $content .= '<div class="lth_solr_filter_container">';
-                        }
-            
-            $content .= '<div class="form-group">';
-            if(!$hideFilter) {
-                $content .= '<div class="input-group">';
-                $content .= '<div class="input-group-addon"><span class="glyphicon glyphicon-filter" aria-hidden="true"></span></div><input type="text" id="lthsolr_staff_filter" class="form-control" name="lthsolr_filter" title="' . $this->pi_getLL("filter_search_results") . '" value="" />';
-                $content .= '</div>';
-            }
-            $content .= '</div>';
-
-            $content .= '<div class="lth_solr_facet_container"></div>';
-            
-            if(substr($clientIp,0,7) === '130.235' || $clientIp === '127.0.0.1') {
-                $content .= '<div id="lth_solr_tools" class="form-group">';
-                $content .= '<a href="javascript:"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span>' . $this->pi_getLL("export_data") . '</a>';
-                $content .= '</div>';
-            }
-            
-            if($hideFilter && $categories == 'no_categories') {
-            } else {
-                $content .= '</div>';
-            }
-            
-            if(substr($clientIp,0,7) === '130.235' || $clientIp === '127.0.0.1') {
-                $content .= '<div id="lth_solr_hidden_tools" class="form-group">';
-                $content .= '<span style="margin-left:15px;" class="glyphicon glyphicon-export" aria-hidden="true"></span><a href="javascript:" class="exportStaffCsv">' . $this->pi_getLL("export_csv") . '</a>'
-                        . '<span style="margin-left:15px;" class="glyphicon glyphicon-export" aria-hidden="true"></span><a href="javascript:" class="exportStaffTxt">' . $this->pi_getLL("export_txt") . '</a>';
-                $content .= '</div>';
-            }            
-            
-            $content .= '<div id="lthsolr_staff_header"></div>';
-            
-            $content .= '<div id="lthsolr_staff_container"></div>';
-                        
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/" . $html_template);
-            
-            if($solrId) {
-                $content .= '<input type="hidden" id="lth_solr_action" value="showStaff" />' .
-                    '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />';
-            } else {
-                $content .= '
-                    <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-                    <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
-                    <input type="hidden" id="pid" value="' . $pid . '" />
-                    <input type="hidden" id="lth_solr_action" value="listStaff" />
-                    <input type="hidden" id="lth_solr_categories" value="' . $categories . '" />
-                    <input type="hidden" id="lth_solr_custom_categories" value="' . $customCategories . '" />
-                    <input type="hidden" id="fe_user" value="' . $GLOBALS['TSFE']->fe_user->user . '" />
-                    <input type="hidden" id="lu_user" value="' . $lu_user . '" />
-                    <input type="hidden" id="categoriesThisPage" value="' . $categoriesThisPage . '" />
-                    <input type="hidden" id="introThisPage" value="' . $introThisPage . '" />
-                    <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />
-                    <div style="clear:both"></div>';
-            }*/
+        
             $FrontEndClass = new FrontEndClass();
             
+            $FrontEndClass->addJsCss('');
+            
             if($uuid) {
-                $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection, $publicationDetailPage);
+                $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow);
             } else {
-                $content = $FrontEndClass->listStaff($scope, $html_template, $noItemsToShow, $selection, $categories, $staffHomepagePath);
+                $content = $FrontEndClass->listStaff($scope, $html_template, $noItemsToShow, $categories);
             }
             return $content;
 	}
-        
-        
-        
-        
-      /*  private function printStaffList($data, $html_template, $pageId, $sl)
-        {
-                // Get the template
-            $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('tslib_cObj');
-            $templateHtml = $cObj->fileResource("typo3conf/ext/lth_solr/templates/$html_template");
-            // Extract subparts from the template
-            $subpart = $cObj->getSubpart($templateHtml, '###TEMPLATE###');
-            $imageFolder = 'uploads/pics/';
-            $markerArray = array();
-        
-            //$content = '<div id="lthsolr_table" class="lthsolr_table">';
-//print_r($data);
-            foreach ($data as $doc) {
-                // Fill marker array
-                //'id','last_name_t','first_name_t', 'email_t', 'ou_t', 'title_t', 'orgid_t', 'primary_affiliation_t', 'homepage_t', 
-            //'lang_t' => $value['lang'], 'degree_t', 'degree_en_t', 'phone_t', 'hide_on_web_i', 'usergroups_txt'
-                $markerArray['###FIRST_NAME###'] = $doc->first_name_t;
-                $markerArray['###LAST_NAME###'] = $doc->last_name_t;
-                $markerArray['###TITLE###'] = ucfirst($doc->title_t);
-                $markerArray['###PHONE###'] = $doc->phone_t;
-                $markerArray['###EMAIL###'] = $doc->email_t;
-                $markerArray['###SUBJECT###'] = $doc->ou_t;
-
-                if($doc->image_t) {
-                    $markerArray['###IMAGE###'] = $imageFolder . $doc->image_t;
-                } else {
-                    $markerArray['###IMAGE###'] = '/typo3conf/ext/lth_solr/res/placeholder.gif';
-                }
-
-                if($doc->{'lth_solr_txt_' . $pageId . '_' . $sl . '_t'}) {
-                        $markerArray['###COMMENTS###'] = $doc->{'lth_solr_txt_' . $pageId . '_' . $sl . '_t'};
-                } else {
-                    $markerArray['###COMMENTS###'] = '';
-                }
-
-                $markerArray['###HOMEPAGE###'] = $doc->homepage_t;
-                $markerArray['###ORGID###'] = $doc->orgid_t;
-                $markerArray['###PRIMARY_AFFILIATION###'] = $doc->primary_affiliation_t;
-                $markerArray['###DEGREE###'] = $doc->degree_t;
-                $markerArray['###DEGREE_EN###'] = $doc->degree_en_t;
-
-                // Create the content by replacing the content markers in the template
-                $content .= $cObj->substituteMarkerArray($subpart, $markerArray);
-            }
-            
-
-
-            //$content .= '</div>';
-            
-            return $content;
-        }
-        
-        
-        private function printFacet($facetType, $facetData)
-        {
-            $facet = '';
-            $i = 0;
-            $maxClass = '';
-            $more = '';
-            
-            foreach ($facetData as $value => $count) {
-                if($i > 5) {
-                    $maxClass = ' class="maxlist-hidden"';
-                    $more = '<p class="maxlist-more"><a>Visa alla</a></p>';
-                }
-                if($count > 0) {
-                    $facet .= '<li' . $maxClass . '>' . $value . ' [' . $count . '] <input type="checkbox" class="lth_solr_facet" name="lth_solr_facet" value="' . $facetType . '###' . urlencode($value) . '"></li>';
-                }
-                $i++;
-            }
-            return "<ul>$facet</ul>" . $more;
-        }*/
         
 }
 
