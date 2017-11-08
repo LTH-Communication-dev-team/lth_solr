@@ -39,7 +39,7 @@ CREATE TABLE tx_lthsolr_categories (
   disabled tinyint(1) NOT NULL DEFAULT '0',
   created datetime DEFAULT NULL,
   createdBy varchar(16) NOT NULL,
-  modified timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  modified timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   modifiedBy varchar(16) NOT NULL,
   PRIMARY KEY (id)
 );
