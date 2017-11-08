@@ -1,6 +1,7 @@
 #
 # Table structure for table 'lth_solr'
 #
+#
 
 CREATE TABLE fe_groups (
     title varchar(255) DEFAULT '' NOT NULL
