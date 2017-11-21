@@ -73,7 +73,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $mode = '';
         //$startFromHere = $numFound;
         $startFromHere = 0;
-        $mode = 'reindex'; //reindex files
+        $mode = ''; //reindex files
         if($mode==='' && $mode!='files') {
             $executionSucceeded = $this->getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang);
         } else if($mode==='files') {
