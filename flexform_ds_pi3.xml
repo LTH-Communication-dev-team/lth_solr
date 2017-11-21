@@ -74,7 +74,7 @@
                             <userFunc>user_sampleflex_addFieldsToFlexForm->getOrganisations</userFunc>
                         </config>
                     </TCEforms>
-                </fe_groups> 
+                </fe_groups> -->
                 <fe_groups>
                     <TCEforms type="array">
                         <label>FE Groups</label>
@@ -87,7 +87,7 @@
                             <itemListStyle>width:250px</itemListStyle>
                         </config>
                     </TCEforms>
-                </fe_groups>-->
+                </fe_groups>
               
                 <fe_users>
                     <TCEforms type="array">
