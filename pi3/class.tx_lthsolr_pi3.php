@@ -80,7 +80,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
             $keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
-
+die($uuid);
             if(strstr($uuid,"(publication)")) {
                 $showType = 'publication';
                 $uuid = str_replace('(publication)', '', $uuid);
