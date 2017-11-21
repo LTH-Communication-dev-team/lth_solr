@@ -34,6 +34,7 @@
                 <linkStaffDetailPage>
                     <TCEforms>
                         <label>Link to staff detail page</label>
+                        <onChange>reload</onChange>
                         <config>
                             <default>no</default>
                             <type>radio</type>
@@ -51,9 +52,10 @@
                     </TCEforms>
                 </linkStaffDetailPage>
                 
-                <noItemsToShow>
+                <noPublicationsToShow>
                     <TCEforms>
-                    <label>No of items to show</label>
+                    <label>No of publications to show (in single mode)</label>
+                    <displayCond>FIELD:linkStaffDetailPage:=:yes</displayCond>
                     <config>
                         <type>select</type>
                         <items type="array">
@@ -70,6 +72,10 @@
                         <numIndex index="1">15</numIndex>
                         </numIndex>
                         <numIndex index="3" type="array">
+                        <numIndex index="0">25</numIndex>
+                        <numIndex index="1">25</numIndex>
+                        </numIndex>
+                        <numIndex index="4" type="array">
                         <numIndex index="0">All</numIndex>
                         <numIndex index="1">3000</numIndex>
                         </numIndex>
@@ -81,7 +87,7 @@
                         <itemListStyle>width:200px</itemListStyle>
                     </config>
                  </TCEforms>
-             </noItemsToShow>
+             </noPublicationsToShow>
 
         </el>
      </ROOT>

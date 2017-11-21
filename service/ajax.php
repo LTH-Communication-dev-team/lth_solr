@@ -213,7 +213,7 @@ function searchShort($term, $config)
     if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
         $groupComponent->addQuery('docType:staff AND (name:' . str_replace(' ','\\ ',$term) . ' OR phone:' . str_replace(' ','',$term) . ' OR email:' . $term . ')');
     } else {
-        $groupComponent->addQuery('docType:staff AND (name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
+        $groupComponent->addQuery('docType:staff AND primaryAffiliation:employee AND (name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
     }
     //$groupComponent->addQuery('type:pages AND content:*' . str_replace(' ','\\ ',$term) . '*');
     //$groupComponent->addQuery('docType:document AND content:*' . str_replace(' ','\\ ',$term) . '*');
@@ -301,12 +301,14 @@ function searchShort($term, $config)
     $data[] = array(
                     'id' => 'lu',
                     'label' => 'lu',
-                    'value' => $luRes
+                    'value' => $luRes,
+                    'type' => 'web page'
                 );
     $data[] = array(
                     'id' => 'lth',
                     'label' => 'lth',
-                    'value' => $lthRes
+                    'value' => $lthRes,
+                    'type' => 'web page'
                 );
     return json_encode($data);
 }
@@ -668,7 +670,6 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
         );
     }
 
-
     $query->addSorts($sortArray);
 
     $response = $client->select($query);
@@ -714,19 +715,29 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
         
     foreach ($response as $document) {     
         $data[] = array(
-            "id" => $document->id,
-            "documentTitle" => $document->documentTitle,
+            "articleNumber" => $document->$articleNumber,
             "authorName" => ucwords(strtolower(fixArray($document->authorName))),
+            "documentTitle" => $document->documentTitle,
+            "documentLimitedVisibility" => $document->documentLimitedVisibility,
+            "documentMimeType" => $document->documentMimeType,
+            "documentSize" => $document->documentSize,
+            "documentUrl" => $document->documentUrl,
+            "hostPublicationTitle" => $document->hostPublicationTitle,
+            "id" => $document->id,
+            "journalTitle" => $document->journalTitle,
+            "journalNumber" => $document->journalNumber,
+            "numberOfPages" => $document->numberOfPages,
+            "pages" => $document->pages,
             "publicationType" => fixArray($document->publicationType),
             "publicationDateYear" => $document->publicationDateYear,
             "publicationDateMonth" => $document->publicationDateMonth,
             "publicationDateDay" => $document->publicationDateDay,
-            "pages" => $document->pages,
-            "journalTitle" => $document->journalTitle,
-            "journalNumber" => $document->journalNumber
+            "placeOfPublication" => $document->placeOfPublication,
+            "publisher" => $document->publisher,
+            "volume" => $document->volume,
         );
     }
-    $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult, 'query' => $debugQuery);
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult, 'query' => $queryToSet);
     return json_encode($resArray);
 }
 
@@ -802,91 +813,90 @@ function showPublication($response, $term, $syslang, $config)
                 $i++;
             }
         }
-
-        $publicationType = fixArray($document->publicationType);
-        $publicationTypeUri = $document->publicationTypeUri;
+        
+        $abstract = fixArray($document->abstract);
+        $attachmentLimitedVisibility = $document->attachmentLimitedVisibility;
+        $attachmentMimeType = $document->attachmentMimeType;
+        $attachmentSize = $document->attachmentSize;
+        $attachmentTitle = $document->attachmentTitle;
+        $attachmentUrl = $document->attachmentUrl;
+        $bibtex = $document->bibtex;
+        $cite = $document->cite;
+        $doi = $document->doi;
+        $electronicIsbns = $document->electronicIsbns;
+        $edition = $document->edition;
+        $event = $document->event;
+        $eventCity = $document->eventCity;
+        $eventCountry = $document->eventCountry;
+        $hostPublicationTitle = $document->hostPublicationTitle;
+        $issn = $document->issn;
+        $journalNumber = $document->journalNumber;
+        $journalTitle = $document->journalTitle;
+        $keywordsUka = $document->keywordsUka;
+        $keywordsUser = $document->keywordsUser;
         $language = fixArray($document->language);
+        $numberOfPages = $document->numberOfPages;
+        $pages = $document->pages;
+        $peerReview = $document->peerReview;
+        $printIsbns = $document->printIsbns;
         $publicationDateYear = $document->publicationDateYear;
         $publicationDateMonth = $document->publicationDateMonth;
         $publicationDateDay = $document->publicationDateDay;
-        $abstract = fixArray($document->abstract);
-        //$abstract_sv = fixArray($document->abstract_sv);
-        /*if($syslang == 'sv' && $abstract_sv && $abstract_sv != '<br/>') {
-            $abstract = $abstract_sv;
-        } else {
-            $abstract = $abstract_en;
-        }*/
-        $pages = $document->pages;
-        $journalTitle = $document->journalTitle;
-        $numberOfPages = $document->numberOfPages;
-        $volume = $document->volume;
-        $journalNumber = $document->journalNumber;
-        //if($syslang == 'sv') {
-            $publicationStatus = $document->publicationStatus;
-            $keywordsUka = $document->keywordsUka;
-            $keywordsUser = $document->keywordsUser;
-       /* } else {
-            $publicationStatus = $document->publicationStatus_en;
-            $keywords_uka = $document->keywords_uka_en;
-            $keywords_user = $document->keywords_user_en;
-        }*/
-        $peerReview = $document->peerReview;
-        $doi = $document->doi;
-        $issn = $document->issn;
-        $printIsbns = $document->printIsbns;
-        $electronicIsbns = $document->electronicIsbns;
-        $edition = $document->edition;
+        $publicationStatus = $document->publicationStatus;
         $placeOfPublication = $document->placeOfPublication;
         $publisher = $document->publisher;
+        $publicationType = fixArray($document->publicationType);
+        $publicationTypeUri = $document->publicationTypeUri;
         $supervisors = $document->supervisorName;
-        
-        $standardCategory = $document->standardCategory;
-        
         $type = $document->type;
-        
-        $bibtex = $document->bibtex;
-        $cite = $document->cite;
+        $volume = $document->volume;
         
         $data = array(
-            'authorId' => $authorId,
-            'authorExternal' => $authorExternal,
-            'id' => $id,
-            'title' => $title,
             'abstract' => $abstract,
+            'attachmentLimitedVisibility' => $attachmentLimitedVisibility,
+            'attachmentMimeType' => $attachmentMimeType,
+            'attachmentSize' => $attachmentSize,
+            'attachmentTitle' => $attachmentTitle,
+            'attachmentUrl' => $attachmentUrl,
+            'authorExternal' => $authorExternal,
+            'authorId' => $authorId,
             'authorName' => $authorName,
             'authorOrganisation' => $authorOrganisation,
             'authorReverseName' => rawurlencode($authorReverseName),
             'authorReverseNameShort' => rawurlencode(str_replace("$", ", ", str_lreplace("$", " and ", $authorReverseNameShort))),
-            'organisationName' => $organisationName,
-            'organisationId' => $organisationId,
-            'organisationSourceId' => $organisationSourceId,
+            'bibtex' => $bibtex,
+            'cite' => $cite,
+            'doi' => $doi,
+            'edition' => $edition,
+            'electronicIsbns' => $electronicIsbns,
             'externalOrganisations' => $externalOrganisations,
+            'id' => $id,
+            'hostPublicationTitle' => $hostPublicationTitle,
+            'issn' => $issn,
+            'journalTitle' => $journalTitle,
+            'journalNumber' => $journalNumber,
             'keywords_uka' => $keywordsUka,
             'keywords_user' => $keywordsUser,
             'language' => $language,
-            'pages' => $pages,
             'numberOfPages' => $numberOfPages,
-            'journalTitle' => $journalTitle,
-            'volume' => $volume,
-            'journalNumber' => $journalNumber,
-            'publicationStatus' => $publicationStatus,
+            'organisationName' => $organisationName,
+            'organisationId' => $organisationId,
+            'organisationSourceId' => $organisationSourceId,
+            'pages' => $pages,
             'peerReview' => $peerReview,
+            'placeOfPublication' => $placeOfPublication,
+            'printIsbns' => $printIsbns,
             'publicationDateYear' => $publicationDateYear,
             'publicationDateMonth' => $publicationDateMonth,
             'publicationDateDay' => $publicationDateDay,
             'publicationType' => $publicationType,
             'publicationTypeUri' => $publicationTypeUri,
-            'doi' => $doi,
-            'issn' => $issn,
-            'printIsbns' => $printIsbns,
-            'electronicIsbns' => $electronicIsbns,
-            'edition' => $edition,
-            'placeOfPublication' => $placeOfPublication,
-            'standard_category_en' => $standardCategory,
             'publisher' => $publisher,
-            'bibtex' => $bibtex,
-            'cite' => $cite,
-            'supervisors' => $supervisors
+            'publicationStatus' => $publicationStatus,
+            'standard_category_en' => $standardCategory,
+            'supervisors' => $supervisors,
+            'title' => $title,
+            'volume' => $volume,
         );
 
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));

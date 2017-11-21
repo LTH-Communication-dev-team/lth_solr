@@ -82,7 +82,7 @@ $(document).ready(function() {
         }
     });*/
     
-    $('#searchSiteMain').keyup(function(){
+    $('#searchSiteMain').keyup(function() {
         searchLong($(this).val(), 0, 0, 0, false);
     });
     
@@ -403,8 +403,12 @@ function listStaff(tableStart, facet, query, noQuery, more)
 
                     var displayName = aData.firstName + ' ' + aData.lastName;
                     var guid = aData.guid;
+                    var uuid = aData.uuid;
+                    if(!uuid) {
+                        uuid=guid;
+                    }
 
-                    var homepage = window.location.href + staffDetailPage + '/' + displayName.replace(' ','-') + '('+guid+')';
+                    var homepage = window.location.href + staffDetailPage + '/' + displayName.replace(' ','-') + '('+uuid+')';
                     if(aData.homepage) {
                         homepage = aData.homepage;
                     }
@@ -471,7 +475,8 @@ function listStaff(tableStart, facet, query, noQuery, more)
                     $('.lth_solr_filter_container div:last').after('<div style="float:left;width:50px;padding:20px 0px 0px 30px;height:50px;cursor:pointer;">\n\
                         <span class="glyphicon glyphicon-export"></span></div>');
                     $('.glyphicon-export').click(function() {
-                        exportStaff(syslang);
+                        //exportStaff(syslang);
+                        $('#exportModal').modal('toggle');
                     });
                 }
                 if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
@@ -579,7 +584,6 @@ function searchLong(term, startPeople, startPages, startCourses, more)
     var linkStaffDetailPage = $('#linkStaffDetailPage').val();
     var template;
 
-    //console.log(more);
     $('#searchsite').val(term);
     $.ajax({
         type : 'POST',
@@ -599,17 +603,19 @@ function searchLong(term, startPeople, startPages, startCourses, more)
         //contentType: "application/json; charset=utf-8",
         dataType: 'json',
         beforeSend: function () {
-            //console.log(startPages);
-            //console.log(more);
+            console.log(more);
             if(startPeople == 0 && more == 0) {
+                
                 $('#lthsolr_staff_container').parent().show();
-                $('#lthsolr_staff_container tbody').html('').addClass('loader');
+                console.log($('#lthsolr_staff_container').height());
+                $('#lthsolr_staff_container tbody').html('').append('<tr><td class="loader"></td></tr>');
+                console.log($('#lthsolr_staff_container').height());
                 //$('#lthsolr_staff_container tbody').html('<img class="lthsolr_loader" id="lthsolr_loader_staff" src="/fileadmin/templates/images/ajax-loader.gif" />');
             }
             
             if((startPages == 0 && more == 0) || (startPages==0 && more=='global') || (startPages==0 && more=='local')) {
                 $('#lthsolr_pages_container').parent().show();
-                $('#lthsolr_pages_container').empty().addClass('loader');;
+                $('#lthsolr_pages_container').empty().append('<div class="loader"></div>');;
                 //$('#lthsolr_pages_container').html('<img class="lthsolr_loader" id="lthsolr_loader_pages" src="/fileadmin/templates/images/ajax-loader.gif" />');
             }
             /*if(startDocuments > 0 || more === 'documents') {
@@ -619,7 +625,7 @@ function searchLong(term, startPeople, startPages, startCourses, more)
            
             if(startCourses == 0 && more == 0) {
                 $('#lthsolr_courses_container').parent().show();
-                $('#lthsolr_courses_container tbody').html('').addClass('loader');
+                $('#lthsolr_courses_container tbody').html('').append('<tr><td class="loader"></td></tr>');
                 //$('#lthsolr_courses_container tbody').html('');
             }
             
@@ -635,9 +641,9 @@ function searchLong(term, startPeople, startPages, startCourses, more)
             var id, title, teaser, url, link;
 
             //if(peopleOffset == 0 && pageOffset == 0 && documentOffset == 0) $('#lthsolr_staff_container').html('');
-            $('#content_navigation').append('<div class="lth_solr_left_nav"><ul class="lth_solr_res"></ul></div>');
+            //$('#content_navigation').append('<div class="lth_solr_left_nav"><ul class="lth_solr_res"></ul></div>');
             //console.log(more);
-            if(d.facet) {
+            /*if(d.facet) {
                 $.each( d.facet, function( key, value ) {
                     //console.log(value);
                     //$.each( value, function( key1, value1 ) {
@@ -656,12 +662,13 @@ function searchLong(term, startPeople, startPages, startCourses, more)
                 });
                 $('.lth_solr_facet_container').append('<ul><li><b>' + lth_solr_messages.staff_categories + '</b></li>' + content + '</ul>' + moreContent);
                 i=0;
-            }
+            }*/
 
             //STAFF**************************************************************************************
             var tableCounter = 3;
             var indexCounter = 1+startPeople;
-            $('#lthsolr_staff_container tbody').removeClass('loader');
+            
+            $('#lthsolr_staff_container .loader').parent().remove();
             var staffDetailPage = 'visa/';
             if(syslang=='en') {
                 staffDetailPage = 'show/';
@@ -749,7 +756,7 @@ function searchLong(term, startPeople, startPages, startCourses, more)
                     indexCounter++;
                     tableCounter++;
                 });
-                $('#lthsolr_people_header').html('<span class="lth_solr_search_header">' + lth_solr_messages.people + '</span><span>1' + '-' + maxLength(startPeople,tableLength,d.peopleNumFound) + ' ' + lth_solr_messages.of + ' '  + d.peopleNumFound + '</span>');
+                $('#lthsolr_people_header').html('<span class="lth_solr_search_header"><h3>' + lth_solr_messages.people + '</h3></span><span>1' + '-' + maxLength(startPeople,tableLength,d.peopleNumFound) + ' ' + lth_solr_messages.of + ' '  + d.peopleNumFound + '</span>');
                 /*if((parseInt(startPeople) - parseInt(tableLength)) >= 0) {
                     $('#lthsolr_people_header').append('<span class="lthsolr_more">\n\
                     <a href="javascript:" onclick="var board_h = $(this).closest(\'.lthsolr_table_wrapper\').outerHeight();\n\
@@ -766,14 +773,15 @@ function searchLong(term, startPeople, startPages, startCourses, more)
                         ' <span class="glyphicon glyphicon-chevron-down"></span></button></td><td style="height:20px;"></td></tr>');
                 }
             } else if(more==0) {
-                $('#lthsolr_people_header').html('<span class="lth_solr_search_header">' + lth_solr_messages.people + '</span>');
-                $('#lthsolr_staff_container tbody').html(lth_solr_messages.No + ' ' + lth_solr_messages.hits + ' ' + lth_solr_messages.on + ' <b>' + term + '</b> ' + lth_solr_messages.within + ' staff.');
+                $('#lthsolr_people_header').html('<span class="lth_solr_search_header"><h3>' + lth_solr_messages.people + '</h3></span>');
+                $('#lthsolr_staff_container tbody').html('<tr><td>' + lth_solr_messages.No + ' ' + lth_solr_messages.hits + ' ' + 
+                        lth_solr_messages.on + ' <b>' + term + '</b> ' + lth_solr_messages.within + ' ' + lth_solr_messages.staff + '.</td></tr>');
                 //$('#lthsolr_staff_container').parent().hide();
             }
             var endI;
             
             //Pages and documents******************************************************************************************************************//
-            $('#lthsolr_pages_container').removeClass('loader');
+            $('#lthsolr_pages_container').find('.loader').remove();
             if(d.pageNumFound > 0) {
                 var i=1;
                 var indexCounter = 1+startPages;
@@ -809,7 +817,7 @@ function searchLong(term, startPeople, startPages, startCourses, more)
                     i++;
                 });
 
-                var pagesHeader = '<span class="lth_solr_search_header">'+ lth_solr_messages.webpages + '</span><span class="lth_solr_number">1-';
+                var pagesHeader = '<span class="lth_solr_search_header"><h3>'+ lth_solr_messages.webpages + '</h3></span><span class="lth_solr_number">1-';
                 if($('.lth_solr_hide').length > 0) {
                     pagesHeader += endI;
                 } else {
@@ -862,8 +870,9 @@ function searchLong(term, startPeople, startPages, startCourses, more)
                     $('#lthsolr_pages_container').append(next);
                 }
             } else if(more==0) {
-                $('#lthsolr_pages_header').html('<span class="lth_solr_search_header">'+ lth_solr_messages.webpages + '</span>');
-                $('#lthsolr_pages_container tbody').html(lth_solr_messages.No + ' ' + lth_solr_messages.hits + ' ' + lth_solr_messages.on + ' <b>' + term + '</b> ' + lth_solr_messages.within + ' pages.');
+                $('#lthsolr_pages_header').html('<span class="lth_solr_search_header"><h3>'+ lth_solr_messages.webpages + '</h3></span>');
+                $('#lthsolr_pages_container tbody').html('<div>' + lth_solr_messages.No + ' ' + lth_solr_messages.hits + ' ' + 
+                        lth_solr_messages.on + ' <b>' + term + '</b> ' + lth_solr_messages.within + ' ' + lth_solr_messages.pages + '.</div>');
                 //$('#lthsolr_pages_container').parent().hide();
             }
             
@@ -984,7 +993,7 @@ function searchLong(term, startPeople, startPages, startCourses, more)
             // COURSES**************************************************************************************************************//
             var tableCounter = 3;
             var indexCounter = 1+startCourses;
-            $('#lthsolr_courses_container tbody').removeClass('loader');
+            $('#lthsolr_courses_container tbody tr:first').remove();
             var courseCode, credit, homepage;
 
             if(d.courseData.length > 0) {
@@ -1027,7 +1036,7 @@ function searchLong(term, startPeople, startPages, startCourses, more)
                 });
 
                 //$('#lthsolr_loader_courses').remove();
-                $('#lthsolr_courses_header').html('<span class="lth_solr_search_header">'+ lth_solr_messages.courses + '</span><span>1-' + maxLength(startCourses,tableLength,d.courseNumFound) + ' ' + lth_solr_messages.of + ' '  + d.courseNumFound + '</span>');
+                $('#lthsolr_courses_header').html('<span class="lth_solr_search_header"><h3>'+ lth_solr_messages.courses + '</h3></span><span>1-' + maxLength(startCourses,tableLength,d.courseNumFound) + ' ' + lth_solr_messages.of + ' '  + d.courseNumFound + '</span>');
                 
                 /*if((parseInt(startCourses) - parseInt(tableLength)) >= 0) {
                     $('#lthsolr_courses_header').append('<span class="lthsolr_more">\n\
@@ -1049,8 +1058,9 @@ function searchLong(term, startPeople, startPages, startCourses, more)
                         ' <span class="glyphicon glyphicon-chevron-down"></span></button></td><td style="height:20px;"></td></tr>');
                 }
             } else if(more==0) {
-                $('#lthsolr_courses_header').html('<span class="lth_solr_search_header">'+ lth_solr_messages.courses + '</span>');
-                $('#lthsolr_courses_container tbody').html(lth_solr_messages.No + ' ' + lth_solr_messages.hits + ' ' + lth_solr_messages.on + ' <b>' + term + '</b> ' + lth_solr_messages.within + ' courses.');
+                $('#lthsolr_courses_header').html('<span class="lth_solr_search_header"><h3>'+ lth_solr_messages.courses + '</h3></span>');
+                $('#lthsolr_courses_container tbody').html('tr><td>' + lth_solr_messages.No + ' ' + lth_solr_messages.hits + 
+                        ' ' + lth_solr_messages.on + ' <b>' + term + '</b> ' + lth_solr_messages.within + ' ' + lth_solr_messages.courses + '.</td></tr>');
                 //$('#lthsolr_pages_container').parent().hide();
             }
         },
@@ -1135,7 +1145,9 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
     var pageTitle = $('#lth_solr_pagetitle').val();
     var inputFacet = facet;
     var i = 0;
-    var maxClass, count, facetHeader, more, content;
+    var maxClass, count, facetHeader, more, content, numberOfPages, publicationDate, journalTitle, title, placeOfPublication, authorName, documentTitle;
+    var id, publisher, attachmentLimitedVisibility, attachmentMimeType, attachmentTitle, attachmentSize, attachmentUrl, attachment, hostPublicationTitle;
+    var volume, pages, articleNumber;
 
     $.ajax({
         type : 'POST',
@@ -1167,7 +1179,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
             if(!more) {
                 //console.log('1080');
                 $('.lthsolr_publication_row').remove();
-                $('#lthsolr_publications_container').addClass('loader');
+                $('#lthsolr_publications_container').before('<div class="loader"></div>');
             } else {
                 $('.lthsolr_more').html('').addClass('loader');
             }
@@ -1176,7 +1188,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
             //
         },
         success: function(d) {
-            $('#lthsolr_publications_container').removeClass('loader');
+            $('.loader').remove();
             $('.lthsolr_more').remove();
             if(pageTitle) {
                 pageTitle = ' ' + titleCase(pageTitle) + ' ';
@@ -1218,7 +1230,10 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                                 i++;
                             });
 
-                            $('#lth_solr_facet_container').append('<ul><li style="width:100%;"><b>'+facetHeader+'</b></li>' + content + '</ul>' + more);
+                            $('#lth_solr_facet_container').append('<i class="fa fa-close lthsolr_facet_close"></i><ul><li style="width:100%;"><b>'+facetHeader+'</b></li>' + content + '</ul>' + more);
+                            $('.lthsolr_facet_close').click(function() {
+                                $('#lth_solr_facet_container').toggle(500);
+                            });
                             i=0;
                         });
                         createFacetClick('listPublications', sorting);
@@ -1242,9 +1257,29 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                         }
                     }
                     var template = $('#solrPublicationTemplate').html();
+                    
+                    articleNumber = '';
+                    attachment = '';
+                    attachmentLimitedVisibility = '';
+                    attachmentSize = '';
+                    attachmentMimeType = '';
+                    attachmentUrl = '';
+                    attachmentTitle = '';
+                    authorName = '';
+                    documentTitle = '';
+                    hostPublicationTitle = '';
+                    journalTitle = '';
+                    numberOfPages = '';
                     pages = '';
                     publicationDate = '';
-                    journalTitle = '';
+                    publisher = '';
+                    placeOfPublication = '';
+                    volume = '';
+                    
+                    //id
+                    id = aData.id;
+                    
+                    //documentTitle
                     if(aData.documentTitle) {
                         title = aData.documentTitle.charAt(0).toUpperCase() + aData.documentTitle.slice(1).toLowerCase();
                     } else {
@@ -1264,36 +1299,87 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                         path = window.location.href + publicationDetailPage;
                     }
 
-                    title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '('+aData.id+')(publication)">' + title + '</a>';
-
+                    title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '('+id+')(publication)">' + title + '</a>';
+                    
+                    //articleNumber
+                    if(aData.articleNumber) articleNumber = ', ' + aData.articleNumber;
+                    
+                    //attachmentLimitedVisibility
+                    if(aData.attachmentLimitedVisibility) attachmentLimitedVisibility = aData.attachmentLimitedVisibility;
+                            
+                    //attachmentMimeType
+                    if(aData.attachmentMimeType) attachmentMimeType = aData.attachmentMimeType;
+                            
+                    //attachmentSize
+                    if(aData.attachmentSize) attachmentSize = aData.attachmentSize;
+                    
+                    //attachmentUrl
+                    if(aData.attachmentUrl) attachmentUrl = aData.attachmentSize;
+        
+                    //authorName
+                    if(aData.authorName) authorName = aData.authorName + '. ';
+                    
+                    //hostPublicationTitle
+                    if(aData.hostPublicationTitle) hostPublicationTitle = '<i>' + aData.hostPublicationTitle + '</i>. ';
+                    
+                    //pages
+                    if(aData.pages) pages = lth_solr_messages.pagesAbbreviation + ' ' + aData.pages + ' ';
+                    
+                    //publicationDate
                     if(aData.publicationDateYear) publicationDate = aData.publicationDateYear;
                     if(aData.publicationDateMonth) publicationDate += '-'+aData.publicationDateMonth;
-                    if(aData.publicationDateDay) publicationDate += '-'+aData.publicationDay;
-                    if(aData.pages) {
-                        if(syslang=='en') {
-                            pages = 'p. ' + aData.pages;
-                        } else {
-                            pages = 's. ' + aData.pages;
-                        }
+                    if(aData.publicationDateDay) publicationDate += '-'+aData.publicationDateDay;
+                    if(publicationDate) publicationDate = publicationDate + ' ';
+                    
+                    //publisher
+                    if(aData.publisher) {
+                        publisher = aData.publisher + ' ';
+                    }
+                    //placeOfPublication
+                    if(aData.placeOfPublication) {
+                        placeOfPublication = aData.placeOfPublication + ': ';
+                    }
+                    //numberOfPages
+                    if(aData.numberOfPages) {
+                        numberOfPages = aData.numberOfPages + ' ' + lth_solr_messages.pagesAbbreviation;
                     }
                     if(aData.journalTitle) {
-                        if(syslang=='en') {
-                            journalTitle = 'In: ' + aData.journalTitle;
-                        } else {
-                            journalTitle = 'I: ' + aData.journalTitle;
-                        }
+                        journalTitle = ' ' + lth_solr_messages.in + ': ' + aData.journalTitle + '.';
                     }
-                    if(aData.journalTitle && aData.journalNumber) journalTitle += ' ' + aData.journalNumber;
+                    if(aData.journalTitle && aData.journalNumber) journalTitle += ' ' + aData.journalNumber + ', ';
+                    
+                    //volume
+                    if(aData.volume) {
+                        volume = aData.volume + ',';
+                    }
 
-                    template = template.replace('###id###', aData.id);
-                    template = template.replace('###title###', title);
-                    template = template.replace('###authorName###', aData.authorName);
+                    template = template.replace('###articleNumber###', articleNumber);
+                    template = template.replace('###authorName###', authorName);
+                    template = template.replace('###id###', id);
+                    template = template.replace('###hostPublicationTitle###', hostPublicationTitle);
+                    template = template.replace('###journalTitle###', journalTitle);
+                    template = template.replace('###numberOfPages###', numberOfPages);
+                    template = template.replace('###pages###', pages);
                     template = template.replace('###publicationType###', aData.publicationType);
                     template = template.replace('###publicationDate###', publicationDate);
-                    template = template.replace('###pages###', pages);
-                    template = template.replace('###journalTitle###', journalTitle);
+                    template = template.replace('###publisher###', publisher);
+                    template = template.replace('###placeOfPublication###', placeOfPublication);
+                    template = template.replace('###title###', title);
+                    template = template.replace('###volume###', volume);
 
                     $('#lthsolr_publications_container').append(template);
+                    
+                    if(attachmentLimitedVisibility || attachmentUrl) {
+                        if(attachmentLimitedVisibility==='FREE') {
+                            attachment = '<i class="fa fa-unlock"></i>';
+                        } else if(attachmentLimitedVisibility==='CAMPUS') {
+                            attachment = '<i class="fa fa-lock"></i>';
+                        } 
+                        if(attachmentUrl) {
+                            attachment += '<i class="fa fa-paperclip"></i>';
+                        }
+                        $('#'+id).append('<div class="lthsolr_attachments">'+attachment+'</div>');
+                    }
                     if(sorting==='publicationYear') {
                         lastGroupValue = aData.publicationDateYear;
                     }
@@ -1614,6 +1700,11 @@ function showPublication()
     //var lth_solr_staffdetailpage = $('#lth_solr_staffdetailpage').val();
     //var lth_solr_projectdetailpage = $('#lth_solr_projectdetailpage').val();
     var syslang = $('html').attr('lang');
+    var id,title,abstract,authorId,authorExternal,authorName,authorOrganisation,authorReverseName,authorReverseNameShort,organisationName,organisationId;
+    var organisationSourceId,externalOrganisations,keywords_uka,keywords_user,language,pages,numberOfPages,journalTitle,volume,journalNumber;
+    var bibtex,cite,doi,electronicIsbns,edition,issn,peerReview,placeOfPublication,event,eventCity,eventCountry;
+    var printIsbns,publicationStatus,publicationDateYear,publicationDateMonth,publicationDateDay,publicationType,publicationTypeUri,publisher,supervisors;
+    var attachment='',attachmentLimitedVisibility,attachmentMimeType,attachmentSize,attachmentTitle,attachmentUrl,hostPublicationTitle;
     
     $.ajax({
         type : 'POST',
@@ -1628,11 +1719,14 @@ function showPublication()
         //contentType: "application/json; charset=utf-8",
         dataType: 'json',
         beforeSend: function () {
-            $('#lth_solr_container').html('<img src="/fileadmin/templates/images/ajax-loader.gif" />');
+            $('#lth_solr_container').append('<div class="loader"></div>');
         },
         success: function(d) {
+            $('#lth_solr_container').find('.loader').remove();
             if(d.data) {
                 var template = $('#solrTemplate').html();
+                if(d.data.abstract) abstract = d.data.abstract;
+                
                 var detailLink = '';
                 if(window.location.href.indexOf('/visa/') > 0) {
                     detailLink = window.location.href.split('/visa').shift() + '/visa/';
@@ -1640,46 +1734,53 @@ function showPublication()
                     detailLink = window.location.href.split('/show').shift()+ '/show/';
                 }
 
-                id = d.data.id;
-                title = d.data.title;
-                abstract = d.data.abstract;
+                attachmentLimitedVisibility = d.data.attachmentLimitedVisibility;
+                attachmentMimeType = d.data.attachmentMimeType;
+                attachmentSize = d.data.attachmentSize;
+                attachmentTitle = d.data.attachmentTitle;
+                attachmentUrl = d.data.attachmentUrl;
                 authorId = d.data.authorId;
                 authorExternal = d.data.authorExternal;
+                authorId = d.data.authorId;
                 authorName = d.data.authorName;
                 authorOrganisation = d.data.authorOrganisation;
                 authorReverseName = d.data.authorReverseName;
                 authorReverseNameShort = d.data.authorReverseNameShort;
-                authorId = d.data.authorId;
-                organisationName = d.data.organisationName;
-                organisationId = d.data.organisationId;
-                organisationSourceId = d.data.organisationSourceId;
+                bibtex = d.data.bibtex;
+                cite = d.data.cite;
+                doi = d.data.doi;
+                edition = d.data.edition;
+                electronicIsbns = d.data.electronicIsbns;
+                event = d.data.event;
+                eventCity = d.data.eventCity;
+                eventCountry = d.data.eventCountry;
                 externalOrganisations = d.data.externalOrganisations;
+                id = d.data.id;
+                hostPublicationTitle = d.data.hostPublicationTitle;
+                issn = d.data.issn;
+                journalNumber = d.data.journalNumber;
+                journalTitle = d.data.journalTitle;
                 keywords_uka = d.data.keywords_uka;
                 keywords_user = d.data.keywords_user;
                 language = titleCase(d.data.language);
-                pages = d.data.pages;
                 numberOfPages = d.data.numberOfPages;
-                journalTitle = d.data.journalTitle;
-                volume = d.data.volume;
-                journalNumber = d.data.journalNumber;
-                publicationStatus = d.data.publicationStatus;
+                organisationName = d.data.organisationName;
+                organisationId = d.data.organisationId;
+                organisationSourceId = d.data.organisationSourceId;
+                pages = d.data.pages;
                 peerReview = d.data.peerReview;
+                placeOfPublication = d.data.placeOfPublication;
+                printIsbns = d.data.printIsbns;
                 publicationDateYear = d.data.publicationDateYear;
                 publicationDateMonth = d.data.publicationDateMonth;
                 publicationDateDay = d.data.publicationDateDay;
-                standard_category_en = d.data.standard_category_en;
+                publicationStatus = d.data.publicationStatus;
                 publicationType = d.data.publicationType;
                 publicationTypeUri = d.data.publicationTypeUri;
-                doi = d.data.doi;
-                issn = d.data.issn;
-                printIsbns = d.data.printIsbns;
-                electronicIsbns = d.data.electronicIsbns;
-                edition = d.data.edition;
-                placeOfPublication = d.data.placeOfPublication;
                 publisher = d.data.publisher;
-                cite = d.data.cite;
-                bibtex = d.data.bibtex;
                 supervisors = d.data.supervisors;
+                title = d.data.title;
+                volume = d.data.volume;
                 
                 var organisations = '';
                 var path = window.location.href.split('(').shift().split('/');
@@ -1688,21 +1789,28 @@ function showPublication()
                 
                 var authors = '';
                 if(authorName) {
-                    authorNameArray = authorName.split(',');
-                    authorIdArray = authorId.split(',');
-                    authorExternalArray = authorExternal.split(',');
+                    var authorNameArray = authorName.split(',');
+                    var authorIdArray = authorId.split(',');
+                    var authorExternalArray = authorExternal.split(',');
                     for(var i = 0; i < authorNameArray.length; i++) {
                         if(authors) {
                             authors += ', ';
                         }
-                        console.log(authorOrganisation);
+
                         if(authorIdArray[i] && authorExternalArray[i]==0) {
                             authors += '<a href="' + detailLink + authorNameArray[i].replace(' ','-') + '(' + authorIdArray[i] + ')(author)">' + authorNameArray[i] + '</a>';
                         } else {
                             authors += authorNameArray[i];
                         }
                     }
-                }                
+                }
+                
+                if(eventCity) {
+                    event = eventCity;
+                }
+                if(eventCity && eventCountry) {
+                    event += ', ' + eventCountry;
+                }
                 
                 if(organisationSourceId) {
                    organisations = '<a href="' + detailLink + organisationName + '('+ organisationSourceId + ')(department)">' + organisationName + '</a>';
@@ -1716,37 +1824,66 @@ function showPublication()
                     }
                 }
                 
-                //overview
-                template = template.replace(/###title###/g, title);
+                //attachment
+                if(attachmentUrl) {
+                    if(attachmentLimitedVisibility==='FREE') {
+                        attachment = '<i class="fa fa-unlock"></i>';
+                    } else if(attachmentLimitedVisibility==='CAMPUS') {
+                        attachment = '<i class="fa fa-lock"></i>';
+                    }
+                    attachment += lth_solr_messages.attachments + '<a href="' + attachmentUrl + '">' + attachmentTitle + '</a>';
+                }
+
                 template = template.replace('###abstract###', checkData(abstract, lth_solr_messages.abstract));
+                template = template.replace('###attachment###', attachment)
                 template = template.replace(/###authors###/g, checkData(authors, lth_solr_messages.authors));
-                template = template.replace('###organisations###', checkData(organisations, lth_solr_messages.organisations));
+                template = template.replace('###edition###', checkData(edition, lth_solr_messages.edition));
+                template = template.replace('###electronicIsbns###', checkData(electronicIsbns, lth_solr_messages.electronicIsbns));
+                template = template.replace('###event###', checkData(event, lth_solr_messages.event));
                 template = template.replace('###externalOrganisations###', checkData(externalOrganisations, lth_solr_messages.externalOrganisations));
+                template = template.replace('###hostPublicationTitle###', checkData(hostPublicationTitle, lth_solr_messages.hostPublicationTitle));
+                template = template.replace('###journalTitle###', checkData(journalTitle, lth_solr_messages.journalTitle));
+                template = template.replace('###journalNumber###', checkData(journalNumber, lth_solr_messages.journalNumber));
                 template = template.replace('###keywords_uka###', checkData(keywords_uka, lth_solr_messages.keywords_uka));
                 template = template.replace('###keywords_user###', checkData(keywords_user, lth_solr_messages.keywords_user));
                 template = template.replace('###language###', checkData(language, lth_solr_messages.language));
+                template = template.replace('###organisations###', checkData(organisations, lth_solr_messages.organisations));
                 template = template.replace('###pages###', checkData(pages, lth_solr_messages.pages));
                 template = template.replace('###numberOfPages###', checkData(numberOfPages, lth_solr_messages.numberOfPages));
-                template = template.replace('###journalTitle###', checkData(journalTitle, lth_solr_messages.journalTitle));
-                template = template.replace('###volume###', checkData(volume, lth_solr_messages.volume));
-                template = template.replace('###journalNumber###', checkData(journalNumber, lth_solr_messages.journalNumber));
                 template = template.replace('###publicationStatus###', checkData(publicationStatus + '-' + publicationDateYear + ' ' + publicationDateMonth + ' ' + publicationDateDay, lth_solr_messages.publicationStatus));
                 template = template.replace('###peerReview###', checkData(peerReview, lth_solr_messages.peerReview, syslang));
-                template = template.replace('###supervisors###', checkData(supervisors, lth_solr_messages.supervisors, syslang));
                 template = template.replace('###printIsbns###', checkData(printIsbns, lth_solr_messages.printIsbns));
-                template = template.replace('###electronicIsbns###', checkData(electronicIsbns, lth_solr_messages.electronicIsbns));
-                template = template.replace('###edition###', checkData(edition, lth_solr_messages.edition));
                 template = template.replace('###placeOfPublication###', checkData(placeOfPublication, lth_solr_messages.placeOfPublication));
                 template = template.replace('###publisher###', checkData(publisher, lth_solr_messages.publisher));
+                template = template.replace('###supervisors###', checkData(supervisors, lth_solr_messages.supervisors, syslang));
+                template = template.replace(/###title###/g, title);
+                template = template.replace('###volume###', checkData(volume, lth_solr_messages.volume));
 
                 //bibtex and cite
                 template = template.replace('###bibtex###', bibtex);
                 template = template.replace('###cite###', cite);
                 
-                $('#page_title h1').text(d.title);
+                $('#page_title h1').text(d.data.title).css('max-width','650px');
+                $('#page_title h1').after('<h3>' + d.data.publicationType + '</h3>');
                 $('#lth_solr_container').html(template);
-                if(abstract==="") {
+                /*if(abstract==="") {
                     $("#lthsolrAbstract").remove();
+                }*/
+                //
+                if(d.data.abstract.length > 500) {
+                    $('.textblock').addClass('less-content');
+                    $('.textblock').after('<div><a href="javascript:" id="toggle-link"><i class="fa fa-angle-right"></i>' + lth_solr_messages.more + '</a></div>');
+                    
+                    $('#toggle-link').on('click', function(event) {
+                        event.preventDefault();
+                        if ( $('.textblock').hasClass('less-content') ) {
+                            $('.textblock').removeClass('less-content');
+                            $(this).html('<i class="fa fa-angle-up"></i>'+lth_solr_messages.close);
+                        } else {
+                            $('.textblock').addClass('less-content');
+                            $(this).html('<i class="fa fa-angle-right"></i>' + lth_solr_messages.more);
+                        }
+                    });
                 }
             }
         }
@@ -2166,6 +2303,12 @@ function showStaff()
 
                         $('#lthsolr_map').show();
                         $('#lthsolr_pin').show().css('top',diffLatitude + '%').css('left', diffLongitude + '%');
+                        $('#lthsolr_map').click(function(){
+                            $('#mapModal').modal('toggle');
+                            $('#lthsolr_modal_pin').show().css('top',diffLatitude + '%').css('left', diffLongitude + '%');
+                            $('.modal-body').append('<a target="_blank" title="Open link to Google maps in new window" href="http://www.google.com/maps/place/'+
+                                    latitude+','+longitude+'">Google Maps (new window)</a>');
+                        });
                         
                         if(mobileCheck()) {
                             $('#lthsolr_googlelink').text(aData.coordinates);
@@ -2374,7 +2517,8 @@ String.prototype.capitalize = function() {
 function checkData(data, label, syslang, isLink)
 {
     var content = '';
-    if(data) {
+
+    if(data && data!='') {
         if(data=='true' && syslang=='sv') data = 'Ja';
         if(data=='true' && syslang=='en') data = 'Yes'
         if(data=='false' && syslang=='sv') data = 'Nej'

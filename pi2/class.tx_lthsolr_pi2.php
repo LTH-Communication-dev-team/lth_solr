@@ -85,11 +85,28 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
+            /*if(strstr($uuid,")")) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),")");
+            }*/
+            //$pid = $GLOBALS['TSFE']->page['pid'];
+            //$ip = $_SERVER['REMOTE_ADDR'];
             if(strstr($uuid,")")) {
+                $showType = 'staff';
+                if(strstr($uuid,"(publication)")) {
+                    $showType = 'publication';
+                    $uuid = str_replace('(publication)', '', $uuid);
+                }
+                if(strstr($uuid,"(department)")) {
+                    $showType = 'department';
+                    $uuid = str_replace('(department)', '', $uuid);
+                }
+                if(strstr($uuid,"(author)")) {
+                    $showType = 'author';
+                    $uuid = str_replace('(author)', '', $uuid);
+                }
+                $pageTitle = array_pop(explode('/',array_shift(explode('(',$uuid))));
                 $uuid = rtrim(array_pop(explode('(',$uuid)),")");
             }
-            $pid = $GLOBALS['TSFE']->page['pid'];
-            $ip = $_SERVER['REMOTE_ADDR'];
             
             $action = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('action');
             $query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
@@ -99,7 +116,18 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $FrontEndClass->addJsCss('');
             
             if($uuid) {
-                $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow);
+                
+                if($showType==='staff' || $showType==='author') {
+                    $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
+                } else if($showType==='publication') {
+                    $content = $FrontEndClass->showPublication($uuid);
+                } else if($showType==='department') {
+                    $lth_solr_uuid = array();
+                    $lth_solr_uuid['fe_groups'][] = $uuid;
+                    $scope = urlencode(json_encode($lth_solr_uuid));
+                    $content = $FrontEndClass->listPublications($scope, 25, '', '', $pageTitle);
+                }
+            //   $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow);
             } else {
                 $content = $FrontEndClass->listStaff($scope, $html_template, $noItemsToShow, $categories);
             }

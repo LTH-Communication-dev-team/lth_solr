@@ -160,6 +160,30 @@ class user_sampleflex_addFieldsToFlexForm
             
             
             TYPO3.jQuery(document).ready(function() {
+                TYPO3.jQuery('#organisationChoice').change(function() {
+                    selectedId = TYPO3.jQuery(this).val();
+                    TYPO3.jQuery('#organisationObject').append(TYPO3.jQuery(this).find('option:selected'));
+                    var my_options = TYPO3.jQuery('#organisationObject option');
+                    my_options.sort(function(a,b) {
+                        if (a.text > b.text) return 1;
+                        if (a.text < b.text) return -1;
+                        return 0;
+                    })
+                    TYPO3.jQuery('#organisationObject').empty().append( my_options );
+                });
+                
+                TYPO3.jQuery('#organisationObject').change(function() {
+                    selectedId = TYPO3.jQuery(this).val();
+                    TYPO3.jQuery('#organisationChoice').append(TYPO3.jQuery(this).find('option:selected'));
+                    var my_options = TYPO3.jQuery('#organisationChoice option');
+                    my_options.sort(function(a,b) {
+                        if (a.text > b.text) return 1;
+                        if (a.text < b.text) return -1;
+                        return 0;
+                    })
+                    TYPO3.jQuery('#organisationChoice').empty().append( my_options );
+                });
+                
                 TYPO3.jQuery('#projectChoice').change(function() {
                     selectedId = TYPO3.jQuery(this).val();
                     TYPO3.jQuery('#projectObject').append(TYPO3.jQuery(this).find('option:selected'));
@@ -277,7 +301,7 @@ class user_sampleflex_addFieldsToFlexForm
             <link rel=\"stylesheet\" href=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css\">
 
             <style>
-                .projectChoice, .projectObject {
+                .projectChoice, .projectObject, .organisationObject, .organisationChoice {
                     min-width:400px; max-width:400px; min-height:200px; margin-right:20px;
                 }
                 .ui-state-highlight{
@@ -463,7 +487,7 @@ class user_sampleflex_addFieldsToFlexForm
                 'localhost' => array(
                     'host' => $settings['solrHost'],
                     'port' => $settings['solrPort'],
-                    'path' => $settings['solrPath'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
                     'timeout' => $settings['solrTimeout']
                 )
             )
@@ -510,6 +534,81 @@ class user_sampleflex_addFieldsToFlexForm
         $content .= "</tbody></table>";
         
         return $content;
+    }
+    
+    
+    function getOrganisations($config)
+    {
+        $uid = $config['row']['uid'];
+        require(__DIR__.'/service/init.php');
+        
+        $content = "";
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $queryToSet = '(docType:organisation)';
+        $query->setQuery($queryToSet);
+        $query->addSort('organisationTitle', $query::SORT_ASC);
+        $query->setStart(0)->setRows(3000);
+        $response = $client->select($query);
+        
+        if($response) {
+            $objects = array();
+            $i=0;
+            foreach ($response as $document) {
+                $title = (string)$document->organisationTitle;
+                $id = $document->id;
+                //$objects .= '<option value="' . $document->id . '">' . $title . '</option>';
+                $config['items'][$i] = array(0 => $title, 1 => $id);
+                $i++;
+            }
+        }
+        
+        /*$content .= '<table id="lth_solr_organisations" class="lth_solr_organisations"><tbody class="">';
+                
+        $content .= '<tr>';
+        
+        $content .= '<tr><td>Valda</td><td>Objekt</td></tr>';
+                
+        $content .= '<td><select ';
+        $content .= 'data-relatedfieldname="data[tt_content][' . $uid . '][pi_flexform][data][sDEF][lDEF][fe_groups][vDEF]" ';
+        $content .= 'data-formengine-input-name="data[tt_content][' . $uid . '][pi_flexform][data][sDEF][lDEF][fe_groups][vDEF]" ';
+        $content .= 'class="organisationChoice" id="organisationChoice" multiple="multiple">';
+        $content .= $choices;
+        $content .= '</select></td>';
+        
+        $content .= '<td><select class="organisationObject" id="organisationObject" name="organisationObject" multiple="multiple">';
+        $content .= $objects;
+        $content .= '</select></td>';
+        
+        $content .= '</tr>';
+        
+        $content .= "</tbody></table>";
+            
+        $content .= "</tbody></table>";
+        
+        return $content;*/
+
+
+        return $config;
     }
     
     

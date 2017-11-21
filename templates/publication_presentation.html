@@ -6,18 +6,18 @@
 </table>-->
 
 <script id="solrTemplate" type="text/x-jquery-templ">
-    <ul class="nav nav-tabs">
-  <li class="active"><a data-toggle="tab" href="#1a">Översikt</a></li>
-  <li><a data-toggle="tab" href="#2a">Cite</a></li>
-  <li><a data-toggle="tab" href="#3a">Bibtex</a></li>
-</ul>
-    <div class="tab-content clearfix">
+    <ul class="nav nav-tabs" style="max-width:650px;">
+        <li class="active"><a data-toggle="tab" href="#1a">Översikt</a></li>
+        <li><a data-toggle="tab" href="#2a">Cite</a></li>
+        <li><a data-toggle="tab" href="#3a">Bibtex</a></li>
+    </ul>
+    <div class="tab-content clearfix" style="max-width:650px;">
         <div class="tab-pane active" id="1a">
-            <div id="lthsolrAbstract">
-                <div class="textblock more-content" style="height: 80px; overflow: hidden;">###abstract###</div>
-
-                <a href="#" onclick="showMore();return false;" class="readmore" data-height="144">###more###</a>
+            <div style="margin-bottom:20px;" id="lthsolrAbstract">
+                <div class="textblock">###abstract###</div>
             </div>
+            
+            <div>###attachment###</div>
 
             <div>
                 ###authors###
@@ -26,21 +26,22 @@
                 ###keywords_uka###
                 ###keywords_user###
                 ###language###
+                ###hostPublicationTitle###
                 ###supervisors###
                 ###pages###
                 ###numberOfPages###
                 ###journalTitle###
                 ###volume###
                 ###journalNumber###
-                ###peerReview###
+                ###publicationStatus###
                 ###placeOfPublication###
                 ###edition###
                 ###publisher###
                 ###printIsbns###
                 ###electronicIsbns###
-                ###publicationStatus###
-                
-                
+                ###status###
+                ###peerReview###
+                ###event###
             </div>
         </div>
 

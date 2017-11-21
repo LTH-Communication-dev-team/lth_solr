@@ -23,6 +23,9 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
+        //$executionSucceeded = $this->clearIndex($settings);
+        //return TRUE;
+        
         $syslang = "sv";
         
         $config = array(
@@ -41,7 +44,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $user = $settings['user'];
         $pw = $settings['pw'];
 
-        //$con = mysqli_connect($dbhost, $user, $pw, $db) or die("44; ".mysqli_error());
+        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("44; ".mysqli_error());
         
         $client = new \Solarium\Client($config);
         
@@ -62,20 +65,25 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         $current_date = gmDate("Y-m-d\TH:i:s\Z");
         
-        //$heritageArray = $this->getHeritage($con);
-        
-        /*$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("COUNT(DISTINCT msg) AS nor","tx_devlog_dump","");
-        $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
-        $numFound = $row['nor'];
-        $GLOBALS['TYPO3_DB']->sql_free_result($res);*/
-        
+        $heritageArray = $this->getHeritage($client);
+        /*echo '<pre>';
+        print_r($heritageArray);
+        echo '</pre>';
+        return TRUE;*/
+        $mode = '';
         //$startFromHere = $numFound;
         $startFromHere = 0;
-        $mode = '';
-        $executionSucceeded = $this->getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang);
-	if($executionSucceeded) {
+        $mode = 'reindex'; //reindex files
+        if($mode==='' && $mode!='files') {
+            $executionSucceeded = $this->getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang);
+        } else if($mode==='files') {
+            //$executionSucceeded = $this->getOrgFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang);
+            $executionSucceeded = $this->getOrganisations($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
+            return TRUE;
+        }
+	if($executionSucceeded || $mode==='reindex') {
             $executionSucceeded = $this->getPublications($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
-      	
+
             $syslang = "en";
             $config = array(
                 'endpoint' => array(
@@ -87,7 +95,11 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     )
                 )
             );
-
+            $client = new \Solarium\Client($config);
+            
+            $buffer = $client->getPlugin('bufferedadd');
+            $buffer->setBufferSize(200);
+            
             $executionSucceeded = $this->getPublications($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
         }
         //$executionSucceeded = $this->updateAtoms($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
@@ -95,299 +107,58 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$executionSucceeded = $this->getCiteBib($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang);
         return $executionSucceeded;
     }
+     
     
-    function jsonTest()
+    function clearIndex($settings)
     {
-        $numberofloops = 10;
-        $startFromHere = 0;
-        $maximumrecords = 20;
-        for($i = 0; $i < 10; $i++) {
-            $startrecord = $startFromHere + ($i * $maximumrecords);
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=73b902e4-1c54-49f7-9a5c-68f78498b237&rendering=xml_long";
-            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
-            //echo $xmlpath;
-            $xml = @file_get_contents($xmlpath);
-            //$xmlNode = simplexml_load_string($xml);
-            //$numberofloops = ceil($xmlNode->children('core', true)->count / 20);
-            $arrayData = '';
-            //$arrayData = $this->xmlToArray($xmlNode);
-            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_atom', array('msg' => $xmlpath));
-            //echo json_encode($arrayData, JSON_PRETTY_PRINT);
-        }
-        return TRUE;
-    }
-    
-function xmlToArray($xml, $options = array()) {
-    $defaults = array(
-        'namespaceSeparator' => ':',//you may want this to be something other than a colon
-        'attributePrefix' => '@',   //to distinguish between attributes and nodes with the same name
-        'alwaysArray' => array(),   //array of xml tag names which should always become arrays
-        'autoArray' => true,        //only create arrays for tags which appear more than once
-        'textContent' => '$',       //key used for the text content of elements
-        'autoText' => true,         //skip textContent key if node has no attributes or child nodes
-        'keySearch' => false,       //optional search and replace on tag and attribute names
-        'keyReplace' => false       //replace values for above search values (as passed to str_replace())
-    );
-    $options = array_merge($defaults, $options);
-    $namespaces = $xml->getDocNamespaces();
-    $namespaces[''] = null; //add base (empty) namespace
- 
-    //get attributes from all namespaces
-    $attributesArray = array();
-    foreach ($namespaces as $prefix => $namespace) {
-        foreach ($xml->attributes($namespace) as $attributeName => $attribute) {
-            //replace characters in attribute name
-            if ($options['keySearch']) $attributeName =
-                    str_replace($options['keySearch'], $options['keyReplace'], $attributeName);
-            $attributeKey = $options['attributePrefix']
-                    . ($prefix ? $prefix . $options['namespaceSeparator'] : '')
-                    . $attributeName;
-            $attributesArray[$attributeKey] = (string)$attribute;
-        }
-    }
- 
-    //get child nodes from all namespaces
-    $tagsArray = array();
-    foreach ($namespaces as $prefix => $namespace) {
-        foreach ($xml->children($namespace) as $childXml) {
-            //recurse into child nodes
-            $childArray = $this->xmlToArray($childXml, $options);
-            list($childTagName, $childProperties) = each($childArray);
- 
-            //replace characters in tag name
-            if ($options['keySearch']) $childTagName =
-                    str_replace($options['keySearch'], $options['keyReplace'], $childTagName);
-            //add namespace prefix, if any
-            if ($prefix) $childTagName = $prefix . $options['namespaceSeparator'] . $childTagName;
- 
-            if (!isset($tagsArray[$childTagName])) {
-                //only entry with this key
-                //test if tags of this type should always be arrays, no matter the element count
-                $tagsArray[$childTagName] =
-                        in_array($childTagName, $options['alwaysArray']) || !$options['autoArray']
-                        ? array($childProperties) : $childProperties;
-            } elseif (
-                is_array($tagsArray[$childTagName]) && array_keys($tagsArray[$childTagName])
-                === range(0, count($tagsArray[$childTagName]) - 1)
-            ) {
-                //key already exists and is integer indexed array
-                $tagsArray[$childTagName][] = $childProperties;
-            } else {
-                //key exists so convert to integer indexed array with previous value in position 0
-                $tagsArray[$childTagName] = array($tagsArray[$childTagName], $childProperties);
-            }
-        }
-    }
- 
-    //get text content of node
-    $textContentArray = array();
-    $plainText = trim((string)$xml);
-    if ($plainText !== '') $textContentArray[$options['textContent']] = $plainText;
- 
-    //stick it all together
-    $propertiesArray = !$options['autoText'] || $attributesArray || $tagsArray || ($plainText === '')
-            ? array_merge($attributesArray, $tagsArray, $textContentArray) : $plainText;
- 
-    //return node as array
-    return array(
-        $xml->getName() => $propertiesArray
-    );
-}
-    
-    function compare($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
-    {
-        $idArray = array();
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("msg","tx_devlog_ids","","","","");
-        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-            $idArray[] = $row["msg"];
-        }
-        //print_r($idArray);
-        $query = $client->createSelect();
-        $query->setQuery('docType:publication');
-        //$query->addSort('changed', $query::SORT_DESC);
-        $query->setStart(0)->setRows(10000);
-        //Nästa körning är $query->setStart(10001)->setRows(10000);
-        $response = $client->select($query);
-        
-        $numFound = $response->getNumFound();
-        foreach ($response as $document) {
-            $id = $document->id;
-           // echo $id;
-            if(in_array($id, $idArray)) {
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery("tx_devlog_ids", "msg='$id'", array("msg" => $id."_ok"));
-            }
-        }
-        return true;
-    }
-    
-    function updateAtoms($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $heritageArray, $startFromHere, $lastModified, $syslang)
-    {
-        $heritageArray = $heritageArray[0];
-        //$this->debug($heritageArray[0]);
-        $varArray = array('publication-base_uk','stab');
-        
+        $syslang = "sv";
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+        $client = new \Solarium\Client($config);
         $update = $client->createUpdate();
-
-        //for($i = 0; $i < $numberofloops; $i++) {
-        for($i = 0; $i < 100; $i++) {
-            //echo $i.':'. $numberofloops . '<br />';
-            
-            $startrecord = 1950 + intval($startFromHere) + ($i * $maximumrecords);
-            if($startrecord > 0) $startrecord++;
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
-            $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property[0]=publicationYearMonthDay&orderBy.property[0].descending=false";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=c9c61408-4194-4b81-adc6-a15f4529b0bf&rendering=xml_long";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=BIBTEX";
-            
-            $xml = @file_get_contents($xmlpath);
-            if(!$xml) {
-                
-                return TRUE;
-            }
-            try {
-                $xml = simplexml_load_string($xml);
-            } catch(Exception $e) {
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_error', array('msg' => $xmlpath, 'crdate' => time()));
-            }
-                  
-            
-            if($xml->children('core', true)->count == 0) {
-                return "no items";
-            }
-
-            //$numberofloops = ceil($xml->children('core', true)->count / 200);
-
-            foreach($xml->xpath('//core:result//core:content') as $content) {
-                $authorExternal = array();
-                $authorExternalOrganisation = array();
-                $authorOrganisation = array();
-                $authorId = array();
-                $authorName = array();
-                $authorFirstName = array();
-                $authorLastName = array();
-                
-                $id = (string)$content->attributes();
-
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_atom', array('msg' => $id, 'crdate' => time()));
-                
-                //Authors
-                foreach($varArray as $varVal) {
-                    if($content->children($varVal,true)->persons) {
-                        foreach($content->children($varVal,true)->persons->children('person-template',true)->personAssociation as $personAssociation) {
-                            $authorExternalTemp = 0;
-                            $authorIdTemp = "";
-                            $authorNameTemp = "";
-                            $authorFirstNameTemp = "";
-                            $authorLastNameTemp = "";
-                            $authorExternalOrganisationTemp = "";
-                            $authorOrganisationTemp = "";
-                            if($personAssociation->children('person-template',true)->person) {
-                                $authorIdTemp = (string)$personAssociation->children('person-template',true)->person->attributes();
-                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName . ' ' . (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
-                                $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
-                                $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
-                                if($personAssociation->children('person-template',true)->person->children('person-template',true)->organisationAssociations->children('person-template',true)->organisationAssociation) {
-                                    //->children('organisation-template',true)->external->children('person-template',true)->organisation
-                                    $authorOrganisationTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->organisationAssociations->children('person-template',true)->organisationAssociation->children('person-template',true)->organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
-                                }
-                            } else if($personAssociation->children('person-template',true)->externalPerson) {
-                                $authorExternalTemp = 1;
-                                $authorIdTemp = (string)$personAssociation->children('person-template',true)->externalPerson->attributes();
-                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName . ' ' . (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
-                                $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
-                                $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
-                                $authorOrganisationTemp = '';
-                            }
-                            if($personAssociation->children('person-template',true)->externalOrganisation) {
-                                $authorExternalOrganisationTemp = (string)$personAssociation->children('person-template',true)->externalOrganisation;
-                            }
-                            $authorExternal[] = $authorExternalTemp;
-                            $authorId[] = $authorIdTemp;
-                            $authorName[] = $authorNameTemp;
-                            $authorFirstName[] = $authorFirstNameTemp;
-                            $authorLastName[] = $authorLastNameTemp;
-                            $authorExternalOrganisation[] = $authorExternalOrganisationTemp;
-                            if($authorOrganisationTemp) {
-                                $heritage = array();
-                                $heritage[] = $authorOrganisationTemp;
-                                $parent = $heritageArray[$authorOrganisationTemp];
-                                if($parent) { 
-                                    $heritage[] = $parent;
-                                }
-                                $parent = $heritageArray[$parent];
-                                if($parent) {
-                                    $heritage[] = $parent;
-                                }
-                                $parent = $heritageArray[$parent];
-                                if($parent) {
-                                    $heritage[] = $parent;
-                                }
-                                $parent = $heritageArray[$parent];
-                                if($parent) {
-                                    $heritage[] = $parent;
-                                }
-                                $parent = $heritageArray[$parent];
-                                if($parent) {
-                                    $heritage[] = $parent;
-                                }
-                                $parent = $heritageArray[$parent];
-                                if($parent) {
-                                    $heritage[] = $parent;
-                                }
-                                $parent = $heritageArray[$parent];
-                                if($parent) {
-                                    $heritage[] = $parent;
-                                }
-                                $parent = $heritageArray[$parent];
-                                if($parent) {
-                                    $heritage[] = $parent;
-                                }
-                                $parent = $heritageArray[$parent];
-                                if($parent) {
-                                    $heritage[] = $parent;
-                                }
-                                if($heritage) {
-                                    array_filter($heritage);
-                                    $authorOrganisationTemp = implode(',',array_unique($heritage));
-                                }
-                            }
-                            $authorOrganisation[] = $authorOrganisationTemp;
-                        }
-                    }
-                }
-                
-                ${"doc"} = $update->createDocument();
-                ${"doc"}->setKey('id', $id);
-                ${"doc"}->addField('authorOrganisation', $authorOrganisation);
-                ${"doc"}->setFieldModifier('authorOrganisation', 'set');
-                ${"doc"}->addField('appKey', 'lthsolr');
-                ${"doc"}->setFieldModifier('appKey', 'set');
-                ${"doc"}->addField('type', 'publication');
-                ${"doc"}->setFieldModifier('type', 'set');
-                $docArray[] = ${"doc"};
-                
-            }
-            $update->addDocuments($docArray);
-            $update->addCommit();
-            $result = $client->update($update);
-            $docArray = array();
-        }
+        $update->addDeleteQuery('docType:publication');
+        $update->addCommit();
+        $result = $client->update($update);
+        
+        $syslang = "en";
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+        $client = new \Solarium\Client($config);
+        $update = $client->createUpdate();
+        $update->addDeleteQuery('docType:publication');
+        $update->addCommit();
+        $result = $client->update($update);
+        
         return TRUE;
     }
     
     
-    
-    
-
     function getPublications($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode)
     {
         $heritageArray = $heritageArray[0];
         //$this->debug($heritageArray[0]);
         $varArray = array('publication-base_uk','stab');
         $directory = '/var/www/html/typo3/lucrisdump';
-        if($mode==='reindex') {
+        if($mode==='reindex' && $syslang==='sv') {
             $fileArray = scandir($directory . '/indexedfiles');
+        } else if($mode==='reindex' && $syslang==='en') {
+            $fileArray = scandir($directory . '/svindexedfiles');
         } else {
             $fileArray = scandir($directory . '/filestoindex');
         }
@@ -395,6 +166,7 @@ function xmlToArray($xml, $options = array()) {
         $fileArray = array_slice($fileArray, 2);
 
         foreach ($fileArray as $key => $filename) {
+            
         //for($i = 0; $i < $numberofloops; $i++) {
             
             //$startrecord = $startFromHere + ($i * $maximumrecords);
@@ -404,8 +176,10 @@ function xmlToArray($xml, $options = array()) {
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=73b902e4-1c54-49f7-9a5c-68f78498b237&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=BIBTEX";
-            if($mode==='reindex') {
+            if($mode==='reindex' && $syslang==='sv') {
                 $xmlpath = $directory . '/indexedfiles/' . $filename;
+            } else if($mode==='reindex' && $syslang==='en') {
+                $xmlpath = $directory . '/svindexedfiles/' . $filename;
             } else {
                 $xmlpath = $directory . '/filestoindex/' . $filename;
             }
@@ -435,16 +209,17 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
             $xml = @simplexml_load_string($xmlPrefix . $xml . $xmlSuffix);
             
             //$numberofloops = ceil($xml->children('core', true)->count / 20);
-
+                //$i=0;
             foreach($xml->xpath('//core:result//core:content') as $content) {
-                $id = '';
-                $type = '';
-                $portalUrl = '';
-                $created = '';
-                $modified = '';
-                //$title = array();
+                $abstract = '';
                 $abstract_en = '';
                 $abstract_sv = '';
+                $articleNumber = '';
+                $attachmentUrl = '';
+                $attachmentLimitedVisibility = '';
+                $attachmentMimeType = '';
+                $attachmentSize = '';
+                $attachmentTitle = '';
                 $authorExternal = array();
                 $authorExternalOrganisation = array();
                 $authorOrganisation = array();
@@ -452,62 +227,65 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                 $authorName = array();
                 $authorFirstName = array();
                 $authorLastName = array();
-                $organisationId = array();
-                $organisationName_en = array();
-                $organisationName_sv = array();
-                $externalOrganisationsName = array();
-                $externalOrganisationsId = array();
-                $language_en = array();
-                $language_sv = array();
-                $pages = '';
-                $numberOfPages = '';
-                $volume = '';
-                $journalNumber = '';
-                $journalTitle = '';
-                $publicationDateYear = '';
-                $publicationDateMonth = '';
-                $publicationDateDay = '';
-                $peerReview = '';
-                $doi = '';
-                $publicationType_en = '';
-                $publicationType_sv = '';
-                $publicationTypeUri = '';
-                $standardCategory = '';
-                $organisationSourceId = array();
-                $hertitage = array();
-                $keywords_uka_en = array();
-                $keywords_uka_sv = array();
-                $keywords_user_en = array();
-                $keywords_user_sv = array();
-                $document_url = '';
-                $document_title = '';
-                $document_limitedVisibility = '';
-                $hostPublicationTitle = '';
-                $publisher = '';
-                $heritage = array();
                 $awardDate;
                 $bibliographicalNote_sv;
                 $bibliographicalNote_en;
-                $issn = '';
-                $printIsbns = '';
-                $electronicIsbns = '';
-                $abstract = '';
                 $bibliographicalNote = '';
+                $created = '';
+                $documentTitle = '';
+                $doi = '';
+                $edition = '';
+                $electronicIsbns = '';
                 $event = '';
+                $event_en = '';
+                $event_sv = '';
                 $eventCity = '';
                 $eventCountry = '';
                 $event_country_sv = '';
                 $event_country_en = '';
+                $externalOrganisationsName = array();
+                $externalOrganisationsId = array();
+                $heritage = array();
+                $hostPublicationTitle = '';
+                $id = '';
+                $issn = '';
+                $journalNumber = '';
+                $journalTitle = '';
+                $keywords_uka_en = array();
+                $keywords_uka_sv = array();
+                $keywords_user_en = array();
+                $keywords_user_sv = array();
                 $keywordsUka = array();
                 $keywordsUser = array();
                 $language = '';
+                $language_en = array();
+                $language_sv = array();
+                $modified = '';
+                $numberOfPages = '';
+                $organisationId = array();
                 $organisationName = '';
+                $organisationName_en = array();
+                $organisationName_sv = array();
+                $organisationSourceId = array();
+                $pages = '';
+                $peerReview = '';
+                $placeOfPublication = '';
+                $portalUrl = '';
+                $printIsbns = '';
+                $publicationDateYear = '';
+                $publicationDateMonth = '';
+                $publicationDateDay = '';
                 $publicationStatus = '';
                 $publicationType = '';
-                $placeOfPublication = '';
-                $edition = '';
+                $publicationType_en = '';
+                $publicationType_sv = '';
+                $publicationTypeUri = '';
+                $publisher = '';
+                $standardCategory = '';
                 $supervisorName = '';
-                
+                $type = '';
+                $volume = '';
+
                 //id
                 $id = (string)$content->attributes();
 
@@ -531,9 +309,9 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
 
                 //title
                 if($content->children('publication-base_uk',true)->title) {
-                    $document_title = (string)$content->children('publication-base_uk',true)->title;
+                    $documentTitle = (string)$content->children('publication-base_uk',true)->title;
                 } else if($content->children('stab',true)->title) {
-                    $document_title = (string)$content->children('stab',true)->title;
+                    $documentTitle = (string)$content->children('stab',true)->title;
                 }
 
                 //abstract
@@ -548,10 +326,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             }
                         }
                     }
-                //}
                 
-                //bibliographicalNote
-                //foreach($varArray as $varVal) {
+                    //bibliographicalNote
                     if($content->children($varVal, true)->bibliographicalNote) {
                         foreach($content->children($varVal, true)->bibliographicalNote->children('core', true)->localizedString as $localizedString) {
                             if($localizedString->attributes()->locale == 'en_GB') {
@@ -562,21 +338,19 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             }
                         }
                     }
-                //}
                 
-                //documents
-                //foreach($varArray as $varVal) {
+                    //documents
                     if($content->children($varVal,true)->documents) {
-                        foreach($content->children($varVal,true)->documents->children('extension-core',true)->document as $document) {
-                            $document_url = (string)$document->children('core',true)->url;
-                            //$document_title[] = (string)$document->children('core',true)->title;
-                            $document_limitedVisibility = (string)$document->children('core',true)->limitedVisibility;
+                        foreach($content->children($varVal,true)->documents->children('extensions-core',true)->document as $document) {
+                            $attachmentMimeType = (string)$document->children('core',true)->mimeType;
+                            $attachmentSize = (string)$document->children('core',true)->size;
+                            $attachmentUrl = (string)$document->children('core',true)->url;
+                            $attachmentTitle = (string)$document->children('core',true)->title;
+                            $attachmentLimitedVisibility = (string)$document->children('core',true)->limitedVisibility->children('core',true)->visibility;
                         }
                     }
-                //}
 
-                //Authors
-                //foreach($varArray as $varVal) {
+                    //Authors
                     if($content->children($varVal,true)->persons) {
                         foreach($content->children($varVal,true)->persons->children('person-template',true)->personAssociation as $personAssociation) {
                             $authorExternalTemp = 0;
@@ -658,10 +432,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             $authorOrganisation[] = $authorOrganisationTemp;
                         }
                     }
-                //}
 
-                //Organisations
-                //foreach($varArray as $varVal) {
+                    //Organisations
                     if($content->children($varVal,true)->organisations && $content->children($varVal,true)->organisations->children('organisation-template',true)->association) {
                         foreach($content->children($varVal,true)->organisations->children('organisation-template',true)->association as $association) {
                             $organisationId[] = (string)$association->children('organisation-template',true)->organisation->attributes();
@@ -679,10 +451,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             $organisationSourceId[] = (string)$association->children('organisation-template',true)->organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
                         }
                     }
-                //}
-                
-                //Language
-                //foreach($varArray as $varVal) {
+
+                    //Language
                     if($content->children($varVal,true)->language) {
                         foreach($content->children($varVal,true)->language->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
                             if($localizedString->attributes()->locale == 'en_GB') {
@@ -693,10 +463,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             }
                         }
                     }
-                //}
-                
-                //journal title
-                //foreach($varArray as $varVal) {
+
+                    //journal title
                     if($content->children($varVal,true)->journal) {
                         if($content->children($varVal,true)->journal->children('journal-template',true)->journal) {
                             foreach($content->children($varVal,true)->journal->children('journal-template',true)->journal->children('journal-template',true)->titles->children('journal-template',true)->title as $jtitle) {
@@ -704,10 +472,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             }
                         }
                     }
-                //}
-                
-                //issn
-                //foreach($varArray as $varVal) {
+
+                    //issn
                     if($content->children($varVal,true)->journal) {
                         if($content->children($varVal,true)->journal->children('journal-template',true)->issn) {
                             foreach($content->children($varVal,true)->journal->children('journal-template',true)->issn as $issn) {
@@ -715,10 +481,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             }
                         }
                     }
-                //}
-                
-                //isbn
-                //foreach($varArray as $varVal) {
+
+                    //isbn
                     if($content->children($varVal,true)->journal) {
                         if($content->children($varVal,true)->journal->children('journal-template',true)->isbn) {
                             foreach($content->children($varVal,true)->journal->children('journal-template',true)->isbn as $isbn) {
@@ -726,38 +490,33 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             }
                         }
                     }
-                //}
 
-                //numberOfPages
-                //foreach($varArray as $varVal) {
+                    //numberOfPages
                     if($content->children($varVal,true)->numberOfPages) {
                         $numberOfPages = (string)$content->children($varVal,true)->numberOfPages;
                     }
-                //}
                 
-                //Pages
-                //foreach($varArray as $varVal) {
+                    //Pages
                     if($content->children($varVal,true)->pages) {
                         $pages = (string)$content->children($varVal,true)->pages;
                     }
-                //}
-                
-                //Volume
-                //foreach($varArray as $varVal) {
+
+                    //articleNumber
+                    if($content->children($varVal,true)->articleNumber) {
+                        $articleNumber = (string)$content->children($varVal,true)->articleNumber;
+                    }
+
+                    //Volume
                     if($content->children($varVal,true)->volume) {
                         $volume = (string)$content->children($varVal,true)->volume;
                     }
-                //}
-                
-                //journalNumber
-                //foreach($varArray as $varVal) {
+
+                    //journalNumber
                     if($content->children($varVal,true)->journalNumber) {
                         $journalNumber = (string)$content->children($varVal,true)->journalNumber;
                     }
-                //}
                 
-                //publicationStatus
-                //foreach($varArray as $varVal) {
+                    //publicationStatus
                     if($content->children($varVal,true)->publicationStatus) {
                         foreach($content->children($varVal,true)->publicationStatus->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
                             if($localizedString->attributes()->locale == 'en_GB') {
@@ -769,17 +528,14 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                         }
                         $publicationStatus = (string)$content->children($varVal,true)->publicationStatus;
                     }
-                //}
                 
-                //hostPublicationTitle
-                //foreach($varArray as $varVal) {
+                    //hostPublicationTitle
                     if($content->children($varVal,true)->hostPublicationTitle) {
                         $hostPublicationTitle = (string)$content->children($varVal,true)->hostPublicationTitle;
                     }
-                //}
                     
-                //publishers isbn, issn
-                //foreach($varArray as $varVal) {
+                    //publishers isbn, issn: associatedPublisher
+                    // WITHOUT S
                     if($content->children($varVal,true)->associatedPublisher) {
                         if($content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->placeOfPublication) {
                             $placeOfPublication = (string)$content->children($varVal,true)->associatedPublisher->children('publisher-template',true)->placeOfPublication;
@@ -803,34 +559,49 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             }
                         }
                     }
+                    // WITH S
+                    if($content->children($varVal,true)->associatedPublishers) {
+                        if($content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->placeOfPublication) {
+                            $placeOfPublication = (string)$content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->placeOfPublication;
+                        }
+                        if($content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->edition) {
+                            $edition = (string)$content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->edition;
+                        }                        
+                        if($content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->printIsbns) {
+                            foreach($content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->printIsbns as $printIsbns) {
+                                $printIsbns = (string)$printIsbns->children('core',true)->value;
+                            }
+                        }
+                        if($content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->electronicIsbns) {
+                            foreach($content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->electronicIsbns as $electronicIsbns) {
+                                $electronicIsbns = (string)$electronicIsbns->children('core',true)->value;
+                            }
+                        }
+                        if($content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->publisher) {
+                            foreach($content->children($varVal,true)->associatedPublishers->children('publisher-template',true)->publisher as $publisher) {
+                                $publisher = (string)$publisher->children('publisher-template',true)->name;
+                            }
+                        }
+                    }
                     
-                //}
-                
-                //Publication- year, month, day
-                //foreach($varArray as $varVal) {
+                    //Publication- year, month, day
                     if($content->children($varVal,true)->publicationDate) {
                         $publicationDateYear = (string)$content->children($varVal,true)->publicationDate->children('core',true)->year;
                         $publicationDateMonth =  (string)$content->children($varVal,true)->publicationDate->children('core',true)->month;
                         $publicationDateDay =  (string)$content->children($varVal,true)->publicationDate->children('core',true)->day;
                     }
-                //}
                 
-                //peerReview
-                //foreach($varArray as $varVal) {
+                    //peerReview
                     if($content->children($varVal,true)->peerReview) {
                         $peerReview = (string)$content->children($varVal,true)->peerReview->children('extensions-core',true)->peerReviewed;
                     }
-                //}
                 
-                //Doi
-                //foreach($varArray as $varVal) {
+                    //Doi
                     if($content->children($varVal,true)->dois) {
                         $doi = (string)$content->children($varVal,true)->dois->children('core',true)->doi->children('core',true)->doi;
                     }
-                //}
                 
-                //Publication type
-                //foreach($varArray as $varVal) {
+                    //Publication type
                     if($content->children($varVal,true)->typeClassification) {
                         foreach($content->children($varVal,true)->typeClassification->children('core',true)->term->children('core',true)->localizedString as $localizedString) {
                             if($localizedString->attributes()->locale == 'en_GB') {
@@ -841,12 +612,11 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             }
                         }
                         $publicationTypeUri = (string)$content->children($varVal,true)->typeClassification->children('core',true)->uri;
-                    }
-                    
+                    } 
                 }
 
                 $heritage = array();
-                foreach($organisationSourceId as $key1 => $value1) {
+                foreach($organisationId as $key1 => $value1) {
                     $heritage[] = $value1;
                     $parent = $heritageArray[$value1];
                     if($parent) { 
@@ -965,30 +735,27 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                 }
                 
                 //CITE OCH BIBTEX
-                $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", "Vancouver" => "vancouver", "Author" => "author", "RIS" => "ris", "bibtex" => "bibtex");
+                $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", "Vancouver" => "vancouver",
+                    "Author" => "author", "RIS" => "ris", "Bibtex" => "bibtex");
                 $cite = "";
                 $bibtex = "";
                 foreach($citeArray as $citebibKey => $citebib) {
-                    /*$citebibxmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=$id&typeClassificationUris.uri=$publicationTypeUri&rendering=$citebib";
-                    for( $ii=0; $ii<9; $ii++ ) { 
-                        $citebibxml = @file_get_contents($citebibxmlpath);
-                        if( $citebibxml !== FALSE ) { 
-                            break;
+                    $citebibxml = @file_get_contents($directory . '/bibtexfiles/' . str_replace('.xml','', $filename) . '_' . $citebib . '.xml');
+                    if($citebibxml) {
+                        $citebibxml = str_replace('$$$', '', $citebibxml);
+                        $citebibxml = preg_replace('/<div/', '$$$<div', $citebibxml, 1);
+                        $citebibxml = $this->lreplace('</div>', '</div>$$$', $citebibxml);
+                        $citebibxmlArray = explode('$$$', $citebibxml);
+                        //$citebibxml = simplexml_load_string($citebibxml);
+                        if($citebib==="bibtex") {
+                            $bibtex = "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
+                        } else {
+                            $cite .= "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
                         }
-                    }*/
-                    $citebibxml = @file_get_contents($directory . '/bibtexfiles/' . $filename . '_' . $citebib . '.xml');
-                    $citebibxml = str_replace('$$$', '', $citebibxml);
-                    $citebibxml = preg_replace('/<div/', '$$$<div', $citebibxml, 1);
-                    $citebibxml = $this->lreplace('</div>', '</div>$$$', $citebibxml);
-                    $citebibxmlArray = explode('$$$', $citebibxml);
-                    //$citebibxml = simplexml_load_string($citebibxml);
-                    if($citebib==="BIBTEX") {
-                        $bibtex = "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
-                    } else {
-                        $cite .= "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
                     }
                 } 
                 
+                //language selector
                 if($syslang==="sv") {
                     $abstract = $abstract_sv;
                     $bibliographicalNote = $bibliographicalNote_sv;
@@ -1027,66 +794,60 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                 }
 
                 $data = array(
-                    'id' => $id,
                     'abstract' => $abstract,
+                    'articleNumber' => $articleNumber,
+                    'attachmentLimitedVisibility' => $attachmentLimitedVisibility,
+                    'attachmentMimeType' => $attachmentMimeType,
+                    'attachmentSize' => $attachmentSize,
+                    'attachmentTitle' => $attachmentTitle,
+                    'attachmentUrl' => $attachmentUrl,
                     'authorExternal' => $authorExternal,
                     'authorExternalOrganisation' => $authorExternalOrganisation,
                     'authorId' => $authorId,
                     'authorName' => array_unique($authorName),
-                    //'authorName_sort' => array_unique($authorName),
                     'authorFirstName' => $authorFirstName,
                     'authorLastName' => $authorLastName,
                     'authorOrganisation' => $authorOrganisation,
                     'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
                     'bibliographicalNote' => $bibliographicalNote,
-                    //'bibliographicalNote_en' => $bibliographicalNote_en,
                     'docType' => 'publication',
-                    'documentUrl' => $document_url,
-                    'documentTitle' => $document_title,
-                    'documentLimitedVisibility' => $document_limitedVisibility,     
+                    'documentTitle' => $documentTitle,
                     'doi' => $doi,
+                    'edition' => $edition,
+                    'electronicIsbns' => $electronicIsbns,
                     'externalOrganisationsName' => $externalOrganisationsName,
                     'externalOrganisationsId' => $externalOrganisationsId,
                     'event' => $event,
-                    //'event_sv' => $event_sv,
                     'eventCity' => $eventCity,
-                    'eventCountry' => $event_country,
-                    //'event_country_sv' => $event_country_sv,
+                    'eventCountry' => $eventCountry,
                     'hostPublicationTitle' => $hostPublicationTitle,
+                    'id' => $id,
                     'journalNumber' => $journalNumber,
                     'journalTitle' => $journalTitle,
                     'keywordsUka' => $keywordsUka,
-                    //'keywords_uka_sv' => $keywords_uka_sv,
                     'keywordsUser' => $keywordsUser,
-                    //'keywords_user_sv' => $keywords_user_sv,
                     'language' => $language,
-                    //'language_sv' => $language_sv,
                     'numberOfPages' => $numberOfPages,
                     'organisationId' => $organisationId,
                     'organisationName' => $organisationName,
-                    //'organisationName_sv' => $organisationName_sv,
                     'organisationSourceId' => $organisationSourceId, 
                     'pages' => $pages,
                     'peerReview' => $peerReview,
+                    'placeOfPublication' => $placeOfPublication,
                     'portalUrl' => $portalUrl,
+                    'printIsbns' => $printIsbns,
                     'publicationStatus' => $publicationStatus,
-                    //'publicationStatus_sv' => $publicationStatus_sv,
                     'publicationDateYear' => $publicationDateYear,
                     'publicationDateMonth' => $publicationDateMonth,
                     'publicationDateDay' => $publicationDateDay,
                     'publicationType' => $publicationType,
-                    //'publicationType_sv' => $publicationType_sv,
                     'publicationTypeUri' => $publicationTypeUri,
                     'publisher' => $publisher,
-                    //'title' => $title,
-                    //'title_sort' => $title,
+                    'supervisorName' => $supervisorName,
                     'type' => $type,
                     'volume' => $volume,
                     'standardCategory' => $publicationType,
-                    //'standard_category_sv' => $publicationType_sv,
                     'issn' => $issn,
-                    'printIsbns' => $printIsbns,
-                    'electronicIsbns' => $electronicIsbns,
                     'boost' => '1.0',
                     'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
                     'changed' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
@@ -1094,18 +855,139 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                     'bibtex' => $bibtex,
                     'cite' => $cite,
                     'appKey' => 'lthsolr',
-                    'placeOfPublication' => $placeOfPublication,
-                    'edition' => $edition,
-                    'supervisorName' => $supervisorName
                 );
                 // $this->debug($data);
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
                 //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_atom', array('msg' => $id, 'crdate' => time()));
                 //move file
-                if($mode!='reindex') {
-                    if($syslang==='en') rename($directory . '/filestoindex/' . $filename, $directory . '/indexedfiles/' . $filename);
+                if($mode==='reindex' && $syslang==='sv') {
+                    rename($directory . '/indexedfiles/' . $filename, $directory . '/svindexedfiles/' . $filename);
+                } else if($mode==='reindex' && $syslang==='en') {
+                    rename($directory . '/svindexedfiles/' . $filename, $directory . '/indexedfiles/' . $filename);
+                } else if($mode!='files') {
+                    rename($directory . '/filestoindex/' . $filename, $directory . '/indexedfiles/' . $filename);
+                }
+                //$i++;
+                $buffer->createDocument($data);
+            }
+        }
+        $buffer->commit();
+        return TRUE;
+    }
+    
+    
+    function getOrganisations($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode)
+    {
+        $directory = '/var/www/html/typo3/lucrisdump';
+        $fileArray = scandir($directory . '/orgfilestoindex');
+        //$filename = '0.xml';
+        $fileArray = array_slice($fileArray, 2);
+
+        foreach ($fileArray as $key => $filename) {
+        //for($i = 0; $i < $numberofloops; $i++) {
+            
+            //$startrecord = $startFromHere + ($i * $maximumrecords);
+
+            /*if($mode==='reindex') {
+                $xmlpath = $directory . '/indexedfiles/' . $filename;
+            } else {*/
+                $xmlpath = $directory . '/orgfilestoindex/' . $filename;
+            //}
+            $xml = @file_get_contents($xmlpath);
+            
+            $xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?>';
+            $xmlPrefix .= '<GetOrganisationResponse requestId=""><result>';
+            $xmlSuffix = '</result></GetOrganisationResponse>';
+
+            $xml = @simplexml_load_string($xmlPrefix . $xml . $xmlSuffix);
+            
+            //$numberofloops = ceil($xml->children('core', true)->count / 20);
+                //$i=0;
+            foreach($xml->xpath('//result//content') as $content) {
+                $organisationId = array();
+                $name_en = '';
+                $name_sv = '';
+                $organisationTitle = '';
+                $typeClassification_sv = '';
+                $typeClassification_en = '';
+                $typeClassification = '';
+                $id = '';
+                $portalUrl = '';
+                $parents = array();
+                $organisationSourceId = array();
+                
+                //id
+                $id = (string)$content->attributes();
+                
+                //portalUrl
+                $portalUrl = (string)$content->portalUrl;
+                
+                //name
+                if($content->name) {
+                    foreach($content->name->localizedString as $localizedString) {
+                        if($localizedString->attributes()->locale == 'en_GB') {
+                            $name_en = (string)$localizedString;
+                        }
+                        if($localizedString->attributes()->locale == 'sv_SE') {
+                            $name_sv = (string)$localizedString;
+                        }
+                    }
                 }
                 
+                //typeClassification
+                if($content->typeClassification) {
+                    foreach($content->typeClassification->term->localizedString as $localizedString) {
+                        if($localizedString->attributes()->locale == 'en_GB') {
+                            $typeClassification_en = (string)$localizedString;
+                        }
+                        if($localizedString->attributes()->locale == 'sv_SE') {
+                            $typeClassification_sv = (string)$localizedString;
+                        }
+                    }
+                }
+                
+                //parents
+                if($content->organisations) {
+                    foreach($content->organisations->organisation as $organisation) {
+                        $parents[] = (string)$organisation->attributes();
+                    }
+                }
+                
+                //organisationSourceId
+                if($content->external) {
+                    $organisationSourceId[] = $content->external->sourceId;
+                }
+                    
+                //language switch
+                if($syslang==="sv") {
+                    $typeClassification = $typeClassification_sv;
+                    $organisationTitle = $name_sv;
+                } else {
+                    $typeClassification = $typeClassification_en;
+                    $organisationTitle = $name_en;
+                }
+                
+                $data = array(
+                    'appKey' => 'lthsolr',
+                    'id' => $id,
+                    'docType' => 'organisation',
+                    'organisationSourceId' => $organisationSourceId, 
+                    'organisationParent' => $parents,
+                    'portalUrl' => $portalUrl,
+                    'organisationTitle' => $organisationTitle,
+                    'typeClassification' => $typeClassification,
+                    'type' => 'organisation',
+                    'boost' => '1.0',
+                    'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
+                    'changed' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
+                    'digest' => md5($id),
+                );
+                // $this->debug($data);
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog_atom', array('msg' => $id, 'crdate' => time()));
+                //move file
+                //rename($directory . '/filestoindex/' . $filename, $directory . '/indexedfiles/' . $filename);
+                //$i++;
                 $buffer->createDocument($data);
             }
         }
@@ -1123,16 +1005,27 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
     }
     
     
-    private function getHeritage($con)
+    private function getHeritage($client)
     {
         $heritageArray = array();
         
-        $sql = "SELECT orgid, parent FROM lucache_vorg";
+        /*$sql = "SELECT orgid, parent FROM lucache_vorg";
         
         $res = mysqli_query($con, $sql);
         
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $heritageArray[$row['orgid']] = $row['parent'];
+        }*/
+        $query = $client->createSelect();
+        $query->setQuery('docType:organisation');
+        $query->setStart(0)->setRows(3000);
+        $response = $client->select($query);
+        foreach ($response as $document) {
+            if($document->organisationParent) {
+                foreach($document->organisationParent as $organisationParent) {
+                    $heritageArray[$document->id] = $organisationParent;
+                }
+            }
         }
         return array($heritageArray);
     }
@@ -1247,6 +1140,31 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                 }
                 //save content as xml
                 $content->asXml($directory . '/filestoindex/' . $id . '.xml');
+            }
+        }
+        return TRUE;
+    }
+    
+    
+    function getOrgFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang)
+    {        
+        $directory = '/var/www/html/typo3/lucrisdump';
+
+        for($i = 0; $i <= $numberofloops; $i++) {
+            
+            $startrecord = $startFromHere + ($i * 20);
+            //$fileName = $startrecord . '.xml';
+            $xmlpath = "https://lucris.lub.lu.se/ws/rest/organisation.current?namespaces=remove&rendering=xml_long&window.size=20&window.offset=$startrecord";
+ 
+            $xml = @file_get_contents($xmlpath);
+            //echo $xmlpath;
+            $xml = @simplexml_load_string($xml);
+            $numberofloops = ceil($xml->count / 20);
+
+            foreach($xml->xpath('//result//content') as $content) {
+                $id = (string)$content->attributes();                
+                //save content as xml
+                $content->asXml($directory . '/orgfilestoindex/' . $id . '.xml');
             }
         }
         return TRUE;

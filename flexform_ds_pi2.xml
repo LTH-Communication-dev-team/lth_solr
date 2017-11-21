@@ -55,7 +55,30 @@
                                  <numIndex index="7" type="array">
                                  <numIndex index="0">Kontaktsida för en enskild person</numIndex>
                                  <numIndex index="1">contact_single_person.html</numIndex>
-                                 </numIndex> -->
+                                 </numIndex> 
+                                                <displayStaffTemplate>
+                    <TCEforms>
+                        <label>Display staff list</label>
+                        <maxitems>1</maxitems>
+                        <size>1</size>
+                        <default>contact_search.html</default>
+                        <selectedListStyle>width:200px</selectedListStyle>
+                        <itemListStyle>width:200px</itemListStyle>
+                        <config>
+                            <type>select</type>
+                            <items type="array">
+                                <numIndex index="0" type="array">
+                                <numIndex index="0">As list</numIndex>
+                                <numIndex index="1">contact_simple.html</numIndex>
+                                </numIndex>
+                                <numIndex index="1" type="array">
+                                <numIndex index="0">As contact sheet</numIndex>
+                                <numIndex index="1">contact_search.html</numIndex>
+                                </numIndex>
+                            </items>
+                        </config>
+                    </TCEforms>
+                </displayStaffTemplate>-->
                                 </items>
                                 <maxitems>1</maxitems>
                                 <size>1</size>
@@ -86,16 +109,6 @@
                         </TCEforms>
                     </fe_groups>
 
-                    <!-- <fe_users>
-                        <TCEforms>
-                            <label>Lägg till personer</label>
-                            <config>
-                                <type>user</type>
-                                <userFunc>user_sampleflex_addFieldsToFlexForm->addPeople</userFunc>
-                            </config>
-                        </TCEforms>
-                    </fe_users>
-                    -->
                     <fe_users>
                         <TCEforms type="array">
                             <label>Välj en eller flera användare</label>

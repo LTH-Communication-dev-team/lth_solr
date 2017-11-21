@@ -38,7 +38,7 @@
                     </TCEforms>
                 </display>
             
-                <fe_groups>
+                <!--<fe_groups>
                     <TCEforms type="array">
                         <label>Välj en eller flera användargrupper</label>
                         <config>
@@ -52,6 +52,39 @@
                                 </numIndex>
                             </items>
                             <foreign_table>fe_groups</foreign_table>
+                        </config>
+                    </TCEforms>
+                </fe_groups>
+                'tx_examples_special' => array (
+        'exclude' => 0,
+        'label' => 'LLL:EXT:examples/Resources/Private/Language/locallang_db.xlf:fe_users.tx_examples_special',
+        'config' => array (
+                'type' => 'user',
+                'size' => '30',
+                'userFunc' => 'Documentation\\Examples\\Userfuncs\\Tca->specialField',
+                'parameters' => array(
+                        'color' => 'blue'
+                )
+        )
+),
+                <fe_groups>
+                    <TCEforms>
+                        <config>
+                            <type>user</type>
+                            <userFunc>user_sampleflex_addFieldsToFlexForm->getOrganisations</userFunc>
+                        </config>
+                    </TCEforms>
+                </fe_groups> -->
+                <fe_groups>
+                    <TCEforms type="array">
+                        <label>FE Groups</label>
+                        <config>
+                            <type>select</type>
+                            <maxitems>100</maxitems>
+                            <size>10</size>
+                            <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getOrganisations</itemsProcFunc>
+                            <selectedListStyle>width:250px</selectedListStyle>
+                            <itemListStyle>width:250px</itemListStyle>
                         </config>
                     </TCEforms>
                 </fe_groups>
@@ -173,7 +206,7 @@
         </ROOT>
     </sDEF>
 
-    <managePublications>
+    <!--<managePublications>
         <ROOT>
             <TCEforms>
                 <sheetTitle>Manage Publications</sheetTitle>
@@ -189,7 +222,7 @@
                 </dynField>
             </el>
         </ROOT>
-    </managePublications>
+    </managePublications>-->
 
     </sheets>
 </T3DataStructure>

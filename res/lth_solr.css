@@ -15,9 +15,10 @@ and open the template in the editor.
   }
 }
 
-.ui-menu-item-wrapper {
+.ui-menu-item-wrapper, .ui-menu-item-wrapper {
     white-space: nowrap;
     max-width:273px;
+    overflow:hidden;
 }
 
 .loader {
@@ -32,6 +33,10 @@ and open the template in the editor.
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+#lth_solr_container {
+    max-width:800px;
 }
 
 .refine {
@@ -61,6 +66,21 @@ and open the template in the editor.
     background-color:#353838;
     padding-right:10px;
     color:#ffffff;
+    position:relative;
+}
+
+.lthsolr_facet_close {
+    position:absolute;
+    right:5px;
+    top:5px;
+    cursor: pointer;
+    font-size:1.4rem;
+}
+
+#lthsolr_publications_sort {
+    width:30%;
+    float:left;
+    padding-top:12px;
 }
 
 #lthsolr_tagcloud_container {
@@ -90,6 +110,10 @@ select {
 
 #lthsolrAbstract {
     margin-bottom: 10px;
+}
+
+#toggle-link {
+    margin-top:10px;
 }
 
 .lth_solr_filter_container {
@@ -169,7 +193,53 @@ tr.details td.details-control {
 .lthsolr_publication_row, .lthsolr_project_row, .lthsolr_staff_row {
     border-bottom: 1px solid #dedede;
     margin-top:15px;
-    padding-bottom:15px;
+    padding:0px 0px 15px 10px;
+    position:relative;
+    font-size:1.4rem;
+    line-height:1.82rem;
+    max-width:650px;
+}
+
+.tab-content {
+    font-size:1.4rem;
+    line-height:1.82rem;
+}
+
+.nav-tabs > li {
+    margin-bottom: 1px !important;
+    font-size:1.4rem;
+    font-weight:600;
+}
+
+li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+    background-color: white !important;
+}
+
+.nav-tabs > li > a {
+    text-decoration:none !important;
+}
+
+.less-content {
+    height: 80px; overflow: hidden;
+}
+
+.more-content {
+    display:block;
+}
+
+.type {
+    font-size: 12px;
+    color: #959595;
+}
+
+.title, .authors {
+    max-width:80%;
+}
+
+.lthsolr_attachments {
+    position:absolute;
+    right:5px;
+    top:0px;
 }
 
 .item-list li {
@@ -254,13 +324,12 @@ h2 {
 }
 
 #lthsolr_people_header, #lthsolr_pages_header, #lthsolr_courses_header {
-    margin:20px 0px 10px 0px;
+    /*margin:0px 0px 10px 0px;*/
     clear:both;
 }
 
 .lth_solr_search_header {
     font-size:1.5em;
-    margin-right:15px;
     border-bottoma:1px blue solid;
 }
 
@@ -268,7 +337,7 @@ h2 {
 #lthsolr_staff_container, #lthsolr_pages_container, #lthsolr_courses_container {
     border:0px;
     width:100%;
-    min-height:200px;
+    max-width:650px;
 }
 
 #lthsolr_pages_container {
@@ -316,6 +385,7 @@ h2 {
     border:0px;
     white-space: normal !important;
     padding-bottom:15px;
+    padding-left:0px;
     /*padding:15px 15px 0px 0px;*/
     /*height: 130px;*/
 }
@@ -464,6 +534,7 @@ color:#ffffff;
         background-color:#353838;
         padding:10px;
         color:#ffffff;
+        position:relative;
     }
     
     #lthsolr_map {

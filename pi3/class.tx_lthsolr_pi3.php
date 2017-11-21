@@ -113,16 +113,17 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_users'][] = $uuid;
                 $scope = urlencode(json_encode($lth_solr_uuid));
-                $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle);
+                //$content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle);
+                $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
             } else {
                 $lth_solr_uuid = array();
-                if($fe_groups) {
+                /*if($fe_groups) {
                     $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
                     while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                         $lth_solr_uuid['fe_groups'][] = explode('__', $row['title'])[0];
                     }
                     $GLOBALS['TYPO3_DB']->sql_free_result($res);
-                } 
+                } */
                 if($fe_users) {
                     $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . explode('|',$fe_users)[0].") AND lth_solr_uuid!=''");
                     while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
@@ -130,7 +131,11 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                     }
                     $GLOBALS['TYPO3_DB']->sql_free_result($res);
                 }
-                if(count($lth_solr_uuid > 0)) {
+                if($fe_groups) {
+                    $tmpArray = explode(',',$fe_groups);
+                    foreach($tmpArray as $tmpValue) {
+                        $lth_solr_uuid['fe_groups'][] = $tmpValue;
+                    }
                     $scope = urlencode(json_encode($lth_solr_uuid));
                 }
                 if($display === "tagcloud" && !$keyword) {
