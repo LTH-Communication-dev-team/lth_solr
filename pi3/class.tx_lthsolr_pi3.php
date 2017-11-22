@@ -35,7 +35,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	public $prefixId      = 'tx_lthsolr_pi3';		// Same as class name
 	public $scriptRelPath = 'pi3/class.tx_lthsolr_pi3.php';	// Path to this script relative to the extension dir.
 	public $extKey        = 'lth_solr';	// The extension key.
-	public $pi_checkCHash = FALSE;
+	public $pi_checkCHash = TRUE;
 	
 	/**
 	 * The main method of the Plugin.
@@ -48,7 +48,6 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $this->conf = $conf;
             $this->pi_setPiVarDefaults();
             $this->pi_loadLL();
-            $this->pi_USER_INT_obj=1; 
 
             $this->pi_initPIflexForm();
             $piFlexForm = $this->cObj->data["pi_flexform"];
@@ -81,7 +80,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
             $keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
-echo $uuid;
+
             if(strstr($uuid,"(publication)")) {
                 $showType = 'publication';
                 $uuid = str_replace('(publication)', '', $uuid);
