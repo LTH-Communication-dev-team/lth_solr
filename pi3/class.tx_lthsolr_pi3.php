@@ -99,9 +99,10 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             }
             
             $FrontEndClass = new FrontEndClass();
-            $FrontEndClass->addJsCss($display);          
+            $FrontEndClass->addJsCss($display);
+            
 
-            $content = '';
+            $content = '<style>.content_navigation {display:none;}</style>';
             if($showType === 'publication') {
                 $content .= $FrontEndClass->showPublication($uuid);
             } else if($showType==='department') {
