@@ -572,7 +572,6 @@ function showMore()
     $('.more-content').css('height',scrollHeight+'px');
 }
 
-            
 var next;
 
 function searchLong(term, startPeople, startPages, startCourses, more)
@@ -583,6 +582,9 @@ function searchLong(term, startPeople, startPages, startCourses, more)
     var webSearchScope = $('#webSearchScope').val();
     var linkStaffDetailPage = $('#linkStaffDetailPage').val();
     var template;
+    
+    $('.content_navigation').hide();
+    $('#text_wrapper').removeClass('grid-23').removeClass('omega').addClass('grid-31');
 
     $('#searchsite').val(term);
     $.ajax({
