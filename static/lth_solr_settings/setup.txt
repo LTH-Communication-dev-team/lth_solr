@@ -1,6 +1,0 @@
-plugin.lth_solr_pi1 = USER_INT
-plugin.lth_solr_pi2 = USER_INT
-plugin.lth_solr_pi3 = USER_INT
-plugin.lth_solr_pi4 = USER_INT
-plugin.lth_solr_pi5 = USER_INT
-plugin.lth_solr_pi6 = USER_INT

@@ -143,14 +143,17 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi6/class.tx_lthsolr_pi6.php', '_pi6', 'list_type', 1);
 
-/*$GLOBALS['TYPO3_CONF_VARS']['FE']['ContentObjects']['IMGTEXT'] = \Lth\Lthsolr\ContentObject\ImageTextContentObject::class;
+$GLOBALS['TYPO3_CONF_VARS']['FE']['ContentObjects']['IMGTEXT'] = \Lth\Lthsolr\ContentObject\ImageTextContentObject::class;
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript('lth_solr', 'setup', '
     #############################################
     ## TypoScript added by extension "lth_solr"
     #############################################
     
-    config.no_cache=1
+    plugin.lth_solr_pi1 = USER_INT
+    plugin.lth_solr_pi2 = USER_INT
+    plugin.lth_solr_pi3 = USER_INT
+    plugin.lth_solr_pi4 = USER_INT
+    plugin.lth_solr_pi5 = USER_INT
+    plugin.lth_solr_pi6 = USER_INT
 ', 43);
-
- */
