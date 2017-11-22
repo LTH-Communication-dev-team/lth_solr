@@ -1061,6 +1061,7 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
     
     function getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang)
     {
+        //return true;
         //$files1 = scandir('/var/www/html/typo3/fileadmin/lucrisdump');
         //$startFromHere = 20 * (intval(count($files1))-2);
         
