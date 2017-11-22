@@ -200,7 +200,7 @@
             </ROOT>
         </sDEF>
 
-        <manageStaffIntroImage>
+        <!--<manageStaffIntroImage>
             <ROOT>
                 <TCEforms>
                     <sheetTitle>Manage Staff Introtext and Image</sheetTitle>
@@ -216,10 +216,10 @@
                     </dynField>
                 </el>
             </ROOT>
-        </manageStaffIntroImage>
+        </manageStaffIntroImage>-->
 
 
-        <manageStaffList>
+        <!--<manageStaffList>
             <ROOT>
                 <TCEforms>
                     <sheetTitle>Manage Staff-Categories, Hide-on-this-page and sorting</sheetTitle>
@@ -232,7 +232,7 @@
                                 <userFunc>user_sampleflex_addFieldsToFlexForm->manageStaffList</userFunc>
                             </config>
                         </TCEforms>
-                    </dynField>
+                    </dynField>-->
 
                     <!--  <imagefolder>
                           <TCEforms>
@@ -256,9 +256,9 @@
                              </config>
                           </TCEforms>    
                      </imagefolder> -->
-                  </el>
+                 <!-- </el>
               </ROOT>
-        </manageStaffList>
+        </manageStaffList>-->
 
         <!-- <manageStaffRedirects>
             <ROOT>
