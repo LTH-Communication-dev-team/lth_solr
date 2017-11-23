@@ -107,7 +107,7 @@
                         </TCEforms>
                     </fe_groups>
 
-                    <fe_users>
+                 <!--   <fe_users>
                         <TCEforms type="array">
                             <label>Välj en eller flera användare</label>
                             <config>
@@ -124,7 +124,7 @@
                                 <foreign_table_where>ORDER BY username ASC</foreign_table_where>
                             </config>
                         </TCEforms>
-                    </fe_users>
+                    </fe_users>-->
          
                     <categories>
                         <TCEforms>
