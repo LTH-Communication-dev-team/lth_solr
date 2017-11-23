@@ -10,14 +10,14 @@
                 </TCEforms>
                 <type>array</type>
                 <el>      
-                    <init>
+                    <!--<init>
                         <TCEforms>
                             <config>
                                 <type>user</type>
                                 <userFunc>user_sampleflex_addFieldsToFlexForm->init</userFunc>
                             </config>
                         </TCEforms>
-                    </init>
+                    </init>-->
                     <html_template>
                         <TCEforms>
                             <label>Template</label>
@@ -103,8 +103,6 @@
                                     </numIndex>
                                 </items>
                                 <foreign_table>fe_groups</foreign_table> 
-                                <!-- <type>user</type>
-                                <userFunc>user_sampleflex_addFieldsToFlexForm->addScope</userFunc>-->
                             </config>
                         </TCEforms>
                     </fe_groups>
