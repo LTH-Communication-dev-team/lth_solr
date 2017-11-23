@@ -1546,7 +1546,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
             "uuid" => $document->uuid
         );
     }
-    $resArray = array('data' => $data, 'numFound' => $numFound,'facet' => $facetResult, 'draw' => 1, 'debug' => $debug);
+    $resArray = array('data' => $data, 'numFound' => $numFound,'facet' => $facetResult, 'draw' => 1, 'debug' => $queryToSet);
     return json_encode($resArray);
 }
 
