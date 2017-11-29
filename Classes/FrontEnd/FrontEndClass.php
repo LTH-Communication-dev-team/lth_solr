@@ -133,7 +133,7 @@ $content .= '</div>';
 
         //Publications
         //$content .= '<div id="lthsolr_publications_container"><div id="lthsolr_publications_header"></div></div>';
-        $content .= $this->listPublications('', '', '', '', '');
+        $content .= $this->listPublications('', '', '', '', '', '', '');
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple.html");
 
         //Projects
@@ -231,7 +231,7 @@ $content .= '</div>';
                 $content .= '<input type="hidden" id="lth_solr_lu" value="yes" />';
                 
                 //exportModal
-                /*$content .= '<!-- exportModal -->
+                $content .= '<!-- exportModal -->
                     <div id="exportModal" class="modal fade" role="dialog">
                       <div class="modal-dialog">
 
@@ -239,11 +239,9 @@ $content .= '</div>';
                         <div class="modal-content">
                           <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title">Export staff</h4>
+                            <h1 class="modal-title">Export staff</h1>
                           </div>
                           <div class="modal-body" style="position:relative;">
-                          <input type="text" name="" id="" />
-                          <input type="submit" name="" value="Skicka" />
                             </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -251,14 +249,14 @@ $content .= '</div>';
                         </div>
 
                       </div>
-                    </div>';*/
+                    </div>';
             }  
 
         return $content;
     }
     
     
-    public function listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle)
+    public function listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle, $publicationCategories, $publicationCategoriesSwitch)
     {   
         if($syslang==='en') {
             $filterText = 'Categories';
@@ -299,15 +297,36 @@ $content .= '</div>';
         if($scope) {
             $content .= '
                 <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-                <input type="hidden" id="lth_solr_publicationdetailpage" value="' . $detailPage . '" />
                 <input type="hidden" id="lth_solr_action" value="listPublications" />
                 <input type="hidden" id="lth_solr_keyword" value="' . $keyword . '" />    
                 <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />
-                <input type="hidden" id="lth_solr_pagetitle" value="' . $pageTitle . '" />'; 
+                <input type="hidden" id="lth_solr_pagetitle" value="' . $pageTitle . '" />
+                <input type="hidden" id="lth_solr_publicationCategories" value="' . $publicationCategories . '" />
+                <input type="hidden" id="lth_solr_publicationCategoriesSwitch" value="' . $publicationCategoriesSwitch . '" />'; 
             }
             
             if(substr($clientIp,0,7) === '130.235' || $clientIp === '127.0.0.1') {
                 $content .= '<input type="hidden" id="lth_solr_lu" value="yes" />';
+                //exportModal
+                $content .= '<!-- exportModal -->
+                    <div id="exportModal" class="modal fade" role="dialog">
+                      <div class="modal-dialog">
+
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h1 class="modal-title">Export publications</h1>
+                          </div>
+                          <div class="modal-body" style="position:relative;">
+                            </div>
+                          <div style="clear:both;" class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>';
             } 
         
         return $content;

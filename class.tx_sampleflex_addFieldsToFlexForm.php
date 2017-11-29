@@ -564,14 +564,16 @@ class user_sampleflex_addFieldsToFlexForm
         $client = new Solarium\Client($sconfig);
         $query = $client->createSelect();
         
+        $fieldArray = array("organisationTitle", "id");
         $queryToSet = '(docType:organisation)';
         $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
         $query->addSort('organisationTitle', $query::SORT_ASC);
         $query->setStart(0)->setRows(3000);
         $response = $client->select($query);
         
         if($response) {
-            $objects = array();
+            $feObjects = array();
             $i=0;
             foreach ($response as $document) {
                 $title = (string)$document->organisationTitle;
@@ -608,6 +610,56 @@ class user_sampleflex_addFieldsToFlexForm
         return $content;*/
 
 
+        return $config;
+    }
+    
+    
+    function getPublicationCategories($config)
+    {
+        require(__DIR__.'/service/init.php');
+        
+        $content = "";
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $fieldArray = array("standardCategory");
+        $queryToSet = '(docType:publication)';
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        //$query->addSort('standardCategory', $query::SORT_ASC);
+        $query->setStart(0)->setRows(3000);
+        $facetSet = $query->getFacetSet();
+        $facetSet->createFacetField('standard')->setField('standardCategory');
+        $response = $client->select($query);
+        
+        if($response) {
+            $i=0;
+            $facet_standard = $response->getFacetSet()->getFacet('standard');
+            foreach ($facet_standard as $value => $count) {
+                //$facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+                if($count>0) $config['items'][$i] = array(0 => $value, 1 => urlencode($value));
+                $i++;
+            }
+            asort($config);
+        }
         return $config;
     }
     

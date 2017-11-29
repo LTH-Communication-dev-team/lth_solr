@@ -95,7 +95,7 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                     $lth_solr_uuid = array();
                     $lth_solr_uuid['fe_groups'][] = $uuid;
                     $scope = urlencode(json_encode($lth_solr_uuid));
-                    $content = $FrontEndClass->listPublications($scope, 25, '', '', $pageTitle);
+                    $content = $FrontEndClass->listPublications($scope, 25, '', '', $pageTitle, '', '');
                 }
             } else if(stristr($actual_link, "/demo/") || stristr($actual_link, "vkans-th0") || 1+1===2) {
                 $content = $FrontEndClass->searchResult($query, $webSearchScope, $linkStaffDetailPage);

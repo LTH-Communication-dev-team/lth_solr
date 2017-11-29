@@ -55,9 +55,23 @@ and open the template in the editor.
     padding:0px;
 }
 
-#lth_solr_facet_container ul li, #lthsolr_staff_container ul li {
+.lthsolr_profileinformation {
+    clear:both;
+    margin:30px 0px 20px 0px;
+    max-width:550px;
+    
+}
+
+.lthsolr_filler {
+    float:right;
+    width:170px;
+    height:110px;
+}
+
+#lth_solr_facet_container ul li, #lthsolr_staff_container ul li, #exportModal ul li {
     list-style:none !important;
 }
+
 
 #lth_solr_facet_container {
     margin-bottom:10px;

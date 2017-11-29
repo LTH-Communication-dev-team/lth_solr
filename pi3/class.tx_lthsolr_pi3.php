@@ -58,6 +58,8 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
+            $publicationCategories = $this->pi_getFFvalue($piFlexForm, "publicationCategories", "sDEF", $lDef[$index]);
+            $publicationCategoriesSwitch = $this->pi_getFFvalue($piFlexForm, "publicationCategoriesSwitch", "sDEF", $lDef[$index]);
             //$staffDetailPage = $this->pi_getFFvalue($piFlexForm, "staffDetailPage", "sDEF", $lDef[$index]);
             //$projectDetailPage = $this->pi_getFFvalue($piFlexForm, "projectDetailPage", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
@@ -107,7 +109,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_groups'][] = $uuid;
                 $scope = urlencode(json_encode($lth_solr_uuid));
-                $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle);
+                $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle, $publicationCategories, $publicationCategoriesSwitch);
             } else if($showType==='author') {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_users'][] = $uuid;
@@ -143,7 +145,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                     if($keyword) {
                         $keyword = urlencode($keyword);
                     }
-                    $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle);
+                    $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle, $publicationCategories, $publicationCategoriesSwitch);
                 }
             }
         

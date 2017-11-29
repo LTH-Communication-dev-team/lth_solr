@@ -22,12 +22,13 @@ $scope = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("scope"));
 $facet = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("facet");
 $pid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('pid');
 $syslang = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('syslang');
-$table_start = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('table_start');
-$table_length = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('table_length');
+$tableStart = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tableStart');
+$tableLength = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tableLength');
+$tableFields = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tableFields');
 $pageid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('pageid');
 $custom_categories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('custom_categories');
 $categories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('categories');
-//$categoriesThisPage = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('categoriesThisPage');
+$publicationCategories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('publicationCategories');
 //$introThisPage = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('introThisPage');
 $addPeople = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('addPeople');
 $keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
@@ -70,7 +71,7 @@ switch($action) {
         $content = searchShort($query, $config);
         break;
     case 'searchLong':
-        $content = searchLong($term, $query, $table_length, $peopleOffset, $pageOffset, $courseOffset, $webSearchScope, $more, $config);
+        $content = searchLong($term, $query, $tableLength, $peopleOffset, $pageOffset, $courseOffset, $webSearchScope, $more, $config);
         break;
     case 'searchMorePeople':
         $content = searchMore($term, 'people', $peopleOffset, $pageOffset, $documentOffset, $config);
@@ -82,10 +83,11 @@ switch($action) {
         $content = searchMore($term, 'documents', $peopleOffset, $pageOffset, $documentOffset, $config);
         break;
     case 'listPublications':
-        $content = listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $query, $keyword, $sorting);
+    case 'exportPublications':
+        $content = listPublications($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $query, $keyword, $sorting, $tableFields, $action, $publicationCategories);
         break;
     case 'listStudentPapers':
-        $content = listStudentpapers($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $categories, $query, $papertype);
+        $content = listStudentpapers($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $categories, $query, $papertype);
         break;
     case 'showPublication':
         $content = showPublication('', $term, $syslang, $config);
@@ -94,23 +96,21 @@ switch($action) {
         $content = showStudentPaper($term, $syslang, $config);
         break;
     case 'listProjects':
-        $content = listProjects($scope, $syslang, $config, $table_length, $table_start, $query);
+        $content = listProjects($scope, $syslang, $config, $tableLength, $tableStart, $query);
         break;
     case 'showProject':
         $content = showProject($scope, $syslang, $config);
         break;
     case 'listStaff':
-        $content = listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $table_start, $categories, 
-                $custom_categories, $config, $query);
-        break;
     case 'exportStaff':
-        $content = exportStaff($syslang, $scope, $config, $query);
+        $content = listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $tableStart, $categories, 
+                $custom_categories, $config, $query, $tableFields, $action);
         break;
-    case 'exportPublications':
-        $content = exportPublications($syslang, $scope, $config, $query);
-        break;
+   /* case 'exportStaff':
+        $content = exportStaff($syslang, $scope, $config, $query, $tableFields);
+        break;*/
     case 'showStaff':
-        $content = showStaff($scope, $config, $table_length, $syslang);
+        $content = showStaff($scope, $config, $syslang);
         break;
     case 'rest':
         $content = rest();
@@ -126,7 +126,7 @@ switch($action) {
 print $content;
 
 
-function exportStaff($syslang, $scope, $config, $filterQuery)
+function exportStaff($syslang, $scope, $config, $filterQuery, $tableFields)
 {
     $client = new Solarium\Client($config);
     $query = $client->createSelect();
@@ -160,8 +160,14 @@ function exportStaff($syslang, $scope, $config, $filterQuery)
     );
     $query->addSorts($sortArray);
     $response = $client->select($query);
-    foreach ($response as $document) {      
-        $data[] = array(           
+    $fieldArray = json_decode($tableFields, true);
+    $i;
+    foreach ($response as $document) {
+        foreach($fieldArray as $field) {
+            $data[$i][$field] = $document->$field;
+        }
+        $i++;
+        /*$data[] = array(           
             "firstName" => mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8"),
             "lastName" => mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
             "title" => $document->title,
@@ -170,8 +176,9 @@ function exportStaff($syslang, $scope, $config, $filterQuery)
             "organisationName" => $document->organisationName,
             "roomNumber" => fixRoomNumber($document->roomNumber),
             "mobile" => $document->mobile,
-        );
+        );*/
     }
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
     $resArray = array('data' => $data, 'debug' => $debug);
     return json_encode($resArray);
 }
@@ -323,6 +330,8 @@ function file_get_contents_utf8($fn) {
 
 function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset, $courseOffset, $webSearchScope, $more, $config)
 {
+    $fieldArray = array("firstName","lastName","title","phone","email","organisationName","primary_affiliation","homepage",
+        "imageId","lucrisPhoto","roomNumber","mobile","guid","uuid","orgid","id","courseCode","credit");
     $people;
     $facet;
     $doktype;
@@ -341,7 +350,8 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
     
     $client = new Solarium\Client($config);
     $query = $client->createSelect();
-    $query->setStart($table_start)->setRows($table_length);
+    $query->setStart($tableStart)->setRows($tableLength);
+    $query->setFields($fieldArray);
     
     if($term) {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $term, 'crdate' => time()));
@@ -560,8 +570,16 @@ function searchMore($term, $type, $peopleOffset, $pageOffset, $documentOffset, $
 }
 
 
-function listPublications($facet, $scope, $syslang, $config, $table_length, $table_start, $pageid, $filterQuery, $keyword, $sorting)
+function listPublications($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $filterQuery, $keyword, $sorting, $tableFields, $action, $publicationCategories)
 {
+    if($action==='exportPublications') {
+        $fieldArray = json_decode($tableFields, true);
+    } else {
+        $fieldArray = array("articleNumber","authorName","documentTitle","documentLimitedVisibility","documentMimeType","documentSize",
+                "documentUrl","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","pages","publicationType",
+                "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
+    }
+    
     $currentDate = gmDate("Y-m-d\TH:i:s\Z");
     
     $client = new Solarium\Client($config);
@@ -573,6 +591,18 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
     if($filterQuery) {
         $filterQuery = str_replace(" ","\ ",$filterQuery);
         $filterQuery = " AND ((documentTitle:*$filterQuery*) OR authorName:*$filterQuery*)";
+    }
+    
+    $publicationSelection = '';
+    if($publicationCategories) {
+        $publicationCategories = explode(',', $publicationCategories);
+        foreach($publicationCategories as $pcKey => $pcValue) {
+            if($publicationSelection) {
+                $publicationSelection .= " OR ";
+            }
+            $publicationSelection .= 'standardCategory:"' . urldecode($pcValue) .'"';
+        }
+        $publicationSelection = " AND ($publicationSelection)";
     }
     
     if($keyword) {
@@ -595,9 +625,10 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
         }
     }
 
-    $queryToSet = 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND (' . $term . ')' . $keyword . $selection . $filterQuery;
+    $queryToSet = 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND (' . $term . ')' . $keyword . $publicationSelection . $filterQuery;
     $query->setQuery($queryToSet);
-    $query->setStart($table_start)->setRows($table_length);
+    $query->setFields($fieldArray);
+    $query->setStart($tableStart)->setRows($tableLength);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
@@ -713,29 +744,36 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
         //}
     }
         
-    foreach ($response as $document) {     
-        $data[] = array(
-            "articleNumber" => $document->$articleNumber,
-            "authorName" => ucwords(strtolower(fixArray($document->authorName))),
-            "documentTitle" => $document->documentTitle,
-            "documentLimitedVisibility" => $document->documentLimitedVisibility,
-            "documentMimeType" => $document->documentMimeType,
-            "documentSize" => $document->documentSize,
-            "documentUrl" => $document->documentUrl,
-            "hostPublicationTitle" => $document->hostPublicationTitle,
-            "id" => $document->id,
-            "journalTitle" => $document->journalTitle,
-            "journalNumber" => $document->journalNumber,
-            "numberOfPages" => $document->numberOfPages,
-            "pages" => $document->pages,
-            "publicationType" => fixArray($document->publicationType),
-            "publicationDateYear" => $document->publicationDateYear,
-            "publicationDateMonth" => $document->publicationDateMonth,
-            "publicationDateDay" => $document->publicationDateDay,
-            "placeOfPublication" => $document->placeOfPublication,
-            "publisher" => $document->publisher,
-            "volume" => $document->volume,
-        );
+    foreach ($response as $document) {
+        if($action==='exportPublications') {
+            foreach($fieldArray as $field) {
+                $data[$i][$field] = $document->$field;
+            }
+            $i++;
+        } else {
+            $data[] = array(
+                "articleNumber" => $document->$articleNumber,
+                "authorName" => ucwords(strtolower(fixArray($document->authorName))),
+                "documentTitle" => $document->documentTitle,
+                "documentLimitedVisibility" => $document->documentLimitedVisibility,
+                "documentMimeType" => $document->documentMimeType,
+                "documentSize" => $document->documentSize,
+                "documentUrl" => $document->documentUrl,
+                "hostPublicationTitle" => $document->hostPublicationTitle,
+                "id" => $document->id,
+                "journalTitle" => $document->journalTitle,
+                "journalNumber" => $document->journalNumber,
+                "numberOfPages" => $document->numberOfPages,
+                "pages" => $document->pages,
+                "publicationType" => fixArray($document->publicationType),
+                "publicationDateYear" => $document->publicationDateYear,
+                "publicationDateMonth" => $document->publicationDateMonth,
+                "publicationDateDay" => $document->publicationDateDay,
+                "placeOfPublication" => $document->placeOfPublication,
+                "publisher" => $document->publisher,
+                "volume" => $document->volume,
+            );
+        }
     }
     $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult, 'query' => $queryToSet);
     return json_encode($resArray);
@@ -744,12 +782,20 @@ function listPublications($facet, $scope, $syslang, $config, $table_length, $tab
 
 function showPublication($response, $term, $syslang, $config)
 {
+    $fieldArray = array('abstract','attachmentLimitedVisibility','attachmentMimeType','attachmentSize','attachmentTitle','attachmentUrl','authorExternal','authorId',
+        'authorName','authorOrganisation','authorReverseName','authorReverseNameShort','bibtex','cite','documentTitle','doi','edition','electronicIsbns','externalOrganisations',
+        'id','hostPublicationTitle','issn','journalTitle','journalNumber','keywords_uka','keywords_user','language','numberOfPages','organisationName',
+        'organisationId','organisationSourceId','pages','peerReview','placeOfPublication','printIsbns','publicationDateYear','publicationDateMonth',
+        'publicationDateDay','publicationType','publicationTypeUri','publisher','publicationStatus','standard_category_en','supervisors','title','volume');
+    
     if(!$response) {
         $client = new Solarium\Client($config);
 
         $query = $client->createSelect();
 
         $query->setQuery('id:'.$term);
+        
+        $query->setFields($fieldArray);
 
         $response = $client->select($query);
 
@@ -943,7 +989,7 @@ function str_lreplace($search, $replace, $subject)
 }
 
 
-function listStudentPapers($facet, $term, $syslang, $config, $table_length, $table_start, $pageid, $categories, $filterQuery, $papertype)
+function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tableStart, $pageid, $categories, $filterQuery, $papertype)
 {
     $client = new Solarium\Client($config);
 
@@ -966,7 +1012,7 @@ function listStudentPapers($facet, $term, $syslang, $config, $table_length, $tab
 
     $query->setQuery('docType:studentPaper AND (organisationSourceId  :'.$term.')' . $papertype . $filterQuery);
     //$query->addParam('rows', 1500);
-    $query->setStart($table_start)->setRows($table_length);
+    $query->setStart($tableStart)->setRows($tableLength);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
@@ -1235,7 +1281,7 @@ function showStudentPaper($term, $syslang, $config)
 }
 
 
-function listProjects($scope, $syslang, $config, $table_length, $table_start, $filterQuery)
+function listProjects($scope, $syslang, $config, $tableLength, $tableStart, $filterQuery)
 {
     $client = new Solarium\Client($config);
 
@@ -1263,7 +1309,7 @@ function listProjects($scope, $syslang, $config, $table_length, $table_start, $f
 
     $query->setQuery('docType:upmproject AND (' . $term . ')' . $filterQuery);
     //$query->addParam('rows', 1500);
-    $query->setStart($table_start)->setRows($table_length);
+    $query->setStart($tableStart)->setRows($tableLength);
     
     $response = $client->select($query);
     
@@ -1417,8 +1463,15 @@ function rest()
 }
 
 
-function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $table_start, $categories, $custom_categories, $config, $filterQuery)
+function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $tableStart, $categories, $custom_categories, $config, $filterQuery, $tableFields, $action)
 {
+    if($action==='exportStaff') {
+        $fieldArray = json_decode($tableFields, true);
+    } else {
+        $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage",
+                "image","intro","roomNumber","mobile","organisationId","guid","uuid");
+    }
+    
     $facetResult = array();
     
     $currentDate = gmDate("Y-m-d\TH:i:s\Z");
@@ -1430,7 +1483,8 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
     $hideVal = 'lth_solr_hide_' . $pageid . '_i';
     
     if($filterQuery) {
-        $filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '*)';
+        $filterQuery = str_replace(' ','\\ ',$filterQuery);
+        $filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '* OR title:*' . $filterQuery . '* OR organisationName:*' . $filterQuery . '*)';
     }
     
     if($scope) {
@@ -1448,9 +1502,11 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
         }
     }
     
-    $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_i:0 AND -' . $hideVal . ':[* TO *])' . $filterQuery;
+    $queryToSet = 'docType:staff AND primaryAffiliation:employee AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_i:0 AND -' . $hideVal . ':[* TO *]' . $filterQuery;
+    //docType:staff AND primaryAffiliation:employee AND (name:*'.$term . '* OR phone:*' . $term . '* OR email:*' . $term . '*)'
     $query->setQuery($queryToSet);
-    $query->setStart($table_start)->setRows($table_length);
+    $query->setFields($fieldArray);
+    $query->setStart($tableStart)->setRows($tableLength);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
@@ -1478,7 +1534,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
             $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"';
         }
         $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facetQuery, 'crdate' => time()));
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $facetQuery, 'crdate' => time()));
     } 
         
     $sortArray = array(
@@ -1512,6 +1568,8 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
         }
     } 
     $introVar = 'staff_custom_text_' . $pageid . '_s';
+    
+    $i;
     foreach ($response as $document) {
         $image = '';
         $intro = '';
@@ -1527,24 +1585,31 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $table_length, $tabl
             $image = '';
         }
         
-        $data[] = array(           
-            "firstName" => mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8"),
-            "lastName" => mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
-            "title" => $document->title,
-            "phone" => $document->phone,
-            "id" => $document->id,
-            "email" => $document->email,
-            "organisationName" => $document->organisationName,
-            "primaryAffiliation" => $document->primaryAffiliation,
-            "homepage" => $document->homepage,
-            "image" => $image,
-            "intro" => $intro,
-            "roomNumber" => fixRoomNumber($document->roomNumber),
-            "mobile" => $document->mobile,
-            "organisationId" => $document->organisationId,
-            "guid" => $document->guid,
-            "uuid" => $document->uuid
-        );
+        if($action==='exportStaff') {
+            foreach($fieldArray as $field) {
+                $data[$i][$field] = $document->$field;
+            }
+            $i++;
+        } else {
+            $data[] = array(           
+                "firstName" => mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8"),
+                "lastName" => mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
+                "title" => $document->title,
+                "phone" => $document->phone,
+                "id" => $document->id,
+                "email" => $document->email,
+                "organisationName" => $document->organisationName,
+                "primaryAffiliation" => $document->primaryAffiliation,
+                "homepage" => $document->homepage,
+                "image" => $image,
+                "intro" => $intro,
+                "roomNumber" => fixRoomNumber($document->roomNumber),
+                "mobile" => $document->mobile,
+                "organisationId" => $document->organisationId,
+                "guid" => $document->guid,
+                "uuid" => $document->uuid
+            );
+        }
     }
     $resArray = array('data' => $data, 'numFound' => $numFound,'facet' => $facetResult, 'draw' => 1, 'debug' => $queryToSet);
     return json_encode($resArray);
@@ -1574,15 +1639,17 @@ function fixString($input)
 }
 
 
-function showStaff($scope, $config, $table_length, $syslang)
+function showStaff($scope, $config, $syslang)
 {
+    $fieldArray = array("docType","firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage","image","intro","roomNumber",
+        "mobile","uuid","guid","organisationId","organisationPhone","organisationStreet","organisationCity","organisationPostalAddress",
+        "profileInformation","coordinates");
+    
     $content = '';
     $personData = array();
     $publicationData = array();
     $projectData = array();
-    
-    if(!$table_length) $table_length = 10;
-    
+        
     if($scope) {
         $scope = json_decode(urldecode($scope),true);
         $scope = $scope['fe_users'][0];
@@ -1590,81 +1657,56 @@ function showStaff($scope, $config, $table_length, $syslang)
     
     $client = new Solarium\Client($config);
     $query = $client->createSelect();
-    //$query->setStart($table_start)->setRows($table_length);
-    $groupComponent = $query->getGrouping();
+    $queryToSet = 'docType:staff AND (guid:' . $scope . ' OR uuid:' . $scope . ')';
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    $response = $client->select($query);
 
-    $groupComponent->addQuery('guid:' . $scope . ' OR uuid:' . $scope);
-    //$groupComponent->addQuery('id:' . $scope);
-    //$groupComponent->addQuery('authorId:' . $scope);
-//    $groupComponent->addQuery('participantId:' . $scope);
-    //$groupComponent->setSort('publicationDateYear desc');
-    //$groupComponent->setLimit($table_length);
+    foreach ($response as $document) {    
+        $id = $document->id;
+        $docType = $document->docType;
 
-    $resultset = $client->select($query);
-    //var_dump($resultset);
-    $groups = $resultset->getGrouping();
-    foreach ($groups as $groupKey => $group) {
-        //var_dump($group);
-        //$numRow[] = $group->getNumFound();
+        $intro = '';
+        if($document->$introVar) {
+            $intro = '<p class="lthsolr_intro">' . $document->staff_custom_text_s . '</p>';
+        }
 
-        foreach ($group as $document) {        
-            $id = $document->id;
-            $docType = $document->docType;
-            
-            $intro = '';
-            if($document->$introVar) {
-                $intro = '<p class="lthsolr_intro">' . $document->staff_custom_text_s . '</p>';
+        if($docType === 'staff') {
+            if($document->image) {
+                $image = '/fileadmin' . $document->image;
+            } else if($document->lucrisPhoto) {
+                $image = $document->lucrisPhoto;
             }
 
-            if($docType === 'staff') {
-                if($document->image) {
-                    $image = '/fileadmin' . $document->image;
-                } else if($document->lucrisPhoto) {
-                    $image = $document->lucrisPhoto;
-                }
-                
-                $data[] = array(
-                    "firstName" => ucwords(strtolower($document->firstName)),
-                    "lastName" => ucwords(strtolower($document->lastName)),
-                    "title" => $document->title,
-                    "phone" => $document->phone,
-                    "id" => $document->id,
-                    "email" => $document->email,
-                    "organisationName" => $document->organisationName,
-                    "primaryAffiliation" => $document->primaryAffiliation,
-                    "homepage" => $document->homepage,
-                    "image" => $image,
-                    "intro" => $intro,
-                    "roomNumber" => $document->roomNumber,
-                    "mobile" => $document->mobile,
-                    "uuid" => $document->uuid,
-                    "guid" => $document->guid,
-                    "organisationId" => $document->organisationId,
-                    "organisationPhone" => $document->organisationPhone,
-                    "organisationStreet" => $document->organisationStreet,
-                    "organisationCity" => $document->organisationCity,
-                    "organisationPostalAddress" => $document->organisationPostalAddress,
-                    "profileInformation" => $document->profileInformation,
-                    "coordinates" => fixArray($document->coordinates)
-                );
-            } /*else if($docType === 'publication') {
-                $publicationData[] = showPublication($group, '', $syslang, $config);
-                
-            } else if($docType === 'upmproject') {
-                $projectData[] = array(
-                    $document->id,
-                    fixArray($document->title_en),
-                    ucwords(strtolower(fixArray($document->participants))),
-                    substr($document->projectStartDate,0,10).'',
-                    substr($document->projectEndDate,0,10).'',
-                    ucwords(strtolower(str_replace('_',' ',$document->projectStatus)))
-                );
-                
-            }*/
+            $data[] = array(
+                "firstName" => ucwords(strtolower($document->firstName)),
+                "lastName" => ucwords(strtolower($document->lastName)),
+                "title" => $document->title,
+                "phone" => $document->phone,
+                "id" => $document->id,
+                "email" => $document->email,
+                "organisationName" => $document->organisationName,
+                "primaryAffiliation" => $document->primaryAffiliation,
+                "homepage" => $document->homepage,
+                "image" => $image,
+                "intro" => $intro,
+                "roomNumber" => $document->roomNumber,
+                "mobile" => $document->mobile,
+                "uuid" => $document->uuid,
+                "guid" => $document->guid,
+                "organisationId" => $document->organisationId,
+                "organisationPhone" => $document->organisationPhone,
+                "organisationStreet" => $document->organisationStreet,
+                "organisationCity" => $document->organisationCity,
+                "organisationPostalAddress" => $document->organisationPostalAddress,
+                "profileInformation" => $document->profileInformation,
+                "coordinates" => fixArray($document->coordinates)
+            );
         }
     }
+    //}
     
-    $resArray = array('data' => $data, 'debug' => $scope);
+    $resArray = array('data' => $data, 'debug' => $queryToSet);
     
     return json_encode($resArray);
 }

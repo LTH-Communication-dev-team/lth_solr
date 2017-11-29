@@ -18,9 +18,11 @@
                         </config>
                     </TCEforms>
                 </init>
+                
                 <display>
                     <TCEforms>
                         <label>What to display</label>
+                        <onChange>reload</onChange>
                         <config>
                             <type>radio</type>
                             <default>list</default>
@@ -37,44 +39,44 @@
                         </config>
                     </TCEforms>
                 </display>
-            
-                <!--<fe_groups>
-                    <TCEforms type="array">
-                        <label>Välj en eller flera användargrupper</label>
+                
+                <publicationCategoriesSwitch>
+                    <TCEforms>
+                        <label>Display publication categories</label>
+                        <displayCond>FIELD:display:=:list</displayCond>
+                        <onChange>reload</onChange>
                         <config>
-                            <type>select</type>
-                            <size>10</size>
-                            <maxitems>100</maxitems>
+                            <type>radio</type>
+                            <default>list</default>
                             <items type="array">
                                 <numIndex index="0" type="array">
-                                    <numIndex index="0"></numIndex>
-                                    <numIndex index="1"></numIndex>
+                                    <numIndex index="0">Display all</numIndex>
+                                    <numIndex index="1">all</numIndex>
+                                </numIndex>
+                                <numIndex index="1" type="array">
+                                    <numIndex index="0">Display selected categories</numIndex>
+                                    <numIndex index="1">selection</numIndex>
                                 </numIndex>
                             </items>
-                            <foreign_table>fe_groups</foreign_table>
                         </config>
                     </TCEforms>
-                </fe_groups>
-                'tx_examples_special' => array (
-        'exclude' => 0,
-        'label' => 'LLL:EXT:examples/Resources/Private/Language/locallang_db.xlf:fe_users.tx_examples_special',
-        'config' => array (
-                'type' => 'user',
-                'size' => '30',
-                'userFunc' => 'Documentation\\Examples\\Userfuncs\\Tca->specialField',
-                'parameters' => array(
-                        'color' => 'blue'
-                )
-        )
-),
-                <fe_groups>
-                    <TCEforms>
-                        <config>
-                            <type>user</type>
-                            <userFunc>user_sampleflex_addFieldsToFlexForm->getOrganisations</userFunc>
+                </publicationCategoriesSwitch>
+                
+                <publicationCategories>
+                        <TCEforms>
+                           <displayCond>FIELD:publicationCategoriesSwitch:=:selection</displayCond>
+                           <label>Publication categories</label>
+                           <config>
+                            <type>select</type>
+                            <maxitems>100</maxitems>
+                            <size>10</size>
+                            <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getPublicationCategories</itemsProcFunc>
+                            <selectedListStyle>width:250px</selectedListStyle>
+                            <itemListStyle>width:250px</itemListStyle>
                         </config>
-                    </TCEforms>
-                </fe_groups> -->
+                       </TCEforms>
+                </publicationCategories>
+            
                 <fe_groups>
                     <TCEforms type="array">
                         <label>FE Groups</label>
@@ -108,34 +110,6 @@
                     </TCEforms>
                 </fe_users>
                 
-                <!--  <fe_users>
-                    <TCEforms type="array">
-                     <label>Välj en användare</label>
-                     <config>
-                       <type>select</type>
-                       <size>1</size>
-                       <maxitems>1</maxitems>
-                       <items type="array">
-                         <numIndex index="0" type="array">
-                           <numIndex index="0"></numIndex>
-                           <numIndex index="1"></numIndex>
-                         </numIndex>
-                       </items>
-                       <foreign_table>fe_users</foreign_table>
-                       <foreign_table_where>ORDER BY username ASC</foreign_table_where>
-                     </config>
-                    </TCEforms>
-                </fe_users> 
-            
-                <fe_users>
-                    <TCEforms>
-                       <label>Lägg till personer</label>
-                        <config>
-                            <type>user</type>
-                            <userFunc>user_sampleflex_addFieldsToFlexForm->addPeople</userFunc>
-                        </config>
-                    </TCEforms>
-                </fe_users>-->
             
                 <!--<projects>
                     <TCEforms>
