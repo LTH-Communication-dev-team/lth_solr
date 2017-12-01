@@ -1469,7 +1469,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
         $fieldArray = json_decode($tableFields, true);
     } else {
         $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage",
-                "image","intro","roomNumber","mobile","organisationId","guid","uuid");
+                "image","lucrisPhoto","intro","roomNumber","mobile","organisationId","guid","uuid");
     }
     
     $facetResult = array();

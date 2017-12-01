@@ -39,6 +39,12 @@ and open the template in the editor.
     max-width:800px;
 }
 
+.lthsolr_email {
+    border:0px !important;
+    width:32px;
+    height:32px;
+}
+
 .refine {
     cursor:pointer;
 }
@@ -72,15 +78,61 @@ and open the template in the editor.
     list-style:none !important;
 }
 
+.lthsolr_contact {
+        margin: 0;
+    padding: 0;
+    padding-left:0.5%;
+    padding-right:0.5%;
+    padding-top:0.5%;
+    padding-bottom:2%;
+    vertical-align: baseline;
+    outline: none;
+    font-size: 100%;
+    background: transparent;
+    border: none;
+    text-decoration: none;
+    float:left;
+    width:50%;
+    display:block;
+}
+
+.lthsolr_contact img {
+    border:1px #ccc solid;
+}
+
+.lthsolr_contact a {
+    text-decoration: none;
+    color:#000;
+}
+
+#lthsolr_staff_container, #lthsolr_pages_container, #lthsolr_courses_container {
+    /*border:0px;
+    width:100%;
+    max-width:650px;*/
+    width:100%;
+    float:left;
+    margin-left:auto;
+    margin-right:auto;
+    margin:0%;
+    
+}
 
 #lth_solr_facet_container {
-    margin-bottom:10px;
+    /*margin-bottom:10px;
     width:200px;
     display:none;
     background-color:#353838;
     padding-right:10px;
     color:#ffffff;
-    position:relative;
+    position:relative;*/
+    display:none;
+    width:200px;
+    float:left;
+    border-right:1px #808080 solid;
+}
+
+#lth_solr_facet_container ul {
+    padding-left:0px;
 }
 
 .lthsolr_facet_close {
@@ -131,11 +183,16 @@ select {
 }
 
 .lth_solr_filter_container {
-    /*padding:8px 8px 2px 8px;*/
-    margin-bottom:0px;
+    /*margin-bottom:0px;
     background-color:#fafafa;
     border-bottom: 1px #ebebeb solid;
-    max-width: 650px;
+    max-width: 650px;*/
+    width:100%;
+    color:#808080;
+}
+
+.lth_solr_filter_container a {
+    color: #808080 !important;
 }
 
 .search-wrapper {
@@ -279,8 +336,9 @@ li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus 
 }
 
 #lthsolr_staff_header {
-    padding-top:7px;
-    clear:both;
+    width:100%;
+    margin-top:15px;
+    margin-bottom:15px;
 }
 
 .lth_solr_facet {
@@ -348,24 +406,18 @@ h2 {
 }
 
 
-#lthsolr_staff_container, #lthsolr_pages_container, #lthsolr_courses_container {
-    border:0px;
-    width:100%;
-    max-width:650px;
-}
-
 #lthsolr_pages_container {
-    padding-right:15px;
+    /*padding-right:15px;*/
 }
 
 
 #lthsolr_staff_container a, #lthsolr_pages_container a, #lthsolr_courses_container a {
-    text-decoration:none !important;
-    color: #000000 !important;
+    /*text-decoration:none !important;
+    color: #000000 !important;*/
 }
 
 #lthsolr_pages_container li {
-    margin-bottom:15px;
+    /*margin-bottom:15px;*/
 }
 
 .lthsolr_table_wrapper {
@@ -394,15 +446,13 @@ h2 {
     font-size: 15px;
 }
 
-#lthsolr_staff_container td, #lthsolr_pages_container td, #lthsolr_documents_container td, #lthsolr_courses_container td {
+/*#lthsolr_staff_container td, #lthsolr_pages_container td, #lthsolr_documents_container td, #lthsolr_courses_container td {
     min-width:270px;
     border:0px;
     white-space: normal !important;
     padding-bottom:15px;
     padding-left:0px;
-    /*padding:15px 15px 0px 0px;*/
-    /*height: 130px;*/
-}
+}*/
 
 .lth_solr_res {
     float:left;
@@ -536,9 +586,13 @@ color:#ffffff;
 }
 
 @media screen and (max-width: 600px) {
-    #refine {
+    .refine {
         visibility: hidden;
         display: none;
+    }
+    
+    .lthsolr_contact {
+        width:100%;
     }
     
     #lth_solr_facet_container {

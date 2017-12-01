@@ -194,32 +194,38 @@ $content .= '</div>';
         }
         $clientIp = $_SERVER['REMOTE_ADDR'];
 
-        $content .= '<div class="lth_solr_filter_container">';
+        $content .= '<p class="lth_solr_filter_container">';
+            $content .= '<i class="fa fa-filter fa-lg slsGray50"></i><a class="slsPadL5 refine">Filter</a>';
+            $content .= '<i style="margin-left:140px;" class="fa fa-search fa-lg slsGray50"></i><input style="border:0px;box-shadow:none;" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
+            
+            /*$content .= '<div style="clear:both;height:50px;">';
+                if($categories != "no_categories") {
+                    $content .= '<div id="refine" style="float:left;width:200px;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:14px;">'
+                            . '<span class="glyphicon glyphicon-filter"></span><span class="refine">'.$filterText.'</span>'
+                            . '</div>';
+                }    
+                $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:40px;"><span class="glyphicon glyphicon-search"></span></div>';
+                $content .= '<div style="float:left;height:50px;width:50%">';
+                    $content .= '<input style="" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
+                $content .= '</div>';
 
-        $content .= '<div style="clear:both;height:50px;">';
-        if($categories != "no_categories") {
-            $content .= '<div id="refine" style="float:left;width:200px;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:14px;">'
-                    . '<span class="glyphicon glyphicon-filter"></span><span class="refine">'.$filterText.'</span>'
-                    . '</div>';
-        }    
-        $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:40px;"><span class="glyphicon glyphicon-search"></span></div>';
-        $content .= '<div style="float:left;height:50px;width:50%">';
-        $content .= '<input style="border:0px;background-color:#fafafa;height:50px;width:100%;box-shadow:none;" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
-        $content .= '</div>';
+            $content .= '</div>';*/
 
-        $content .= '</div>';
+        $content .= '</p>';
+        
+        $content .= '<p style="" id="lthsolr_staff_header"></p>';
 
-        $content .= '</div>';    
+        $content .= '<div style="width:100%;clear:both;">';
 
-        $content .= '<div style="clear:both;">';
+            $content .= '<div id="lth_solr_facet_container"></div>';
 
-        $content .= '<div id="lth_solr_facet_container"></div>';
-
-        $content .= '<div id="lthsolr_staff_container"><div style="clear:both;height:30px;width:250px;" id="lthsolr_staff_header"></div></div>';
+            $content .= '<div id="lthsolr_staff_container">';
+                
+            $content .= '</div>';
 
         $content .= '</div>'; 
 
-        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/$html_template");
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact.html");
 
         $content .= '
             <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
@@ -252,7 +258,7 @@ $content .= '</div>';
                     </div>';
             }  
 
-        return $content;
+        return '<div style="font-size:17px;">'.$content.'</div>';
     }
     
     
@@ -273,7 +279,7 @@ $content .= '</div>';
             $content .= '<div id="refine" style="float:left;width:200px;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:14px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">' . $filterText . '</span></div>';
         }
         $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:40px;"><span class="glyphicon glyphicon-search"></span></div>';
-        $content .= '<div style="float:left;width:50%;height:50px;">';
+        $content .= '<div style="float:left;height:50px;">';
         $content .= '<input style="border:0px;background-color:#fafafa;width:100%;height:50px;box-shadow:none;" type="text" id="lthsolr_publications_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
         $content .= '</div>';
 
@@ -286,9 +292,9 @@ $content .= '</div>';
         $content .= '<div id="lth_solr_facet_container"></div>';
 
         $content .= '<div id="lthsolr_publications_container">'
-                . '<div style="clear:both;width:100%;height:30px;">'
-                . '<div style="float:left;height:20px;width:70%;" id="lthsolr_publications_header"></div>'
-                . '<div id="lthsolr_publications_sort"></div>'
+                . '<div style="clear:both;height:30px;">'
+                . '<div style="height:20px;" id="lthsolr_publications_header"></div>'
+                . '<div style="float:right;" id="lthsolr_publications_sort"></div>'
                 . '</div>'
                 . '</div>';
 
