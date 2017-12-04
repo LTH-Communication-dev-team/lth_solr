@@ -128,7 +128,7 @@ $content .= '</div>';
         }
         
         //Staff 
-        $content .= '<div id="lthsolr_staff_container" style="min-height:280px;"></div>';
+        $content .= '<div id="lthsolr_show_staff_container" style="min-height:280px;"></div>';
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_large.html");
 
         //Publications
@@ -143,10 +143,9 @@ $content .= '</div>';
         //Map
         $content .= '<div id="lthsolr_map" style="cursor:pointer;">'
                 . '<div style="position:relative;">'
-                . '<img style="display;none;"style="" src="typo3conf/ext/lth_solr/res/lthmap.gif" />'
-                . '<img id="lthsolr_pin" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1000;display:none;" src="typo3conf/ext/lth_solr/res/pin.png" />'
+                . '<img src="typo3conf/ext/lth_solr/res/lthmap.gif" />'
+                . '<img id="lthsolr_pin" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1000;" src="typo3conf/ext/lth_solr/res/pin.png" />'
                 //. '<img id="lthsolr_pinClient" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1000;display:none;" src="typo3conf/ext/lth_solr/res/pin.png" />'
-                . '<div id="lthsolr_googlelink" style="display:none;"></div>'
                 . '</div>'
                 . '</div>';
 
@@ -163,7 +162,7 @@ $content .= '</div>';
                   </div>
                   <div class="modal-body" style="position:relative;font-size:14px;font-weight:bold;">
                     <img src="typo3conf/ext/lth_solr/res/lthmap_large.png" />
-                    <img id="lthsolr_modal_pin" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1100;display:none;" src="typo3conf/ext/lth_solr/res/pin.png" />
+                    <img id="lthsolr_modal_pin" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1100;" src="typo3conf/ext/lth_solr/res/pin.png" />
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -180,7 +179,7 @@ $content .= '</div>';
             <input type="hidden" id="lth_solr_staff_pos" value="' . $showStaffPos . '" />
             <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
 
-        return '<div style="max-width:800px;position:relative;">' . $content . '</div>';
+        return '<div style="max-width:800px;position:relative;font-size:17px;line-height:27px;">' . $content . '</div>';
     }
     
     
@@ -196,7 +195,8 @@ $content .= '</div>';
 
         $content .= '<p class="lth_solr_filter_container">';
             $content .= '<i class="fa fa-filter fa-lg slsGray50"></i><a class="slsPadL5 refine">Filter</a>';
-            $content .= '<i style="margin-left:140px;" class="fa fa-search fa-lg slsGray50"></i><input style="border:0px;box-shadow:none;" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
+            $content .= '<i class="fa fa-search fa-lg slsGray50"></i>';
+            $content .= '<input style="border:0px;box-shadow:none;" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
             
             /*$content .= '<div style="clear:both;height:50px;">';
                 if($categories != "no_categories") {
@@ -272,31 +272,32 @@ $content .= '</div>';
         
         $clientIp = $_SERVER['REMOTE_ADDR'];
         
-        $content .= '<div class="lth_solr_filter_container">';
+        /*$content .= '<div class="lth_solr_filter_container">';
 
-        $content .= '<div style="clear:both;height:50px;">';
-        if($categories != "no_categories") {
-            $content .= '<div id="refine" style="float:left;width:200px;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:14px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">' . $filterText . '</span></div>';
-        }
-        $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:40px;"><span class="glyphicon glyphicon-search"></span></div>';
-        $content .= '<div style="float:left;height:50px;">';
-        $content .= '<input style="border:0px;background-color:#fafafa;width:100%;height:50px;box-shadow:none;" type="text" id="lthsolr_publications_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
+            $content .= '<div style="clear:both;height:50px;">';
+                if($categories != "no_categories") {
+                    $content .= '<div id="refine" style="float:left;width:200px;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:14px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">' . $filterText . '</span></div>';
+                }
+            $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:40px;"><span class="glyphicon glyphicon-search"></span></div>';
+            $content .= '<div style="float:left;height:50px;">';
+                $content .= '<input style="border:0px;background-color:#fafafa;width:100%;height:50px;box-shadow:none;" type="text" id="lthsolr_publications_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
+            $content .= '</div>';
+
         $content .= '</div>';
 
+        $content .= '</div>';*/
+        $content .= '<p class="lth_solr_filter_container">';
+            $content .= '<i class="fa fa-filter fa-lg slsGray50"></i><a class="slsPadL5 refine">Filter</a>';
+            $content .= '<i class="fa fa-search fa-lg slsGray50"></i>';
+            $content .= '<input style="border:0px;box-shadow:none;" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
+        $content .= '</p>';
+        $content .= '<div style="clear:both;width:100%;height:30px;margin:15px 0px 15px 0px;"><div style="width:50%;float:left;" id="lthsolr_publications_header"></div><div style="float:right;" id="lthsolr_publications_sort"></div></div>';
+
+        $content .= '<div style="width:100%;clear:both;">';
+            $content .= '<div id="lth_solr_facet_container"></div>';
+            $content .= '<div id="lthsolr_publications_container"></div>';
         $content .= '</div>';
-
-        $content .= '</div>';    
-
-        $content .= '<div style="clear:both;">';
-
-        $content .= '<div id="lth_solr_facet_container"></div>';
-
-        $content .= '<div id="lthsolr_publications_container">'
-                . '<div style="clear:both;height:30px;">'
-                . '<div style="height:20px;" id="lthsolr_publications_header"></div>'
-                . '<div style="float:right;" id="lthsolr_publications_sort"></div>'
-                . '</div>'
-                . '</div>';
+        
 
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple.html");
 
@@ -335,7 +336,7 @@ $content .= '</div>';
                     </div>';
             } 
         
-        return $content;
+        return '<div style="font-size:17px;">'.$content.'</div>';
     }
     
     

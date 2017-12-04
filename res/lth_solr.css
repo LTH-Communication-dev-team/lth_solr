@@ -7,12 +7,21 @@ and open the template in the editor.
     Created on : 2015-sep-17, 21:04:25
     Author     : kans-th0
 */
+.lthsolr_contact_image {
+    float:left;
+    width:100px;
+    padding:0px;
+    margin-right:2.5%;
+}
 
-@media screen and (max-width: 600px) {
-  .refine {
-    visibility: hidden;
-    display: none;
-  }
+.lthsolr_contact_image img {
+    width:100%;
+    height:auto;
+}
+
+.lthsolr_contact_text {
+    float:left;
+    width:60%;
 }
 
 .ui-menu-item-wrapper, .ui-menu-item-wrapper {
@@ -30,6 +39,14 @@ and open the template in the editor.
     animation: spin 2s linear infinite;
 }
 
+.fa-search {
+    margin-left:140px !important;
+}
+
+.fa-download {
+    vertical-align:-25%;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -39,10 +56,14 @@ and open the template in the editor.
     max-width:800px;
 }
 
-.lthsolr_email {
+.lthsolr_email, .lthsolr_home {
     border:0px !important;
     width:32px;
     height:32px;
+}
+
+.lthsolr_home {
+    margin-left:10px;
 }
 
 .refine {
@@ -94,6 +115,8 @@ and open the template in the editor.
     float:left;
     width:50%;
     display:block;
+    min-height:160px;
+    line-height:20px;
 }
 
 .lthsolr_contact img {
@@ -123,8 +146,8 @@ and open the template in the editor.
     display:none;
     background-color:#353838;
     padding-right:10px;
-    color:#ffffff;
-    position:relative;*/
+    color:#ffffff;*/
+    position:relative;
     display:none;
     width:200px;
     float:left;
@@ -144,10 +167,11 @@ and open the template in the editor.
 }
 
 #lthsolr_publications_sort {
-    width:30%;
+    width:40%;
     float:left;
-    padding-top:12px;
 }
+
+
 
 #lthsolr_tagcloud_container {
     height:700px;
@@ -189,6 +213,7 @@ select {
     max-width: 650px;*/
     width:100%;
     color:#808080;
+    height:30px;
 }
 
 .lth_solr_filter_container a {
@@ -266,8 +291,6 @@ tr.details td.details-control {
     margin-top:15px;
     padding:0px 0px 15px 10px;
     position:relative;
-    font-size:1.4rem;
-    line-height:1.82rem;
     max-width:650px;
 }
 
@@ -352,7 +375,6 @@ li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus 
 
 .maxlist-more a {
     text-decoration:none;
-    color: #ffffff;
 }
 
 .lthsolr_loader {
@@ -586,23 +608,49 @@ color:#ffffff;
 }
 
 @media screen and (max-width: 600px) {
-    .refine {
-        visibility: hidden;
-        display: none;
+   
+    .lthsolr_contact_image {
+        padding:0px;
+        width:100%;
+    }
+    
+    .lthsolr_contact_image img {
+        width: 50% !important;
+        display: block;
+        margin: 0 auto;
+        max-width:150px;
+    }
+
+    .lthsolr_contact_text {
+        width:100%;
+       text-align: center;
+    }
+    
+    .lthsolr_email, .lthsolr_home {
+        border:0px !important;
+        width:32px !important;
+        height:32px !important;
+        
+    }
+    
+    .fa-search {
+        margin-left:40px !important;
+    }
+
+    #lthsolr_staff_container {
+        margin-left: auto;
+        margin-right: auto;
     }
     
     .lthsolr_contact {
         width:100%;
+        margin-bottom:20px;
+        line-height: 27px !important;
+        min-height:100px;
     }
     
     #lth_solr_facet_container {
-        margin-bottom:10px;
-        width:100%;
-        display:none;
-        background-color:#353838;
-        padding:10px;
-        color:#ffffff;
-        position:relative;
+        border:0px;
     }
     
     #lthsolr_map {

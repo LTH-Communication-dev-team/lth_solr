@@ -485,12 +485,12 @@ function listStaff(tableStart, facet, query, noQuery, more)
                     template = template.replace('###primaryAffiliation###', aData.primaryAffiliation);
 
                     if(aData.homepage) {
-                        homepage = lth_solr_messages.personal_homepage + ': <a data-homepage="' + aData.homepage + '" href="' + aData.homepage + '">' + aData.homepage + '</a>';
+                        homepage = '<a data-homepage="' + aData.homepage + '" href="' + aData.homepage + '"><img class="lthsolr_home" src="/typo3conf/ext/lth_solr/res/home.png" /></a>';
                     }
-                    template = template.replace('###homepage###', '<p>' + homepage + '</p>');
+                    template = template.replace('###homepage###', homepage);
 
                     var image = '';
-                    if(aData.image) image = '<img style="width:100%;height:auto;" src="' + aData.image + '" />';
+                    if(aData.image) image = '<img src="' + aData.image + '" />';
                     template = template.replace('###image###', image);
                     
                     template = template.replace('###lth_solr_intro###', aData.intro.replace('\n','<br />'));
@@ -1252,7 +1252,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
             } else {
                 pageTitle='';
             }
-            $('#lthsolr_publications_header').html('<h3>' + lth_solr_messages.publications + pageTitle + '</h3>');
+            $('#lthsolr_publications_header').html('' + lth_solr_messages.publications + pageTitle + '');
             if(d.data) {
                 
                 if(d.facet) {
@@ -1265,7 +1265,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                             $.each( value, function( key1, value1 ) {
                                 if(i > 4) {
                                     maxClass = ' class="maxlist-hidden"';
-                                    more = '<p class="maxlist-more"><span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span><a href="#">' + lth_solr_messages.more + '</a></p>';
+                                    more = '<p class="maxlist-more"><i class="fa fa-chevron-right"></i><a href="#">' + lth_solr_messages.more + '</a></p>';
                                 }
 
                                 facet = value1[0].toString();
@@ -1305,12 +1305,12 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                 $.each( d.data, function( key, aData ) {
                     if(sorting==='publicationYear') {
                         if(lastGroupValue!=aData.publicationDateYear) {
-                            $('#lthsolr_publications_container').append('<div class="lthsolr_publication_row"><h3>'+aData.publicationDateYear+'</h3></div>');
+                            $('#lthsolr_publications_container').append('<div class="lthsolr_publication_row" style="margin-top:0px;">'+aData.publicationDateYear+'</div>');
                         }
                     }
                     if(sorting==='publicationType') {
                         if(lastGroupValue!=aData.publicationType) {
-                            $('#lthsolr_publications_container').append('<div class="lthsolr_publication_row"><h3>'+aData.publicationType+'</h3></div>');
+                            $('#lthsolr_publications_container').append('<div class="lthsolr_publication_row" style="margin-top:0px;">'+aData.publicationType+'</div>');
                         }
                     }
                     var template = $('#solrPublicationTemplate').html();
@@ -1446,7 +1446,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                 });
                 
                 $('.lthsolr_loader').remove();
-                var sortButton = '<select id="lthsolr_sort" style="direction: rtl;"></select>';
+                var sortButton = '<select id="lthsolr_sort" style="direction: rtl;font-size:17px;"></select>';
                 $('#lthsolr_publications_sort').html(sortButton);
                 var sortoptions = ["publicationYear,Publikationsår,&#xf161;","publicationType,typ,&#xf160;","documentTitle,Titel,&#xf160;","authorName,Författarens efternamn,&#xf160;"];
                 $(sortoptions).each(function(index, value){
@@ -1457,11 +1457,10 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                     option += '>' + value.toString().split(',')[1] + ' ' + value.toString().split(',')[2] + '</option>';
                     $('#lthsolr_sort').append(option);
                 });
-                $('#lthsolr_publications_header h3').append(' (1-' + maxLength(parseInt(tableStart),parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound + ')');
-                if($('#lth_solr_lu').val() === "yes" && $('.glyphicon-export').length < 1) {
-                    $('.lth_solr_filter_container div:last').after('<div style="float:right;width:50px;padding:20px 0px 0px 30px;height:50px;cursor:pointer;">\n\
-                        <span class="glyphicon glyphicon-export"></span></div>');
-                    $('.glyphicon-export').click(function() {
+                $('#lthsolr_publications_header').append(' (1-' + maxLength(parseInt(tableStart),parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound + ')');
+                if($('#lth_solr_lu').val() === "yes" && $('.fa-download').length < 1) {
+                    $('.lth_solr_filter_container').append('<i style="float:right;margin-top:12px;" class="fa fa-download fa-lg slsGray50"></i>');
+                    $('.fa-download').click(function() {
                         //exportPublications(syslang);
                         if($('.modal-body .checkbox').length === 0) {
                             for (var i=0; i<exportArray.length; i++) {
@@ -2338,7 +2337,7 @@ function showStaff()
                 var staffContainer = $('#lthsolr_staff_container');
                 $('#content_sidebar h2').after(staffContainer);
             }*/
-            $('#lthsolr_staff_container').append('<img class="lthsolr_loader" id="lthsolr_loader_staff" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            $('#lthsolr_show_staff_container').append('<img class="lthsolr_loader" id="lthsolr_loader_staff" src="/fileadmin/templates/images/ajax-loader.gif" />');
             //$('#lthsolr_publications_container').append('<img class="lthsolr_loader" id="lthsolr_loader_publication" src="/fileadmin/templates/images/ajax-loader.gif" />');
             //$('#lthsolr_projects_container').append('<img class="lthsolr_loader" id="lthsolr_loader_project" src="/fileadmin/templates/images/ajax-loader.gif" />');
         },
@@ -2358,6 +2357,8 @@ function showStaff()
                     //template = template.replace('###displayName###', display_name);
                     var title, ophone = '', ostreet = '', organisationName = '', ocity = '', organisationPostalAddress = '', phone = '', roomNumber = '', homePage = '', opostal_address = '';
 
+                    template = template.replace("###displayName###", displayName);
+                    
                     template = template.replace(/###email###/g, aData.email);
 
                     if(aData.title) title = aData.title[0];
@@ -2382,17 +2383,22 @@ function showStaff()
                         //55.712544,13.211670
                         var cornerLatitude = parseFloat(55.716760).toFixed(6);
                         var cornerLongitude = parseFloat(13.198662).toFixed(6);//55.716760, 13.198662
-                        var diffLatitude = (cornerLatitude - latitude) * 7500;
-                        var diffLongitude = (longitude - cornerLongitude) * 4500;
+                        var diffLatitude = (cornerLatitude - latitude) * 7300;
+                        var diffLongitude = (longitude - cornerLongitude) * 4700;
 
                         $('#lthsolr_map').show();
-                        $('#lthsolr_pin').show().css('top',diffLatitude + '%').css('left', diffLongitude + '%');
-                        $('#lthsolr_map').click(function(){
-                            $('#mapModal').modal('toggle');
-                            $('#lthsolr_modal_pin').show().css('top',diffLatitude + '%').css('left', diffLongitude + '%');
-                            $('.modal-body').append('<a target="_blank" title="Open link to Google maps in new window" href="http://www.google.com/maps/place/'+
-                                    latitude+','+longitude+'">Google Maps (new window)</a>');
-                        });
+                        $('#lthsolr_pin').css('top',diffLatitude + '%').css('left', diffLongitude + '%');
+                        if(!mobileCheck()) {
+                            $('#lthsolr_map').click(function(){
+                                $('#mapModal').modal('toggle');
+                                $('#lthsolr_modal_pin').css('top',diffLatitude + '%').css('left', diffLongitude + '%');
+                                $('.modal-body').append('<a target="_blank" title="Open link to Google maps in new window" href="http://www.google.com/maps/place/'+
+                                        latitude+','+longitude+'">Google Maps (new window)</a>');
+                            });
+                        } else {
+                            $('#lthsolr_map').append('<a target="_blank" title="Open link to Google maps in new window" href="http://www.google.com/maps/place/'+
+                                        latitude+','+longitude+'">Google Maps (new window)</a>');
+                        }
                         
                         if(mobileCheck()) {
                             $('#lthsolr_googlelink').text(aData.coordinates);
@@ -2449,9 +2455,9 @@ function showStaff()
                     template = template.replace('###visitingAddress###', ostreet + ' ' + ocity + addBreak(ophone));
                     template = template.replace('###postalAddress###', addBreak(organisationPostalAddress));
                     
-                    $('#lthsolr_staff_container').append(template);
+                    $('#lthsolr_show_staff_container').append(template);
                     if(aData.profileInformation) {
-                        $('#lthsolr_staff_container').append('<div class="lthsolr_profileinformation"><div class="lthsolr_filler"></div>' + aData.profileInformation + '</div>');
+                        $('#lthsolr_show_staff_container').append('<div class="lthsolr_profileinformation"><div class="lthsolr_filler"></div>' + aData.profileInformation + '</div>');
                     }
                 });
                 $('#lthsolr_loader_staff').remove();

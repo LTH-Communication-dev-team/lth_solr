@@ -1,13 +1,16 @@
 <script id="solrStaffTemplate" type="text/x-jquery-templ">
     <div id="###id###">
         ###image###
-        <p>###organisationName### ###roomNumber###</p>
-        <p>
-            <a href="mailto:###email###">###email###</a>
-            ###phone###<br>
-        </p>
-        ###visitingAddress###
-        ###postalAddress###
-        ###lth_solr_intro###
+        <div class="lthsolr_contact_text">
+            <div style="font-weight:600;">###displayName###</div>
+            <div>###phone###</div>
+            <div><a href="mailto:###email###" title="###email###"><img class="lthsolr_email" src="/typo3conf/ext/lth_solr/res/email.png" /></a>###homepage###</div>
+            <div>###organisationName### ###roomNumber###</div>
+            <div>
+                ###visitingAddress###
+                ###postalAddress###
+                ###lth_solr_intro###
+            </div>
+        </div>
     </div>
 </script>
