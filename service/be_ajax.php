@@ -136,114 +136,65 @@ class lth_solr_ajax {
     }
     
     
-    public function updateCategories($items, $pid, $value, $checked, $syslang, $config)
-    {
-        // $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked, $categoriesThisPage", 'crdate' => time()));
-        
-        $client = new Solarium\Client($config);
-                
-        $query = $client->createSelect();
-        
+    public function updateCategories($username, $pid, $value, $checked, $syslang, $config)
+    {       
+        $client = new Solarium\Client($config);        
         $update = $client->createUpdate();
-        
-        $query->setQuery('id:'.$items);
-        
-        //if($categoriesThisPage) {
-            $catVar = 'lth_solr_cat_' . $pid . '_ss';
-        //} else {
-        //    $catVar = 'lth_solr_cat_ss';
-        //}
+        ${"doc"} = $update->createDocument(); 
+        ${"doc"}->setKey('id', $username);      
+        $catVar = 'lth_solr_cat_' . $pid . '_stringM';
+            
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_cat", "fe_users", "lucache_id='$username'  AND lth_solr_cat != ''");
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $catArray = $row['lth_solr_cat'];
+        }
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        if($catArray) {
+            $catArray = json_decode($catArray, true);
+    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($catArray,true), 'crdate' => time()));        
+            $tmpCatArray = $catArray[$catVar];
+        } 
 
-        $response = $client->select($query);
-        
-        $doc = $update->createDocument();
-        $doc->appKey = 'lthsolr';
-        
-        foreach ($response as $document) {
-            
-            foreach ($document as $field => $fieldValue) {
-                if($field != 'score') {
-                    /*if (is_array($fieldValue)) {
-                        $fieldValue = implode(', ', $fieldValue);
-
-                    }*/
-                    $doc->$field = $fieldValue;
-                }
-            }
-            
-            $primary_uid = $document->primary_uid;
-            $catArray = array();
-            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_cat", "fe_users", "username='$primary_uid'  AND lth_solr_cat != ''");
-            while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                $catArray = $row['lth_solr_cat'];
-            }
-            $GLOBALS['TYPO3_DB']->sql_free_result($res);
-            if($catArray) {
-                $catArray = json_decode($catArray, true);
-            } 
-            
-            if($checked === 'true') {
-                if(is_array($doc->$catVar)) {
-                    $tmpCatArray = array();
-                    $tmpCatArray = $doc->$catVar;
-                    $tmpCatArray[] = $value;
-                    $doc->$catVar = $tmpCatArray;
-                } else if(is_string($doc->$catVar)) {
-                    $tmpCatArray = array($doc->$catVar);
-                    $tmpCatArray[] = $value;
-                    $doc->$catVar = $tmpCatArray;
-                } else {
-                    $doc->$catVar = $value;
-                }
-                if(is_array($catArray)) {
-                    $catArray[$catVar][] = $value;
-                }
-            } else {
-                if(is_array($doc->$catVar)) {
-                    $tmpCat = array_search($value, $doc->$catVar);
-                    $tmpCatArray = $doc->$catVar;
-                    unset($tmpCatArray[$tmpCat]);
-                    $doc->$catVar = $tmpCatArray;
-                } else {
-                    unset($doc->$catVar);
-                }
-                if(is_array($catArray[$catVar])) {
-                    $tmpCat = array_search($value, $catArray[$catVar]);
-                    unset($catArray[$catVar][$tmpCat]);
-                } 
+        if($checked === 'true') {
+            $tmpCatArray[] = $value;
+            $tmpCatArray = array_unique($tmpCatArray);
+        } else {
+            if (($key = array_search($value, $tmpCatArray)) !== false) {
+                unset($tmpCatArray[$key]);
             }
         }
-        
-        $update->addDocument($doc);
+  
+        if(count($tmpCatArray)>0) {
+            ${"doc"}->addField($catVar, $tmpCatArray);
+        } else {
+            ${"doc"}->addField($catVar, '');
+        }
+        ${"doc"}->setFieldModifier($catVar, 'set');
+        ${"doc"}->addField('appKey', 'lthsolr');
+        ${"doc"}->setFieldModifier('appKey', 'set');
+        $docArray[] = ${"doc"};
+
+        $update->addDocuments($docArray);
         $update->addCommit();
         $result = $client->update($update);
-        
-        
 
+        $catArray[$catVar] = $tmpCatArray;
         
-       // $catArray[$catVar] = $doc->$catVar;
-//$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
+        //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $updateArray = array('lth_solr_cat' => json_encode($catArray), 'tstamp' => time());
-
-        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "username='$primary_uid'", $updateArray);
-//$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
+        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "lucache_id='$username'", $updateArray);
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         return $result;
     }
     
     
     public function hidePublication($items, $pid, $value, $checked, $syslang, $config)
     {
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $items. $pid. $value. $checked, 'crdate' => time()));
         $client = new Solarium\Client($config);
-        
         $hideVar = 'lth_solr_hide_' . $pid . '_i';
-
         $update = $client->createUpdate();
-        
-        ${"doc"} = $update->createDocument();
-                        
+        ${"doc"} = $update->createDocument();               
         ${"doc"}->setKey('id', $items);
-
         if($checked === 'true') {
             ${"doc"}->addField($hideVar, 1);
             ${"doc"}->setFieldModifier($hideVar, 'set');
@@ -261,7 +212,6 @@ class lth_solr_ajax {
     
     public function resortPublications($items, $pid, $syslang, $config)
     {
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $items. $pid, 'crdate' => time()));
         $sortVal = 10;
         $lth_solr_sort = '';
         
@@ -303,68 +253,31 @@ class lth_solr_ajax {
     }
     
     
-    public function updateHideonpage($items, $pid, $value, $checked, $syslang, $config)
-    {
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "$items, $pid, $value, $checked", 'crdate' => time()));
-        
-        $client = new Solarium\Client($config);
-                
-        $query = $client->createSelect();
-        
+    public function updateHideonpage($username, $pid, $value, $checked, $syslang, $config)
+    {      
+        $client = new Solarium\Client($config);        
         $update = $client->createUpdate();
+        ${"doc"} = $update->createDocument(); 
+        ${"doc"}->setKey('id', $username); 
+        $hideVar = 'lth_solr_hide_' . $pid . '_intS';
         
-        $query->setQuery('id:'.$items);
-        
-        $hideVar = 'lth_solr_hide_' . $pid . '_i';
-
-        $response = $client->select($query);
-        
-        $doc = $update->createDocument();
-        
-        foreach ($response as $document) {
-            
-            foreach ($document as $field => $fieldValue) {
-                if($field != 'score') {
-                    /*if (is_array($fieldValue)) {
-                        $fieldValue = implode(', ', $fieldValue);
-
-                    }*/
-                    $doc->$field = $fieldValue;
-               }
-               
-            }
-            $doc->appKey = 'lthsolr';
-            if($checked === 'true') {
-                /*if(is_array($doc->$hideVar)) {
-                    $tmpHideArray = array();
-                    $tmpHideArray = $doc->$hideVar;
-                    $tmpHideArray[] = $value;
-                    $doc->$HideVar = $tmpHideArray;
-                } else if(is_string($doc->$hideVar)) {
-                    $tmpHideArray = array($doc->$hideVar);
-                    $tmpHideArray[] = $value;
-                    $doc->$hideVar = $tmpHideArray;
-                } else {*/
-                    $doc->$hideVar = 1;
-                //}
-            } else {
-                unset($doc->$hideVar);
-               /* if(is_array($doc->$hideVar)) {
-                    $tmpHide = array_search($value, $doc->$hideVar);
-                    $tmpHideArray = $doc->$hideVar;
-                    unset($tmpHideArray[$tmpHide]);
-                    $doc->$hideVar = $tmpHideArray;
-                } else {
-                    unset($doc->$hideVar);
-                }*/
-            }            
+        if($checked === 'true') {
+            ${"doc"}->addField($hideVar, 1);
+            ${"doc"}->setFieldModifier($hideVar, 'set');
+            $hideArray[$hideVar] = 1;
+        } else {
+            ${"doc"}->addField($hideVar, 0);
+            ${"doc"}->setFieldModifier($hideVar, 'set');
+            $hideArray[$hideVar] = 0;
         }
-        
-        $update->addDocument($doc);
+        $docArray[] = ${"doc"};
+
+        $update->addDocuments($docArray);
         $update->addCommit();
         $result = $client->update($update);
+
         
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_hide", "fe_users", "username='$items'  AND lth_solr_hide != ''");
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_hide", "fe_users", "lucache_id='$username' AND lth_solr_hide != ''");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $hideArray = $row['lth_solr_hide'];
         }
@@ -373,11 +286,10 @@ class lth_solr_ajax {
         if($hideArray) {
             $hideArray = json_decode($hideArray, true);
         } 
-        $hideArray[$hideVar] = $doc->$hideVar;
 
         $updateArray = array('lth_solr_hide' => json_encode($hideArray), 'tstamp' => time());
 
-        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "username='$items'", $updateArray);
+        $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "lucache_id='$username'", $updateArray);
         
         return $result;
     }
@@ -395,57 +307,36 @@ class lth_solr_ajax {
 	$mime_type = $row['mime_type'];
 	$GLOBALS['TYPO3_DB']->sql_free_result($res);
         
-        $client = new Solarium\Client($config);
-                
-        $query = $client->createSelect();
-        
-        $buffer = $client->getPlugin('bufferedadd');
-        $buffer->setBufferSize(50);
-        
-        //if(intval($introThisPage)===1) {
-            $introVar = 'staff_custom_text_' . $pid . '_s';
-        //} else {
-         //   $introVar = 'staff_custom_text_s';
-        //}
-        $imageVar = 'image_s';
-
-        $data = array();
-
-        $query->setQuery('id:'.$username);      
-
-        $response = $client->select($query);
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($result), 'crdate' => time()));
-        foreach ($response as $document) {
-            foreach ($document as $field => $fieldValue) {
-                if($field != 'score') {
-                    $data[$field] = $fieldValue;
-                }
-                
-            }
-            if($identifier) {
-                $data['image'] = $identifier;
-                $data['image_id'] = $imageId;
-            } else {
-                $data['image'] = '';
-                $data['image_id'] = '';                
-            }
-            if($introText) {
-                $data[$introVar] = $introText;
-            }
-            $data['appKey'] = 'lthsolr';
-        }
-
-        $buffer->createDocument($data);
-
-        //$GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "username='$value'", $updateArray);
-        /*print '<pre>';
-        print_r($data);
-        print '</pre>';*/
-        
-        $buffer->flush();
+        $client = new Solarium\Client($config);        
         $update = $client->createUpdate();
+        ${"doc"} = $update->createDocument(); 
+        ${"doc"}->setKey('id', $username);
+        
+        $introVar = 'staff_custom_text_' . $pid . '_stringS';
+
+        if($identifier) {
+            ${"doc"}->addField('image', $identifier);
+            ${"doc"}->setFieldModifier('image', 'set');
+            ${"doc"}->addField('imageId', $imageId);
+            ${"doc"}->setFieldModifier('imageId', 'set');
+        } else {
+            ${"doc"}->addField('image', '');
+            ${"doc"}->setFieldModifier('image', 'set');
+            ${"doc"}->addField('imageId', '');
+            ${"doc"}->setFieldModifier('imageId', 'set');
+        }
+        if($introText) {
+            ${"doc"}->addField($introVar, $introText);
+            ${"doc"}->setFieldModifier($introVar, 'set');
+        } else {
+            ${"doc"}->addField($introVar, '');
+            ${"doc"}->setFieldModifier($introVar, 'set');
+        }
+        $docArray[] = ${"doc"};
+
+        $update->addDocuments($docArray);
         $update->addCommit();
-        $client->update($update);
+        $result = $client->update($update);
         
         /////////////////////////
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_intro", "fe_users", "lucache_id='$username'");
@@ -462,22 +353,15 @@ class lth_solr_ajax {
             $introArray[$introVar] = $introText;
         }
         if($introArray) {
-            $introArray = json_encode($introArray, true);
+            $introArray = json_encode($introArray);
         } else {
             $introArray = '';
         }
-        
-       /* $updateImage = '';
-        if($data['image_s'] == '' && $image) {
-            $updateImage = $image;
-        } else if($data['image_s'] != '') {
-            $updateImage = $data['image_s'];
-        }*/
 
         $updateArray = array('lth_solr_intro' => $introArray, 'image' => $identifier, 'image_id' => $imageId, 'tstamp' => time());
-
+        //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "lucache_id='$username'", $updateArray);
-        /////////////////////////
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         
         $returnArray = [];
         $returnArray['introText'] = $introText;
@@ -486,7 +370,7 @@ class lth_solr_ajax {
     }
     
     
-    function updateAutopage($items, $pid, $value, $checked, $syslang, $config)
+    /*function updateAutopage($items, $pid, $value, $checked, $syslang, $config)
     {
         $username = $items;
         $autoArray = array();
@@ -611,30 +495,9 @@ s.deleted=0","p.uid IN($uidString)","","p.uid DESC","0,1");
         $update->addDocuments($docArray);
         $update->addCommit();
         $result = $client->update($update);
-        /*$client = new Solarium\Client($config);
-        
-        
-        
-        $value = json_decode($value);
-        $url = $value[0];
-        $destination = $value[1];
-        
-        if($url && $destination) {
-            $url = rtrim(ltrim($url,'/'),'/') . '/';
-            $updateInsertArray = array('url_hash' => hexdec(substr(md5($url), 0, 7)), 'url' => $url, 'destination' => $destination, 'last_referer' => '', 'has_moved' => 1, 'tstamp' => time());
-            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("url", "tx_realurl_redirects", "url='" . addslashes($url) . "'");
-            if($GLOBALS['TYPO3_DB']->sql_num_rows($res) > 0) {
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery("tx_realurl_redirects", "url='" . addslashes($url) . "'", $updateInsertArray);
-            } else {
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery("tx_realurl_redirects", $updateInsertArray); 
-            }
-            
-            
-        }
-         */
-       // return TRUE;
+
         return $rVal;
-    }
+    }*/
     
     
     function fixAAO($name)

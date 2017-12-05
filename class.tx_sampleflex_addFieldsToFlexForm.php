@@ -113,6 +113,7 @@ class user_sampleflex_addFieldsToFlexForm
                             'action' : 'updateIntroAndImage',
                             'items' : staffId,
                             'value' : JSON.stringify(value),
+                            'imageId' : imageId,
                             'pid' : '$pid',
                             'sys_language_uid' : $sys_language_uid,
                             'sid' : Math.random()
@@ -459,7 +460,9 @@ class user_sampleflex_addFieldsToFlexForm
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
         $query->setQuery($queryToSet);
         //$query->setQuery("$showVar:1");
-        //$query->setFields(array('id', 'display_name_t', $catVar, $hideVar));
+        if($config['fieldArray']) {
+            $query->setFields($config['fieldArray']);
+        }
 
         $query->addSort('lth_solr_sort_' . $pid . '_i', $query::SORT_ASC);
         $query->addSort('lastNameExact', $query::SORT_ASC);
@@ -681,9 +684,8 @@ class user_sampleflex_addFieldsToFlexForm
         $categories = $allResponse[3];
         $syslang = $allResponse[4];
 
-        $catVar = 'lth_solr_cat_' . $pid . '_ss';
-        $hideVar = 'lth_solr_hide_' . $pid . '_i';
-        $autohomepageVar = 'lth_solr_autohomepage_' . $pid . '_s';
+        $catVar = 'lth_solr_cat_' . $pid . '_stringM';
+        $hideVar = 'lth_solr_hide_' . $pid . '_intS';
         
         $numFound = $response->getNumFound();
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($response,true), 'crdate' => time()));
@@ -723,20 +725,11 @@ class user_sampleflex_addFieldsToFlexForm
                     $checkedHide = ' " checked="checked" ';
                 }
                 
-                $checkedAuto = ' ';
-                if($document->$autohomepageVar) {
-                    $checkedAuto = ' " checked="checked" ';
-                }
 
                 //Hide on page
                 $content .= "<td style=\"width:220px;padding-left:90px;\">"
                         . "<input type=\"checkbox\" name=\"lth_solr_hideonpage\" class=\"lth_solr_hideonpage\" value=\"1\"$checkedHide/>Hide on this page"
                         . "</td>";
-                
-                /*Create autopage
-                $content .= "<td style=\"width:290px;padding-left:50px;\">"
-                        . "<input type=\"checkbox\" name=\"lth_solr_autopage\" class=\"lth_solr_autopage\" value=\"1\"$checkedAuto/>Create 'Auto' personal homepage"
-                        . "</td>";*/
 
                 $content .= "</tr>";
             }
@@ -759,15 +752,16 @@ class user_sampleflex_addFieldsToFlexForm
         $pid = $config['row']['pid'];
 
         $sys_language_uid = $config['row']['sys_language_uid'];
-        //$introVar = 'lth_solr_intro_' . $pid . '_' . $sys_language_uid;
+        $introVar = 'staff_custom_text_' . $pid . '_stringS';
         
         //print_r($config);
 
+        $config['fieldArray'] = array("id","name","image","imageId","lucrisPhoto",$introVar);
 	$allResponse = $this->getSolrData($config);
 	$response = $allResponse[0];
         //$introThisPage = $allResponse[4];
 
-        $introVar = 'staff_custom_text_' . $pid . '_s';
+        $introVar = 'staff_custom_text_' . $pid . '_stringS';
 
         $numFound = $response->getNumFound();
         

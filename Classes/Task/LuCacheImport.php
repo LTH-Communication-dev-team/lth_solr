@@ -325,14 +325,13 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     {
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT username, usergroup, image, image_id, lth_solr_cat, lucache_id, '
-                . 'lth_solr_sort, lth_solr_intro, lth_solr_autohomepage, lth_solr_show', 'fe_users', 'lth_solr_index = 1 AND deleted = 0');
+                . 'lth_solr_sort, lth_solr_intro, lth_solr_show', 'fe_users', 'lth_solr_index = 1 AND deleted = 0');
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $username = $row['username'];
             $lth_solr_cat = $row['lth_solr_cat'];
             $lth_solr_intro = $row['lth_solr_intro'];
             $lth_solr_sort = $row['lth_solr_sort'];
-            $lth_solr_autohomepage = $row['lth_solr_autohomepage'];
             $lth_solr_show = $row['lth_solr_show'];
             $lucache_id = $row['lucache_id'];
             
@@ -361,15 +360,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     if($lth_solr_sort) {
                         foreach($lth_solr_sort as $key => $value) {
                             $employeeArray[$username]['lth_solr_sort'][$key] = $value;
-                        }
-                    }
-                }
-                
-                if($lth_solr_autohomepage && $lth_solr_autohomepage !== '') {
-                    $lth_solr_autohomepage = json_decode($lth_solr_autohomepage, true);
-                    if($lth_solr_autohomepage) {
-                        foreach($lth_solr_autohomepage as $key => $value) {
-                            $employeeArray[$username]['lth_solr_autohomepage'][$key] = $value;
                         }
                     }
                 }
@@ -827,12 +817,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         if(is_array($value['lth_solr_sort'])) {
                             foreach($value['lth_solr_sort'] as $key3 => $value3) {
                                 $data[$key3] = $value3;
-                            }
-                        }
-                        
-                        if(is_array($value['lth_solr_autohomepage'])) {
-                            foreach($value['lth_solr_autohomepage'] as $key4 => $value4) {
-                                $data[$key4] = $value4;
                             }
                         }
                         
