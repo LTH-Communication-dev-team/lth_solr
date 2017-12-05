@@ -18,6 +18,17 @@
                             </config>
                         </TCEforms>
                     </init>
+                    
+                <feusersSwitch>
+                    <TCEforms>
+                        <label>Select fe_users (makes the form slow!)</label>
+                        <onChange>reload</onChange>
+                        <config>
+                            <type>check</type>
+                        </config>
+                    </TCEforms>
+                </feusersSwitch>
+                
                    <!-- <html_template>
                         <TCEforms>
                             <label>Template</label>
@@ -75,6 +86,7 @@
                  <fe_users>
                         <TCEforms type="array">
                             <label>Välj en eller flera användare</label>
+                            <displayCond>FIELD:feusersSwitch:=:1</displayCond>
                             <config>
                                 <type>select</type>
                                 <size>10</size>
