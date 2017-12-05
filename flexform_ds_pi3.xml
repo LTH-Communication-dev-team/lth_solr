@@ -47,7 +47,7 @@
                         <onChange>reload</onChange>
                         <config>
                             <type>radio</type>
-                            <default>list</default>
+                            <default>all</default>
                             <items type="array">
                                 <numIndex index="0" type="array">
                                     <numIndex index="0">Display all</numIndex>
