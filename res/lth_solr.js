@@ -1720,9 +1720,9 @@ function listStudentPapers(tableStart, facet, query, more)
                     createFacetClick('listStudentPapers');
                 }
                 
-                var publicationDetailPage = 'publikationer';
+                var publicationDetailPage = 'visa';
                 if(syslang=='en') {
-                    publicationDetailPage = 'publications';
+                    publicationDetailPage = 'show';
                 }
                 var path = window.location.href + publicationDetailPage;
                 
