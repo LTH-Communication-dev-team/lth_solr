@@ -23,6 +23,7 @@
  ***************************************************************/
 
 // require_once(PATH_tslib . 'class.tslib_pibase.php');
+include __DIR__ . "/../Classes/FrontEnd/FrontEndClass.php";
 
 /**
  * Plugin 'LTH Solr' for the 'lth_solr' extension.
@@ -91,103 +92,23 @@ class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $syslang='sv';
             }
             
-            //Load main js- and css-files
-            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
-            $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
-            $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
-             
+            $FrontEndClass = new FrontEndClass();
+            
+            $FrontEndClass->addJsCss('');
+            
             if(!$scope && !$uuid) {
                 return 'Please add organisation uuid';
             }
             $content = '';
 
             if($uuid && substr($uuid, 0, 1) !== "v") {
-                $content .= $this->showStudentPaper($uuid, $staffDetailPage, $projectDetailPage);
+                $content .= $FrontEndClass->showStudentPaper($uuid, $staffDetailPage, $projectDetailPage);
             } else {
-                $content .= $this->listStudentPapers($scope, $detailPage, $noItemsToShow, $categories, $papertype);
+                $content .= $FrontEndClass->listStudentPapers($scope, $detailPage, $noItemsToShow, $categories, $papertype);
             }
             //$this->debug($content);
             return $content;
 	}
-        
-        
-        private function showStudentPaper($uuid, $staffDetailPage, $projectDetailPage)
-        {
-            $content = '<div id="lth_solr_container" ></div>';
-            
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/studentpaper_presentation.html");
-            
-            $content = str_replace('###more###', 'Mer', $content);
-            
-            $content .= '
-                <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
-                <input type="hidden" id="lth_solr_action" value="showStudentPaper" />';
-            
-            return $content;
-        }
-        
-        
-        private function listStudentPapers($scope, $detailPage, $noItemsToShow, $categories, $papertype)
-        {
-            /*$content .= '<div style="clear:both;margin-top:20px;margin-bottom:20px;">Filter: <input type="text" id="lthsolr_publications_filter" class="lthsolr_filter" name="lthsolr_filter" value="" /></div>';
-            
-            $content .= '<div class="lth_solr_facet_container"></div>';
-            
-            $content .= '<div id="lthsolr_publications_header"></div>';
-            
-            $content .= '<div id="lthsolr_publications_container"></div>';*/
-            
-            $content .= '<style>.glyphicon-search {font-size: 25px;}.glyphicon-filter {font-size: 15px;}</style>';
-            $content .= '<div class="lth_solr_filter_container">';
-            
-                //$content .= '<div style="font-weight:bold;">' . $this->pi_getLL("filter") . '</div>';
-              
-            $content .= '<div style="clear:both;height:50px;">';
-            if($categories != "no_categories") {
-                $content .= '<div id="refine" style="float:left;width:30%;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:16px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">Filter</span></div>';
-            }    
-            $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
-            $content .= '<div style="float:left;padding-top:10px;width:60%">';
-            $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_studentpapers_filter" class="lthsolr_filter" placeholdera="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
-            $content .= '</div>';
-            
-            $content .= '</div>';
-                
-            $content .= '</div>';    
-            
-            $content .= '<div style="clear:both;">';
-            
-            $content .= '<div id="lth_solr_facet_container"></div>';
-            
-            $content .= '<div id="lthsolr_publications_container"><div style="clear:both;height:20px;" id="lthsolr_publications_header"></div></div>';
-            
-            $content .= '</div>'; 
-            
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/studentpaper_simple.html");
-            
-            $content .= '
-                    <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-                    <input type="hidden" id="lth_solr_detailpage" value="' . $detailPage . '" />
-                    <input type="hidden" id="lth_solr_action" value="listStudentPapers" />
-                    <input type="hidden" id="lth_solr_categories" value="' . $categories . '" />
-                    <input type="hidden" id="lth_solr_papertype" value="' . $papertype . '" /> 
-                    <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
-            return $content;
-        }
-        
-               
-        private function searchBox($query)
-        {
-            $content = '<form action="" method="post" accept-charset="UTF-8">
-            <div class="form-item form-type-textfield form-item-search" role="application">
-                <input type="text" id="searchSiteMain" name="search" value="' . $query . '" />
-                <input type="submit" id="edit-submit" name="op" value="Sök" class="form-submit" />
-                <input type="hidden" id="query" name="query" value="' . $query . '" />
-            </div>
-            </form>';
-            
-            return $content;
-        }
         
         
         private function debug($input)

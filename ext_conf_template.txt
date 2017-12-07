@@ -34,3 +34,11 @@ solrPath2=
 solrPort2=
   # cat=basic/dev/177; type=input; label=Solr Timeout 2
 solrTimeout2=
+  # cat=basic/dev/178; type=input; label=Solr Ladok dbhost
+solrLadokDbhost=
+  # cat=basic/dev/179; type=input; label=Solr Ladok db
+solrLadokDb=
+  # cat=basic/dev/180; type=input; label=Solr Ladok id
+solrLadokId=
+  # cat=basic/dev/181; type=input; label=Solr Ladok pw
+solrLadokPw=

@@ -87,7 +87,8 @@ switch($action) {
         $content = listPublications($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $query, $keyword, $sorting, $tableFields, $action, $publicationCategories);
         break;
     case 'listStudentPapers':
-        $content = listStudentpapers($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $categories, $query, $papertype);
+    case 'exportStudentPapers':
+        $content = listStudentpapers($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $categories, $query, $papertype, $tableFields, $action, $publicationCategories);
         break;
     case 'showPublication':
         $content = showPublication('', $term, $syslang, $config);
@@ -989,7 +990,7 @@ function str_lreplace($search, $replace, $subject)
 }
 
 
-function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tableStart, $pageid, $categories, $filterQuery, $papertype)
+function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tableStart, $pageid, $categories, $filterQuery, $papertype, $tableFields, $action, $publicationCategories)
 {
     $client = new Solarium\Client($config);
 
@@ -1010,14 +1011,15 @@ function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tabl
         $papertype = ' AND (' . $papertype . ')';
     }
 
-    $query->setQuery('docType:studentPaper AND (organisationSourceId  :'.$term.')' . $papertype . $filterQuery);
+    $queryToSet = 'docType:studentPaper AND (organisationSourceId  :'.$term.')' . $papertype . $filterQuery;
+    $query->setQuery($queryToSet);
     //$query->addParam('rows', 1500);
     $query->setStart($tableStart)->setRows($tableLength);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
     // create a facet field instance and set options
-    $facetSet->createFacetField('standard')->setField('standardCategory');
+    //$facetSet->createFacetField('standard')->setField('standardCategory');
     $facetSet->createFacetField('language')->setField('language');
     $facetSet->createFacetField('year')->setField('publicationDateYear');
 
@@ -1046,41 +1048,41 @@ function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tabl
     
     $numFound = $response->getNumFound();
     
-    $facet_standard = $response->getFacetSet()->getFacet('standard');
-        if($syslang==="en") {
-            $facetHeader = "Publication Type";
-        } else {
-            $facetHeader = "Publikationstyp";
-        }
-        foreach ($facet_standard as $value => $count) {
-            //if($count > 0) {
-                $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
-            //}
-        }
-        
-        $facet_language = $response->getFacetSet()->getFacet('language');
-        if($syslang==="en") {
-            $facetHeader = "Language";
-        } else {
-            $facetHeader = "Språk";
-        }
-        foreach ($facet_language as $value => $count) {
-            //if($count > 0) {
-                $facetResult["language"][] = array($value, $count, $facetHeader);
-            //}
-        }
-        
-        $facet_year = $response->getFacetSet()->getFacet('year');
-        if($syslang==="en") {
-            $facetHeader = "Publication Year";
-        } else {
-            $facetHeader = "Publikationsår";
-        }
-        foreach ($facet_year as $value => $count) {
-            //if($count > 0) {
-                $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
-            //}
-        }
+    /*$facet_standard = $response->getFacetSet()->getFacet('standard');
+    if($syslang==="en") {
+        $facetHeader = "Publication Type";
+    } else {
+        $facetHeader = "Publikationstyp";
+    }
+    foreach ($facet_standard as $value => $count) {
+        //if($count > 0) {
+            $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+        //}
+    }*/
+
+    $facetLanguage = $response->getFacetSet()->getFacet('language');
+    if($syslang==="en") {
+        $facetHeader = "Language";
+    } else {
+        $facetHeader = "Språk";
+    }
+    foreach ($facetLanguage as $value => $count) {
+        //if($count > 0) {
+            $facetResult["language"][] = array($value, $count, $facetHeader);
+        //}
+    }
+
+    $facetYear = $response->getFacetSet()->getFacet('year');
+    if($syslang==="en") {
+        $facetHeader = "Publication Year";
+    } else {
+        $facetHeader = "Publikationsår";
+    }
+    foreach ($facetYear as $value => $count) {
+        //if($count > 0) {
+            $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
+        //}
+    }
         
     foreach ($response as $document) {     
         $data[] = array(
@@ -1091,7 +1093,7 @@ function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tabl
             $document->organisationName
         );
     }
-    $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult);
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult, 'debug' => $queryToSet);
     return json_encode($resArray);
 }
 
@@ -1185,9 +1187,6 @@ function showStudentPaper($term, $syslang, $config)
     $response = $client->select($query);
     $numFound = $response->getNumFound();
     $content = '';
-    /*$detailPageArray = explode(',', $detailPage);
-    $staffDetailPage = $detailPageArray[0];
-    $projectDetailPage = $detailPageArray[1];*/
         
     foreach ($response as $document) {
         $id = $document->id;
@@ -1236,19 +1235,19 @@ function showStudentPaper($term, $syslang, $config)
         $bibtex .= "}";
                 
         $data = array(
-            $abstract,
-            $documentTitle,
-            $authors,
-            $organisations,
-            $externalOrganisations,
-            $publicationType,
-            $language,
-            $publicationDateYear,
-            $keywords,
-            $documentUrl,
-            $supervisorName,
-            $organisationSourceId,
-            $bibtex
+            "abstract" => $abstract,
+            "documentTitle" => $documentTitle,
+            "authors" => $authors,
+            "organisations" => $organisations,
+            "externalOrganisations" => $externalOrganisations,
+            "publicationType" => $publicationType,
+            "language" => $language,
+            "publicationDateYear" => $publicationDateYear,
+            "keywords" => $keywords,
+            "documentUrl" => $documentUrl,
+            "supervisorName" => $supervisorName,
+            "organisationSourceId" => $organisationSourceId,
+            "bibtex" => $bibtex
         );
 
         /*$content .= "<h3>$publicationType</h3>";

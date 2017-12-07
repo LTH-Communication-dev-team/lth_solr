@@ -365,5 +365,98 @@ $content .= '</div>';
 
         return $content;
     }
+    
+    
+    public function showStudentPaper($uuid, $staffDetailPage, $projectDetailPage)
+    {
+        $content = '<div id="lth_solr_container" ></div>';
+
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/studentpaper_presentation.html");
+
+        $content = str_replace('###more###', 'Mer', $content);
+
+        $content .= '
+            <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
+            <input type="hidden" id="lth_solr_action" value="showStudentPaper" />';
+
+        return $content;
+    }
         
+        
+    public function listStudentPapers($scope, $detailPage, $noItemsToShow, $categories, $papertype)
+    {
+        /*$content .= '<style>.glyphicon-search {font-size: 25px;}.glyphicon-filter {font-size: 15px;}</style>';
+        $content .= '<div class="lth_solr_filter_container">';
+
+        $content .= '<div style="clear:both;height:50px;">';
+        if($categories != "no_categories") {
+            $content .= '<div id="refine" style="float:left;width:30%;background-color:#353838;color:#ffffff;height:50px;padding:17px;font-size:16px;"><span class="glyphicon glyphicon-filter"></span><span class="refine">Filter</span></div>';
+        }    
+        $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
+        $content .= '<div style="float:left;padding-top:10px;width:60%">';
+        $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_studentpapers_filter" class="lthsolr_filter" name="lthsolr_filter" value="" />';
+        $content .= '</div>';
+
+        $content .= '</div>';
+
+        $content .= '</div>';    
+
+        $content .= '<div style="clear:both;">';
+
+        $content .= '<div id="lth_solr_facet_container"></div>';
+
+        $content .= '<div id="lthsolr_publications_container"><div style="clear:both;height:20px;" id="lthsolr_publications_header"></div></div>';
+
+        $content .= '</div>'; */
+        
+        $clientIp = $_SERVER['REMOTE_ADDR'];
+        
+        $content .= '<p class="lth_solr_filter_container">';
+            $content .= '<i class="fa fa-filter fa-lg slsGray50"></i><a class="slsPadL5 refine">Filter</a>';
+            $content .= '<i class="fa fa-search fa-lg slsGray50"></i>';
+            $content .= '<input style="border:0px;box-shadow:none;" type="text" id="lthsolr_studentpapers_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
+        $content .= '</p>';
+        $content .= '<div style="clear:both;width:100%;height:30px;margin:15px 0px 15px 0px;"><div style="width:50%;float:left;" id="lthsolr_publications_header"></div><div style="float:right;" id="lthsolr_publications_sort"></div></div>';
+
+        $content .= '<div style="width:100%;clear:both;">';
+            $content .= '<div id="lth_solr_facet_container"></div>';
+            $content .= '<div id="lthsolr_publications_container"></div>';
+        $content .= '</div>';
+
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/studentpaper_simple.html");
+
+        $content .= '
+                <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+                <input type="hidden" id="lth_solr_detailpage" value="' . $detailPage . '" />
+                <input type="hidden" id="lth_solr_action" value="listStudentPapers" />
+                <input type="hidden" id="lth_solr_categories" value="' . $categories . '" />
+                <input type="hidden" id="lth_solr_papertype" value="' . $papertype . '" /> 
+                <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
+        
+        if(substr($clientIp,0,7) === '130.235' || $clientIp === '127.0.0.1') {
+                $content .= '<input type="hidden" id="lth_solr_lu" value="yes" />';
+                //exportModal
+                $content .= '<!-- exportModal -->
+                    <div id="exportModal" class="modal fade" role="dialog">
+                      <div class="modal-dialog">
+
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h1 class="modal-title">Export publications</h1>
+                          </div>
+                          <div class="modal-body" style="position:relative;">
+                            </div>
+                          <div style="clear:both;" class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>';
+            } 
+            
+        return '<div style="font-size:17px;">'.$content.'</div>';
+    }  
 }

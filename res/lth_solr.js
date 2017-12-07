@@ -59,13 +59,7 @@ $(document).ready(function() {
     });
     
     $('#lthsolr_studentpapers_filter').keyup(function() {
-        var noQuery;
-        if($(this).val().trim() === '') {
-            noQuery = true;
-        } else {
-            noQuery = false;
-        }
-        listStudentPapers(0, getFacets(), $(this).val().trim(), noQuery);
+        listStudentPapers(0, getFacets(), $(this).val().trim(),'');
     });
     
     $('#lthsolr_projects_filter').keyup(function() {
@@ -167,6 +161,91 @@ function exportStaff(syslang)
 
 function exportPublications(syslang,tableStart,parts,t)
 {
+    var fieldArray=[];
+    $("input:checkbox[name=exportField]:checked").each(function(){
+        fieldArray.push($(this).val());
+    });
+    
+    if(fieldArray.length===0) {
+        alert('You must choose one field!');
+        return false;
+    } 
+    
+    $.ajax({
+        type : "POST",
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'listPublications',
+            scope: $('#lth_solr_scope').val(),
+            query: $('#lthsolr_publications_filter').val(),
+            tableStart: tableStart,
+            tableLength: '2000',
+            tableFields: JSON.stringify(fieldArray),
+            facet: getFacets(),
+            syslang: syslang,
+            sid: Math.random(),
+        },
+        //contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(d) {
+            if(d.data) {
+                //console.log(d.numFound);
+                var i = 0;
+                var csvContent='';
+                //console.log(parts);
+                if(d.numFound > 2000 && parts==0) {
+                    $('.modal-body').css("float","left").after('<div style="float:left;padding:25px;0px;0px;25px;"><ul id="exportParts"></ul></div>');
+                    for (var iii=0; iii<(Math.ceil(d.numFound/2000)-1); iii++) {
+                        $('#exportParts').append('<li><a href="javascript:" onclick="exportPublications(\''+
+                            syslang+'\','+((iii*2000))+',1,this);">Download publications ' + ((iii*2000)+1) + '-' + (iii+1)*2000 + '</a></li>');
+                    }
+                    if(d.numFound > (iii+1)*2000) $('#exportParts').append('<li><a href="javascript:" onclick="exportPublications(\''+
+                            syslang+'\','+((iii*2000))+',1,this);">Download publications ' + ((iii*2000)+1) + '-' + d.numFound  + '</a></li>');
+                } else {
+                    $.each( d.data, function( key, aData ) {
+                        for (var ii=0; ii<fieldArray.length; ii++) {
+                            csvContent += aData[fieldArray[ii]] + ";";
+                        }
+                        csvContent += "\r\n";
+                        /*csvContent += aData.documentTitle + ";";
+                        csvContent += aData.authorName + ";";
+                        csvContent += aData.publicationType + ";";
+                        csvContent += aData.publicationDateYear + "-." + aData.publicationDateMonth + "-" + aData.publicationDateDay + ";";
+                        csvContent += aData.pages + ";";
+                        csvContent += aData.journalTitle + ";";
+                        csvContent += aData.journalNumber + "\r\n";*/
+
+                        /*if(i > 5000) {
+                            i=0;
+                            download("data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURI(csvContent), "publications_part"+ii+".csv", "text/plain");
+                            csvContent = "";
+                            ii++;
+                        }*/
+                        i++;
+                    });
+                    var fileName = "publications.csv";
+                    /*if(ii>1) {
+                        fileName = "publications_part"+ii+".csv";
+                    }*/
+                    download("data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURI(csvContent), fileName, "text/plain");
+                    if(t) {
+                        $(t).after('<i class="fa fa-check"></i>');
+                    }
+                }
+            } 
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        }
+    });
+}
+
+
+function exportStudentPapers(syslang,tableStart,parts,t)
+{
+    alert('not yet');
+    return false;
     var fieldArray=[];
     $("input:checkbox[name=exportField]:checked").each(function(){
         fieldArray.push($(this).val());
@@ -1231,8 +1310,6 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
             alert(st + " : " + err);
         },
         beforeSend: function () {
-            //   console.log(facet + ',' + query + ',' + noQuery + ', ' + more);
-            //console.log(more);
             if(!more) {
                 //console.log('1080');
                 $('.lthsolr_publication_row').remove();
@@ -1240,9 +1317,6 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
             } else {
                 $('.lthsolr_more').html('').addClass('loader');
             }
-
-            //$('#lthsolr_all').remove();
-            //
         },
         success: function(d) {
             $('.loader').remove();
@@ -1558,7 +1632,7 @@ function listTagCloud()
 }
 
 
-function listStudentPapers(tableStart, facet, query, noQuery, more)
+function listStudentPapers(tableStart, facet, query, more)
 {
     var syslang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
@@ -1568,7 +1642,8 @@ function listStudentPapers(tableStart, facet, query, noQuery, more)
     var maxClass = '';
     var count = '';
     var content = '';
-    
+    var exportArray = ["documentTitle","authors","organisations","externalOrganisations","publicationType","language","publicationDateYear","keywords",
+            "documentUrl","supervisorName","organisationSourceId"];
     var i = 0;
     var maxClass, more, title, facetHeader;
     
@@ -1596,15 +1671,16 @@ function listStudentPapers(tableStart, facet, query, noQuery, more)
             alert(jq + ';' + st + " : " + err);
         },
         beforeSend: function () {
-            //   console.log(facet + ',' + query + ',' + noQuery + ', ' + more);
-            if((facet || facet === null || query || noQuery) && (!more)) {
-                $('#lthsolr_publications_container div').remove().append('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            if(!more) {
+                $('.lthsolr_publication_row').remove();
+                $('#lthsolr_publications_container').before('<div class="loader"></div>');
+            } else {
+                $('.lthsolr_more').html('').addClass('loader');
             }
-
-            //$('#lthsolr_all').remove();
-            $('.lthsolr_more').replaceWith('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
         },
         success: function(d) {
+            $('.loader').remove();
+            $('.lthsolr_more').remove();
             if(d.data) {
                 if(d.facet) {
                     $('#lth_solr_facet_container').html('');
@@ -1674,8 +1750,40 @@ function listStudentPapers(tableStart, facet, query, noQuery, more)
                 $('.lthsolr_loader').remove();
 
                 $('#lthsolr_publications_header').html('<div style="float:left;">1-' + maxLength(parseInt(tableStart),parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</div><div style="float:right;"></div>');
-                if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
+                if($('#lth_solr_lu').val() === "yes" && $('.fa-download').length < 1) {
+                    $('.lth_solr_filter_container').append('<i style="float:right;margin-top:12px;" class="fa fa-download fa-lg slsGray50"></i>');
+                    $('.fa-download').click(function() {
+                        //exportPublications(syslang);
+                        if($('.modal-body .checkbox').length === 0) {
+                            for (var i=0; i<exportArray.length; i++) {
+                                $('.modal-body').append('<div class="checkbox"><label><input type="checkbox" name="exportField" value="'+exportArray[i]+'">'+exportArray[i]+
+                                        '</label></div>');
+                            }
+                            $('.modal-body').prepend('<div class="checkbox"><label><input type="checkbox" id="select_all" /></label><i class="fa fa-check"></i></div>');
+                            $('.modal-body').append('<button id="exportButton" type="button" class="btn btn-default">Export</button>');
+                            $('.modal-body').wrap('<form></form>');
+                            $('#exportButton').click(function(){
+                                exportStudentPapers(syslang,0,0,null);
+                            });
+                            $('#select_all').change(function() {
+                                var checkboxes = $(this).closest('form').find(':checkbox');
+                                checkboxes.prop('checked', $(this).is(':checked'));
+                            });
+                        }
+                        $('#exportModal').modal('toggle');
+                    });
+                }
+                
+                /*if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
                     $('#lthsolr_publications_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" onclick="listStudentPapers(' + (parseInt(tableStart) + parseInt(tableLength)) + ');">' + lth_solr_messages.next + ' ' + tableLength + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listStudentPapers(' + (parseInt(tableStart) + parseInt(tableLength)) + ');">' + lth_solr_messages.show_all + ' ' + d.numFound + '</a></div>');
+                }*/
+                if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
+                    var tempMore = '<div style="margin-top:20px;" class="lthsolr_more"><button style="height:40px;" class="btn btn-default btn-lg btn-block"\n\
+                     onclick="listStudentPapers(' + (parseInt(tableStart) + parseInt(tableLength)) + ',\'\',\'\',\'more\');">' + lth_solr_messages.show_more + ' ' + lth_solr_messages.publications + 
+                            ' <span class="glyphicon glyphicon-chevron-down"></span></button>';
+
+                    tempMore += '</div>';
+                    $('#lthsolr_publications_container').append(tempMore);
                 }
                 if(!mobileCheck()) {
                     $('#lthsolr_publications_container').parent().height($('#lthsolr_publications_container').height());
@@ -1692,6 +1800,8 @@ function listStudentPapers(tableStart, facet, query, noQuery, more)
 function showStudentPaper()
 {
     var syslang = $('html').attr('lang');
+    var abstract,documentTitle,authors,organisations,externalOrganisations,publicationType,language,publicationDateYear,
+        keywords,documentUrl,supervisorName,organisationSourceId,bibtex;
     
     $.ajax({
         type : 'POST',
@@ -1711,21 +1821,20 @@ function showStudentPaper()
         },
         success: function(d) {
             //console.log(d);
-            /*
-             * $abstract,
-            $documentTitle,
-            $authors,
-            $organisations,
-            $externalOrganisations,
-            $publicationType,
-            $language,
-            $publicationDateYear,
-            $keywords,
-            $documentUrl,
-            $supervisorName,
-            $bibtex
-             */
-            var organisationSourceId = d.data[11];
+            abstract = d.data.abstract;
+            documentTitle = d.data.documentTitle;
+            authors = d.data.authors;
+            organisations = d.data.organisations;
+            externalOrganisations = d.data.externalOrganisations;
+            publicationType = d.data.publicationType;
+            language = d.data.language;
+            publicationDateYear = d.data.publicationDateYear;
+            keywords = d.data.keywords;
+            documentUrl = d.data.documentUrl;
+            supervisorName = d.data.supervisorName;
+            organisationSourceId = d.data.organisationSourceId;
+            bibtex = d.data.bibtex;
+            
             var organisations = '';
             var path = window.location.href.split('(').shift().split('/');
             path.pop();
@@ -1733,23 +1842,22 @@ function showStudentPaper()
                 
             if(d.data) {
                 if(organisationSourceId) {
-                   organisations = '<a href="' + path + '/' + d.data[3] + '('+ organisationSourceId + ')">' + d.data[3] + '</a>';
-                } else {
-                    organisations = d.data[3];
-                }
+                   organisations = '<a href="' + path + '/' + organisations + '('+ organisationSourceId + ')">' + organisations + '</a>';
+                } 
+                
                 var template = $('#solrTemplate').html();
-                template = template.replace('###abstract###', checkData(d.data[0], lth_solr_messages.abstract));
-                template = template.replace('###title###', d.data[1]);
-                template = template.replace('###authors###', checkData(d.data[2], lth_solr_messages.authors));
+                template = template.replace('###abstract###', checkData(abstract, lth_solr_messages.abstract));
+                template = template.replace('###title###', documentTitle);
+                template = template.replace('###authors###', checkData(authors, lth_solr_messages.authors));
                 template = template.replace('###organisations###', checkData(organisations, lth_solr_messages.organisations));
-                template = template.replace('###externalOrganisations###', checkData(d.data[4]));
-                template = template.replace('###publicationType###', checkData(d.data[5], lth_solr_messages.type));
-                template = template.replace('###language###', checkData(d.data[6], lth_solr_messages.language));
-                template = template.replace('###publicationDateYear###', checkData(d.data[7], lth_solr_messages.publicationDateYear));
-                template = template.replace('###keywordsUser###', checkData(d.data[8], lth_solr_messages.keywords_user));
-                template = template.replace('###documentUrl###', checkData(d.data[9], lth_solr_messages.fulltext, '', true));
-                template = template.replace('###supervisorName###', checkData(d.data[10], lth_solr_messages.supervisor));
-                template = template.replace('###bibtex###', checkData(d.data[12]));
+                template = template.replace('###externalOrganisations###', checkData(externalOrganisations));
+                template = template.replace('###publicationType###', checkData(publicationType, lth_solr_messages.type));
+                template = template.replace('###language###', checkData(language, lth_solr_messages.language));
+                template = template.replace('###publicationDateYear###', checkData(publicationDateYear, lth_solr_messages.publicationDateYear));
+                template = template.replace('###keywordsUser###', checkData(keywords, lth_solr_messages.keywords_user));
+                template = template.replace('###documentUrl###', checkData(documentUrl, lth_solr_messages.fulltext, '', true));
+                template = template.replace('###supervisorName###', checkData(supervisorName, lth_solr_messages.supervisor));
+                template = template.replace('###bibtex###', checkData(bibtex));
                 
                 
                 $('#page_title h1').text(d.data[1]);
@@ -1757,6 +1865,21 @@ function showStudentPaper()
                 if(d.data[0]==="") {
                     $("#lthsolrAbstract").remove();
                 }
+            }
+            if(abstract.length > 500) {
+                $('.textblock').addClass('less-content');
+                $('.textblock').after('<div><a href="javascript:" id="toggle-link"><i class="fa fa-angle-right"></i>' + lth_solr_messages.more + '</a></div>');
+
+                $('#toggle-link').on('click', function(event) {
+                    event.preventDefault();
+                    if ( $('.textblock').hasClass('less-content') ) {
+                        $('.textblock').removeClass('less-content');
+                        $(this).html('<i class="fa fa-angle-up"></i>'+lth_solr_messages.close);
+                    } else {
+                        $('.textblock').addClass('less-content');
+                        $(this).html('<i class="fa fa-angle-right"></i>' + lth_solr_messages.more);
+                    }
+                });
             }
         }
     });

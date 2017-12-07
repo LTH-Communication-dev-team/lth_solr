@@ -65,7 +65,7 @@
                         </TCEforms>
                     </html_template>
                 -->
-                    <fe_groups>
+                 <!--   <fe_groups>
                         <TCEforms type="array">
                             <label>Välj en eller flera användargrupper</label>
                             <config>
@@ -81,7 +81,7 @@
                                 <foreign_table>fe_groups</foreign_table> 
                             </config>
                         </TCEforms>
-                    </fe_groups>
+                    </fe_groups> -->
 
                  <fe_users>
                         <TCEforms type="array">

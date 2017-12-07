@@ -65,11 +65,68 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $startFromHere = 0;
 
-	$executionSucceeded = $this->getStudentPapers($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $startFromHere, $heritageArray, $lastModified, $syslang);
+	//$executionSucceeded = $this->getStudentPapers($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $startFromHere, $heritageArray, $lastModified, $syslang);
+        $executionSucceeded = $this->getProgram($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $startFromHere, $heritageArray, $lastModified, $syslang, $settings);
         
 	return $executionSucceeded;
     }
     
+    
+    function getProgram($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $startFromHere, $heritageArray, $lastModified, $syslang, $settings)
+    {
+        $update = $client->createUpdate();
+        
+        $dbhost = $settings['solrLadokDbhost'];
+        $db = $settings['solrLadokDb'];
+        $user = $settings['solrLadokId'];
+        $pw = $settings['solrLadokPw'];
+
+        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("84; ".mysqli_error());
+        
+        $query = $client->createSelect();
+        $query->setQuery('docType:studentPaper AND organisationSourceId:v1000170 and -authorId:"" and -utbildningsprogram:*');
+        $query->setFields(array('id','documentTitle','authorId'));
+        $query->setStart(0)->setRows(10000);
+        $response = $client->select($query);
+
+        
+        foreach ($response as $document) {
+            
+            $id = $document->id;
+            $documentTitle = $document->documentTitle;
+            $authorId = $document->authorId;
+            
+            if($documentTitle && $authorId) {
+                foreach($authorId as $key => $value) {
+                    $docArray = array();
+                    /*$sql = "SELECT n.konto AS konto,L.kod AS kod ";
+                    $sql .= "FROM protite2 P JOIN namn N ON P.pnr=N.pnr JOIN antlin A ON A.pnr = P.pnr JOIN linje L ON L.kod = A.progr ";
+                    $sql .= "WHERE P.titels = '" . addslashes($documentTitle) . "' OR p.titele = '" . addslashes($documentTitle) . "'";*/
+                    $sql = "SELECT L.kod AS kod FROM namn N JOIN antlin A ON A.pnr = N.pnr JOIN linje L "
+                            . "ON L.kod = A.progr WHERE n.konto='" . mysqli_real_escape_string($con,$value) . "'";
+                    $res = mysqli_query($con, $sql);
+                    while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
+                        $kod = $row['kod'];
+                        ${"doc"} = $update->createDocument(); 
+                        ${"doc"}->setKey('id', $id);
+                        
+                        ${"doc"}->addField('utbildningsprogram', $kod);
+                        ${"doc"}->setFieldModifier('utbildningsprogram', 'set');
+                        ${"doc"}->addField('appKey', 'lthsolr');
+                        ${"doc"}->setFieldModifier('appKey', 'set');
+                        $docArray[] = ${"doc"};
+                    }
+                    $update->addDocuments($docArray);
+                    $update->addCommit();
+                    $result = $client->update($update);
+                }
+            }
+        }
+        
+        //die($i);
+        return TRUE;
+    }
+
 
     function getStudentPapers($config, $client, $buffer, $current_date, $maximumRecords, $numberOfLoops, $startFromHere, $heritageArray, $lastModified, $syslang)
     {
@@ -119,6 +176,7 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $language_sv;
                     $keywords_user = array();
                     $heritage = array();
+                    $authorId = '';
 
                     $id = (string)$content->recordData->mods->recordInfo->recordIdentifier;
                     
@@ -147,6 +205,9 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $organisationName_en[] = (string)$nameTemp;
                             $organisationName_sv[] = (string)$nameTemp;
                             $organisationSourceId[] = (string)$name->identifier;
+                        }
+                        if($name->affiliation) {
+                            $authorId = (string)$name->affiliation;
                         }
                     }
 
@@ -247,6 +308,7 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $data = array(
                         'id' => $id,
                         'appKey' => 'lthsolr',
+                        'authorId' => $authorId,
                         'genre' => $genre,
                         'documentTitle' => $documentTitle,
                         //'title_sort' => $title,
