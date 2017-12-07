@@ -1750,7 +1750,7 @@ function listStudentPapers(tableStart, facet, query, more)
                 $('.lthsolr_loader').remove();
 
                 $('#lthsolr_publications_header').html('<div style="float:left;">1-' + maxLength(parseInt(tableStart),parseInt(tableLength),parseInt(d.numFound)) + ' ' + lth_solr_messages.of + ' ' + d.numFound + '</div><div style="float:right;"></div>');
-                if($('#lth_solr_lu').val() === "yes" && $('.fa-download').length < 1) {
+                if($('#lth_solr_lu').val() === "nja" && $('.fa-download').length < 1) {
                     $('.lth_solr_filter_container').append('<i style="float:right;margin-top:12px;" class="fa fa-download fa-lg slsGray50"></i>');
                     $('.fa-download').click(function() {
                         //exportPublications(syslang);
