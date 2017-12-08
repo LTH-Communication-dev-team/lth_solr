@@ -1860,7 +1860,9 @@ function showStudentPaper()
                 template = template.replace('###bibtex###', checkData(bibtex));
                 
                 
-                $('#page_title h1').text(d.data[1]);
+                                
+                $('#page_title h1').text(documentTitle).css('max-width','650px');
+                $('#page_title h1').after('<h3>' + publicationType + '</h3>');
                 $('#lth_solr_container').html(template);
                 if(d.data[0]==="") {
                     $("#lthsolrAbstract").remove();
