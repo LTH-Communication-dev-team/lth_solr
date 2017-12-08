@@ -152,6 +152,7 @@ and open the template in the editor.
     width:200px;
     float:left;
     border-right:1px #808080 solid;
+    font-size:12px;
 }
 
 #lth_solr_facet_container ul {

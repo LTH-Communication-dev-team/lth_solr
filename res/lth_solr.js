@@ -2759,7 +2759,7 @@ function createFacetClick(listType, sorting)
         } else if(listType==='listPublications') {
             listPublications(0, getFacets(), $('#lthsolr_publications_filter').val().trim(),sorting,false,'');
         } else if(listType==='listStudentPapers') {
-            listStudentPapers(0, getFacets(), $('#lthsolr_publications_filter').val().trim(),false,false);
+            listStudentPapers(0, getFacets(), $('#lthsolr_studentpapers_filter').val().trim(),false,false);
         }
     });
 }
