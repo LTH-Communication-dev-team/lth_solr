@@ -1019,7 +1019,7 @@ function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tabl
     // get the facetset component
     $facetSet = $query->getFacetSet();
     // create a facet field instance and set options
-    //$facetSet->createFacetField('standard')->setField('standardCategory');
+    $facetSet->createFacetField('standard')->setField('standardCategory');
     $facetSet->createFacetField('language')->setField('language');
     $facetSet->createFacetField('year')->setField('publicationDateYear');
 
@@ -1048,17 +1048,17 @@ function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tabl
     
     $numFound = $response->getNumFound();
     
-    /*$facet_standard = $response->getFacetSet()->getFacet('standard');
+    $facetStandard = $response->getFacetSet()->getFacet('standard');
     if($syslang==="en") {
         $facetHeader = "Publication Type";
     } else {
         $facetHeader = "Publikationstyp";
     }
-    foreach ($facet_standard as $value => $count) {
+    foreach ($facetStandard as $value => $count) {
         //if($count > 0) {
             $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
         //}
-    }*/
+    }
 
     $facetLanguage = $response->getFacetSet()->getFacet('language');
     if($syslang==="en") {
