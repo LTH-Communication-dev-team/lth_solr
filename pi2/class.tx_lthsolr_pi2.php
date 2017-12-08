@@ -85,6 +85,8 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
+            
+            die($uuid);
             /*if(strstr($uuid,")")) {
                 $uuid = rtrim(array_pop(explode('(',$uuid)),")");
             }*/
