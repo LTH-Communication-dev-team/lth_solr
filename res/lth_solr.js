@@ -1711,7 +1711,10 @@ function listStudentPapers(tableStart, facet, query, more)
                             i++;
                         });
 
-                        $('#lth_solr_facet_container').append('<ul><li style="width:100%;"><b>'+facetHeader+'</b></li>' + content + '</ul>' + more);
+                        $('#lth_solr_facet_container').append('<i class="fa fa-close lthsolr_facet_close"></i><ul><li style="width:100%;"><b>'+facetHeader+'</b></li>' + content + '</ul>' + more);
+                        $('.lthsolr_facet_close').click(function() {
+                            $('#lth_solr_facet_container').toggle(500);
+                        });
                         i=0;
                         maxClass='';
                         more='';
