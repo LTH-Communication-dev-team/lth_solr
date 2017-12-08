@@ -86,7 +86,7 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
             
-            die($uuid);
+            
             /*if(strstr($uuid,")")) {
                 $uuid = rtrim(array_pop(explode('(',$uuid)),")");
             }*/
