@@ -398,14 +398,15 @@ class user_sampleflex_addFieldsToFlexForm
         
         $scope = array();
         if($fe_groups) {
-            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . implode(',',$fe_groups) .")");
+            //die($fe_groups);
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . implode(',',(array)$fe_groups) .")");
             while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                 $scope['fe_groups'][] = explode('__', $row['title'])[0];
             }
             $GLOBALS['TYPO3_DB']->sql_free_result($res);
         } 
         if($fe_users) {
-            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('username','fe_users',"uid in(" . implode(',',$fe_users) .")");
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('username','fe_users',"uid in(" . implode(',',(array)$fe_users) .")");
             while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                 $scope['fe_users'][] = $row['username'];
             }

@@ -73,7 +73,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $mode = '';
         //$startFromHere = $numFound;
         $startFromHere = 0;
-        $mode = ''; //reindex files
+        $mode = ''; //'' 'reindex' 'files'
         if($mode==='' && $mode!='files') {
             $executionSucceeded = $this->getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang);
         } else if($mode==='files') {
@@ -349,7 +349,12 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             $attachmentLimitedVisibility = (string)$document->children('core',true)->limitedVisibility->children('core',true)->visibility;
                         }
                     }
-
+                    
+                    //limitedVisibility
+                    if($content->children($varVal,true)->limitedVisibility) {
+                        $attachmentLimitedVisibility = (string)$content->children($varVal,true)->limitedVisibility->children('core',true)->visibility;
+                    }
+                    
                     //Authors
                     if($content->children($varVal,true)->persons) {
                         foreach($content->children($varVal,true)->persons->children('person-template',true)->personAssociation as $personAssociation) {
@@ -807,6 +812,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                     'authorName' => array_unique($authorName),
                     'authorFirstName' => $authorFirstName,
                     'authorLastName' => $authorLastName,
+                    'authorFirstNameExact' => $authorFirstName[0],
+                    'authorLastNameExact' => $authorLastName[0],
                     'authorOrganisation' => $authorOrganisation,
                     'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
                     'bibliographicalNote' => $bibliographicalNote,

@@ -1445,7 +1445,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                     if(aData.attachmentSize) attachmentSize = aData.attachmentSize;
                     
                     //attachmentUrl
-                    if(aData.attachmentUrl) attachmentUrl = aData.attachmentSize;
+                    if(aData.attachmentUrl) attachmentUrl = aData.attachmentUrl;
         
                     //authorName
                     if(aData.authorName) authorName = aData.authorName + '. ';
@@ -1499,7 +1499,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                     template = template.replace('###volume###', volume);
 
                     $('#lthsolr_publications_container').append(template);
-                    
+
                     if(attachmentLimitedVisibility || attachmentUrl) {
                         if(attachmentLimitedVisibility==='FREE') {
                             attachment = '<i class="fa fa-unlock"></i>';
@@ -1569,7 +1569,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                     $('#lth_solr_facet_container').height($('#lthsolr_publications_container').height());
                     $('#lthsolr_publications_container, #lth_solr_facet_container').css('float','left');
                 }
-            } else {
+            } else if(!query) {
                 $('.lth_solr_filter_container').next().remove();
                 $('.lth_solr_filter_container').remove();
             }

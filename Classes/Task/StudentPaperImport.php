@@ -55,7 +55,7 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         foreach ($response as $document) {
             $lastModified = $document->changed;
         }
-        
+
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(200);
 
@@ -64,9 +64,11 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $heritageArray = $this->getHeritage($con);
         
         $startFromHere = 0;
+        
+        $reIndex = "yes";
 
-	//$executionSucceeded = $this->getStudentPapers($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $startFromHere, $heritageArray, $lastModified, $syslang);
-        $executionSucceeded = $this->getProgram($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $startFromHere, $heritageArray, $lastModified, $syslang, $settings);
+	$executionSucceeded = $this->getStudentPapers($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $startFromHere, $heritageArray, $lastModified, $syslang, $reIndex);
+        //$executionSucceeded = $this->getProgram($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $startFromHere, $heritageArray, $lastModified, $syslang, $settings);
         
 	return $executionSucceeded;
     }
@@ -128,17 +130,20 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
 
 
-    function getStudentPapers($config, $client, $buffer, $current_date, $maximumRecords, $numberOfLoops, $startFromHere, $heritageArray, $lastModified, $syslang)
+    function getStudentPapers($config, $client, $buffer, $current_date, $maximumRecords, $numberOfLoops, $startFromHere, $heritageArray, $lastModified, $syslang, $reIndex)
     {
         $heritageArray = $heritageArray[0];
-        for($i = 0; $i < 5000; $i++) {
+        for($i = 0; $i <= $numberofloops; $i++) {
             //echo $i.':'. $numberofloops . '<br />';
             
             $startRecord = ($i * $maximumRecords);
             if($startRecord > 0) $startRecord++;
             //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/publication?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
-            $xmlpath = "https://lup.lub.lu.se/student-papers/sru?version=1.1&operation=searchRetrieve&query=submissionStatus%20exact%20public%20AND%20id%3E$startFromHere&startRecord=$startRecord&maximumRecords=$maximumRecords&sortKeys=id";
-            
+            if($reIndex==="yes") {
+                $xmlpath = "https://lup.lub.lu.se/student-papers/sru?version=1.1&operation=searchRetrieve&query=submissionStatus%20exact%20public%20AND%20id%3E$startFromHere&startRecord=$startRecord&maximumRecords=$maximumRecords&sortKeys=id";
+            } else {
+                $xmlpath = "https://lup.lub.lu.se/student-papers/sru?version=1.1&operation=searchRetrieve&query=submissionStatus%20exact%20public%20AND%20id%3E$startFromHere%20AND%20dateLastChanged>$lastModified&startRecord=$startRecord&maximumRecords=$maximumRecords&sortKeys=id";
+            }
             //echo $xmlpath;
             //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $startrecord, 'crdate' => time()));
             try {
@@ -149,7 +154,7 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
             }
             //$this->debug($xml);
-
+            $numberofloops = ceil($xml->numberOfRecords / 20);
             if($xml->records->record) {
                 foreach($xml->records->record as $content) {
                     $id;
@@ -158,6 +163,7 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $modified;
                     $genre;
                     $documentTitle;
+                    $alternativeTitle;
                     $authorName = array();
                     $supervisorName = array();
                     $organisationName_en = array();
@@ -165,10 +171,10 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $organisationSourceId = array();
                     $abstract_en = '';
                     $abstract_sv = '';
-                    $document_url;
-                    $document_type;
-                    $document_size;
-                    $document_limitedVisibility;
+                    $documentUrl;
+                    $documentType;
+                    $documentSize;
+                    $documentLimitedVisibility;
                     $publicationDateYear;
                     $language_en;
                     $created;
@@ -180,7 +186,7 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                     $id = (string)$content->recordData->mods->recordInfo->recordIdentifier;
                     
-                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $id, 'crdate' => time()));
+                    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $id, 'crdate' => time()));
 
                     $created = (string)$content->recordData->mods->recordInfo->recordCreationDate;
 
@@ -188,7 +194,14 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                     $genre = (string)$content->recordData->mods->genre;
 
-                    $documentTitle = (string)$content->recordData->mods->titleInfo->title;
+                    //Title
+                    foreach($content->recordData->mods->titleInfo as $titleInfo) {
+                        if($titleInfo->title['type']==='alternative') {
+                            $alternativeTitle = (string)$content->recordData->mods->titleInfo->title;
+                        } else {
+                            $documentTitle = (string)$content->recordData->mods->titleInfo->title;
+                        }
+                    }
 
                     //name
                     foreach($content->recordData->mods->name as $name) {
@@ -265,18 +278,20 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         }
                     }
 
-                    //document_url
-                    $document_url = (string)$content->recordData->mods->relatedItem->location->url;
+                    //documentUrl
+                    $documentUrl = (string)$content->recordData->mods->relatedItem->location->url;
 
-                    $document_type = (string)$content->recordData->mods->relatedItem->physicalDescription->internetMediaType; //NY FÄLTTYP!!!!!!!!!!!!!!!!!
+                    //documentUrl
+                    $documentType = (string)$content->recordData->mods->relatedItem->physicalDescription->internetMediaType; //NY FÄLTTYP!!!!!!!!!!!!!!!!!
 
+                    //documentSize
                     if($content->recordData->mods->relatedItem->note['type'] == 'fileSize') {
-                        $document_size = (string)$content->recordData->mods->relatedItem->note; //NY FÄLTTYP!!!!!!!!!!!!!!!!!
+                        $documentSize = (string)$content->recordData->mods->relatedItem->note; //NY FÄLTTYP!!!!!!!!!!!!!!!!!
                     }
 
-                    //document_limitedVisibility
+                    //documentLimitedVisibility
                     if($content->recordData->mods->relatedItem->accessCondition['type'] == 'restrictionOnAccess') {
-                        $document_limitedVisibility = (string)$content->recordData->mods->relatedItem->accessCondition;
+                        $documentLimitedVisibility = (string)$content->recordData->mods->relatedItem->accessCondition;
                     }
 
                     //publicationDateYear
@@ -307,27 +322,24 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                     $data = array(
                         'id' => $id,
+                        'abstract' => $abstract,
+                        'alternativeTitle' => $alternativeTitle,
                         'appKey' => 'lthsolr',
                         'authorId' => $authorId,
+                        'docType' => 'studentPaper',
                         'genre' => $genre,
                         'documentTitle' => $documentTitle,
-                        //'title_sort' => $title,
+                        'documentUrl' => $documentUrl,
+                        'documentType' => $documentType,
+                        'documentSize' => $documentSize,
+                        'documentLimitedVisibility' => $document_LimitedVisibility, 
                         'authorName' => array_unique($authorName),
                         'supervisorName' => $supervisorName,
                         'organisationName' => $organisationName,
-                        //'organisationName_sv' => $organisationName_sv,
-                        'organisationSourceId' => $organisationSourceId,
-                        'abstract' => $abstract,
-                        //'abstract_sv' => $abstract_sv, 
-                        'docType' => 'studentPaper',
-                        'type' => 'studentPaper',
-                        'documentUrl' => $document_url,
-                        'documentType' => $document_type,
-                        'documentSize' => $document_size,
-                        'documentLimitedVisibility' => $document_limitedVisibility,                    
+                        'organisationSourceId' => $organisationSourceId,                        
+                        'type' => 'studentPaper',                   
                         'publicationDateYear' => $publicationDateYear,
                         'language' => $language,
-                        //'language_sv' => $language_sv,
                         'keywordsUser' => $keywords_user,
                         'standardCategory' => $genre,
                         'boost' => '1.0',

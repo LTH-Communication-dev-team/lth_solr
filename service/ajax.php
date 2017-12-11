@@ -626,7 +626,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
         }
     }
 
-    $queryToSet = 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND (' . $term . ')' . $keyword . $publicationSelection . $filterQuery;
+    $queryToSet = 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . '] AND (' . $term . ')' . $keyword . $publicationSelection . $filterQuery;
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
     $query->setStart($tableStart)->setRows($tableLength);
@@ -638,6 +638,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     $facetSet->createFacetField('standard')->setField('standardCategory');
     $facetSet->createFacetField('language')->setField('language');
     $facetSet->createFacetField('year')->setField('publicationDateYear');
+    $facetSet->createFacetField('visibility')->setField('attachmentLimitedVisibility');
 
     if($facet) {
         $facetArray = json_decode($facet, true);
@@ -683,8 +684,8 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
                 break;
             case 'authorName':
                 $sortArray = array(
-                    'authorLastName' => 'asc',
-                    'authorFirstName' => 'asc',
+                    'lastNameExact' => 'asc',
+                    'firstNameExact' => 'asc',
                     'publicationDateYear' => 'desc',
                     'publicationDateMonth' => 'desc',
                     'publicationDateDay' => 'desc',
@@ -698,7 +699,9 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
             'publicationDateYear' => 'desc',
             'publicationDateMonth' => 'desc',
             'publicationDateDay' => 'desc',
-            'documentTitle' => 'asc'
+            'documentTitle' => 'asc',
+            'lastNameExact' => 'asc',
+            'firstNameExact' => 'asc'
         );
     }
 
@@ -709,40 +712,44 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     $numFound = $response->getNumFound();
     
     // display facet query count
-    $facet_standard = $response->getFacetSet()->getFacet('standard');
+    $facetStandard = $response->getFacetSet()->getFacet('standard');
     if($syslang==="en") {
         $facetHeader = "Publication Type";
     } else {
         $facetHeader = "Publikationstyp";
     }
-    foreach ($facet_standard as $value => $count) {
-        //if($count > 0) {
-            $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
-        //}
+    foreach ($facetStandard as $value => $count) {
+        $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
     }
 
-    $facet_language = $response->getFacetSet()->getFacet('language');
+    $facetLanguage = $response->getFacetSet()->getFacet('language');
     if($syslang==="en") {
         $facetHeader = "Language";
     } else {
         $facetHeader = "Språk";
     }
-    foreach ($facet_language as $value => $count) {
-        //if($count > 0) {
-            $facetResult["language"][] = array($value, $count, $facetHeader);
-        //}
+    foreach ($facetLanguage as $value => $count) {
+        $facetResult["language"][] = array($value, $count, $facetHeader);
     }
 
-    $facet_year = $response->getFacetSet()->getFacet('year');
+    $facetYear = $response->getFacetSet()->getFacet('year');
     if($syslang==="en") {
         $facetHeader = "Publication Year";
     } else {
         $facetHeader = "Publikationsår";
     }
-    foreach ($facet_year as $value => $count) {
-        //if($count > 0) {
-            $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
-        //}
+    foreach ($facetYear as $value => $count) {
+        $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
+    }
+    
+    $facetVisibility = $response->getFacetSet()->getFacet('visibility');
+    if($syslang==="en") {
+        $facetHeader = "Full text";
+    } else {
+        $facetHeader = "Fulltext";
+    }
+    foreach ($facetVisibility as $value => $count) {
+        $facetResult['attachmentLimitedVisibility'][] = array($value, $count, $facetHeader);
     }
         
     foreach ($response as $document) {
@@ -756,10 +763,10 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
                 "articleNumber" => $document->$articleNumber,
                 "authorName" => ucwords(strtolower(fixArray($document->authorName))),
                 "documentTitle" => $document->documentTitle,
-                "documentLimitedVisibility" => $document->documentLimitedVisibility,
-                "documentMimeType" => $document->documentMimeType,
-                "documentSize" => $document->documentSize,
-                "documentUrl" => $document->documentUrl,
+                "attachmentLimitedVisibility" => $document->attachmentLimitedVisibility,
+                "attachmentMimeType" => $document->attachmentMimeType,
+                "attachmentSize" => $document->attachmentSize,
+                "attachmentUrl" => $document->attachmentUrl,
                 "hostPublicationTitle" => $document->hostPublicationTitle,
                 "id" => $document->id,
                 "journalTitle" => $document->journalTitle,
@@ -1556,13 +1563,13 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
     }
 
     if($categories === 'standard_category') {
-        $facet_standard = $response->getFacetSet()->getFacet('standard');
-        foreach ($facet_standard as $value => $count) {
+        $facetStandard = $response->getFacetSet()->getFacet('standard');
+        foreach ($facetStandard as $value => $count) {
             if($count > 0) $facetResult[$catVal][] = array($value, $count, $facetHeader);
         }
     } else if($categories === 'custom_category') {
-        $facet_custom = $response->getFacetSet()->getFacet('custom');
-        foreach ($facet_custom as $value => $count) {
+        $facetCustom = $response->getFacetSet()->getFacet('custom');
+        foreach ($facetCustom as $value => $count) {
             if($count > 0) $facetResult[$catVal][] = array($value, $count, $facetHeader);
         }
     } 
