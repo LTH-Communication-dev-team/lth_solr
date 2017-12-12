@@ -179,7 +179,7 @@ $content .= '</div>';
             <input type="hidden" id="lth_solr_staff_pos" value="' . $showStaffPos . '" />
             <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
 
-        return '<div style="max-width:800px;position:relative;">' . $content . '</div>';
+        return '<div style="max-width:800px;position:relative;font-size:17px;line-height:27px;">' . $content . '</div>';
     }
     
     
@@ -258,7 +258,7 @@ $content .= '</div>';
                     </div>';
             }  
 
-        return $content;
+        return '<div style="font-size:17px;">'.$content.'</div>';
     }
     
     
@@ -336,7 +336,7 @@ $content .= '</div>';
                     </div>';
             } 
         
-        return $content;
+        return '<div style="font-size:17px;">'.$content.'</div>';
     }
     
     
@@ -457,7 +457,7 @@ $content .= '</div>';
                     </div>';
             } 
             
-        return $content;
+        return '<div style="font-size:17px;">'.$content.'</div>';
     }
     
     public function rssFeeder($scope, $noItemsToShow, $categories, $keyword, $pageTitle, $publicationCategories, $publicationCategoriesSwitch)

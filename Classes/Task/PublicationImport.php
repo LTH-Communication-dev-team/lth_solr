@@ -23,8 +23,8 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
-        $executionSucceeded = $this->moveFiles('en');
-        return $executionSucceeded;
+        //$executionSucceeded = $this->moveFiles('en');
+        //return $executionSucceeded;
         
         //$executionSucceeded = $this->clearIndex($settings);
         //return TRUE;
@@ -367,18 +367,19 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                 
                     //documents
                     if($content->children($varVal,true)->documents) {
+                        if($content->children($varVal,true)->documents->attributes()->campus == '1') {
+                            $attachmentLimitedVisibility = 'campus';
+                        } else if($content->children($varVal,true)->documents->attributes()->free == '1') {
+                            $attachmentLimitedVisibility = 'free';
+                        } else if($content->children($varVal,true)->documents->attributes()->backend == '1') {
+                            $attachmentLimitedVisibility = 'backend';
+                        }
                         foreach($content->children($varVal,true)->documents->children('extensions-core',true)->document as $document) {
                             $attachmentMimeType = (string)$document->children('core',true)->mimeType;
                             $attachmentSize = (string)$document->children('core',true)->size;
                             $attachmentUrl = (string)$document->children('core',true)->url;
                             $attachmentTitle = (string)$document->children('core',true)->title;
-                            $attachmentLimitedVisibility = (string)$document->children('core',true)->limitedVisibility->children('core',true)->visibility;
                         }
-                    }
-                    
-                    //limitedVisibility
-                    if($content->children($varVal,true)->limitedVisibility) {
-                        $attachmentLimitedVisibility = (string)$content->children($varVal,true)->limitedVisibility->children('core',true)->visibility;
                     }
                     
                     //Authors
