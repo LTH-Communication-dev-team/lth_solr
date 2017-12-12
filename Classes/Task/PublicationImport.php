@@ -23,6 +23,9 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
+        $executionSucceeded = $this->moveFiles('en');
+        return $executionSucceeded;
+        
         //$executionSucceeded = $this->clearIndex($settings);
         //return TRUE;
         
@@ -73,7 +76,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $mode = '';
         //$startFromHere = $numFound;
         $startFromHere = 0;
-        $mode = ''; //'' 'reindex' 'files'
+        $mode = 'reindex'; //'' 'reindex' 'files'
         if($mode==='' && $mode!='files') {
             $executionSucceeded = $this->getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang);
         } else if($mode==='files') {
@@ -145,6 +148,27 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $update->addCommit();
         $result = $client->update($update);
         
+        return TRUE;
+    }
+    
+    
+    function moveFiles($syslang)
+    {
+        $directory = '/var/www/html/typo3/lucrisdump';
+        if($syslang==='sv') {
+            $fileArray = scandir($directory . '/indexedfiles');
+        } else  {
+            $fileArray = scandir($directory . '/svindexedfiles');
+        }
+        foreach ($fileArray as $key => $filename) {
+        
+             if($syslang==='sv') {
+                    @rename($directory . '/indexedfiles/' . $filename, $directory . '/svindexedfiles/' . $filename);
+                } else {
+                    @rename($directory . '/svindexedfiles/' . $filename, $directory . '/indexedfiles/' . $filename);
+                }
+
+        }
         return TRUE;
     }
     
@@ -227,6 +251,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                 $authorName = array();
                 $authorFirstName = array();
                 $authorLastName = array();
+                $authorFirstNameExact = '';
+                $authorLastNameExact = '';
                 $awardDate;
                 $bibliographicalNote_sv;
                 $bibliographicalNote_en;
@@ -435,6 +461,24 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                                 }
                             }
                             $authorOrganisation[] = $authorOrganisationTemp;
+                        }
+                    }
+                    
+                    //authorFirstNameExact
+                    if($authorFirstName) {
+                        foreach($authorFirstName as $afnKey => $afnValue) {
+                            if($afnValue && $afnValue != '') {
+                                $authorFirstNameExact = $afnValue;
+                            }
+                        }
+                    }
+                    
+                    //authorLastNameExact
+                    if($authorLastName) {
+                        foreach($authorLastName as $alnKey => $alnValue) {
+                            if($alnValue && $alnValue != '') {
+                                $authorLastNameExact = $alnValue;
+                            }
                         }
                     }
 
@@ -812,8 +856,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                     'authorName' => array_unique($authorName),
                     'authorFirstName' => $authorFirstName,
                     'authorLastName' => $authorLastName,
-                    'authorFirstNameExact' => $authorFirstName[0],
-                    'authorLastNameExact' => $authorLastName[0],
+                    'authorFirstNameExact' => $authorFirstNameExact,
+                    'authorLastNameExact' => $authorLastNameExact,
                     'authorOrganisation' => $authorOrganisation,
                     'awardDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardDate)),
                     'bibliographicalNote' => $bibliographicalNote,
