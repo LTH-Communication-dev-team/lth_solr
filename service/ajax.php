@@ -1693,7 +1693,6 @@ function showStaff($scope, $config, $syslang)
                 "lastName" => ucwords(strtolower($document->lastName)),
                 "title" => $document->title,
                 "phone" => $document->phone,
-                "id" => $document->id,
                 "email" => $document->email,
                 "organisationName" => $document->organisationName,
                 "primaryAffiliation" => $document->primaryAffiliation,
