@@ -1525,7 +1525,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
     if($categories === 'standard_category') {
         $catVal = 'standardCategory';
     } elseif($categories === 'custom_category') {
-        $catVal = 'lth_solr_cat_' . $pageid . '_ss';
+        $catVal = 'lth_solr_cat_' . $pageid . '_stringM';
     }
     if($categories === 'standard_category') {
         $facetSet->createFacetField('standard')->setField($catVal);
