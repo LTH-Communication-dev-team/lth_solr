@@ -478,7 +478,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                             $.each( value, function( key1, value1 ) {
                                 if(i > 4) {
                                     maxClass = ' class="maxlist-hidden"';
-                                    more = '<p class="maxlist-more"><i class="fa fa-chevron-down"></i><a href="#">' + lth_solr_messages.more + '</a></p>';
+                                    more = '<p class="maxlist-more"><i class="fa fa-chevron-right"></i><a href="javascript:">' + lth_solr_messages.more + '</a></p>';
                                 }
 
                                 facet = value1[0].toString();
@@ -500,7 +500,10 @@ function listStaff(tableStart, facet, query, noQuery, more)
                                 i++;
                             });
 
-                            $('#lth_solr_facet_container').append('<ul><li style="width:100%;"><b>'+facetHeader+'</b></li>' + content + '</ul>' + more);
+                            $('#lth_solr_facet_container').append('<i class="fa fa-close lthsolr_facet_close"></i><ul><li style="width:100%;"><b>'+facetHeader+'</b></li>' + content + '</ul>' + more);
+                            $('.lthsolr_facet_close').click(function() {
+                                $('#lth_solr_facet_container').toggle(500);
+                            });
                             i=0;
                             maxClass='';
                             more='';
@@ -644,7 +647,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                     }
                 }
             });*/
-            
+            toggleFacets();
         }
     });
 }
@@ -2379,7 +2382,7 @@ function showProject()
 function toggleFacets()
 {
     $('.maxlist-more a').on( 'click', function () {
-        console.log($(this).parent().prev());
+        //console.log($(this).parent().prev());
         $(this).parent().prev().find('.maxlist-hidden').toggle('slow');
         if($(this).text() == lth_solr_messages.more) {
             $(this).text(lth_solr_messages.close);
