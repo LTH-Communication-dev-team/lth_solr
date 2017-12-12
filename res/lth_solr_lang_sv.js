@@ -4,6 +4,7 @@ var lth_solr_messages = {
     close: "Stäng",
     courses: "Kurser",
     documents: "Dokument",
+    doi: "DOI",
     edition: "Utgåva",
     electronicIsbns: "Elektroniska ISBN",
     event: "Event",

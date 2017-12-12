@@ -4,6 +4,7 @@ var lth_solr_messages = {
     close: "Close",
     courses: "Courses",
     documents: "Documents",
+    doi: "DOI",
     edition: "Edition",
     electronicIsbns: "Electronic ISBN",
     event: "Evenemang",

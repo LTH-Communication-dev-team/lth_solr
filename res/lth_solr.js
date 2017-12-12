@@ -418,7 +418,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
     var tableLength = $('#lth_solr_no_items').val();
     var curI;
     var inputFacet = facet;
-    var exportArray = ["firstName","lastName","title","phone","id","email","organisationName","homepage","roomNumber","mobile"];
+    var exportArray = ["firstName","lastName","title","phone","email","organisationName","homepage","roomNumber","mobile"];
     //var lth_solr_staffhomepagepath = $('#lth_solr_staffhomepagepath').val();
     //var lth_solr_detailpage = $('#lth_solr_staffdetailpage').val();
     //console.log(scope);
@@ -1282,6 +1282,8 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
         
     if(publicationCategoriesSwitch === 'all') {
         publicationCategories = '';
+    } else if(publicationCategoriesSwitch === 'FREE' || publicationCategoriesSwitch === 'CAMPUS') {
+        publicationCategories = publicationCategoriesSwitch;
     }
 
     $.ajax({
@@ -2030,13 +2032,17 @@ function showPublication()
                 }
                 
                 //attachment
-                if(attachmentUrl) {
+                if(attachmentUrl || doi) {
                     if(attachmentLimitedVisibility==='FREE') {
                         attachment = '<i class="fa fa-unlock"></i>';
                     } else if(attachmentLimitedVisibility==='CAMPUS') {
                         attachment = '<i class="fa fa-lock"></i>';
                     }
-                    attachment += lth_solr_messages.attachments + '<a href="' + attachmentUrl + '">' + attachmentTitle + '</a>';
+                    if(attachmentUrl) {
+                        attachment = checkData(attachment + '<a href="' + attachmentUrl + '">' + attachmentTitle + '</a>',lth_solr_messages.attachments);
+                    } else {
+                        attachment = checkData(attachment + '<a href="' + doi + '">' + doi + '</a>',lth_solr_messages.doi);
+                    }
                 }
 
                 template = template.replace('###abstract###', checkData(abstract, lth_solr_messages.abstract));
