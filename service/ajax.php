@@ -576,8 +576,8 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     if($action==='exportPublications') {
         $fieldArray = json_decode($tableFields, true);
     } else {
-        $fieldArray = array("articleNumber","authorName","documentTitle","documentLimitedVisibility","documentMimeType","documentSize",
-                "documentUrl","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","pages","publicationType",
+        $fieldArray = array("articleNumber","authorName","documentTitle","attachmentLimitedVisibility","attachmentMimeType","attachmentSize",
+                "attachmentUrl","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","pages","publicationType",
                 "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
     }
     
@@ -596,12 +596,16 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     
     $publicationSelection = '';
     if($publicationCategories) {
-        $publicationCategories = explode(',', $publicationCategories);
-        foreach($publicationCategories as $pcKey => $pcValue) {
-            if($publicationSelection) {
-                $publicationSelection .= " OR ";
+        if($publicationCategories === 'FREE' || $publicationCategories === 'CAMPUS') {
+            $publicationSelection = 'attachmentLimitedVisibility:' . $publicationCategories;
+        } else {
+            $publicationCategories = explode(',', $publicationCategories);
+            foreach($publicationCategories as $pcKey => $pcValue) {
+                if($publicationSelection) {
+                    $publicationSelection .= " OR ";
+                }
+                $publicationSelection .= 'standardCategory:"' . urldecode($pcValue) .'"';
             }
-            $publicationSelection .= 'standardCategory:"' . urldecode($pcValue) .'"';
         }
         $publicationSelection = " AND ($publicationSelection)";
     }
@@ -684,8 +688,8 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
                 break;
             case 'authorName':
                 $sortArray = array(
-                    'lastNameExact' => 'asc',
-                    'firstNameExact' => 'asc',
+                    'authorLastNameExact' => 'asc',
+                    'authorFirstNameExact' => 'asc',
                     'publicationDateYear' => 'desc',
                     'publicationDateMonth' => 'desc',
                     'publicationDateDay' => 'desc',
@@ -1602,7 +1606,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
                 "lastName" => mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
                 "title" => $document->title,
                 "phone" => $document->phone,
-                "id" => $document->id,
+                "id" => $document->guid,
                 "email" => $document->email,
                 "organisationName" => $document->organisationName,
                 "primaryAffiliation" => $document->primaryAffiliation,
