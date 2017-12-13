@@ -86,7 +86,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $feGroupsArray = $this->getFeGroups();
         
         $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp);
-
+        
         $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang);
         
         //$executionSucceeded = TRUE;
@@ -837,6 +837,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $update->addCommit();
                     $client->update($update);
                 }*/
+                $update->addCommit();
+                $client->update($update);
                 return TRUE;
             } else {
                 echo 'no!!';
