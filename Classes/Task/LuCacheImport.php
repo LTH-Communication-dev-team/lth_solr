@@ -578,7 +578,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         ${"doc"}->addField('appKey', 'lthsolr');
                         ${"doc"}->setFieldModifier('appKey', 'set');
                         $docArray[] = ${"doc"};
-                    } else if($value['id']) {
+                    } else if($value['id'] && ($value['id']===$key)) {
                         $heritage = array();
                         $heritage2 = array();
                         $legacy = array();
