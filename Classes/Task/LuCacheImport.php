@@ -568,7 +568,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $docArray = array();
                 
                 foreach($employeeArray as $key => $value) {
-                    if($value['exist']==='disable') {
+                    /*if($value['exist']==='disable') {
                         ${"doc"} = $update->createDocument();
                         ${"doc"}->setKey('id', $value['id']);
                         ${"doc"}->addField('disable_intS', 1);
@@ -578,7 +578,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         ${"doc"}->addField('appKey', 'lthsolr');
                         ${"doc"}->setFieldModifier('appKey', 'set');
                         $docArray[] = ${"doc"};
-                    } else if($value['id'] && ($value['id']===$key)) {
+                    } else*/ if($value['id']) {
                         $heritage = array();
                         $heritage2 = array();
                         $legacy = array();
