@@ -578,7 +578,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         ${"doc"}->addField('appKey', 'lthsolr');
                         ${"doc"}->setFieldModifier('appKey', 'set');
                         $docArray[] = ${"doc"};
-                    } else*/ if($value['id']) {
+                    } else*/ 
+                    if($value['id']) {
                         $heritage = array();
                         $heritage2 = array();
                         $legacy = array();
@@ -638,208 +639,208 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 $heritage[] = $parent;
                                 $heritage2[$value1] .= ',' . $parent;
                             }
-                        }
 
-                        //$orgidLegacyArray = explode('###', $value['orgid_legacy']);
-                        $orgidLegacyArray = $value['orgid_legacy'];
-                        foreach($orgidLegacyArray as $key1 => $value1) {
-                            $legacy[] = $value1;
-                            $parent = $heritageLegacyArray[$value1];
-                            if($parent) $legacy[] = $parent;
-                            $parent = $heritageLegacyArray[$parent];
-                            if($parent) $legacy[] = $parent;
-                            $parent = $heritageLegacyArray[$parent];
-                            if($parent) $legacy[] = $parent;
-                            $parent = $heritageLegacyArray[$parent];
-                            if($parent) $legacy[] = $parent;
-                            $parent = $heritageLegacyArray[$parent];
-                            if($parent) $legacy[] = $parent;
-                            $parent = $heritageLegacyArray[$parent];
-                            if($parent) $legacy[] = $parent;
-                            $parent = $heritageLegacyArray[$parent];
-                            if($parent) $legacy[] = $parent;
-                            $parent = $heritageLegacyArray[$parent];
-                            if($parent) $legacy[] = $parent;
-                            $parent = $heritageLegacyArray[$parent];
-                            if($parent) $legacy[] = $parent;
-                        }
-
-                        array_filter($heritage);
-                        array_filter($legacy);
-
-                        $heritage = array_unique($heritage);
-                        $legacy = array_unique($legacy);
-                        
-                        if($value['extra_orgid']) {
-                            $value['orgid'] = array_unique(array_merge($value['orgid'], $value['extra_orgid']));
-                        }
-
-                        $display_name_t = $value['first_name'] . ' ' . $value['last_name'];
-                        $homepage = $value['homepage'];
-                        /*if(!$homepage || $homepage === '') {
-                            $homepage = str_replace(' ', '_', $display_name_t);
-                        }*/
-
-                        $standard_category_sv = array();
-                        $standard_category_en = array();
-                        $standardCategory = array();
-                        //$titleArray = explode('###', $value['title']);
-                        $titleArray = $value['title'];
-                        //$title_enArray = explode('###', $value['title_en']);
-                        $title_enArray = $value['title_en'];
-                        foreach($titleArray as $tkey => $tvalue) {
-                            $standard_category_sv[] = $categoriesArray[$tvalue][0];
-                            $standard_category_en[] = $categoriesArray[$tvalue][1];
-                        }
-                        if($syslang==="sv") {
-                            $standardCategory = $standard_category_sv;
-                            $title = $titleArray;
-                            $profileInformation = $value['profileInformation_sv'];
-                        } else {
-                            $standardCategory = $standard_category_en;
-                            $title = $title_enArray;
-                            $profileInformation = $value['profileInformation_en'];
-                        }
-
-                        //echo $value['id'].',';
-                        $data = array(
-                            /*'id' => $key,
-                            'doctype_s' => 'lucat',
-                            'display_name_t' => $display_name_t,
-                            'first_name_t' => $value['first_name'],
-                            'last_name_t' => $value['last_name'],
-                            'first_name_s' => $value['first_name'],
-                            'last_name_s' => $value['last_name'],
-                            'email_t' => $value['email'],
-                            'primary_affiliation_t' => $value['primary_affiliation'],
-                            'homepage_t' => strtolower($homepage),
-                            'lang_t' => $value['lang'],
-                            'degree_t' => $value['degree'],
-                            'degree_en_t' => $value['degree_en'],                        
-                            'hide_on_web_i' => intval($value['hide_on_web']),
-                            'update_flag_i' => intval($value['update_flag']),
-                            'title_sort' => explode('###', $value['title']),
-                            'ou_sort' => explode('###', $value['oname']),
-                            'guid_s' => $value['guid'],
-                            'standard_category_sv_txt' => $standard_category_sv,
-                            'standard_category_en_txt' => $standard_category_en,
-                            //arrays:
-                            'title_txt' => $titleArray,
-                            'title_en_txt' => $title_enArray,
-                            'phone_txt' => explode('###', $value['phone']),
-                            'mobile_txt' => explode('###', $value['mobile']),
-                            'room_number_s' => $value['room_number'],
-                            'orgid_txt' => explode('###', $value['orgid']),
-                            'oname_txt' => explode('###', $value['oname']),
-                            'oname_en_txt' => explode('###', $value['oname_en']),
-                            'maildelivery_txt' => explode('###', $value['maildelivery']),
-                            //extra:
-                            'image_s' => $value['image'],
-                            'image_id_s' => $value['image_id'],
-                            //'lth_solr_intro_txt' => $value['lth_solr_intro'],
-                            //'lth_solr_txt_t' => $value['lth_solr_txt'],
-                            'usergroup_txt' => $heritage,
-                            'lth_solr_sort_ss' => $value['lth_solr_sort'],*/
-                            //New
-                            'appKey' => 'lthsolr',
-                            'id' => $value['id'],
-                            'primaryUid' => $key,
-                            'docType' => 'staff',
-                            'type' => 'staff',
-                            'name' => $display_name_t,
-                            'firstName' => $value['first_name'],
-                            'lastName' => $value['last_name'],
-                            //'first_name_sort' => $value['first_name'],
-                            //'last_name_sort' => $value['last_name'],
-                            'email' => $value['email'],
-                            'primaryAffiliation' => $value['primary_affiliation'],
-                            'homepage' => strtolower($homepage),
-                            'language' => $value['lang'],
-                            'degree' => $value['degree'],
-                            //'degree_en' => $value['degree_en'],                        
-                            'hideOnWeb' => intval($value['hide_on_web']),
-                            'updateFlag' => intval($value['update_flag']),
-                            //'title_sort' => $titleArray,
-                            //'ou_sort' => $this->fixArray(explode('###', $value['oname'])),
-                            'guid' => $value['guid'],
-                            'standardCategory' => $standardCategory,
-                            //'standard_category_en' => $standard_category_en,
-                            //arrays:
-                            'title' => $title,
-                            //'title_en' => $title_enArray,
-                            'phone' => $value['phone'],
-                            'mobile' => $value['mobile'],
-                            'roomNumber' => $value['room_number'],
-                            'organisationId' => $value['orgid'],
-                            'organisationName' => $value['oname'],
-                            //'oname_en' => $value['oname_en'],
-                            //'oname_sort' => $value['oname'],
-                            //'oname_sort_en' => $value['oname_en'],
-                            'mailDelivery' => $value['maildelivery'],
-                            'organisationPhone' => $value['ophone'],
-                            'organisationStreet' => $value['ostreet'],
-                            'organisationCity' => $value['ocity'],
-                            'organisationPostalAddress' => $value['opostal_address'],
-                            //extra:
-                            'image' => $value['image'],
-                            'imageId' => $value['image_id'],
-                            //'ltholr_intro_txt' => $value['lth_solr_intro'],
-                            //'lth_solr_txt_t' => $value['lth_solr_txt'],
-                            //'usergroup' => $value['orgid'],
-                            'heritage' => $heritage,
-                            'uuid' => $value['uuid'],
-                            'lucrisPhoto' => $value['lucrisphoto'],
-                            'profileInformation' => $profileInformation,
-                            'coordinates' => $value['coordinates'],
-                            'boost' => '1.0',
-                            'date' => $current_date,
-                            'changed' => $current_date,
-                            'digest' => md5($key)
-                        );
-
-                        $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username='".$key."'", array('lth_solr_heritage' => implode(',', $heritage), 'lth_solr_legacy_heritage' => implode(',', $legacy)));
-
-                        if(is_array($value['lth_solr_cat'])) {
-                            foreach($value['lth_solr_cat'] as $key1 => $value1) {
-                                $data[$key1] = $value1;
+                            //$orgidLegacyArray = explode('###', $value['orgid_legacy']);
+                            $orgidLegacyArray = $value['orgid_legacy'];
+                            foreach($orgidLegacyArray as $key1 => $value1) {
+                                $legacy[] = $value1;
+                                $parent = $heritageLegacyArray[$value1];
+                                if($parent) $legacy[] = $parent;
+                                $parent = $heritageLegacyArray[$parent];
+                                if($parent) $legacy[] = $parent;
+                                $parent = $heritageLegacyArray[$parent];
+                                if($parent) $legacy[] = $parent;
+                                $parent = $heritageLegacyArray[$parent];
+                                if($parent) $legacy[] = $parent;
+                                $parent = $heritageLegacyArray[$parent];
+                                if($parent) $legacy[] = $parent;
+                                $parent = $heritageLegacyArray[$parent];
+                                if($parent) $legacy[] = $parent;
+                                $parent = $heritageLegacyArray[$parent];
+                                if($parent) $legacy[] = $parent;
+                                $parent = $heritageLegacyArray[$parent];
+                                if($parent) $legacy[] = $parent;
+                                $parent = $heritageLegacyArray[$parent];
+                                if($parent) $legacy[] = $parent;
                             }
-                        }
 
-                        if(is_array($value['lth_solr_intro'])) {
-                            foreach($value['lth_solr_intro'] as $key2 => $value2) {
-                                $data[$key2] = $value2;
+                            array_filter($heritage);
+                            array_filter($legacy);
+
+                            $heritage = array_unique($heritage);
+                            $legacy = array_unique($legacy);
+
+                            if($value['extra_orgid']) {
+                                $value['orgid'] = array_unique(array_merge($value['orgid'], $value['extra_orgid']));
                             }
-                        }
 
-                        if(is_array($value['lth_solr_sort'])) {
-                            foreach($value['lth_solr_sort'] as $key3 => $value3) {
-                                $data[$key3] = $value3;
+                            $display_name_t = $value['first_name'] . ' ' . $value['last_name'];
+                            $homepage = $value['homepage'];
+                            /*if(!$homepage || $homepage === '') {
+                                $homepage = str_replace(' ', '_', $display_name_t);
+                            }*/
+
+                            $standard_category_sv = array();
+                            $standard_category_en = array();
+                            $standardCategory = array();
+                            //$titleArray = explode('###', $value['title']);
+                            $titleArray = $value['title'];
+                            //$title_enArray = explode('###', $value['title_en']);
+                            $title_enArray = $value['title_en'];
+                            foreach($titleArray as $tkey => $tvalue) {
+                                $standard_category_sv[] = $categoriesArray[$tvalue][0];
+                                $standard_category_en[] = $categoriesArray[$tvalue][1];
                             }
-                        }
-                        
-                        if($value['lth_solr_show']) {
-                            $lth_solr_showArray = json_decode($value['lth_solr_show'],true);
-                            foreach($lth_solr_showArray as $showKey => $showValue) {
-                                $data[$showValue] = 1;
+                            if($syslang==="sv") {
+                                $standardCategory = $standard_category_sv;
+                                $title = $titleArray;
+                                $profileInformation = $value['profileInformation_sv'];
+                            } else {
+                                $standardCategory = $standard_category_en;
+                                $title = $title_enArray;
+                                $profileInformation = $value['profileInformation_en'];
                             }
+
+                            //echo $value['id'].',';
+                            $data = array(
+                                /*'id' => $key,
+                                'doctype_s' => 'lucat',
+                                'display_name_t' => $display_name_t,
+                                'first_name_t' => $value['first_name'],
+                                'last_name_t' => $value['last_name'],
+                                'first_name_s' => $value['first_name'],
+                                'last_name_s' => $value['last_name'],
+                                'email_t' => $value['email'],
+                                'primary_affiliation_t' => $value['primary_affiliation'],
+                                'homepage_t' => strtolower($homepage),
+                                'lang_t' => $value['lang'],
+                                'degree_t' => $value['degree'],
+                                'degree_en_t' => $value['degree_en'],                        
+                                'hide_on_web_i' => intval($value['hide_on_web']),
+                                'update_flag_i' => intval($value['update_flag']),
+                                'title_sort' => explode('###', $value['title']),
+                                'ou_sort' => explode('###', $value['oname']),
+                                'guid_s' => $value['guid'],
+                                'standard_category_sv_txt' => $standard_category_sv,
+                                'standard_category_en_txt' => $standard_category_en,
+                                //arrays:
+                                'title_txt' => $titleArray,
+                                'title_en_txt' => $title_enArray,
+                                'phone_txt' => explode('###', $value['phone']),
+                                'mobile_txt' => explode('###', $value['mobile']),
+                                'room_number_s' => $value['room_number'],
+                                'orgid_txt' => explode('###', $value['orgid']),
+                                'oname_txt' => explode('###', $value['oname']),
+                                'oname_en_txt' => explode('###', $value['oname_en']),
+                                'maildelivery_txt' => explode('###', $value['maildelivery']),
+                                //extra:
+                                'image_s' => $value['image'],
+                                'image_id_s' => $value['image_id'],
+                                //'lth_solr_intro_txt' => $value['lth_solr_intro'],
+                                //'lth_solr_txt_t' => $value['lth_solr_txt'],
+                                'usergroup_txt' => $heritage,
+                                'lth_solr_sort_ss' => $value['lth_solr_sort'],*/
+                                //New
+                                'appKey' => 'lthsolr',
+                                'id' => $value['id'],
+                                'primaryUid' => $key,
+                                'docType' => 'staff',
+                                'type' => 'staff',
+                                'name' => $display_name_t,
+                                'firstName' => $value['first_name'],
+                                'lastName' => $value['last_name'],
+                                //'first_name_sort' => $value['first_name'],
+                                //'last_name_sort' => $value['last_name'],
+                                'email' => $value['email'],
+                                'primaryAffiliation' => $value['primary_affiliation'],
+                                'homepage' => strtolower($homepage),
+                                'language' => $value['lang'],
+                                'degree' => $value['degree'],
+                                //'degree_en' => $value['degree_en'],                        
+                                'hideOnWeb' => intval($value['hide_on_web']),
+                                'updateFlag' => intval($value['update_flag']),
+                                //'title_sort' => $titleArray,
+                                //'ou_sort' => $this->fixArray(explode('###', $value['oname'])),
+                                'guid' => $value['guid'],
+                                'standardCategory' => $standardCategory,
+                                //'standard_category_en' => $standard_category_en,
+                                //arrays:
+                                'title' => $title,
+                                //'title_en' => $title_enArray,
+                                'phone' => $value['phone'],
+                                'mobile' => $value['mobile'],
+                                'roomNumber' => $value['room_number'],
+                                'organisationId' => $value['orgid'],
+                                'organisationName' => $value['oname'],
+                                //'oname_en' => $value['oname_en'],
+                                //'oname_sort' => $value['oname'],
+                                //'oname_sort_en' => $value['oname_en'],
+                                'mailDelivery' => $value['maildelivery'],
+                                'organisationPhone' => $value['ophone'],
+                                'organisationStreet' => $value['ostreet'],
+                                'organisationCity' => $value['ocity'],
+                                'organisationPostalAddress' => $value['opostal_address'],
+                                //extra:
+                                'image' => $value['image'],
+                                'imageId' => $value['image_id'],
+                                //'ltholr_intro_txt' => $value['lth_solr_intro'],
+                                //'lth_solr_txt_t' => $value['lth_solr_txt'],
+                                //'usergroup' => $value['orgid'],
+                                'heritage' => $heritage,
+                                'uuid' => $value['uuid'],
+                                'lucrisPhoto' => $value['lucrisphoto'],
+                                'profileInformation' => $profileInformation,
+                                'coordinates' => $value['coordinates'],
+                                'boost' => '1.0',
+                                'date' => $current_date,
+                                'changed' => $current_date,
+                                'digest' => md5($key)
+                            );
+
+                            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username='".$key."'", array('lth_solr_heritage' => implode(',', $heritage), 'lth_solr_legacy_heritage' => implode(',', $legacy)));
+
+                            if(is_array($value['lth_solr_cat'])) {
+                                foreach($value['lth_solr_cat'] as $key1 => $value1) {
+                                    $data[$key1] = $value1;
+                                }
+                            }
+
+                            if(is_array($value['lth_solr_intro'])) {
+                                foreach($value['lth_solr_intro'] as $key2 => $value2) {
+                                    $data[$key2] = $value2;
+                                }
+                            }
+
+                            if(is_array($value['lth_solr_sort'])) {
+                                foreach($value['lth_solr_sort'] as $key3 => $value3) {
+                                    $data[$key3] = $value3;
+                                }
+                            }
+
+                            if($value['lth_solr_show']) {
+                                $lth_solr_showArray = json_decode($value['lth_solr_show'],true);
+                                foreach($lth_solr_showArray as $showKey => $showValue) {
+                                    $data[$showValue] = 1;
+                                }
+                            }
+
+                            $data['disable_intS'] = 0;
+
+                            $buffer->createDocument($data);
                         }
-                        
-                        $data['disable_intS'] = 0;
+                    } 
+                    // this executes the query and returns the result
+                    $buffer->commit();
 
-                        $buffer->createDocument($data);
-                    }
-                } 
-                // this executes the query and returns the result
-                $buffer->commit();
-
-                /*if(count($docArray) > 0) {
-                    $update->addDocuments($docArray);
+                    /*if(count($docArray) > 0) {
+                        $update->addDocuments($docArray);
+                        $update->addCommit();
+                        $client->update($update);
+                    }*/
                     $update->addCommit();
                     $client->update($update);
-                }*/
-                $update->addCommit();
-                $client->update($update);
-                return TRUE;
+                    return TRUE;
+                }
             } else {
                 echo 'no!!';
             }
