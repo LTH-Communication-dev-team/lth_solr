@@ -832,11 +832,11 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 // this executes the query and returns the result
                 $buffer->commit();
 
-                if(count($docArray) > 0) {
+                /*if(count($docArray) > 0) {
                     $update->addDocuments($docArray);
                     $update->addCommit();
                     $client->update($update);
-                }
+                }*/
                 return TRUE;
             } else {
                 echo 'no!!';
