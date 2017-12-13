@@ -372,7 +372,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             } else {
                 $employeeArray[$username]['id'] = $lucache_id;
                 $employeeArray[$username]['exist'] = 'disable';
-                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $username.$employeeArray[$username]['exist'], 'crdate' => time()));
+                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $username.$employeeArray[$username]['exist'], 'crdate' => time()));
             }
         }
         return $employeeArray;
@@ -572,7 +572,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         ${"doc"} = $update->createDocument();
                         ${"doc"}->setKey('id', $value['id']);
                         ${"doc"}->addField('disable_intS', 1);
-                        ${"doc"}->setFieldModifier('disable_i', 'set');
+                        ${"doc"}->setFieldModifier('disable_intS', 'set');
                         ${"doc"}->addField('type', 'staff');
                         ${"doc"}->setFieldModifier('type', 'set');
                         ${"doc"}->addField('appKey', 'lthsolr');
