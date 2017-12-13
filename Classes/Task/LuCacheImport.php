@@ -553,8 +553,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     private function updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang)
     {
-        $this->debug($employeeArray['ilh10pha']);
-        die();
         //echo count($employeeArray);
         $coordinatesArray = $this->getCoordinates();
         try {
