@@ -158,7 +158,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             VORG.postal_address AS opostal_address
             FROM lucache_person AS P 
             LEFT JOIN lucache_vrole AS V ON P.id = V.id 
-            LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid
+            LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid 
+            WHERE P.primary_affiliation = 'employee'
             GROUP BY P.id, V.orgid 
             ORDER BY P.id, V.orgid";
         
@@ -552,7 +553,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     private function updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang)
     {
-        //$this->debug($employeeArray);
+        $this->debug($employeeArray['ilh10pha']);
+        die();
         //echo count($employeeArray);
         $coordinatesArray = $this->getCoordinates();
         try {
@@ -568,9 +570,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $docArray = array();
                 
                 foreach($employeeArray as $key => $value) {
-                    if($value['exist']==='disable' && $value['id']==='pe0371he') {
-                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '572', 'crdate' => time()));
-                    }
                     if($value['exist']==='disable') {
                         ${"doc"} = $update->createDocument();
                         ${"doc"}->setKey('id', $value['id']);
@@ -582,9 +581,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         ${"doc"}->setFieldModifier('appKey', 'set');
                         $docArray[] = ${"doc"};
                     } else if($value['id']) {
-                        if($value['id']==='pe0371he') {
-                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '586', 'crdate' => time()));
-                    }
                         $heritage = array();
                         $heritage2 = array();
                         $legacy = array();
