@@ -159,7 +159,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             FROM lucache_person AS P 
             LEFT JOIN lucache_vrole AS V ON P.id = V.id 
             LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid 
-            WHERE P.primary_affiliation = 'employee'
+            WHERE P.primary_affiliation = 'employee' OR P.primary_affiliation = 'member' 
             GROUP BY P.id, V.orgid 
             ORDER BY P.id, V.orgid";
         
