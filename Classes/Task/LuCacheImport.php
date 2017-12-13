@@ -568,8 +568,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $docArray = array();
                 
                 foreach($employeeArray as $key => $value) {
-                    if($value['exist']==='disable') {
-                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $value['id'], 'crdate' => time()));
+                    if($value['exist']==='disable' && $key !='pe0371he') {
                         ${"doc"} = $update->createDocument();
                         ${"doc"}->setKey('id', $value['id']);
                         ${"doc"}->addField('disable_intS', 1);
