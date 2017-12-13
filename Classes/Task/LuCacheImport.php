@@ -568,7 +568,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $docArray = array();
                 
                 foreach($employeeArray as $key => $value) {
-                    if($value['exist']==='disable' && $key !='pe0371he') {
+                    if($value['exist']==='disable' && $value['id']==='pe0371he') {
+                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '572', 'crdate' => time()));
+                    }
+                    if($value['exist']==='disable') {
                         ${"doc"} = $update->createDocument();
                         ${"doc"}->setKey('id', $value['id']);
                         ${"doc"}->addField('disable_intS', 1);
@@ -578,7 +581,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         ${"doc"}->addField('appKey', 'lthsolr');
                         ${"doc"}->setFieldModifier('appKey', 'set');
                         $docArray[] = ${"doc"};
-                    } else if($value['id'] || $key ==='pe0371he') {
+                    } else if($value['id']) {
+                        if($value['id']==='pe0371he') {
+                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '586', 'crdate' => time()));
+                    }
                         $heritage = array();
                         $heritage2 = array();
                         $legacy = array();
@@ -826,12 +832,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         
                         $data['disable_intS'] = 0;
 
-                        try {
-                            $buffer->createDocument($data);
-
-                        } catch(Exception $e) {
-                            echo 'Message: ' .$e->getMessage();
-                        }
+                        $buffer->createDocument($data);
                     }
                 } 
                 // this executes the query and returns the result
