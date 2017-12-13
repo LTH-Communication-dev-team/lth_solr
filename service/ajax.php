@@ -1484,13 +1484,14 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
     
     $facetResult = array();
     
+    
     $currentDate = gmDate("Y-m-d\TH:i:s\Z");
     
     $client = new Solarium\Client($config);
     
     $query = $client->createSelect();
     
-    $hideVal = 'lth_solr_hide_' . $pageid . '_i';
+    $hideVal = 'lth_solr_hide_' . $pageid . '_intS';
     
     if($filterQuery) {
         $filterQuery = str_replace(' ','\\ ',$filterQuery);
