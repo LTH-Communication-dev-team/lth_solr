@@ -472,9 +472,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 }
 
                 if($value['exist']===TRUE && $usergroupArray[1]) {
-                    if($value['primary_uid']==='mtov-man') {
-                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($value['orgid'],true), 'crdate' => time()));
-                    }
                     if(!$value['roomnumber']) {
                         $value['roomnumber'] = '';
                     }
@@ -574,7 +571,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     if($value['exist']==='disable') {
                         ${"doc"} = $update->createDocument();
                         ${"doc"}->setKey('id', $value['id']);
-                        ${"doc"}->addField('disable_i', 1);
+                        ${"doc"}->addField('disable_intS', 1);
                         ${"doc"}->setFieldModifier('disable_i', 'set');
                         ${"doc"}->addField('type', 'staff');
                         ${"doc"}->setFieldModifier('type', 'set');
@@ -827,7 +824,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             }
                         }
                         
-                        $data['disable_i'] = 0;
+                        $data['disable_intS'] = 0;
 
                         try {
                             $buffer->createDocument($data);
