@@ -1513,7 +1513,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
         }
     }
     
-    $queryToSet = 'docType:staff AND primaryAffiliation:employee AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_intS:0 AND -' . $hideVal . ':[* TO *]' . $filterQuery;
+    $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member) AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_intS:0 AND -' . $hideVal . ':[* TO *]' . $filterQuery;
     //docType:staff AND primaryAffiliation:employee AND (name:*'.$term . '* OR phone:*' . $term . '* OR email:*' . $term . '*)'
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
