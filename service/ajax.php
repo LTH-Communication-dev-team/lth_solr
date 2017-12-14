@@ -745,6 +745,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     foreach ($facetYear as $value => $count) {
         $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
     }
+    if($facetResult['publicationDateYear']) usort($facetResult['publicationDateYear'],'compareOrder');
     
     $facetVisibility = $response->getFacetSet()->getFacet('visibility');
     if($syslang==="en") {
@@ -1776,4 +1777,10 @@ function basicSelect($q, $config)
         $i++;
     }
     return $_GET["callback"] . "(" . json_encode($friends) . ")";
+}
+
+
+function compareOrder($a, $b)
+{
+  return $b[0] - $a[0];
 }
