@@ -579,7 +579,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         ${"doc"}->setFieldModifier('appKey', 'set');
                         $docArray[] = ${"doc"};
                     } else*/ 
-                    if($value['id']) {
+                    if($value['id'] && ($value['primary_affiliation']==='employee' || $value['primary_affiliation']==='member')) {
                         $heritage = array();
                         $heritage2 = array();
                         $legacy = array();
