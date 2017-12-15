@@ -1655,7 +1655,7 @@ function showStaff($scope, $config, $syslang)
 {
     $fieldArray = array("docType","firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage","image","intro","roomNumber",
         "mobile","uuid","guid","organisationId","organisationPhone","organisationStreet","organisationCity","organisationPostalAddress",
-        "profileInformation","coordinates");
+        "profileInformation","coordinates","lucrisPhoto");
     
     $content = '';
     $personData = array();
