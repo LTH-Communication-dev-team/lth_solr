@@ -24,6 +24,10 @@ and open the template in the editor.
     width:60%;
 }
 
+.lthsolr_contact_text div {
+    max-width:225px;
+}
+
 .ui-menu-item-wrapper, .ui-menu-item-wrapper {
     white-space: nowrap;
     max-width:273px;

@@ -1212,7 +1212,7 @@ function maxCharLength(input,noChar)
 
 function addBreak(input)
 {
-    if(input) {
+    if(input && input !='') {
         input = '<br />' + input.toString().replace(',',', ');
     }
     return input;
@@ -2475,8 +2475,8 @@ function showStaff()
                 $('#content_sidebar h2').after(staffContainer);
             }*/
             $('#lthsolr_show_staff_container').append('<img class="lthsolr_loader" id="lthsolr_loader_staff" src="/fileadmin/templates/images/ajax-loader.gif" />');
-            //$('#lthsolr_publications_container').append('<img class="lthsolr_loader" id="lthsolr_loader_publication" src="/fileadmin/templates/images/ajax-loader.gif" />');
-            //$('#lthsolr_projects_container').append('<img class="lthsolr_loader" id="lthsolr_loader_project" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            //$('#content_navigation').hide(200);
+            //$('#text_wrapper').removeClass('grid-23').removeClass('omega').addClass('grid-31');
         },
         success: function(d) {
             //Staff
