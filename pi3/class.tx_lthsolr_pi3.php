@@ -82,7 +82,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
             $keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
-            $rss = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
+            
             
             if(strstr($uuid,"(publication)")) {
                 $showType = 'publication';
