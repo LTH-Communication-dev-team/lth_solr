@@ -140,27 +140,25 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             P.degree_en,
             P.primary_lu_email,
             NOT P.has_primary_vrole AS hide_on_web,
-            V.update_flag,
-            V.guid,
-            GROUP_CONCAT(V.room_number) AS room_number,
-            GROUP_CONCAT(V.title) AS title,
-            GROUP_CONCAT(V.title_en) AS title_en,
-            GROUP_CONCAT(V.phone) AS phone,
-            GROUP_CONCAT(V.mobile) AS mobile,
-            V.orgid AS orgid,
-            VORG.legacy_orgid AS orgid_legacy,
-            VORG.name AS oname,
-            VORG.name_en AS oname_en,
-            VORG.maildelivery AS maildelivery,
-            VORG.phone AS ophone,
-	    VORG.street AS ostreet,
-            VORG.city AS ocity,
-            VORG.postal_address AS opostal_address
+            GROUP_CONCAT(V.orgid SEPARATOR '|') AS orgid,
+            GROUP_CONCAT(V.room_number SEPARATOR '|') AS room_number,
+            GROUP_CONCAT(V.title SEPARATOR '|') AS title,
+            GROUP_CONCAT(V.title_en SEPARATOR '|') AS title_en,
+            GROUP_CONCAT(V.phone SEPARATOR '|') AS phone,
+            GROUP_CONCAT(V.mobile SEPARATOR '|') AS mobile,
+            GROUP_CONCAT(VORG.legacy_orgid SEPARATOR '|') AS orgid_legacy,
+            GROUP_CONCAT(VORG.name SEPARATOR '|') AS oname,
+            GROUP_CONCAT(VORG.name_en SEPARATOR '|') AS oname_en,
+            GROUP_CONCAT(VORG.maildelivery SEPARATOR '|') AS maildelivery,
+            GROUP_CONCAT(VORG.phone SEPARATOR '|') AS ophone,
+	    GROUP_CONCAT(VORG.street SEPARATOR '|') AS ostreet,
+            GROUP_CONCAT(VORG.city SEPARATOR '|') AS ocity,
+            GROUP_CONCAT(VORG.postal_address SEPARATOR '|') AS opostal_address
             FROM lucache_person AS P 
             LEFT JOIN lucache_vrole AS V ON P.id = V.id 
             LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid 
             WHERE P.primary_affiliation = 'employee' OR P.primary_affiliation = 'member' 
-            GROUP BY P.id, V.orgid 
+            GROUP BY P.id
             ORDER BY P.id, V.orgid";
         
         $res = mysqli_query($con, $sql) or die("164; ".mysqli_error());
@@ -178,25 +176,21 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $employeeArray[$primary_uid]['degree'] = utf8_encode($row['degree']);
             $employeeArray[$primary_uid]['degree_en'] = utf8_encode($row['degree_en']);
             $employeeArray[$primary_uid]['hide_on_web'] = $row['hide_on_web'];
-            $employeeArray[$primary_uid]['update_flag'] = $row['update_flag'];
-            $employeeArray[$primary_uid]['guid'] = $row['guid'];
-            $employeeArray[$primary_uid]['ophone'] = $row['ophone'];
-	    $employeeArray[$primary_uid]['ostreet'] = utf8_encode($row['ostreet']);
-            $employeeArray[$primary_uid]['ocity'] = utf8_encode($row['ocity']);
-            $employeeArray[$primary_uid]['opostal_address'] = utf8_encode($row['opostal_address']);
-
             //arrays:
-            $employeeArray[$primary_uid]['room_number'][] = $row['room_number'];
-            $employeeArray[$primary_uid]['title'][] = utf8_encode($row['title']);
-            $employeeArray[$primary_uid]['title_en'][] = utf8_encode($row['title_en']);
-            $employeeArray[$primary_uid]['phone'][] = $row['phone'];
-            $employeeArray[$primary_uid]['mobile'][] = $row['mobile'];
-            $employeeArray[$primary_uid]['orgid'][] = $row['orgid'];
-            $employeeArray[$primary_uid]['orgid_legacy'][] = $row['orgid_legacy'];
-            $employeeArray[$primary_uid]['oname'][] = utf8_encode($row['oname']);
-            $employeeArray[$primary_uid]['oname_en'][] = utf8_encode($row['oname_en']);
-            $employeeArray[$primary_uid]['maildelivery'][] = $row['maildelivery'];
-            
+            $employeeArray[$primary_uid]['ophone'] = explode('|', $row['ophone']);
+	    $employeeArray[$primary_uid]['ostreet'] = explode('|', utf8_encode($row['ostreet']));
+            $employeeArray[$primary_uid]['ocity'] = explode('|', utf8_encode($row['ocity']));
+            $employeeArray[$primary_uid]['opostal_address'] = explode('|', utf8_encode($row['opostal_address']));
+            $employeeArray[$primary_uid]['room_number'] = explode('|', $row['room_number']);
+            $employeeArray[$primary_uid]['title'] = explode('|', utf8_encode($row['title']));
+            $employeeArray[$primary_uid]['title_en'] = explode('|', utf8_encode($row['title_en']));
+            $employeeArray[$primary_uid]['phone'] = explode('|', $row['phone']);
+            $employeeArray[$primary_uid]['mobile'] = explode('|', $row['mobile']);
+            $employeeArray[$primary_uid]['orgid'] = explode('|', $row['orgid']);
+            $employeeArray[$primary_uid]['orgid_legacy'] = explode('|', $row['orgid_legacy']);
+            $employeeArray[$primary_uid]['oname'] = explode('|', utf8_encode($row['oname']));
+            $employeeArray[$primary_uid]['oname_en'] = explode('|', utf8_encode($row['oname_en']));
+            $employeeArray[$primary_uid]['maildelivery'] = explode('|', $row['maildelivery']);
         }
 
         return $employeeArray;
@@ -750,43 +744,28 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'name' => $display_name_t,
                             'firstName' => $value['first_name'],
                             'lastName' => $value['last_name'],
-                            //'first_name_sort' => $value['first_name'],
-                            //'last_name_sort' => $value['last_name'],
                             'email' => $value['email'],
                             'primaryAffiliation' => $value['primary_affiliation'],
                             'homepage' => strtolower($homepage),
                             'language' => $value['lang'],
                             'degree' => $value['degree'],
-                            //'degree_en' => $value['degree_en'],                        
                             'hideOnWeb' => intval($value['hide_on_web']),
-                            'updateFlag' => intval($value['update_flag']),
-                            //'title_sort' => $titleArray,
-                            //'ou_sort' => $this->fixArray(explode('###', $value['oname'])),
-                            'guid' => $value['guid'],
                             'standardCategory' => $standardCategory,
-                            //'standard_category_en' => $standard_category_en,
                             //arrays:
-                            'title' => $title,
-                            //'title_en' => $title_enArray,
-                            'phone' => $value['phone'],
+                            'mailDelivery' => $value['maildelivery'],
                             'mobile' => $value['mobile'],
-                            'roomNumber' => $value['room_number'],
                             'organisationId' => $value['orgid'],
                             'organisationName' => $value['oname'],
-                            //'oname_en' => $value['oname_en'],
-                            //'oname_sort' => $value['oname'],
-                            //'oname_sort_en' => $value['oname_en'],
-                            'mailDelivery' => $value['maildelivery'],
                             'organisationPhone' => $value['ophone'],
                             'organisationStreet' => $value['ostreet'],
                             'organisationCity' => $value['ocity'],
                             'organisationPostalAddress' => $value['opostal_address'],
+                            'phone' => $value['phone'],
+                            'roomNumber' => $value['room_number'],
+                            'title' => $title,
                             //extra:
                             'image' => $value['image'],
                             'imageId' => $value['image_id'],
-                            //'ltholr_intro_txt' => $value['lth_solr_intro'],
-                            //'lth_solr_txt_t' => $value['lth_solr_txt'],
-                            //'usergroup' => $value['orgid'],
                             'heritage' => $heritage,
                             'uuid' => $value['uuid'],
                             'lucrisPhoto' => $value['lucrisphoto'],
