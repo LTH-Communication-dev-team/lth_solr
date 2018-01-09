@@ -132,7 +132,7 @@ and open the template in the editor.
     color:#000;
 }
 
-#lthsolr_staff_containers, #lthsolr_pages_container, #lthsolr_courses_container {
+#lthsolr_staff_container, #lthsolr_pages_container, #lthsolr_courses_container {
     /*border:0px;
     width:100%;
     max-width:650px;*/
