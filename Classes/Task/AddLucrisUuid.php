@@ -17,7 +17,7 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
 	$executionSucceeded = FALSE;
 
-	//$executionSucceeded = $this->getPersonUuid();
+	$executionSucceeded = $this->getPersonUuid();
         $executionSucceeded = $this->getImageData();
         
 	return $executionSucceeded;

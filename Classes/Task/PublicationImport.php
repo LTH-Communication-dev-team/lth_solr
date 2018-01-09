@@ -76,7 +76,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $mode = '';
         //$startFromHere = $numFound;
         $startFromHere = 0;
-        $mode = 'reindex'; //'' 'reindex' 'files'
+        $mode = ''; //'' 'reindex' 'files'
         if($mode==='' && $mode!='files') {
             $executionSucceeded = $this->getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang);
         } else if($mode==='files') {
@@ -84,7 +84,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $executionSucceeded = $this->getOrganisations($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
             return TRUE;
         }
-	if($executionSucceeded || $mode==='reindex') {
+	if($executionSucceeded || $mode==='reindex' || $mode==='restart') {
             $executionSucceeded = $this->getPublications($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
 
             $syslang = "en";
@@ -179,6 +179,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$this->debug($heritageArray[0]);
         $varArray = array('publication-base_uk','stab');
         $directory = '/var/www/html/typo3/lucrisdump';
+
         if($mode==='reindex' && $syslang==='sv') {
             $fileArray = scandir($directory . '/indexedfiles');
         } else if($mode==='reindex' && $syslang==='en') {
@@ -393,8 +394,13 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             $authorExternalOrganisationTemp = "";
                             $authorOrganisationTemp = "";
                             if($personAssociation->children('person-template',true)->person) {
-                                $authorIdTemp = (string)$personAssociation->children('person-template',true)->person->attributes();
-                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName . ' ' . (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                                if($personAssociation->children('core',true)->portalUrl) {
+                                    $authorIdTemp = (string)$personAssociation->children('core',true)->portalUrl;
+                                    $authorIdTemp = str_replace(').html','',array_pop(explode('(',$authorIdTemp)));
+                                }
+                                //$authorIdTemp = (string)$personAssociation->children('person-template',true)->person->attributes();
+                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName . ' ' .
+                                        (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
                                 $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName;
                                 $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
                                 if($personAssociation->children('person-template',true)->person->children('person-template',true)->organisationAssociations->children('person-template',true)->organisationAssociation) { //->children('person-template',true)->organisation->children('organisation-template',true)->external) {
@@ -402,11 +408,29 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                                 }
                             } else if($personAssociation->children('person-template',true)->externalPerson) {
                                 $authorExternalTemp = 1;
-                                $authorIdTemp = (string)$personAssociation->children('person-template',true)->externalPerson->attributes();
+                                //$authorIdTemp = (string)$personAssociation->children('person-template',true)->externalPerson->attributes();
+                                if($personAssociation->children('core',true)->portalUrl) {
+                                    $authorIdTemp = (string)$personAssociation->children('core',true)->portalUrl;
+                                    $authorIdTemp = str_replace(').html','',array_pop(explode('(',$authorIdTemp)));
+                                }
                                 $authorNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName . ' ' . (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
                                 $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->firstName;
                                 $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->externalPerson->children('externalperson-template',true)->name->children('core',true)->lastName;
                                 $authorOrganisationTemp = '';
+                            } else if($personAssociation->children('person-template',true)->name) {
+                                if($personAssociation->children('core',true)->portalUrl) {
+                                    $authorIdTemp = (string)$personAssociation->children('core',true)->portalUrl;
+                                    $authorIdTemp = str_replace(').html','',array_pop(explode('(',$authorIdTemp)));
+                                }
+                                //$authorIdTemp = (string)$personAssociation->children('person-template',true)->person->attributes();
+                                $authorNameTemp = (string)$personAssociation->children('person-template',true)->name->children('core',true)->firstName . ' ' .
+                                        (string)$personAssociation->children('person-template',true)->name->children('core',true)->lastName;
+                                $authorFirstNameTemp = (string)$personAssociation->children('person-template',true)->name->children('core',true)->firstName;
+                                $authorLastNameTemp = (string)$personAssociation->children('person-template',true)->name->children('core',true)->lastName;
+                                
+                                if($personAssociation->children('person-template',true)->person) { //->children('person-template',true)->organisationAssociations->children('person-template',true)->organisationAssociation) { //->children('person-template',true)->organisation->children('organisation-template',true)->external) {
+                                    $authorOrganisationTemp = (string)$personAssociation->children('person-template',true)->person->children('person-template',true)->organisationAssociations->children('person-template',true)->organisationAssociation->children('person-template',true)->organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
+                                }
                             }
                             if($personAssociation->children('person-template',true)->externalOrganisation) {
                                 $authorExternalOrganisationTemp = (string)$personAssociation->children('person-template',true)->externalOrganisation;
@@ -470,6 +494,7 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                         foreach($authorFirstName as $afnKey => $afnValue) {
                             if($afnValue && $afnValue != '') {
                                 $authorFirstNameExact = $afnValue;
+                                break;
                             }
                         }
                     }
@@ -479,6 +504,7 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                         foreach($authorLastName as $alnKey => $alnValue) {
                             if($alnValue && $alnValue != '') {
                                 $authorLastNameExact = $alnValue;
+                                break;
                             }
                         }
                     }
@@ -916,7 +942,7 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                     rename($directory . '/indexedfiles/' . $filename, $directory . '/svindexedfiles/' . $filename);
                 } else if($mode==='reindex' && $syslang==='en') {
                     rename($directory . '/svindexedfiles/' . $filename, $directory . '/indexedfiles/' . $filename);
-                } else if($mode!='files') {
+                } else if($mode!='files' && $syslang==='en') {
                     rename($directory . '/filestoindex/' . $filename, $directory . '/indexedfiles/' . $filename);
                 }
                 //$i++;
