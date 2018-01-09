@@ -531,40 +531,47 @@ function listStaff(tableStart, facet, query, noQuery, more)
                         homepage = aData.homepage;
                     }
                     template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
-                    var title, organisationName = '', phone = '', roomNumber = '', homepage = '';
+                    var phone = '', roomNumber = '', homepage = '';
 
                     if(aData.email) template = template.replace(/###email###/g, aData.email);
 
                     i=0;
-                    curI=0;
+                    //curI=0;
+                    var affiliation='';
+                    
                     for (i=0; i<aData.organisationId.length; i++) {
-                        if(scope===aData.organisationId[i]) {
+                        if(affiliation) affiliation += '<br />';
+                        phone = '';
+                        /*if(scope===aData.organisationId[i]) {
                             curI=i;
+                        }*/
+                        if(aData.title) {
+                            if(aData.title[i]) affiliation += titleCase(aData.title[i]);
                         }
-                    }
-
-                    if(aData.title) title = aData.title[curI];
-                    if(aData.organisationName) organisationName = aData.organisationName[curI];
-
-                    if(aData.phone) {
-                        if(aData.phone[curI]) {
-                            phone = aData.phone[curI];
-                        } else {
-                            phone = aData.phone[0];
+                        if(aData.organisationName) {
+                            if(aData.organisationName[i]) affiliation += addComma(aData.organisationName[i]);
                         }
-                    }
-                    if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
-                    if(aData.mobile) {
-                        if(phone) phone += ', ';
-                        phone += '+46 ' + aData.mobile[0].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");;
+
+                        if(aData.phone) {
+                            /*if(aData.phone[curI]) {
+                                phone = aData.phone[curI];
+                            } else {*/
+                                if(aData.phone[i]) phone = addBreak(aData.phone[i]);
+                            //}
+                        }
+                        if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
+                        if(aData.mobile) {
+                            if(phone) phone += ', ';
+                            if(aData.mobile[i]) phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
+                        }
+                        if(phone) affiliation += phone;
                     }
 
-                    template = template.replace('###title###', titleCase(title));
+                    
+                    template = template.replace('###affiliation###', affiliation);
+                    /*template = template.replace('###title###', titleCase(title));
                     template = template.replace('###phone###', phone);
-
-                    template = template.replace('###organisationName###', organisationName);
-
-                    template = template.replace('###primaryAffiliation###', aData.primaryAffiliation);
+                    template = template.replace('###organisationName###', organisationName);*/
 
                     if(aData.homepage) {
                         homepage = '<a data-homepage="' + aData.homepage + '" href="' + aData.homepage + '"><img class="lthsolr_home" src="/typo3conf/ext/lth_solr/res/home.png" /></a>';
