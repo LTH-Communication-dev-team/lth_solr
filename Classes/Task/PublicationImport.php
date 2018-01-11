@@ -394,8 +394,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                             $authorExternalOrganisationTemp = "";
                             $authorOrganisationTemp = "";
                             if($personAssociation->children('person-template',true)->person) {
-                                if($personAssociation->children('core',true)->portalUrl) {
-                                    $authorIdTemp = (string)$personAssociation->children('core',true)->portalUrl;
+                                if($personAssociation->children('person-template',true)->person->children('core',true)->portalUrl) {
+                                    $authorIdTemp = (string)$personAssociation->children('person-template',true)->person->children('core',true)->portalUrl;
                                     $authorIdTemp = str_replace(').html','',array_pop(explode('(',$authorIdTemp)));
                                 }
                                 //$authorIdTemp = (string)$personAssociation->children('person-template',true)->person->attributes();
@@ -1153,7 +1153,7 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
             $xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=20&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=20&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?modifiedDate.fromDate=$lastModified&window.size=$maximumrecords&window.offset=$startrecord&rendering=xml_long";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=73b902e4-1c54-49f7-9a5c-68f78498b237&rendering=xml_long";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?uuids.uuid=69867db6-c757-40c8-90bb-754d68a2b399&rendering=xml_long";
             //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?typeClassificationUris.uri=/dk/atira/pure/researchoutput/researchoutputtypes/contributiontojournal/article&window.size=20&rendering=BIBTEX";
 
             $xml = @file_get_contents($xmlpath);

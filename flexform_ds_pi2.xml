@@ -65,43 +65,43 @@
                         </TCEforms>
                     </html_template>
                 -->
-                 <fe_groups>
-                        <TCEforms type="array">
-                            <label>Välj en eller flera användargrupper</label>
-                            <config>
-                                <type>select</type>
-                                <size>10</size>
-                                <maxitems>10</maxitems>
-                                <items type="array">
-                                    <numIndex index="0" type="array">
-                                        <numIndex index="0"></numIndex>
-                                        <numIndex index="1"></numIndex>
-                                    </numIndex>
-                                </items>
-                                <foreign_table>fe_groups</foreign_table> 
-                            </config>
-                        </TCEforms>
-                    </fe_groups>
+                <fe_groups>
+                    <TCEforms type="array">
+                        <label>Välj en eller flera användargrupper</label>
+                        <config>
+                            <type>select</type>
+                            <size>10</size>
+                            <maxitems>10</maxitems>
+                            <items type="array">
+                                <numIndex index="0" type="array">
+                                    <numIndex index="0"></numIndex>
+                                    <numIndex index="1"></numIndex>
+                                </numIndex>
+                            </items>
+                            <foreign_table>fe_groups</foreign_table> 
+                        </config>
+                    </TCEforms>
+                </fe_groups>
 
-                 <fe_users>
-                        <TCEforms type="array">
-                            <label>Välj en eller flera användare</label>
-                            <displayCond>FIELD:feusersSwitch:=:1</displayCond>
-                            <config>
-                                <type>select</type>
-                                <size>10</size>
-                                <maxitems>300</maxitems>
-                                <items type="array">
-                                    <numIndex index="0" type="array">
-                                        <numIndex index="0"></numIndex>
-                                        <numIndex index="1"></numIndex>
-                                    </numIndex>
-                                </items>
-                                <foreign_table>fe_users</foreign_table>
-                                <foreign_table_where>AND email NOT LIKE '%student.lu.se' ORDER BY username ASC</foreign_table_where>
-                            </config>
-                        </TCEforms>
-                    </fe_users>
+                <fe_users>
+                    <TCEforms type="array">
+                        <label>Välj en eller flera användare</label>
+                        <displayCond>FIELD:feusersSwitch:=:1</displayCond>
+                        <config>
+                            <type>select</type>
+                            <size>10</size>
+                            <maxitems>300</maxitems>
+                            <items type="array">
+                                <numIndex index="0" type="array">
+                                    <numIndex index="0"></numIndex>
+                                    <numIndex index="1"></numIndex>
+                                </numIndex>
+                            </items>
+                            <foreign_table>fe_users</foreign_table>
+                            <foreign_table_where>AND email NOT LIKE '%student.lu.se' ORDER BY username ASC</foreign_table_where>
+                        </config>
+                    </TCEforms>
+                </fe_users>
          
                     <categories>
                         <TCEforms>
@@ -139,6 +139,18 @@
                            </config>
                        </TCEforms>
                     </customcategories>
+                    
+                    <limitToStandardCategories>
+                        <TCEforms type="array">
+                            <displayCond>FIELD:categories:=:standard_category</displayCond>
+                            <label>Visa bara dessa standardkategorier</label>
+                            <config>
+                                <type>check</type>
+                                <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getStaffStandardCategories</itemsProcFunc>
+                                <itemListStyle>width:250px</itemListStyle>
+                            </config>
+                        </TCEforms>
+                    </limitToStandardCategories>
         
                     <noItemsToShow>
                         <TCEforms>

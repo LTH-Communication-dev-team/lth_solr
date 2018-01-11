@@ -457,8 +457,9 @@ class user_sampleflex_addFieldsToFlexForm
         $client = new Solarium\Client($sconfig);
         $query = $client->createSelect();
         
-        $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_i:0)';
+        $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_intS:0)';
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
+        //echo $queryToSet;
         $query->setQuery($queryToSet);
         //$query->setQuery("$showVar:1");
         if($config['fieldArray']) {
@@ -663,6 +664,74 @@ class user_sampleflex_addFieldsToFlexForm
                 $i++;
             }
             asort($config);
+        }
+        return $config;
+    }
+    
+    
+    function getStaffStandardCategories($config)
+    {
+        require(__DIR__.'/service/init.php');
+        $pi_flexform = $config['row'];
+        $fe_groups = $pi_flexform['fe_groups'];
+        if($fe_groups) {
+            //die($fe_groups);
+            $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . implode(',',(array)$fe_groups) .")");
+            while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                $scope[] = explode('__', $row['title'])[0];
+            }
+            $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        }
+        if($scope) {
+            foreach($scope as $key => $value) {
+                if($term) {
+                    $term .= " OR ";
+                }
+                $term .= "heritage:$value";
+            }
+        }
+        
+        $content = "";
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $fieldArray = array("standardCategory");
+        $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_intS:0)';
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        //$query->addSort('standardCategory', $query::SORT_ASC);
+        $query->setStart(0)->setRows(3000);
+        $facetSet = $query->getFacetSet();
+        $facetSet->createFacetField('standard')->setField('standardCategory');
+        $response = $client->select($query);
+        
+        if($response) {
+            $i=0;
+            $facet_standard = $response->getFacetSet()->getFacet('standard');
+            foreach ($facet_standard as $value => $count) {
+                //$facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+                if($count>0) $config['items'][$i] = array(0 => $value, 1 => urlencode($value));
+                $i++;
+            }
+            //asort($config);
         }
         return $config;
     }

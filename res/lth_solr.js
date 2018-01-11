@@ -503,6 +503,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                             $('#lth_solr_facet_container').append('<i class="fa fa-close lthsolr_facet_close"></i><ul><li style="width:100%;"><b>'+facetHeader+'</b></li>' + content + '</ul>' + more);
                             $('.lthsolr_facet_close').click(function() {
                                 $('#lth_solr_facet_container').toggle(500);
+                                $("#lthsolr_staff_container").toggleClass('expand', 500);
                             });
                             i=0;
                             maxClass='';
@@ -2501,11 +2502,64 @@ function showStaff()
                     //template = template.replace('###displayName###', display_name);
                     var title, ophone = '', ostreet = '', organisationName = '', ocity = '', organisationPostalAddress = '', phone = '', roomNumber = '', homePage = '', opostal_address = '';
 
-                    template = template.replace("###displayName###", displayName);
+                    //template = template.replace("###displayName###", displayName);
                     
                     template = template.replace(/###email###/g, aData.email);
 
-                    if(aData.title) title = aData.title[0];
+                    var affiliation='';
+                    
+                    for (i=0; i<aData.organisationId.length; i++) {
+                        if(affiliation) affiliation += '<br />';
+                        
+                        /*if(scope===aData.organisationId[i]) {
+                            curI=i;
+                        }*/
+                        if(aData.title) {
+                            if(aData.title[i]) affiliation += '<b>'+titleCase(aData.title[i])+'</b>';
+                        }
+                        if(aData.organisationName) {
+                            if(aData.organisationName[i]) affiliation += addBreak(aData.organisationName[i]);
+                        }
+                        roomNumber = '';
+                        if(aData.roomNumber) {
+                            roomNumber = aData.roomNumber[i];
+                            if(roomNumber) {
+                                roomNumber = ' (' + lth_solr_messages.room + ' ' + roomNumber + ')';
+                            } else {
+                                roomNumber = '';
+                            }
+                            if(roomNumber) affiliation += roomNumber;
+                        }
+                        phone = '';
+                        if(aData.phone) {
+                            /*if(aData.phone[curI]) {
+                                phone = aData.phone[curI];
+                            } else {*/
+                                if(aData.phone[i]) phone = addBreak(aData.phone[i]);
+                            //}
+                        }
+                        if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
+                        if(aData.mobile) {
+                            if(phone) phone += ', ';
+                            if(aData.mobile[i]) phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
+                        }
+                        if(phone) affiliation += phone;
+                        
+                        if(aData.organisationStreet) {
+                            affiliation += aData.organisationStreet[i];
+                        }
+                        if(aData.organisationPostalAddress) {
+                            affiliation += addBreak(aData.organisationPostalAddress[i].toString().split('$').join(', '));
+                        }
+
+                        //template = template.replace('###visitingAddress###', ostreet + ' ' + ocity + addBreak(ophone));
+                        //template = template.replace('###postalAddress###', addBreak(organisationPostalAddress));
+                    }
+
+                    
+                    template = template.replace('###affiliation###', affiliation);
+                    if(aData.title) title = aData.title.join(', ');
+                    /*if(aData.title) title = aData.title[0];
                     
                     if(aData.organisationName) organisationName = aData.organisationName[0];
                     if(aData.phone) {
@@ -2515,7 +2569,7 @@ function showStaff()
                     if(aData.mobile) {
                         if(phone) phone += ', ';
                         phone += aData.mobile[0];
-                    }
+                    }*/
                     
                     //Map
                     //console.log(aData.coordinates.split(', ').pop());
@@ -2557,9 +2611,9 @@ function showStaff()
                     $('#page_title h1').text(displayName).append('<h2>'+title+'</h2>');
                     
                     //template = template.replace('###title###', titleCase(title));
-                    template = template.replace('###phone###', addBreak(phone));
+                    //template = template.replace('###phone###', addBreak(phone));
 
-                    template = template.replace('###organisationName###', organisationName);
+                    //template = template.replace('###organisationName###', organisationName);
 
                     //template = template.replace('###primaryAffiliation###', aData.primaryAffiliation);
 
@@ -2582,22 +2636,6 @@ function showStaff()
                     
                     if(aData.intro) intro = aData.intro.replace('\n','<br />');
                     template = template.replace('###lth_solr_intro###', intro);
-
-                    roomNumber = aData.roomNumber;
-                    if(roomNumber) {
-                        roomNumber = '(' + lth_solr_messages.room + ' ' + roomNumber + ')';
-                    } else {
-                        roomNumber = '';
-                    }
-                    template = template.replace('###roomNumber###', roomNumber);
-                    ophone = aData.organisationPhone;
-                    ostreet = aData.organisationStreet;
-                    ocity = aData.organisationCity;
-                    if(aData.organisationPostalAddress) {
-                        organisationPostalAddress = aData.organisationPostalAddress.toString().split('$').join(', ');
-                    }
-                    template = template.replace('###visitingAddress###', ostreet + ' ' + ocity + addBreak(ophone));
-                    template = template.replace('###postalAddress###', addBreak(organisationPostalAddress));
                     
                     $('#lthsolr_show_staff_container').append(template);
                     if(aData.profileInformation) {

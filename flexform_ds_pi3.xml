@@ -52,7 +52,7 @@
                 
                 <publicationCategoriesSwitch>
                     <TCEforms>
-                        <label>Display publication categories</label>
+                        <label>Display publication filter</label>
                         <displayCond>FIELD:display:=:list</displayCond>
                         <onChange>reload</onChange>
                         <config>
@@ -66,6 +66,14 @@
                                 <numIndex index="1" type="array">
                                     <numIndex index="0">Display selected categories</numIndex>
                                     <numIndex index="1">selection</numIndex>
+                                </numIndex>
+                                <numIndex index="2" type="array">
+                                    <numIndex index="0">Display available for download outside LU</numIndex>
+                                    <numIndex index="1">FREE</numIndex>
+                                </numIndex>
+                                <numIndex index="3" type="array">
+                                    <numIndex index="0">Display available for download within LU</numIndex>
+                                    <numIndex index="1">CAMPUS</numIndex>
                                 </numIndex>
                             </items>
                         </config>
@@ -86,6 +94,8 @@
                         </config>
                        </TCEforms>
                 </publicationCategories>
+                
+                
             
                 <fe_groups>
                     <TCEforms type="array">

@@ -124,7 +124,7 @@ $content .= '</div>';
         }
         
         //Staff 
-        $content .= '<div id="lthsolr_show_staff_container" style="min-height:280px;"></div>';
+        $content .= '<div id="lthsolr_show_staff_container" style="min-height:350px;"></div>';
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_large.html");
 
         //Publications
@@ -184,15 +184,17 @@ $content .= '</div>';
         $syslang = $GLOBALS['TSFE']->config['config']['language'];
         if($syslang==='en') {
             $filterText = 'Categories';
+            $placeholderText = 'Free text search';
         } else {
             $filterText = 'Kategorier';
+            $placeholderText = 'Fritextsökning';
         }
         $clientIp = $_SERVER['REMOTE_ADDR'];
 
         $content .= '<p class="lth_solr_filter_container">';
             $content .= '<i class="fa fa-filter fa-lg slsGray50"></i><a class="slsPadL5 refine">Filter</a>';
             $content .= '<i class="fa fa-search fa-lg slsGray50"></i>';
-            $content .= '<input style="border:0px;box-shadow:none;" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
+            $content .= '<input style="border:0px;box-shadow:none;" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholder="'.$placeholderText.'" name="lthsolr_filter" value="" />';
             
             /*$content .= '<div style="clear:both;height:50px;">';
                 if($categories != "no_categories") {
