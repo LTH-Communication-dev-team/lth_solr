@@ -88,7 +88,18 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp);
         
         $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang);
-        
+        $syslang = "en";
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang);
         //$executionSucceeded = TRUE;
         
         //mysqli_free_result($res);
