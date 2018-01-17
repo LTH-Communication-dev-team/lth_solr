@@ -691,6 +691,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         $standard_category_sv = array();
                         $standard_category_en = array();
                         $standardCategory = array();
+                        $title = '';
+                        $oname = '';
                         //$titleArray = explode('###', $value['title']);
                         $titleArray = $value['title'];
                         //$title_enArray = explode('###', $value['title_en']);
@@ -703,10 +705,12 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $standardCategory = $standard_category_sv;
                             $title = $titleArray;
                             $profileInformation = $value['profileInformation_sv'];
+                            $oname = $value['oname'];
                         } else {
                             $standardCategory = $standard_category_en;
                             $title = $title_enArray;
                             $profileInformation = $value['profileInformation_en'];
+                            $oname = $value['oname_en'];
                         }
 
                         //echo $value['id'].',';
