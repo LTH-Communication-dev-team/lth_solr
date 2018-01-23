@@ -490,6 +490,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
+                        'disable' => 0,
                         'first_name' => $value['first_name'],
                         'last_name' => $value['last_name'],
                         'title' => $title,
