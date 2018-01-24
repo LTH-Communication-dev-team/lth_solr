@@ -589,6 +589,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         $heritage = array();
                         $heritage2 = array();
                         $legacy = array();
+                        $myheritage = array();
 
                         //$orgidArray = explode('###', $value['orgid']);
                         $orgidArray = $value['orgid'];
