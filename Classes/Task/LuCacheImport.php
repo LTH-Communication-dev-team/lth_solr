@@ -588,75 +588,63 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         $heritage = array();
                         $heritage2 = array();
                         $legacy = array();
-                        $myheritage = array();
 
                         //$orgidArray = explode('###', $value['orgid']);
                         $orgidArray = $value['orgid'];
                         foreach($orgidArray as $key1 => $value1) {
-                            $heritage3 = array();
                             if(key_exists($value1,$coordinatesArray)) {
                                 $value['coordinates'][] = $coordinatesArray[$value1];
                             } else {
                                 $value['coordinates'][] = "";
                             }
+                            $heritage[] = 'new';
                             $heritage[] = $value1;
                             $heritage2[$value1] = $value1;
-                            $heritage3[] = $value1;
                             $parent = $heritageArray[$value1];
                             if($parent) { 
                                 $heritage[] = $parent;
                                 $heritage2[$value1] .= ',' . $parent;
-                                $heritage3[] = $parent;
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
                                 $heritage2[$value1] .= ',' . $parent;
-                                $heritage3[] = $parent;
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
                                 $heritage2[$value1] .= ',' . $parent;
-                                $heritage3[] = $parent;
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
                                 $heritage2[$value1] .= ',' . $parent;
-                                $heritage3[] = $parent;
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
                                 $heritage2[$value1] .= ',' . $parent;
-                                $heritage3[] = $parent;
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
                                 $heritage2[$value1] .= ',' . $parent;
-                                $heritage3[] = $parent;
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
                                 $heritage2[$value1] .= ',' . $parent;
-                                $heritage3[] = $parent;
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
                                 $heritage2[$value1] .= ',' . $parent;
-                                $heritage3[] = $parent;
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
                                 $heritage2[$value1] .= ',' . $parent;
-                                $heritage3[] = $parent;
                             }
-                            $myheritage[$value1] = $heritage3;
                         }
 
                         //$orgidLegacyArray = explode('###', $value['orgid_legacy']);
@@ -686,7 +674,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         array_filter($heritage);
                         array_filter($legacy);
 
-                        $heritage = array_unique($heritage);
+                        //$heritage = array_unique($heritage);
                         $legacy = array_unique($legacy);
                         
                         if($value['extra_orgid']) {
@@ -834,12 +822,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         }
                         
                         $data['disable_intS'] = 0;
-                        
-                        if(is_array($myheritage)) {
-                            foreach($myheritage as $mykey => $myvalue) {
-                                $data[$mykey.'Heritage_stringM'] = $myvalue;
-                            }
-                        }
 
                         $buffer->createDocument($data);
                     }
