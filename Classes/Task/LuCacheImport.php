@@ -597,7 +597,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             } else {
                                 $value['coordinates'][] = "";
                             }
-                            $heritage[] = 'new';
                             $heritage[] = $value1;
                             $heritage2[$value1] = $value1;
                             $parent = $heritageArray[$value1];
@@ -678,7 +677,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         $legacy = array_unique($legacy);
                         
                         if($value['extra_orgid']) {
-                            $value['orgid'] = array_merge($value['orgid'], $value['extra_orgid']);
+                            $value['orgid'] = array_unique(array_merge($value['orgid'], $value['extra_orgid']));
                         }
 
                         $display_name_t = $value['first_name'] . ' ' . $value['last_name'];
