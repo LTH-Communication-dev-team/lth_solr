@@ -169,6 +169,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             FROM lucache_person AS P 
             LEFT JOIN lucache_vrole AS V ON P.id = V.id 
             LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid 
+            WHERE P.id = 'ma2402ce'
             GROUP BY P.id
             ORDER BY P.id, V.orgid";
         
@@ -333,7 +334,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT username, usergroup, image, image_id, lth_solr_cat, lucache_id, '
                 . 'lth_solr_sort, lth_solr_intro, lth_solr_show', 'fe_users', 'lth_solr_index = 1 AND deleted = 0');
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $username = $row['username'];
             $lth_solr_cat = $row['lth_solr_cat'];
@@ -356,7 +356,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $lth_solr_intro = json_decode($lth_solr_intro, true);
                     if($lth_solr_intro) {
                         foreach($lth_solr_intro as $key => $value) {
-                            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $key.';'.$value, 'crdate' => time()));
                             $employeeArray[$username]['lth_solr_intro'][$key] = $value;
                         }
                     }
@@ -379,7 +378,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             } else {
                 $employeeArray[$username]['id'] = $lucache_id;
                 $employeeArray[$username]['exist'] = 'disable';
-                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $username.$employeeArray[$username]['exist'], 'crdate' => time()));
             }
         }
         return $employeeArray;
@@ -440,7 +438,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $title;
         $lucache_id;
-        
+                    
+
         foreach($employeeArray as $key => $value) {
             $title = '';
             $phone = '';
@@ -455,18 +454,17 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             if(is_array($value['room_number'])) {
                 $room_number = implode(',', array_unique($value['room_number']));
             } 
-            
             $usergroupArray = $this->getUids($value['orgid'], $feGroupsArray);
 
             if($usergroupArray[0]) {
                 $ugFe = $value['usergroup'];
                 if($ugFe) {
                     $ugFeArray = explode(',', $ugFe);
-                    foreach($ugFeArray as $keyF =>$valueF) {
+                    /*foreach($ugFeArray as $keyF =>$valueF) {
                         if($valueF != $usergroupArray[0]) {
                             $employeeArray[$key]['extra_orgid'][] = explode('__', $this->getGroupName($valueF))[0];
                         }
-                    }
+                    }*/
                     array_push($ugFeArray, $usergroupArray[0]);
                     $ugFeArray = array_unique($ugFeArray);
                     $usergroupArray[0] = implode(',', $ugFeArray);
@@ -548,7 +546,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'disable' => 1,
                     'tstamp' => time()
                 );
-                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'disable:'.$value['primary_uid'], 'crdate' => time()));
                 $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username = '" . $key . "'", $updateArray);
             }
         }
@@ -675,8 +672,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                         //$heritage = array_unique($heritage);
                         $legacy = array_unique($legacy);
-                        
-                        if($value['extra_orgid']) {
+
+                        /*if($value['extra_orgid']) {
                             $value['orgid'] = array_unique(array_merge($value['orgid'], $value['extra_orgid']));
                         }
 
