@@ -484,9 +484,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     }
                     if($value['primary_affiliation'] === 'student') {
                         $usergroupArray[1] = $studentGrsp;
-                    } else if($value['hide_on_web']) {
+                    } /*else if($value['hide_on_web']) {
                         $usergroupArray[1] = $hideonwebGrsp;
-                    }
+                    }*/
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
@@ -515,9 +515,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 } else if($usergroupArray[1]) {
                     if($value['primary_affiliation'] === 'student') {
                         $usergroupArray[1] = $studentGrsp;
-                    } else if($value['hide_on_web']) {
+                    } /*else if($value['hide_on_web']) {
                         $usergroupArray[1] = $hideonwebGrsp;
-                    }
+                    }*/
                     $insertArray = array(
                         'username' => $value['primary_uid'],
                         'password' => $this->setRandomPassword(),
