@@ -678,7 +678,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         $legacy = array_unique($legacy);
                         
                         if($value['extra_orgid']) {
-                            $value['orgid'] = array_unique(array_merge($value['orgid'], $value['extra_orgid']));
+                            $value['orgid'] = array_merge($value['orgid'], $value['extra_orgid']);
                         }
 
                         $display_name_t = $value['first_name'] . ' ' . $value['last_name'];
@@ -847,7 +847,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function fixArray($inputArray)
+    /*private function fixArray($inputArray)
     {
         if($inputArray) {
             if(is_array($inputArray)) {
@@ -855,7 +855,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             }
         }
         return $inputArray;
-    }
+    }*/
     
     
     private function getUids($inputArray, $feGroupsArray)
