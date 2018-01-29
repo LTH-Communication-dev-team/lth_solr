@@ -65,9 +65,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         $folderArray = $this->getFolderStructure($grsp);
         
-        $feGroupsArray = $this->getFeGroups();
+        $feGroupsArray = $this->getFeGroups($grsp);
  
-        $employeeArray = $this->getFeUsers($employeeArray);
+        $employeeArray = $this->getFeUsers($employeeArray, $grsp);
               
         $orgArray = $this->getOrg($con);
                 
@@ -83,7 +83,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $this->createFeGroups($folderArray, $orgArray, $feGroupsArray, $heritageArray);
         
-        $feGroupsArray = $this->getFeGroups();
+        $feGroupsArray = $this->getFeGroups($grsp);
         
         $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp);
 
@@ -314,10 +314,12 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function getFeGroups()
+    private function getFeGroups($grsp)
     {
         $feGroupsArray = array();
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid, pid, title, subgroup', 'fe_groups', 'deleted = 0');
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('F.uid,F.pid,F.title,F.subgroup',
+                'fe_groups F JOIN pages P ON P.uid=F.pid',
+                'F.deleted=0 AND P.Pid='.intval($grsp));
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $titleArray = explode('__', $row['title']);
             if(is_array($titleArray)) {
@@ -328,11 +330,12 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function getFeUsers($employeeArray)
+    private function getFeUsers($employeeArray, $grsp)
     {
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT username, usergroup, image, image_id, lth_solr_cat, lucache_id, '
-                . 'lth_solr_sort, lth_solr_intro, lth_solr_show', 'fe_users', 'lth_solr_index = 1 AND deleted = 0');
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT F.username,F.usergroup,F.image,F.image_id,F.lth_solr_cat,F.lucache_id,F.lth_solr_sort,F.lth_solr_intro,F.lth_solr_show',
+                'fe_users F JOIN pages P ON P.uid=F.pid',
+                'F.lth_solr_index=1 AND F.deleted=0 AND P.pid='.$intval($grsp));
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $username = $row['username'];
             $lth_solr_cat = $row['lth_solr_cat'];
