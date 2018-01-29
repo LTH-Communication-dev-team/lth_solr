@@ -335,7 +335,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT F.username,F.usergroup,F.image,F.image_id,F.lth_solr_cat,F.lucache_id,F.lth_solr_sort,F.lth_solr_intro,F.lth_solr_show',
                 'fe_users F JOIN pages P ON P.uid=F.pid',
-                'F.lth_solr_index=1 AND F.deleted=0 AND P.pid='.$intval($grsp));
+                'F.lth_solr_index=1 AND F.deleted=0 AND P.pid='.intval($grsp));
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $username = $row['username'];
             $lth_solr_cat = $row['lth_solr_cat'];
