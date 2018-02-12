@@ -678,7 +678,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         /*if($value['extra_orgid']) {
                             $value['orgid'] = array_unique(array_merge($value['orgid'], $value['extra_orgid']));
                         }
-
+                        
                         $display_name_t = $value['first_name'] . ' ' . $value['last_name'];
                         $homepage = $value['homepage'];
                         /*if(!$homepage || $homepage === '') {
@@ -755,12 +755,12 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'primaryUid' => $key,
                             'docType' => 'staff',
                             'type' => 'staff',
-                            'name' => $display_name_t,
+                            'name' => $value['first_name'] . ' ' . $value['last_name'],
                             'firstName' => $value['first_name'],
                             'lastName' => $value['last_name'],
                             'email' => $value['email'],
                             'primaryAffiliation' => $value['primary_affiliation'],
-                            'homepage' => strtolower($homepage),
+                            'homepage' => $value['homepage'],
                             'language' => $value['lang'],
                             'degree' => $value['degree'],
                             'standardCategory' => $standardCategory,
