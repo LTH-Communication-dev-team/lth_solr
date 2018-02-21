@@ -2540,7 +2540,7 @@ function showStaff()
                     var displayName = aData.firstName + ' ' + aData.lastName;
                     
                     //template = template.replace('###displayName###', display_name);
-                    var title, ophone = '', ostreet = '', organisationName = '', ocity = '', organisationPostalAddress = '', phone = '', roomNumber = '', homePage = '', opostal_address = '';
+                    var title = '', phone = '', roomNumber = '';
 
                     //template = template.replace("###displayName###", displayName);
                     
@@ -2548,7 +2548,7 @@ function showStaff()
 
                     var affiliation='';
                     
-                    for (i=0; i<aData.organisationId.length; i++) {
+                    for (var i=0; i<aData.organisationId.length; i++) {
                         if(affiliation) affiliation += '<br />';
                         
                         /*if(scope===aData.organisationId[i]) {
@@ -2572,16 +2572,16 @@ function showStaff()
                         }
                         phone = '';
                         if(aData.phone) {
-                            /*if(aData.phone[curI]) {
-                                phone = aData.phone[curI];
-                            } else {*/
-                                if(aData.phone[i]) phone = addBreak(aData.phone[i]);
-                            //}
+                            if(aData.phone[i] && aData.phone[i] !== 'NULL') {
+                                phone = addBreak(aData.phone[i]);
+                                phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
+                            }
                         }
-                        if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
                         if(aData.mobile) {
-                            if(phone) phone += ', ';
-                            if(aData.mobile[i]) phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
+                            if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
+                                if(phone) phone += ', ';
+                                phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
+                            }
                         }
                         if(phone) affiliation += phone;
                         
@@ -2598,9 +2598,9 @@ function showStaff()
 
                     
                     template = template.replace('###affiliation###', affiliation);
-                    if(aData.title) title = aData.title.join(', ');
-                    /*if(aData.title) title = aData.title[0];
-                    
+                    //if(aData.title) title = aData.title.join(', ');
+                    if(aData.title) title = Array.from(new Set(aData.title)).join(', ');
+                    /*
                     if(aData.organisationName) organisationName = aData.organisationName[0];
                     if(aData.phone) {
                         phone = aData.phone[0];
