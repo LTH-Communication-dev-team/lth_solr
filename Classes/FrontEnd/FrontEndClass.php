@@ -111,7 +111,16 @@ class FrontEndClass
         }
         
         //Staff 
-        $content .= '<div id="lthsolr_show_staff_container" style="min-height:350px;"></div>';
+        $content .= '<div id="lthsolr_show_staff_container" style="min-height:350px;">';
+        //Map
+        $content .= '<div id="lthsolr_map" style="cursor:pointer;">'
+                . '<div style="position:relative;">'
+                . '<img src="typo3conf/ext/lth_solr/res/lthmap.gif" style="width:292px;height:263px;" />'
+                . '<img id="lthsolr_pin" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1000;" src="typo3conf/ext/lth_solr/res/pin.png" />'
+                //. '<img id="lthsolr_pinClient" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1000;display:none;" src="typo3conf/ext/lth_solr/res/pin.png" />'
+                . '</div>'
+                . '</div>';
+        $content .= '</div>';
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_large.html");
 
         //Publications
@@ -123,14 +132,7 @@ class FrontEndClass
         //$content .= '<div id="lthsolr_projects_container"><div id="lthsolr_projects_header"></div></div>';
         //$content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_simple.html");        
  
-        //Map
-        $content .= '<div id="lthsolr_map" style="cursor:pointer;">'
-                . '<div style="position:relative;">'
-                . '<img src="typo3conf/ext/lth_solr/res/lthmap.gif" style="width:292px;height:263px;" />'
-                . '<img id="lthsolr_pin" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1000;" src="typo3conf/ext/lth_solr/res/pin.png" />'
-                //. '<img id="lthsolr_pinClient" style="width:15%;height:15%;position:absolute;top:0px;right:0px;z-index:1000;display:none;" src="typo3conf/ext/lth_solr/res/pin.png" />'
-                . '</div>'
-                . '</div>';
+        
 
         //mapModal
         $content .= '<!-- mapModal -->
