@@ -77,7 +77,7 @@ function mobileCheck() {
         check=true;
     }
     //testmode start
-    check=true;
+    //check=true;
     //testmode end
     return check;
 }
