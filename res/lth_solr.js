@@ -1577,7 +1577,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                     
                     if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
                         var tempMore = '<div style="margin-top:20px;" class="lthsolr_more"><button style="height:40px;" class="btn btn-default btn-lg btn-block" ' +
-                            'onclick="listPublications(' + (parseInt(tableStart) + parseInt(tableLength)) + ',\'\',\'\',\'' + sorting + '\',\'more\',\''+
+                            'onclick="listPublications(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),\'\',\'' + sorting + '\',\'more\',\''+
                                 lastGroupValue + '\');">' + lth_solr_messages.show_more + ' ' + lth_solr_messages.publications + 
                                 ' <span class="glyphicon glyphicon-chevron-down"></span></button>';
 

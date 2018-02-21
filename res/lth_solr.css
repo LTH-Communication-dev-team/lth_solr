@@ -369,9 +369,9 @@ li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus 
     color: #959595;
 }
 
-/*.title, .authors {
+.title, .authors {
     max-width:80%;
-}*/
+}
 
 .lthsolr_attachments {
     position:absolute;
@@ -651,6 +651,10 @@ color:#ffffff;
 }
 
 @media screen and (max-width: 600px) {
+    
+    .title, .authors {
+        max-width:100%;
+    }
    
     .lthsolr_contact_image {
         padding:0px;
