@@ -7,6 +7,11 @@ and open the template in the editor.
     Created on : 2015-sep-17, 21:04:25
     Author     : kans-th0
 */
+
+#lthsolr_show_staff_container {
+    position:relative;
+}
+
 .lthsolr_contact_image {
     float:left;
     width:100px;

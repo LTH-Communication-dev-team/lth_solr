@@ -2522,14 +2522,9 @@ function showStaff()
         //contentType: "application/json; charset=utf-8",
         dataType: "json",
         beforeSend: function () {
-            /*if(lth_solr_staff_pos=='right') {
-                $('.grid-23').after('<div id="content_sidebar_wrapper" class="grid-8 omega"><div id="content_sidebar"><h2>Contact</h2></div>');
-                var staffContainer = $('#lthsolr_staff_container');
-                $('#content_sidebar h2').after(staffContainer);
-            }*/
+            var solrId = $('#lthsolr_show_staff_container').parent().attr('id');
+            $('#'+solrId).parent().find('> div:not(#'+solrId+')').remove();
             $('#lthsolr_show_staff_container').append('<img class="lthsolr_loader" id="lthsolr_loader_staff" src="/fileadmin/templates/images/ajax-loader.gif" />');
-            //$('#content_navigation').hide(200);
-            //$('#text_wrapper').removeClass('grid-23').removeClass('omega').addClass('grid-31');
         },
         success: function(d) {
             //Staff
