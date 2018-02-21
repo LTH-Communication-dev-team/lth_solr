@@ -151,7 +151,6 @@ class lth_solr_ajax {
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         if($catArray) {
             $catArray = json_decode($catArray, true);
-    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($catArray,true), 'crdate' => time()));        
             $tmpCatArray = $catArray[$catVar];
         } 
 
