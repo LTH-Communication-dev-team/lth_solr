@@ -1316,7 +1316,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
             } else {
                 $('.lthsolr_more').html('').addClass('loader');
             }
-            $('#lth_solr_facet_container ul li').remove();
+            $('#lth_solr_facet_container ul li ul li').remove();
         },
         success: function(d) {
             $('.loader').remove();
@@ -1978,6 +1978,8 @@ function showPublication()
         //contentType: "application/json; charset=utf-8",
         dataType: 'json',
         beforeSend: function () {
+            var solrId = $('#lth_solr_container').parent().attr('id');
+            $('#text_content_main > div:not(#'+solrId+')').remove();
             $('#lth_solr_container').append('<div class="loader"></div>');
         },
         success: function(d) {
