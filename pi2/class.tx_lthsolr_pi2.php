@@ -58,12 +58,43 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $html_template = $this->pi_getFFvalue($piFlexForm, "html_template", "sDEF", $lDef[$index]);
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
-            
+            $limitToStandardCategories = $this->pi_getFFvalue($piFlexForm, "limitToStandardCategories", "sDEF", $lDef[$index]);
+            $showPictures = $this->pi_getFFvalue($piFlexForm, "showPictures", "sDEF", $lDef[$index]);
+
             $scope = array();
+            $heritage = array();
             if($fe_groups) {
-                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
+                /*
+                 * SELECT f1.title, f2.title, f3.title, f4.title, f5.title, f6.title
+FROM fe_groups f1 
+LEFT JOIN fe_groups f2 ON f2.subgroup = f1.uid 
+LEFT JOIN fe_groups f3 ON f3.subgroup = f2.uid 
+LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid 
+LEFT JOIN fe_groups f5 ON f5.subgroup = f4.uid 
+LEFT JOIN fe_groups f6 ON f6.subgroup = f5.uid 
+WHERE f1.uid IN(232,3);
+                 */
+                $oldTitle1 = '';
+                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('f1.title AS title1, f2.title AS title2, f3.title AS title3, f4.title AS title4, f5.title AS title5, f6.title AS title6',
+                        'fe_groups f1 LEFT JOIN fe_groups f2 ON f2.subgroup = f1.uid LEFT JOIN fe_groups f3 ON f3.subgroup = f2.uid 
+LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid LEFT JOIN fe_groups f5 ON f5.subgroup = f4.uid LEFT JOIN fe_groups f6 ON f6.subgroup = f5.uid ',
+                        'f1.uid in(' . explode('|',$fe_groups)[0] . ')');
                 while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                    $scope['fe_groups'][] = explode('__', $row['title'])[0];
+                    $title1 = explode('__', $row['title1'])[0];
+                    if($oldTitle1 !== $title1) $scope['fe_groups'][] = $title1;
+                    $title2 = explode('__', $row['title2'])[0];
+                    $title3 = explode('__', $row['title3'])[0];
+                    $title4 = explode('__', $row['title4'])[0];
+                    $title5 = explode('__', $row['title5'])[0];
+                    $title6 = explode('__', $row['title6'])[0];
+                    //if($title1) $scope['fe_groups'][$title1][] = $title1;
+                    $heritage[] = $title1;
+                    $heritage[] = $title2;
+                    $heritage[] = $title3;
+                    $heritage[] = $title4;
+                    $heritage[] = $title5;
+                    $heritage[] = $title6;
+                    $oldTitle1 = $title1;
                 }
                 $GLOBALS['TYPO3_DB']->sql_free_result($res);
             } 
@@ -74,8 +105,16 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 }
                 $GLOBALS['TYPO3_DB']->sql_free_result($res);
             }
+            
+            $heritage = array_filter($heritage);
+            $heritage = array_unique($heritage);
+            
             if(count($scope > 0)) {
                 $scope = urlencode(json_encode($scope));
+            }
+            
+            if(count($heritage > 0)) {
+                $heritage = urlencode(json_encode($heritage));
             }
             
             $clientIp = $_SERVER['REMOTE_ADDR'];
@@ -127,11 +166,11 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                     $lth_solr_uuid = array();
                     $lth_solr_uuid['fe_groups'][] = $uuid;
                     $scope = urlencode(json_encode($lth_solr_uuid));
-                    $content = $FrontEndClass->listPublications($scope, 25, '', '', $pageTitle, '', '');
+                    $content = $FrontEndClass->listPublications($scope, 25, '', '', $pageTitle, '', '', 'list');
                 }
             //   $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow);
             } else {
-                $content = $FrontEndClass->listStaff($scope, $html_template, $noItemsToShow, $categories);
+                $content = $FrontEndClass->listStaff($scope, $html_template, $noItemsToShow, $categories, $limitToStandardCategories, $heritage, $showPictures);
             }
             return $content;
 	}

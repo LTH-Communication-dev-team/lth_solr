@@ -80,3 +80,13 @@ CREATE TABLE tx_lthsolr_uniquetitle (
     lucris_id varchar(255) DEFAULT NULL,
     PRIMARY KEY (uid)
 );
+
+
+CREATE TABLE tx_lthsolr_cleanup (
+    uid int(10) unsigned NOT NULL AUTO_INCREMENT,
+    lucris_id varchar(255) DEFAULT NULL,
+    index_type varchar(25) DEFAULT NULL,
+    modified varchar(50) DEFAULT NULL,
+    created timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (uid)
+);

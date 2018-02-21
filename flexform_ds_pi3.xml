@@ -38,10 +38,14 @@
                             <default>list</default>
                             <items type="array">
                                 <numIndex index="0" type="array">
-                                    <numIndex index="0">Publication list</numIndex>
+                                    <numIndex index="0">Publication full list</numIndex>
                                     <numIndex index="1">list</numIndex>
                                 </numIndex>
                                 <numIndex index="1" type="array">
+                                    <numIndex index="0">Publication simple list</numIndex>
+                                    <numIndex index="1">simpleList</numIndex>
+                                </numIndex>
+                                <numIndex index="2" type="array">
                                     <numIndex index="0">Tag cloud</numIndex>
                                     <numIndex index="1">tagcloud</numIndex>
                                 </numIndex>
@@ -49,6 +53,27 @@
                         </config>
                     </TCEforms>
                 </display>
+                
+                <displayFromSimpleList>
+                    <TCEforms>
+                       <displayCond>FIELD:display:=:simpleList</displayCond>
+                       <label>Page to show full publication post</label>
+                       <config>
+                            <type>group</type>
+                            <internal_type>db</internal_type>
+                            <allowed>pages</allowed>
+                            <maxitems>1</maxitems>
+                            <wizards>
+                                    <suggest>
+                                            <type>suggest</type>
+                                            <default>
+                                                    <searchWholePhrase>1</searchWholePhrase>
+                                            </default>
+                                    </suggest>
+                            </wizards>
+                        </config>
+                   </TCEforms>
+                </displayFromSimpleList>
                 
                 <publicationCategoriesSwitch>
                     <TCEforms>
@@ -69,11 +94,11 @@
                                 </numIndex>
                                 <numIndex index="2" type="array">
                                     <numIndex index="0">Display available for download outside LU</numIndex>
-                                    <numIndex index="1">FREE</numIndex>
+                                    <numIndex index="1">free</numIndex>
                                 </numIndex>
                                 <numIndex index="3" type="array">
                                     <numIndex index="0">Display available for download within LU</numIndex>
-                                    <numIndex index="1">CAMPUS</numIndex>
+                                    <numIndex index="1">campus</numIndex>
                                 </numIndex>
                             </items>
                         </config>
@@ -95,8 +120,6 @@
                        </TCEforms>
                 </publicationCategories>
                 
-                
-            
                 <fe_groups>
                     <TCEforms type="array">
                         <label>FE Groups</label>
@@ -173,20 +196,24 @@
                             <type>select</type>
                             <items type="array">
                                 <numIndex index="0" type="array">
-                                <numIndex index="0">10</numIndex>
-                                <numIndex index="1">10</numIndex>
+                                    <numIndex index="0">5</numIndex>
+                                    <numIndex index="1">5</numIndex>
                                 </numIndex>
                                 <numIndex index="1" type="array">
-                                <numIndex index="0">25</numIndex>
-                                <numIndex index="1">25</numIndex>
+                                    <numIndex index="0">10</numIndex>
+                                    <numIndex index="1">10</numIndex>
                                 </numIndex>
                                 <numIndex index="2" type="array">
-                                <numIndex index="0">50</numIndex>
-                                <numIndex index="1">50</numIndex>
+                                    <numIndex index="0">25</numIndex>
+                                    <numIndex index="1">25</numIndex>
                                 </numIndex>
                                 <numIndex index="3" type="array">
-                                <numIndex index="0">All</numIndex>
-                                <numIndex index="1">15000</numIndex>
+                                    <numIndex index="0">50</numIndex>
+                                    <numIndex index="1">50</numIndex>
+                                </numIndex>
+                                <numIndex index="4" type="array">
+                                    <numIndex index="0">All</numIndex>
+                                    <numIndex index="1">15000</numIndex>
                                 </numIndex>
                             </items>
                             <maxitems>1</maxitems>

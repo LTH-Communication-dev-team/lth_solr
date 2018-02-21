@@ -17,7 +17,7 @@ class ProcessCmdmap {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($dataHandler,true), 'crdate' => time()));
         
         $docArray = array();
-        if($table==='tt_content') {
+       /* if($table==='tt_content') {
             $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("pid,list_type,pi_flexform","tt_content","uid=".intval($id));
             $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
             $pid = $row['pid'];
@@ -146,7 +146,7 @@ class ProcessCmdmap {
                 }
             }
         }
-        
+        */
         
         /*$title;
         $primary_uid;

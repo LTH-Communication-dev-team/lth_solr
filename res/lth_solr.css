@@ -43,7 +43,7 @@ and open the template in the editor.
     animation: spin 2s linear infinite;
 }
 
-.fa-search {
+.fa-search-pos {
     margin-left:140px !important;
 }
 
@@ -58,6 +58,10 @@ and open the template in the editor.
 
 #lth_solr_container {
     max-width:800px;
+}
+
+#lth_solr_container .tab-content {
+    padding-top:0px;
 }
 
 .lthsolr_email, .lthsolr_home {
@@ -78,8 +82,19 @@ and open the template in the editor.
     clear:both;
 }
 
-.maxlist-hidden {
+.maxlist-hidden, .maxlist-all {
     display:none;
+}
+
+p.type {
+    text-transform: uppercase;
+    font-size: 14px;
+    line-height: 18.2px;
+    font-size: 1.4rem;
+    line-height: 1.82rem;
+    font-family: Georgia;
+    color: #8E5614;
+    margin-bottom: 15px;
 }
 
 .item-list ul, #lthsolr_staff_container ul {
@@ -88,9 +103,8 @@ and open the template in the editor.
 
 .lthsolr_profileinformation {
     clear:both;
-    margin:30px 0px 20px 0px;
-    max-width:550px;
-    
+    max-width:550px;  
+    padding-top:10px;
 }
 
 .lthsolr_filler {
@@ -99,12 +113,14 @@ and open the template in the editor.
     height:110px;
 }
 
-#lth_solr_facet_container ul li, #lthsolr_staff_container ul li, #exportModal ul li {
+#exportModal ul li {
     list-style:none !important;
+    float:left;
+    margin:0px 10px 0px 0px;
 }
 
 .lthsolr_contact {
-        margin: 0;
+    margin: 0px 0px 10px 0px;
     padding: 0;
     padding-left:0.5%;
     padding-right:0.5%;
@@ -120,7 +136,12 @@ and open the template in the editor.
     width:50%;
     display:block;
     min-height:160px;
+    overflow: hidden;
     line-height:20px;
+}
+
+.lthsolr_contact_image img {
+    max-height:170px;
 }
 
 .lthsolr_contact img {
@@ -132,34 +153,53 @@ and open the template in the editor.
     color:#000;
 }
 
-#lthsolr_staff_container, #lthsolr_pages_container, #lthsolr_courses_container {
-    /*border:0px;
+#lthsolr_staff_container, #lthsolr_publications_container, #lthsolr_pages_container, #lthsolr_courses_container {
     width:100%;
-    max-width:650px;*/
-    width:100%;
-    float:left;
-    margin-left:auto;
-    margin-right:auto;
-    margin:0%;
+    font-size:17px;
 }
+
+#lthsolr_publications_header, #lthsolr_publications_sort select {
+        font-size:17px;
+    }
+    
+    #lthsolr_publications_header {
+        padding-top:6px;
+    }
 
 #lth_solr_facet_container {
     /*margin-bottom:10px;
     width:200px;
-    display:none;
+    
     background-color:#353838;
     padding-right:10px;
-    color:#ffffff;*/
+    color:#ffffff;
     position:relative;
-    display:none;
-    width:200px;
+    display:none;*/
+    /*width:200px;
     float:left;
-    border-right:1px #808080 solid;
+    border-right:1px #808080 solid;*/
     font-size:12px;
+    width:100%;
+    clear:both;
+    margin:20px 0px 0px 0px;
+    padding:0px 0px 0px 25px;
 }
 
 #lth_solr_facet_container ul {
     padding-left:0px;
+}
+
+#lth_solr_facet_container ul li {
+    list-style: none;
+    margin-top:3px;
+}
+
+#lth_solr_facet_container label {
+    font-weight:normal;
+}
+
+#lth_solr_facet_container input {
+    margin:0px;
 }
 
 .lthsolr_facet_close {
@@ -169,13 +209,6 @@ and open the template in the editor.
     cursor: pointer;
     font-size:1.4rem;
 }
-
-#lthsolr_publications_sort {
-    width:40%;
-    float:left;
-}
-
-
 
 #lthsolr_tagcloud_container {
     height:700px;
@@ -210,11 +243,12 @@ select {
     margin-top:10px;
 }
 
-.lth_solr_filter_container {
+#lth_solr_filter_container {
     /*margin-bottom:0px;
     background-color:#fafafa;
     border-bottom: 1px #ebebeb solid;
     max-width: 650px;*/
+    font-size:12px;
     width:100%;
     color:#808080;
     height:30px;
@@ -298,6 +332,11 @@ tr.details td.details-control {
     max-width:650px;
 }
 
+.lthsolr_publication_simple_row {
+    padding:0px 0px 7px 0px;
+    position:relative;
+}
+
 .tab-content {
     font-size:1.4rem;
     line-height:1.82rem;
@@ -330,9 +369,9 @@ li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus 
     color: #959595;
 }
 
-.title, .authors {
+/*.title, .authors {
     max-width:80%;
-}
+}*/
 
 .lthsolr_attachments {
     position:absolute;
@@ -369,7 +408,7 @@ li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus 
 }
 
 .lth_solr_facet {
-    
+    vertical-align:middle;
 }
 
 .maxlist-more {
@@ -457,7 +496,7 @@ h2 {
 }
 
 .lthsolr_filter {
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .table {
@@ -465,7 +504,7 @@ h2 {
 }
 
 .glyphicon-search {
-    font-size: 25px;
+    font-size: 14px;
 }
 
 .glyphicon-filter, .glyphicon-export {
@@ -627,7 +666,21 @@ color:#ffffff;
 
     .lthsolr_contact_text {
         width:100%;
-       text-align: center;
+        text-align: center;
+        margin: 0 auto;
+    }
+    
+    .lthsolr_contact_text:after {
+        content: ""; /* This is necessary for the pseudo element to work. */ 
+        display: block; /* This will put the pseudo element on its own line. */
+        margin: 0 auto; /* This will center the border. */
+        width: 60%; /* Change this to whatever width you want. */
+        padding-top: 20px; /* This creates some space between the element and the border. */
+        border-bottom: 1px solid #cccccc; /* This creates the border. Replace black with whatever color you want. */
+    }
+    
+    .lthsolr_contact_text div {
+       max-width:500px; 
     }
     
     .lthsolr_email, .lthsolr_home {
@@ -637,13 +690,21 @@ color:#ffffff;
         
     }
     
-    .fa-search {
+    .fa-search-pos {
         margin-left:40px !important;
     }
 
-    #lthsolr_staff_container {
-        margin-left: auto;
-        margin-right: auto;
+    #lthsolr_staff_container, #lthsolr_publications_container, #lthsolr_pages_container, #lthsolr_courses_container {
+        width:100%;
+        font-size:14px;
+    }
+    
+    #lthsolr_publications_header, #lthsolr_publications_sort select {
+        font-size:14px;
+    }
+    
+    #lthsolr_publications_header {
+        padding-top:3px;
     }
     
     .lthsolr_contact {
@@ -651,10 +712,13 @@ color:#ffffff;
         margin-bottom:20px;
         line-height: 27px !important;
         min-height:100px;
+        margin-left:auto;
     }
     
     #lth_solr_facet_container {
         border:0px;
+        padding:0px;
+        margin:0px;
     }
     
     #lthsolr_map {

@@ -398,13 +398,14 @@ class user_sampleflex_addFieldsToFlexForm
         
         $scope = array();
         if($fe_groups) {
-            //die($fe_groups);
+            
             $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . implode(',',(array)$fe_groups) .")");
             while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                 $scope['fe_groups'][] = explode('__', $row['title'])[0];
             }
             $GLOBALS['TYPO3_DB']->sql_free_result($res);
-        } 
+        }
+        
         if($fe_users) {
             $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('username','fe_users',"uid in(" . implode(',',(array)$fe_users) .")");
             while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
@@ -457,9 +458,9 @@ class user_sampleflex_addFieldsToFlexForm
         $client = new Solarium\Client($sconfig);
         $query = $client->createSelect();
         
-        $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_intS:0)';
+        $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND disable_intS:0)';
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
-        //echo $queryToSet;
+
         $query->setQuery($queryToSet);
         //$query->setQuery("$showVar:1");
         if($config['fieldArray']) {
@@ -714,7 +715,7 @@ class user_sampleflex_addFieldsToFlexForm
         $query = $client->createSelect();
         
         $fieldArray = array("standardCategory");
-        $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND hideOnWeb:0 AND disable_intS:0)';
+        $queryToSet = '(docType:staff AND (' . $term . ')'. ' AND disable_intS:0)';
         $query->setQuery($queryToSet);
         $query->setFields($fieldArray);
         //$query->addSort('standardCategory', $query::SORT_ASC);
@@ -728,8 +729,11 @@ class user_sampleflex_addFieldsToFlexForm
             $facet_standard = $response->getFacetSet()->getFacet('standard');
             foreach ($facet_standard as $value => $count) {
                 //$facetResult["standardCategory"][] = array($value, $count, $facetHeader);
-                if($count>0) $config['items'][$i] = array(0 => $value, 1 => urlencode($value));
-                $i++;
+                if($count>0) {
+                    $config['items'][$i] = array(0 => $value, 1 => urlencode($value));
+                    $i++;
+                }
+                
             }
             //asort($config);
         }

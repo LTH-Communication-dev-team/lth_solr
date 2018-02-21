@@ -130,6 +130,14 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
     'additionalFields' => ''
 );
 
+//PublicationCleanUp
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\PublicationCleanUp'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Clean up publications',
+    'description' => '',
+    'additionalFields' => ''
+);
+
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi1/class.tx_lthsolr_pi1.php', '_pi1', 'list_type', 0);
 
@@ -156,4 +164,20 @@ $GLOBALS['TYPO3_CONF_VARS']['FE']['ContentObjects']['IMGTEXT'] = \Lth\Lthsolr\Co
     plugin.tx_lthsolr_pi4 = USER_INT
     plugin.tx_lthsolr_pi5 = USER_INT
     plugin.tx_lthsolr_pi6 = USER_INT
+    
+    rss = PAGE
+    rss {
+      typeNum = 100
+
+      10 < plugin.tx_lthsolr_pi3     
+
+      config {
+        disableAllHeaderCode = 1
+        additionalHeaders = Content-type:application/xml
+        xhtml_cleaning = 0
+        admPanel = 0
+        debug = 0
+        no_cache = 1
+      }
+    }
 ', 43);

@@ -23,7 +23,7 @@
  ***************************************************************/
 
 include __DIR__ . "/../Classes/FrontEnd/FrontEndClass.php";
-
+include __DIR__ . "/../service/ajax.php";
 /**
  * Plugin 'LTH Solr' for the 'lth_solr' extension.
  *
@@ -48,6 +48,92 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $this->conf = $conf;
             $this->pi_setPiVarDefaults();
             $this->pi_loadLL();
+           // print_r($conf);
+            
+            $type = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('type');
+            if($type) {
+                $pageId = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('id');
+                $L = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('L');
+                if($pageId) {
+                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('pi_flexform','tt_content',"list_type='lth_solr_pi3' AND deleted=0 AND hidden=0 AND pid=".intval($pageId),'','','');
+                    while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                        $pi_flexform = $row['pi_flexform'];
+                    }
+                    $GLOBALS['TYPO3_DB']->sql_free_result($res);
+                    if($pi_flexform) {
+                        $xml = @simplexml_load_string($pi_flexform);
+                        if($xml) {
+                            $test = $xml->data->sheet[0]->language;
+                            if($test) {
+                                foreach ($test->field as $n) {
+                                    foreach($n->attributes() as $name => $val) {
+                                        if ($val == 'fe_groups') {
+                                            $fe_groups = (string)$n->value;
+                                        }
+                                        if ($val == 'fe_users') {
+                                            $fe_users = (string)$n->value;
+                                        }
+                                        if ($val == 'publicationCategories') {
+                                            $publicationCategories = (string)$n->value;
+                                        }
+                                        if ($val == 'publicationCategoriesSwitch') {
+                                            $publicationCategoriesSwitch = (string)$n->value;
+                                        }
+                                    }
+                                }
+                                $lth_solr_uuid = array();
+                                if($fe_users) {
+                                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . $fe_users . ") AND lth_solr_uuid!=''");
+                                    while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+                                        $lth_solr_uuid['fe_users'][] = $row['lth_solr_uuid'];
+                                    }
+                                    $GLOBALS['TYPO3_DB']->sql_free_result($res);
+                                    $scope = urlencode(json_encode($lth_solr_uuid));
+                                }
+                                if($fe_groups) {
+                                    $tmpArray = explode(',',$fe_groups);
+                                    foreach($tmpArray as $tmpValue) {
+                                        $lth_solr_uuid['fe_groups'][] = $tmpValue;
+                                    }
+                                    $scope = urlencode(json_encode($lth_solr_uuid));
+                                }
+                                if($scope) {
+                                    $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+                                    $syslang = "sv";
+                                    $config = array(
+                                        'endpoint' => array(
+                                            'localhost' => array(
+                                                'host' => $settings['solrHost'],
+                                                'port' => $settings['solrPort'],
+                                                'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                                                'timeout' => $settings['solrTimeout']
+                                            )
+                                        )
+                                    );
+
+
+                                    if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+                                        return 'Please make all settings in extension manager';
+                                    }
+                                    $ajaxObj = new lthSolrAjax();
+                                    $content = $ajaxObj->listPublications('', $scope, '', $config, '1000', '0', '', '', '', '', '', 'listPublication', $publicationCategories, '');
+                                    if($content) {
+                                        $contentArray = json_decode($content,true);
+                                        foreach($contentArray['data'] as $key =>$value) {
+                                            $xmlContent .= '<item>';
+                                            $xmlContent .= '<title>' . $value['documentTitle'] . '</title>';
+                                            $xmlContent .= '<link>????</link>';
+                                            $xmlContent .= '<description>' . $value['authorName'] . '</description>';
+                                            $xmlContent .= '</item>';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return '<rss version="2.0"><channel>' . $xmlContent . '</channel></rss>';
+                }
+            }
 
             $this->pi_initPIflexForm();
             $piFlexForm = $this->cObj->data["pi_flexform"];
@@ -63,11 +149,21 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             //$staffDetailPage = $this->pi_getFFvalue($piFlexForm, "staffDetailPage", "sDEF", $lDef[$index]);
             //$projectDetailPage = $this->pi_getFFvalue($piFlexForm, "projectDetailPage", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
+            $displayFromSimpleList = $this->pi_getFFvalue($piFlexForm, "displayFromSimpleList", "sDEF", $lDef[$index]);
+            if($displayFromSimpleList) {
+                $url = $GLOBALS['TSFE']->cObj->typoLink_URL(
+                    array(
+                        'parameter' => $displayFromSimpleList,
+                        'forceAbsoluteUrl' => true,
+                    )
+                );
+                $displayFromSimpleList = $url;
+            }
+            
             $showType = '';
             $pageTitle = '';
             $keyword;
             $uuid;
-            
             /*if($detailPage) {
                 $detailPage = $this->detailUrl($detailPage);
             }*/
@@ -83,7 +179,6 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
             $keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
             
-            
             if(strstr($uuid,"(publication)")) {
                 $showType = 'publication';
                 $uuid = str_replace('(publication)', '', $uuid);
@@ -91,6 +186,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             if(strstr($uuid,"(department)")) {
                 $showType = 'department';
                 $uuid = str_replace('(department)', '', $uuid);
+                
             }
             if(strstr($uuid,"(author)")) {
                 $showType = 'author';
@@ -110,7 +206,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_groups'][] = $uuid;
                 $scope = urlencode(json_encode($lth_solr_uuid));
-                $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle, $publicationCategories, $publicationCategoriesSwitch);
+                $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle, $publicationCategories, $publicationCategoriesSwitch, $display, '');
             } else if($showType==='author') {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_users'][] = $uuid;
@@ -126,12 +222,14 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                     }
                     $GLOBALS['TYPO3_DB']->sql_free_result($res);
                 } */
+
                 if($fe_users) {
-                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . explode('|',$fe_users)[0].") AND lth_solr_uuid!=''");
+                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . $fe_users . ") AND lth_solr_uuid!=''");
                     while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                         $lth_solr_uuid['fe_users'][] = $row['lth_solr_uuid'];
                     }
                     $GLOBALS['TYPO3_DB']->sql_free_result($res);
+                    $scope = urlencode(json_encode($lth_solr_uuid));
                 }
                 if($fe_groups) {
                     $tmpArray = explode(',',$fe_groups);
@@ -146,7 +244,8 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                     if($keyword) {
                         $keyword = urlencode($keyword);
                     }
-                    $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle, $publicationCategories, $publicationCategoriesSwitch);
+                    $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle, 
+                            $publicationCategories, $publicationCategoriesSwitch, $display, $displayFromSimpleList);
                 }
             }
         

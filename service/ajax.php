@@ -276,7 +276,7 @@ function file_get_contents_utf8($fn) {
 
 function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset, $courseOffset, $webSearchScope, $more, $config)
 {
-    $fieldArray = array("firstName","lastName","title","phone","email","organisationName","primary_affiliation","homepage",
+    $fieldArray = array("docType","firstName","lastName","title","phone","email","organisationId","organisationName","primary_affiliation","homepage","image",
         "imageId","lucrisPhoto","roomNumber","mobile","guid","uuid","orgid","id","courseCode","credit");
     $people;
     $facet;
@@ -317,10 +317,12 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
     
     if($more != 'local' && $more != 'global' && $more != 'courses') {  
         if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
-            $groupComponent->addQuery('docType:staff AND primaryAffiliation:employee AND (name:*'.$term . '* OR phone:*' . $term . '* OR email:*' . $term . '*)');
+            $queryToSet = 'docType:staff AND primaryAffiliation:employee AND (name:*'.$term . '* OR phone:*' . $term . '* OR email:*' . $term . '*)';
+            $groupComponent->addQuery($queryToSet);
             //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'doctype:lucat AND (display_name:'.$term . ' OR phone:' . $term . ' OR email:' . $term . ')', 'crdate' => time()));
         } else {
-            $groupComponent->addQuery('docType:staff AND primaryAffiliation:employee AND (name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
+            $queryToSet = 'docType:staff AND primaryAffiliation:employee AND (name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")';
+            $groupComponent->addQuery($queryToSet);
             //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'docType:staff AND primaryAffiliation:employee AND (name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")', 'crdate' => time()));
         }
     }
@@ -347,11 +349,13 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
     if($pageOffset==0) {
         $pageOffset = 1;
     } else {
-        $pageOffset = 1 + ceil(20/$pageOffset);
+        $pageOffset = 1 + $pageOffset/20;
     }
+    
 
     if(($webSearchScope==='global' || $more==='global') && $more != 'people' && $more != 'courses') {
         $pageRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/$pageOffset?1505829015363");
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/$pageOffset?1505829015363", 'crdate' => time()));
         preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
         $pageNumFound = trim($matches[1][1]);
         $pageResArray = explode('<div class="hit-wrapper">', $pageRes);
@@ -374,20 +378,32 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
     foreach ($groups as $groupKey => $group) {
         $numRow[] = $group->getNumFound();
         foreach ($group as $document) {
+            
             $id = $document->id;
             $docType = $document->docType;
             $type = $document->type;
             if($docType === 'staff') {
+                
+            if($document->image) {
+                $image = '/fileadmin' . $document->image;
+            } else if($document->lucrisPhoto) {
+                $image = $document->lucrisPhoto;
+            } else {
+                $image = '';
+            }
+        
                 $peopleData[] = array(
                     "firstName" => ucwords(strtolower($document->firstName)),
                     "lastName" => ucwords(strtolower($document->lastName)),
                     "title" => $document->title,
                     "phone" => $document->phone,
                     "email" => $document->email,
+                    "organisationId" => $document->organisationId,
                     "organisationName" => $document->organisationName,
                     "primary_affiliation" => $document->primary_affiliation,
                     "homepage" => $document->homepage,
                     "imageId" => $document->imageId,
+                    "image" => $image,
                     "lucrisPhoto" => $document->lucrisPhoto,
                     "roomNumber" => $document->roomNumber,
                     "mobile" => $document->mobile,
@@ -440,7 +456,7 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
 
     return json_encode(array('peopleData' => $peopleData, 'peopleNumFound' => $peopleNumFound, 'pageData' => $pageRes, 
         'pageNumFound' => $pageNumFound, 'courseData' => $courseData, 
-        'courseNumFound' => $courseNumFound, 'facet' => $facetResult));
+        'courseNumFound' => $courseNumFound, 'facet' => $facetResult, 'debug' => $queryToSet));
 }
 
 
@@ -668,7 +684,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
         $facetHeader = "Publikationstyp";
     }
     foreach ($facetStandard as $value => $count) {
-        $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+        if($count > 0) $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
     }
 
     $facetLanguage = $response->getFacetSet()->getFacet('language');
@@ -678,7 +694,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
         $facetHeader = "Språk";
     }
     foreach ($facetLanguage as $value => $count) {
-        $facetResult["language"][] = array($value, $count, $facetHeader);
+        if($count > 0) $facetResult["language"][] = array($value, $count, $facetHeader);
     }
 
     $facetYear = $response->getFacetSet()->getFacet('year');
@@ -688,7 +704,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
         $facetHeader = "Publikationsår";
     }
     foreach ($facetYear as $value => $count) {
-        $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
+        if($count > 0) $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
     }
     if($facetResult['publicationDateYear']) usort($facetResult['publicationDateYear'],array($this,'compareOrder'));
     
@@ -699,7 +715,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
         $facetHeader = "Fulltext";
     }
     foreach ($facetVisibility as $value => $count) {
-        $facetResult['attachmentLimitedVisibility'][] = array($value, $count, $facetHeader);
+        if($count > 0) $facetResult['attachmentLimitedVisibility'][] = array($value, $count, $facetHeader);
     }
         
     foreach ($response as $document) {
@@ -863,8 +879,8 @@ function showPublication($response, $term, $syslang, $config)
             'attachmentTitle' => $attachmentTitle,
             'attachmentUrl' => $attachmentUrl,
             'authorExternal' => $authorExternal,
-            'authorId' => $authorId,
-            'authorName' => $authorName,
+            'authorId' => $document->authorId,
+            'authorName' => $document->authorName,
             'authorOrganisation' => $authorOrganisation,
             'authorReverseName' => rawurlencode($authorReverseName),
             'authorReverseNameShort' => rawurlencode(str_replace("$", ", ", $this->str_lreplace("$", " and ", $authorReverseNameShort))),
@@ -1426,7 +1442,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
         $fieldArray = json_decode($tableFields, true);
     } else {
         $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage",
-                "image","lucrisPhoto","intro","roomNumber","mobile","organisationId","guid","uuid");
+                "image","lucrisPhoto","intro","roomNumber","mobile","organisationId","guid","uuid","heritage");
     }
     
     $facetResult = array();
@@ -1445,7 +1461,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
     }
     
     if($scope) {
-        //$debugQuery = urldecode($scope);
+        $feGroupsArray = array();
         $scope = json_decode(urldecode($scope),true);
         foreach($scope as $key => $value) {
             if($term) {
@@ -1453,12 +1469,13 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
             }
             if($key === "fe_groups") {
                 $term .= "heritage:" . implode(' OR heritage:', $value);
+                $feGroupsArray = $value;
             } else {
                 $term .= "primaryUid:" . implode(' OR primaryUid:', $value);
             }
         }
     }
-    
+
     $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member) AND (' . $term . ')'. ' AND disable_intS:0 AND -' . $hideVal . ':[* TO *]' . $filterQuery;
     //docType:staff AND primaryAffiliation:employee AND (name:*'.$term . '* OR phone:*' . $term . '* OR email:*' . $term . '*)'
     $query->setQuery($queryToSet);
@@ -1537,7 +1554,9 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
     } 
     $introVar = 'staff_custom_text_' . $pageid . '_s';
     
-    $i;
+    $i=0;
+    $heritageArray = array();
+    
     foreach ($response as $document) {
         $image = '';
         $intro = '';
@@ -1577,9 +1596,30 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
                 "guid" => $document->guid,
                 "uuid" => $document->uuid
             );
+            $heritageArray[] = $document->heritage;
         }
     }
-    $resArray = array('data' => $data, 'numFound' => $numFound,'facet' => $facetResult, 'draw' => 1, 'debug' => $queryToSet.$facetQuery);
+    foreach($feGroupsArray as $fKey => $fValue) {
+        if(count($heritageArray) > 0 && count($feGroupsArray) > 0) {
+            $includeThese = array();
+            $includeFlag = FALSE;
+            foreach($heritageArray as $hKey1 => $hValue1) {
+                foreach($hValue1 as $hKey => $hValue) {
+                    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $hValue.'::'.$fValue, 'crdate' => time()));
+                    if($hValue==='new') {
+                        $includeFlag = TRUE;
+                    } else if($hValue !== $fValue && $includeFlag) {
+                        $includeThese[] = $hValue;
+                    } else if($hValue === $fValue && $includeFlag) {
+                        $includeThese[] = $hValue;
+                        $includeFlag = FALSE;
+                    }
+                }
+            }
+            $includeThese = array_unique($includeThese);
+        }
+    }
+    $resArray = array('data' => $data, 'numFound' => $numFound,'facet' => $facetResult, 'includeThese' => $includeThese, 'debug' => $queryToSet.$facetQuery);
     return json_encode($resArray);
 }
 

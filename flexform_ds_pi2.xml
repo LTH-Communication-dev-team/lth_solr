@@ -127,6 +127,26 @@
                             </config>
                         </TCEforms>
                     </categories>
+                    
+                    <showPictures>
+                        <TCEforms>
+                            <label>Show pictures in list view</label>
+                            <config>
+                                <default>yes</default>
+                                <type>radio</type>
+                                <items type="array">
+                                  <numIndex index="0" type="array">
+                                    <numIndex index="0">Yes</numIndex>
+                                    <numIndex index="1">yes</numIndex>
+                                  </numIndex>
+                                  <numIndex index="1" type="array">
+                                    <numIndex index="0">No</numIndex>
+                                    <numIndex index="1">no</numIndex>
+                                  </numIndex>
+                                </items>
+                            </config>
+                        </TCEforms>
+                    </showPictures>
          
                     <customcategories>
                         <TCEforms>
@@ -141,45 +161,48 @@
                     </customcategories>
                     
                     <limitToStandardCategories>
-                        <TCEforms type="array">
+                        <TCEforms>
                             <displayCond>FIELD:categories:=:standard_category</displayCond>
                             <label>Visa bara dessa standardkategorier</label>
-                            <config>
-                                <type>check</type>
-                                <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getStaffStandardCategories</itemsProcFunc>
-                                <itemListStyle>width:250px</itemListStyle>
-                            </config>
-                        </TCEforms>
+                           <config>
+                            <type>select</type>
+                            <maxitems>100</maxitems>
+                            <size>10</size>
+                            <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getStaffStandardCategories</itemsProcFunc>
+                            <selectedListStyle>width:250px</selectedListStyle>
+                            <itemListStyle>width:250px</itemListStyle>
+                        </config>
+                       </TCEforms>
                     </limitToStandardCategories>
         
                     <noItemsToShow>
                         <TCEforms>
                             <label>No of items to show</label>
                             <config>
-                            <type>select</type>
-                            <items type="array">
-                            <numIndex index="0" type="array">
-                            <numIndex index="0">10</numIndex>
-                            <numIndex index="1">10</numIndex>
-                            </numIndex>
-                            <numIndex index="1" type="array">
-                            <numIndex index="0">25</numIndex>
-                            <numIndex index="1">25</numIndex>
-                            </numIndex>
-                            <numIndex index="2" type="array">
-                            <numIndex index="0">50</numIndex>
-                            <numIndex index="1">50</numIndex>
-                            </numIndex>
-                            <numIndex index="3" type="array">
-                            <numIndex index="0">All</numIndex>
-                            <numIndex index="1">3000</numIndex>
-                            </numIndex>
-                            </items>
-                            <maxitems>1</maxitems>
-                            <size>1</size>
-                            <default>25</default>
-                            <selectedListStyle>width:200px</selectedListStyle>
-                            <itemListStyle>width:200px</itemListStyle>
+                                <type>select</type>
+                                <items type="array">
+                                <numIndex index="0" type="array">
+                                <numIndex index="0">10</numIndex>
+                                <numIndex index="1">10</numIndex>
+                                </numIndex>
+                                <numIndex index="1" type="array">
+                                <numIndex index="0">30</numIndex>
+                                <numIndex index="1">30</numIndex>
+                                </numIndex>
+                                <numIndex index="2" type="array">
+                                <numIndex index="0">50</numIndex>
+                                <numIndex index="1">50</numIndex>
+                                </numIndex>
+                                <numIndex index="3" type="array">
+                                <numIndex index="0">All</numIndex>
+                                <numIndex index="1">3000</numIndex>
+                                </numIndex>
+                                </items>
+                                <maxitems>1</maxitems>
+                                <size>1</size>
+                                <default>30</default>
+                                <selectedListStyle>width:200px</selectedListStyle>
+                                <itemListStyle>width:200px</itemListStyle>
                             </config>
                         </TCEforms>
                     </noItemsToShow>
