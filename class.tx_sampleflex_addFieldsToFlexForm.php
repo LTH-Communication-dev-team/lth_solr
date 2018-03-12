@@ -625,8 +625,10 @@ class user_sampleflex_addFieldsToFlexForm
         require(__DIR__.'/service/init.php');
         
         $content = "";
-        $language = "sv";
         $language = $config['row']['language'];
+        if(!$language) {
+            $language = "sv";
+        }
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
         $sconfig = array(
