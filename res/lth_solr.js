@@ -734,7 +734,7 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                 }
                 if((parseInt(tableStart) + parseInt(tableLength)) < d.numFound) {
                     var tempMore = '<div style="margin-top:20px;" class="lthsolr_more"><button style="height:40px;" class="btn btn-default btn-lg btn-block" \n\
-                        onclick="listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',\'\',$(\'#lthsolr_staff_filter\').val(),\'\',\'more\');">' + 
+                        onclick="listStaff(' + (parseInt(tableStart) + parseInt(tableLength)) + ',getFacets(),$(\'#lthsolr_staff_filter\').val(),\'\',\'more\');">' + 
                             lth_solr_messages.show_more + ' ' + lth_solr_messages.people + 
                             ' <span class="glyphicon glyphicon-chevron-down"></span></button>';
                     /*if(d.numFound < 300) {

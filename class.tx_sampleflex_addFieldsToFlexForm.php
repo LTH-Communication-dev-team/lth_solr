@@ -625,7 +625,7 @@ class user_sampleflex_addFieldsToFlexForm
         require(__DIR__.'/service/init.php');
         
         $content = "";
-
+        $language = $config['row']['language'];
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
         $sconfig = array(
@@ -633,7 +633,7 @@ class user_sampleflex_addFieldsToFlexForm
                 'localhost' => array(
                     'host' => $settings['solrHost'],
                     'port' => $settings['solrPort'],
-                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'path' => "/solr/core_$language/",//$settings['solrPath'],
                     'timeout' => $settings['solrTimeout']
                 )
             )

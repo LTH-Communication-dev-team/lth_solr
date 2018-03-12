@@ -19,6 +19,27 @@
                     </TCEforms>
                 </init>
                 
+                <language>
+                    <TCEforms>
+                        <label>Language</label>
+                        <onChange>reload</onChange>
+                        <config>
+                            <type>radio</type>
+                            <default>sv</default>
+                            <items type="array">
+                                <numIndex index="0" type="array">
+                                    <numIndex index="0">Swedish</numIndex>
+                                    <numIndex index="1">sv</numIndex>
+                                </numIndex>
+                                <numIndex index="1" type="array">
+                                    <numIndex index="0">English</numIndex>
+                                    <numIndex index="1">en</numIndex>
+                                </numIndex>
+                            </items>
+                        </config>
+                    </TCEforms>
+                </language>
+                
                 <feusersSwitch>
                     <TCEforms>
                         <label>Select fe_users (makes the form slow!)</label>
