@@ -83,11 +83,15 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                                 }
                                 $lth_solr_uuid = array();
                                 if($fe_users) {
-                                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . $fe_users . ") AND lth_solr_uuid!=''");
+                                    /*$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . $fe_users . ") AND lth_solr_uuid!=''");
                                     while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                                         $lth_solr_uuid['fe_users'][] = $row['lth_solr_uuid'];
                                     }
-                                    $GLOBALS['TYPO3_DB']->sql_free_result($res);
+                                    $GLOBALS['TYPO3_DB']->sql_free_result($res);*/
+                                    $fe_usersArray = explode(',', $fe_users);
+                                    foreach ($fe_usersArray as $fkey => $fvalue) {
+                                        $lth_solr_uuid['fe_users'][] = $fvalue;
+                                    }
                                     $scope = urlencode(json_encode($lth_solr_uuid));
                                 }
                                 if($fe_groups) {
@@ -224,11 +228,15 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 } */
 
                 if($fe_users) {
-                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . $fe_users . ") AND lth_solr_uuid!=''");
+                    /*$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . $fe_users . ") AND lth_solr_uuid!=''");
                     while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                         $lth_solr_uuid['fe_users'][] = $row['lth_solr_uuid'];
                     }
-                    $GLOBALS['TYPO3_DB']->sql_free_result($res);
+                    $GLOBALS['TYPO3_DB']->sql_free_result($res);*/
+                    $fe_usersArray = explode(',', $fe_users);
+                    foreach ($fe_usersArray as $fkey => $fvalue) {
+                        $lth_solr_uuid['fe_users'][] = $fvalue;
+                    }
                     $scope = urlencode(json_encode($lth_solr_uuid));
                 }
                 if($fe_groups) {
