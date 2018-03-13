@@ -1980,6 +1980,7 @@ function showPublication()
         beforeSend: function () {
             var solrId = $('#lth_solr_container').parent().attr('id');
             $('#'+solrId).parent().find('> div:not(#'+solrId+')').remove();
+            $('#'+solrId).parent().find('iframe').remove();
             $('#lth_solr_container').append('<div class="loader"></div>');
         },
         success: function(d) {
