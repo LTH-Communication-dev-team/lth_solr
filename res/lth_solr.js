@@ -1978,9 +1978,9 @@ function showPublication()
         //contentType: "application/json; charset=utf-8",
         dataType: 'json',
         beforeSend: function () {
-            var solrId = $('#lth_solr_container').parent().attr('id');
-            $('#'+solrId).parent().find('> div:not(#'+solrId+')').remove();
-            $('#'+solrId).parent().find('iframe').remove();
+            $('#lth_solr_container').detach().insertAfter("#page_title");
+            //var solrId = $('#lth_solr_container').parent().attr('id');
+            //$('#'+solrId).parent().find('> div:not(#'+solrId+')').remove();
             $('#lth_solr_container').append('<div class="loader"></div>');
         },
         success: function(d) {
