@@ -620,6 +620,62 @@ class user_sampleflex_addFieldsToFlexForm
     }
     
     
+    function getStaff($config)
+    {
+        $uid = $config['row']['uid'];
+        require(__DIR__.'/service/init.php');
+        
+        $content = "";
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $fieldArray = array("uuid", "name", "email");
+        $queryToSet = '(docType:staff AND primaryAffiliation:employee AND uuid:[* TO *])';
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        $sortArray = array(
+            'lastNameExact' => 'asc',
+            'firstNameExact' => 'asc'
+        );
+        $query->addSorts($sortArray);
+        $query->setStart(0)->setRows(30000);
+        $response = $client->select($query);
+        
+        if($response) {
+            $feObjects = array();
+            $i=0;
+            foreach ($response as $document) {
+                $name = (string)$document->name;
+                $email = (string)$document->email[0];
+                $uuid = $document->uuid;
+                //$objects .= '<option value="' . $document->id . '">' . $title . '</option>';
+                $config['items'][$i] = array(0 => $name . "(" . $email .")", 1 => $uuid);
+                $i++;
+            }
+        }
+
+        return $config;
+    }
+    
+    
     function getPublicationCategories($config)
     {
         require(__DIR__.'/service/init.php');
