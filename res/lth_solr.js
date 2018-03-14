@@ -2089,13 +2089,17 @@ function showPublication()
                 
                 //attachment
                 if(attachmentUrl || doi) {
-                    if(attachmentLimitedVisibility==='FREE') {
-                        attachment = '<i class="fa fa-unlock"></i>';
-                    } else if(attachmentLimitedVisibility==='CAMPUS') {
-                        attachment = '<i class="fa fa-lock"></i>';
+                    
+                    if(attachmentLimitedVisibility) {
+                        if(attachmentLimitedVisibility.toLowerCase()==='free') {
+                            attachment = '<i class="fa fa-unlock"></i>' + attachment;
+                        } else if(attachmentLimitedVisibility.toLowerCase()==='campus') {
+                            attachment = '<i class="fa fa-lock"></i>' + attachment;
+                        }
                     }
+                    
                     if(attachmentUrl) {
-                        attachment = checkData(attachment + '<a href="' + attachmentUrl + '">' + attachmentTitle + '</a>',lth_solr_messages.attachments);
+                        attachment = '<p><b>' + lth_solr_messages.documents + '</b><br>' + attachment + '<a href="' + attachmentUrl + '">' + attachmentTitle + '</a></p>';
                     } else {
                         attachment = checkData(attachment + '<a href="' + doi + '">' + doi + '</a>',lth_solr_messages.doi);
                     }
