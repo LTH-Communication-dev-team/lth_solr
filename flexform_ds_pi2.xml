@@ -78,7 +78,8 @@
                                     <numIndex index="1"></numIndex>
                                 </numIndex>
                             </items>
-                            <foreign_table>fe_groups</foreign_table> 
+                            <foreign_table>fe_groups</foreign_table>
+                            <enableMultiSelectFilterTextfield>true</enableMultiSelectFilterTextfield>
                         </config>
                     </TCEforms>
                 </fe_groups>
@@ -99,6 +100,7 @@
                             </items>
                             <foreign_table>fe_users</foreign_table>
                             <foreign_table_where>AND email NOT LIKE '%student.lu.se' ORDER BY username ASC</foreign_table_where>
+                            <enableMultiSelectFilterTextfield>true</enableMultiSelectFilterTextfield>
                         </config>
                     </TCEforms>
                 </fe_users>
