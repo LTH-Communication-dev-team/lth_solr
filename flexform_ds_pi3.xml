@@ -151,6 +151,7 @@
                             <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getOrganisations</itemsProcFunc>
                             <selectedListStyle>width:250px</selectedListStyle>
                             <itemListStyle>width:250px</itemListStyle>
+                            <enableMultiSelectFilterTextfield>true</enableMultiSelectFilterTextfield>
                         </config>
                     </TCEforms>
                 </fe_groups>
@@ -165,6 +166,7 @@
                             <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getStaff</itemsProcFunc>
                             <selectedListStyle>width:250px</selectedListStyle>
                             <itemListStyle>width:250px</itemListStyle>
+                            <enableMultiSelectFilterTextfield>true</enableMultiSelectFilterTextfield>
                         </config>
                     </TCEforms>
                 </fe_users>
