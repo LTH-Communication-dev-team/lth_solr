@@ -178,19 +178,28 @@ function searchShort($term, $config)
     $groups = $resultset->getGrouping();
     //LTH: http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/havn/customsites/1/undefined?1505980697453-sid-07856cbc0c3c046c4f20--1261231745
     //LU:  http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/havn/all/1/undefined?1505980697453-sid-07856cbc0c3c046c4f20--1261231745
+    //$luRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/1/undefined?1505829015363");
+    //$lthRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/customsites/1/undefined?1505829015363");
     $luRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/1/undefined?1505829015363");
     $lthRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/customsites/1/undefined?1505829015363");
     
-    $luResArray = explode('<div class="hit-wrapper">', $luRes);
+    /*$luResArray = explode('<div class="hit-wrapper">', $luRes);
     $lthResArray = explode('<div class="hit-wrapper">', $lthRes);
     $luRes = $luResArray[2];
     $lthRes = $lthResArray[1];
-    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $lthRes, 'crdate' => time()));
     $luResArray = explode('<div class="pager-wrapper item-list">', $luRes);
     $lthResArray = explode('<div class="pager-wrapper item-list">', $lthRes);
     $luRes = array_shift($luResArray);
     $lthRes = array_shift($lthResArray);
     //$luRes = implode('<div class="hit-wrapper">', $luResArray);
+     * 
+     */
+    if($luRes) {
+        $luRes = json_decode($luRes, true);
+    }
+    if($lthRes) {
+        $lthRes = json_decode($lthRes, true);
+    }
     
     foreach ($groups as $groupKey => $group) {
         foreach ($group as $document) {        
@@ -201,7 +210,11 @@ function searchShort($term, $config)
                 $email   = $document->email;
                 $value = $document->id;
                 $label = $this->fixArray($document->name);
-                if($document->phone) $label .= ', ' . $this->fixPhone($this->fixArray($document->phone));
+                if($document->phone) {
+                    if($document->phone[0] !=='NULL') {
+                        $label .= ', ' . $this->fixPhone($document->phone[0]);
+                    }
+                }
                 //if($email) $label .= ', ' . $this->fixArray($email);
                 $data[] = array(
                     'id' => $email,
@@ -209,7 +222,7 @@ function searchShort($term, $config)
                     'type' => 'staff',
                     'value' => $label
                 );
-            } else if($docType === 'course') {
+            } /*else if($docType === 'course') {
                 $id = $document->id;
                 $value = $document->homepage;
                 $label = $document->courseCode . ', ' . $this->fixArray($document->title);
@@ -229,7 +242,7 @@ function searchShort($term, $config)
                     'type' => 'program',
                     'value' => $value
                 );
-            } /*else if($docType === 'document') {
+            } else if($docType === 'document') {
                 $id = $document->id;
                 $value = $document->id;
                 $label = $this->fixArray($document->title);
@@ -356,21 +369,25 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
     if(($webSearchScope==='global' || $more==='global') && $more != 'people' && $more != 'courses') {
         $pageRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/$pageOffset?1505829015363");
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/$pageOffset?1505829015363", 'crdate' => time()));
-        preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
+        /*preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
         $pageNumFound = trim($matches[1][1]);
         $pageResArray = explode('<div class="hit-wrapper">', $pageRes);
-        $pageRes = $pageResArray[2];
+        $pageRes = $pageResArray[2];*/
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $pageResArray[2], 'crdate' => time()));
     } else if(($webSearchScope==='local' || $more==='local') && $more != 'people' && $more != 'courses') {
         $pageRes = @file_get_contents("http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/customsites/$pageOffset?1505829015363");
-        preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
+        /*preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
         $pageNumFound = trim($matches[1][0]);
         $pageResArray = explode('<div class="hit-wrapper">', $pageRes);
-        $pageRes = $pageResArray[1];
+        $pageRes = $pageResArray[1];*/
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $pageResArray[1], 'crdate' => time()));
     }
-    $pageResArray = explode('<div class="pager-wrapper item-list">', $pageRes);
-    $pageRes = array_shift($pageResArray);
+    if($pageRes) {
+        $pageRes = json_decode($pageRes, true);
+    }
+    //$pageResArray = explode('<div class="pager-wrapper item-list">', $pageRes);
+    //$pageRes = array_shift($pageResArray);
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r(json_decode($pageRes,true),true), 'crdate' => time()));
     
     if($more != 'local' && $more != 'global') {
     $groups = $resultset->getGrouping();
