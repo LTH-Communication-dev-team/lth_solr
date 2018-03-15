@@ -368,7 +368,7 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
 
     if(($webSearchScope==='global' || $more==='global') && $more != 'people' && $more != 'courses') {
         $connectString = "http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/$pageOffset?1505829015363";
-        $pageRes = @file_get_contents($connectString);
+        $pageRes = file_get_contents($connectString);
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => "http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/$pageOffset?1505829015363", 'crdate' => time()));
         /*preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
         $pageNumFound = trim($matches[1][1]);
@@ -377,7 +377,7 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $pageResArray[2], 'crdate' => time()));
     } else if(($webSearchScope==='local' || $more==='local') && $more != 'people' && $more != 'courses') {
         $connectString = "http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/customsites/$pageOffset?1505829015363";
-        $pageRes = @file_get_contents($connectString);
+        $pageRes = file_get_contents($connectString);
         /*preg_match_all('/<span class="numhits">(.*?)<\/span>/s', $pageRes, $matches);
         $pageNumFound = trim($matches[1][0]);
         $pageResArray = explode('<div class="hit-wrapper">', $pageRes);
