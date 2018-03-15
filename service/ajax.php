@@ -164,7 +164,7 @@ function searchShort($term, $config)
 
     $groupComponent = $query->getGrouping();
     if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
-        $groupComponent->addQuery('docType:staff AND (name:' . str_replace(' ','\\ ',$term) . ' OR phone:' . str_replace(' ','',$term) . ' OR email:' . $term . ')');
+        $groupComponent->addQuery('docType:staff AND (name:' . str_replace(' ','\\ ',$term) . ' OR phone:' . str_replace(' ','',$term) . ' OR email:*' . $term . '*)');
     } else {
         $groupComponent->addQuery('docType:staff AND primaryAffiliation:employee AND (name:*' . str_replace(' ','\\ ',$term) . '* OR phone:*' . str_replace(' ','',$term) . '* OR email:"' . $term . '")');
     }
