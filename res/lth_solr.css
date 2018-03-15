@@ -158,9 +158,12 @@ p.type {
     color:#000;
 }
 
-#lthsolr_staff_container, #lthsolr_publications_container, #lthsolr_pages_container, #lthsolr_courses_container {
+#lthsolr_publications_container, #lthsolr_courses_container,#lthsolr_staff_container, #lthsolr_pages_container {
     width:100%;
-    font-size:17px;
+}
+
+.lthSolrPagesRow {
+    margin-top:10px;
 }
 
 #lthsolr_publications_header, #lthsolr_publications_sort select {

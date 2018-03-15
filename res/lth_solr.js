@@ -1008,7 +1008,7 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
                             thisHeight = $('#'+uuid).height();
                             lastHeight = thisHeight;
                             lastId = uuid;
-                        } else if(uuid) {
+                        } else if(uuid && lastId) {
                             if($('#'+uuid).height() > lastHeight) {
                                 $('#'+lastId).height($('#'+uuid).height());
                             } else {
@@ -1028,7 +1028,7 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
                         ' <span class="glyphicon glyphicon-chevron-down"></span></button></div>');
                 }
             } else if(more==0) {
-                $('#lthsolr_people_header').html('<span class="lth_solr_search_header"><h3>' + lth_solr_messages.people + '</h3></span>');
+                $('#lthsolr_people_header').html('<span class="lth_solr_search_header"><h2>' + lth_solr_messages.people + '</h2></span>');
                 $('#lthsolr_staff_container').html('<div>' + lth_solr_messages.No + ' ' + lth_solr_messages.hits + ' ' + 
                         lth_solr_messages.on + ' <b>' + term + '</b>.</div>');
                 //$('#lthsolr_staff_container').parent().hide();
@@ -1121,9 +1121,9 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
                 if($('.lth_solr_hide').length > 0) {
                     pagesHeader += endI;
                 } else {
-                    pagesHeader += maxLength(startPages,20,d.pageNumFound);
+                    pagesHeader += maxLength(startPages,20,d.pageData[localize].hits);
                 }
-                pagesHeader += '</span> ' + lth_solr_messages.of + ' '  + d.pageNumFound;
+                pagesHeader += '</span> ' + lth_solr_messages.of + ' '  + d.pageData[localize].hits;
                 if(webSearchScope==='local') {
                     if(more==='global') {
                         pagesHeader += ' vid sökning inom Lunds universitet. <a href="javascript:" \n\
@@ -1145,7 +1145,7 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
                 if((parseInt(startPages) + parseInt(20)) < d.pageData[localize].hits) {
                     next = '<li style="margin-top:20px;">\n\
                         <button class="btn btn-default btn-lg btn-block" style="height:30px;" href="javascript:" \n\
-                        onclick="$(\'#lth_solr_no_items\').val(' + d.pageNumFound + '); \n\
+                        onclick="$(\'#lth_solr_no_items\').val(' + d.pageData[localize].hits + '); \n\
                         $(\'#lthsolr_pages_container li:last\').remove();\n\
                         searchLong(\'' + term + '\',0,' + (parseInt(startPages) + parseInt(20)) + ',0,\''+ webSearchScope + '\');">\n\
                         ' + lth_solr_messages.show_more + ' ' + lth_solr_messages.webpages + ' <span class="glyphicon glyphicon-chevron-down"></span></button></li>';
@@ -1161,7 +1161,7 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
                     $('#lthsolr_pages_container').append(next);
                 }
             } else if(more==0) {
-                $('#lthsolr_pages_header').html('<span class="lth_solr_search_header"><h3>'+ lth_solr_messages.webpages + '</h3></span>');
+                $('#lthsolr_pages_header').html('<span class="lth_solr_search_header"><h2>'+ lth_solr_messages.webpages + '</h2></span>');
                 $('#lthsolr_pages_container').html('<div>' + lth_solr_messages.No + ' ' + lth_solr_messages.hits + ' ' + 
                         lth_solr_messages.on + ' <b>' + term + '</b>.</div>');
                 //$('#lthsolr_pages_container').parent().hide();
