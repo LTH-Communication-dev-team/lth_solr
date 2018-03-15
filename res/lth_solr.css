@@ -166,10 +166,6 @@ p.type {
     margin-top:10px;
 }
 
-.ui-autocomplete {
-    z-index:200;
-}
-
 #lthsolr_publications_header, #lthsolr_publications_sort select {
         font-size:17px;
     }
