@@ -365,7 +365,10 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
         $pageOffset = 1 + $pageOffset/20;
     }
     
-
+    if(!$webSearchScope) {
+        $webSearchScope='global';
+    }
+    
     if(($webSearchScope==='global' || $more==='global') && $more != 'people' && $more != 'courses') {
         $connectString = "http://connector.search.lu.se/solr/sr/www.lth.se/sid-07856cbc0c3c046c4f20/$term/all/$pageOffset?1505829015363";
         $pageRes = file_get_contents($connectString);
@@ -389,7 +392,7 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
     }
     //$pageResArray = explode('<div class="pager-wrapper item-list">', $pageRes);
     //$pageRes = array_shift($pageResArray);
-    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $connectString, 'crdate' => time()));
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $connectString, 'crdate' => time()));
     
     if($more != 'local' && $more != 'global') {
     $groups = $resultset->getGrouping();
