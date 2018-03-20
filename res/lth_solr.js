@@ -1065,7 +1065,7 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
                         if(syslang==='sv' && val.label_sv) {
                             title = val.label_sv;
                         } else {
-                            if(val.label==='no title' && val.label_sv) {
+                            if(val.label==='No title' && val.label_sv) {
                                 title = val.label_sv;
                             } else {
                                 title = val.label;
