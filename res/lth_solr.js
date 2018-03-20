@@ -904,7 +904,7 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
             var count = '';
             var facet = '';
             var content = '';
-            var id, title, teaser, url, link;
+            var id, title, teaser, url, link, label, label_sv, label_en;
 
             //STAFF**************************************************************************************
             var tableCounter = 3;
@@ -958,34 +958,36 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
                     }
                     var title, oname = '', organisationName = '', phone = '', roomNumber = '', homePage = '', email = '';
                     
-                    for (i=0; i<aData.organisationId.length; i++) {
-                        if(affiliation) affiliation += '<br />';
-                        if(aData.title) {
-                            if(aData.title[i]) {
-                                affiliation += titleCase(aData.title[i]);
+                    if(aData.organisationId) {
+                        for (i=0; i<aData.organisationId.length; i++) {
+                            if(affiliation) affiliation += '<br />';
+                            if(aData.title) {
+                                if(aData.title[i]) {
+                                    affiliation += titleCase(aData.title[i]);
+                                }
                             }
-                        }
-                        if(aData.organisationName) {
-                            if(aData.organisationName[i]) {
-                                organisationName = aData.organisationName[i];
+                            if(aData.organisationName) {
+                                if(aData.organisationName[i]) {
+                                    organisationName = aData.organisationName[i];
+                                }
                             }
-                        }
-                        if(aData.roomNumber) {
-                            if(aData.roomNumber[i]) {
-                                organisationName += ' (' + lth_solr_messages.room + ' ' + aData.roomNumber[i] + ')';
+                            if(aData.roomNumber) {
+                                if(aData.roomNumber[i]) {
+                                    organisationName += ' (' + lth_solr_messages.room + ' ' + aData.roomNumber[i] + ')';
+                                }
                             }
-                        }
-                        if(aData.phone) {
-                            if(aData.phone[i] && aData.phone[i] != 'NULL') {
-                                phone = addBreak(aData.phone[i]);
-                                if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
+                            if(aData.phone) {
+                                if(aData.phone[i] && aData.phone[i] != 'NULL') {
+                                    phone = addBreak(aData.phone[i]);
+                                    if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
+                                }
                             }
-                        }
-                        //console.log(phone + ';' + displayName);
+                            //console.log(phone + ';' + displayName);
 
-                        if(aData.mobile) {
-                            if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
-                                phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
+                            if(aData.mobile) {
+                                if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
+                                    phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
+                                }
                             }
                         }
                     }
@@ -1058,20 +1060,40 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
                     url = '';
                     link = '';
                     id = 'lu_'+i;
+                    label = '';
+                    label_sv = '';
+                    label_en = '';
                     
                     if (obj.hasOwnProperty(key)) {
                         
                         var val = obj[key];
-                        if(syslang==='sv' && val.label_sv) {
-                            title = val.label_sv;
-                        } else {
-                            if(val.label==='No title' && val.label_sv) {
-                                title = val.label_sv;
+                        if(val.label_sv) {
+                            label_sv = val.label_sv;
+                        } 
+                        if(val.label_en) {
+                            label_en = val.label_en;
+                        } 
+                        if(val.label) {
+                            label = val.label;
+                        }
+                        if(syslang==='sv') {
+                            if(label_sv) {
+                                title = label_sv;
+                            } else if(label_en) {
+                                title = label_en;
                             } else {
-                                title = val.label;
+                                title = label;
+                            }
+                        } else {
+                            if(label_en) {
+                                title = label_en;
+                            } else if(label_sv) {
+                                title = label_sv;
+                            } else {
+                                title = label;
                             }
                         }
-
+                        
                         if(val.teaser_sv) {
                             teaser = val.teaser_sv;
                         }
