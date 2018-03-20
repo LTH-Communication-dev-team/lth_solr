@@ -1045,18 +1045,22 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
 
             if(d.pageData[localize].hits > 0) {
                 
-                template = $('#solrPagesTemplate').html();
+                
                 var i=1;
                 var indexCounter = 1+startPages;
                 var obj = d.pageData[localize].search_result;
                 for (var key in obj) {
+                    template = $('#solrPagesTemplate').html();
+                    
                     id = '';
                     title = '';
                     teaser = '';
                     url = '';
                     link = '';
                     id = 'lu_'+i;
+                    
                     if (obj.hasOwnProperty(key)) {
+                        
                         var val = obj[key];
                         if(syslang==='sv' && val.label_sv) {
                             title = val.label_sv;
