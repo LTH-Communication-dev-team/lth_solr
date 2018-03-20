@@ -161,6 +161,11 @@ function searchShort($term, $config)
     if(substr($term, 0,1) == '"' && substr($term,-1) != '"') {
         $term = ltrim($term,'"');
     }
+    
+    if($term) {
+        $term = str_replace(':','', $term);
+        $term = str_replace(';','', $term);
+    }
 
     $groupComponent = $query->getGrouping();
     if(substr($term, 0,1) == '"' && substr($term,-1) == '"') {
@@ -328,6 +333,11 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
     
     if($more != 'local' && $more != 'global') {
         $groupComponent = $query->getGrouping();
+    }
+    
+    if($term) {
+        $term = str_replace(':','', $term);
+        $term = str_replace(';','', $term);
     }
     
     if($more != 'local' && $more != 'global' && $more != 'courses') {  
