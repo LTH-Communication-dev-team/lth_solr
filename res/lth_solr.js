@@ -813,7 +813,7 @@ var next;
 function searchLong(term, startPeople, startPages, startCourses, more, webSearchScope)
 {
     if(term.replace('"','').length < 2) return false;
-    var syslang = $('#lth_solr_syslang').val();
+    var syslang = $('html').attr('lang');
     var tableLength = 6;
     var webSearchScope = $('#webSearchScope').val();
     var linkStaffDetailPage = $('#linkStaffDetailPage').val();
@@ -1058,7 +1058,16 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
                     id = 'lu_'+i;
                     if (obj.hasOwnProperty(key)) {
                         var val = obj[key];
-                        title = val.label;
+                        if(syslang==='sv' && val.label_sv) {
+                            title = val.label_sv;
+                        } else {
+                            if(val.label==='no title' && val.label_sv) {
+                                title = val.label_sv;
+                            } else {
+                                title = val.label;
+                            }
+                        }
+
                         if(val.teaser_sv) {
                             teaser = val.teaser_sv;
                         }
