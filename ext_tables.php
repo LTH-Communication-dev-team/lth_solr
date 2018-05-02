@@ -67,3 +67,8 @@ $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi2'] = '
 
 //be-ajax :(
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::registerAjaxHandler('lthsolrM1::ajaxControl', 'lth_solr_ajax->ajaxControl');
+
+/***************
+ * Allow Carousel Item & Accordion Item on Standart Pages
+ */
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_lthpackage_carousel_item');

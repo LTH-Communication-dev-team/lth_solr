@@ -125,7 +125,7 @@ class FrontEndClass
 
         //Publications
         //$content .= '<div id="lthsolr_publications_container"><div id="lthsolr_publications_header"></div></div>';
-        $content .= $this->listPublications('', '', '', '', '', '', '', 'list','');
+        $content .= $this->listPublications('', '', '', '', '', '', '', 'list','','');
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_list.html");
 
         //Projects
@@ -250,7 +250,7 @@ class FrontEndClass
     
     
     public function listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle, 
-            $publicationCategories, $publicationCategoriesSwitch, $display, $displayFromSimpleList)
+            $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, $displayFromSimpleList)
     {   
         $syslang = $GLOBALS['TSFE']->config['config']['language'];
         if($syslang==='en') {
@@ -280,34 +280,30 @@ class FrontEndClass
         
         
         
-        if($display === 'list') {
-            //$content .= '<p class="lth_solr_filter_container">';
-                /*if($categories!=='no_categories') {
-                    $content .= '<i class="fa fa-filter fa-lg slsGray50"></i><a class="slsPadL5 refine">Filter</a>';
-                    $faSearchClass = 'fa-search-pos ';
-                }*/
-            //$content .= '<i class="fa fa-search ' . $faSearchClass . 'fa-lg slsGray50"></i>';
-            //$content .= '<input style="border:0px;box-shadow:none;" type="text" id="lthsolr_publications_filter" class="lthsolr_filter" placeholder="'.$placeholderText.'" name="lthsolr_filter" value="" />';
-            //$content .= '</p>';
-            $content .= '<div style="clear:both;width:100%;height:20px;margin:15px 0px 15px 0px;border-top:3px #000 solid;">'
-                    . '<div style="float:left;" id="lthsolr_publications_header"></div>'
-                    . '<div style="float:right;" id="lthsolr_publications_sort"></div>'
-                    . '</div>';
+        if($display === 'publications' || $display==='comingdissertations') {
+            if($displayLayout==='fullList') {
+                $content .= '<div style="clear:both;width:100%;height:20px;margin:15px 0px 15px 0px;border-top:3px #000 solid;">'
+                        . '<div style="float:left;" id="lthsolr_publications_header"></div>'
+                        . '<div style="float:right;" id="lthsolr_publications_sort"></div>'
+                        . '</div>';
 
-            $content .= '<div style="width:100%;clear:both;">';
-                //$content .= '<div id="lth_solr_facet_container"></div>';
                 $content .= '<div id="lthsolr_publications_container"></div>';
-            $content .= '</div>';
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_list.html");
-        } else {
-            $content .= '<div id="lthsolr_publications_container"></div>';
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple_list.html");
+
+                $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_list.html");
+            } else if($displayLayout==='simpleList') {
+                $content .= '<div id="lthsolr_publications_container"></div>';
+                $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple_list.html");
+            }
         }
 
         if($scope) {
+            if($display==='publications') {
+                $content .= '<input type="hidden" id="lth_solr_action" value="listPublications" />';
+            } else if($display==='comingdissertations') {
+                $content .= '<input type="hidden" id="lth_solr_action" value="listComingDissertations" />';
+            }
             $content .= '
                 <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-                <input type="hidden" id="lth_solr_action" value="listPublications" />
                 <input type="hidden" id="lth_solr_keyword" value="' . $keyword . '" />    
                 <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />
                 <input type="hidden" id="lth_solr_pagetitle" value="' . $pageTitle . '" />
@@ -316,6 +312,7 @@ class FrontEndClass
                 <input type="hidden" id="lth_solr_displayFromSimpleList" value="' . $displayFromSimpleList . '" />'; 
         }
         $content .= '<input type="hidden" id="lth_solr_display" value="' . $display . '" />';
+        $content .= '<input type="hidden" id="lth_solr_displayLayout" value="' . $displayLayout . '" />';
 
         if(substr($clientIp,0,7) === '130.235' || $clientIp === '127.0.0.1') {
             $content .= '<input type="hidden" id="lth_solr_lu" value="yes" />';

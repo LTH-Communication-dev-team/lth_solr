@@ -145,6 +145,13 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
             $display = $this->pi_getFFvalue($piFlexForm, "display", "sDEF", $lDef[$index]);
+            $displayLayout = $this->pi_getFFvalue($piFlexForm, "displayLayout", "sDEF", $lDef[$index]);
+            
+            $display = str_replace('list','publications',$display);
+            if(!$displayLayout) {
+                $displayLayout = 'fullList';
+            }
+            
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
@@ -199,8 +206,9 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             if($uuid) {
                 $pageTitle = array_pop(explode('/',array_shift(explode('(',$uuid))));
                 $uuid = rtrim(array_pop(explode('(',$uuid)),")");
+                $showType = 'publication';
             }
-            
+
             $FrontEndClass = new FrontEndClass();
             $FrontEndClass->addJsCss($display);
             
@@ -210,29 +218,16 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_groups'][] = $uuid;
                 $scope = urlencode(json_encode($lth_solr_uuid));
-                $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle, $publicationCategories, $publicationCategoriesSwitch, $display, '');
+                $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle, $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, '');
             } else if($showType==='author') {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_users'][] = $uuid;
                 $scope = urlencode(json_encode($lth_solr_uuid));
-                //$content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle);
                 $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
             } else {
                 $lth_solr_uuid = array();
-                /*if($fe_groups) {
-                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
-                    while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                        $lth_solr_uuid['fe_groups'][] = explode('__', $row['title'])[0];
-                    }
-                    $GLOBALS['TYPO3_DB']->sql_free_result($res);
-                } */
 
                 if($fe_users) {
-                    /*$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . $fe_users . ") AND lth_solr_uuid!=''");
-                    while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                        $lth_solr_uuid['fe_users'][] = $row['lth_solr_uuid'];
-                    }
-                    $GLOBALS['TYPO3_DB']->sql_free_result($res);*/
                     $fe_usersArray = explode(',', $fe_users);
                     foreach ($fe_usersArray as $fkey => $fvalue) {
                         $lth_solr_uuid['fe_users'][] = $fvalue;
@@ -253,7 +248,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                         $keyword = urlencode($keyword);
                     }
                     $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle, 
-                            $publicationCategories, $publicationCategoriesSwitch, $display, $displayFromSimpleList);
+                            $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, $displayFromSimpleList);
                 }
             }
         

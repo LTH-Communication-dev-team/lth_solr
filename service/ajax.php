@@ -89,6 +89,7 @@ switch($action) {
         break;
     case 'listPublications':
     case 'exportPublications':
+    case 'listComingDissertations':
         $content = $this->listPublications($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $query, $keyword, $sorting, $tableFields, $action, $publicationCategories);
         break;
     case 'listStudentPapers':
@@ -571,7 +572,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     if($action==='exportPublications') {
         $fieldArray = json_decode($tableFields, true);
     } else {
-        $fieldArray = array("articleNumber","authorName","documentTitle","attachmentLimitedVisibility","attachmentMimeType","attachmentSize",
+        $fieldArray = array("articleNumber","authorName","bibliographicalNote","documentTitle","attachmentLimitedVisibility","attachmentMimeType","attachmentSize",
                 "attachmentUrl","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","pages","publicationType",
                 "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
     }
@@ -625,7 +626,11 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
         }
     }
 
-    $queryToSet = 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . '] AND (' . $term . ')' . $keyword . $publicationSelection . $filterQuery;
+    $listComingDissertations = '';
+    if($action==='listComingDissertations') {
+        $listComingDissertations = ' AND awardDate:[' . $currentDate . ' TO *]';
+    }
+    $queryToSet = 'docType:publication' . $listComingDissertations . ' AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . '] AND (' . $term . ')' . $keyword . $publicationSelection . $filterQuery;
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
     $query->setStart($tableStart)->setRows($tableLength);
@@ -762,11 +767,12 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
             $data[] = array(
                 "articleNumber" => $document->$articleNumber,
                 "authorName" => ucwords(strtolower($this->fixArray($document->authorName))),
-                "documentTitle" => $document->documentTitle,
                 "attachmentLimitedVisibility" => $document->attachmentLimitedVisibility,
                 "attachmentMimeType" => $document->attachmentMimeType,
                 "attachmentSize" => $document->attachmentSize,
                 "attachmentUrl" => $document->attachmentUrl,
+                "bibliographicalNote" => $document->bibliographicalNote,
+                "documentTitle" => $document->documentTitle,
                 "hostPublicationTitle" => $document->hostPublicationTitle,
                 "id" => $document->id,
                 "journalTitle" => $document->journalTitle,

@@ -90,7 +90,7 @@
                         <displayCond>FIELD:feusersSwitch:=:1</displayCond>
                         <config>
                             <type>select</type>
-                            <size>10</size>
+                            <size>1000</size>
                             <maxitems>300</maxitems>
                             <items type="array">
                                 <numIndex index="0" type="array">

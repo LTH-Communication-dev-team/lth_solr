@@ -56,16 +56,17 @@
                         <onChange>reload</onChange>
                         <config>
                             <type>radio</type>
-                            <default>list</default>
+                            <default>publications</default>
                             <items type="array">
                                 <numIndex index="0" type="array">
-                                    <numIndex index="0">Publication full list</numIndex>
-                                    <numIndex index="1">list</numIndex>
+                                    <numIndex index="0">Publications</numIndex>
+                                    <numIndex index="1">publications</numIndex>
                                 </numIndex>
                                 <numIndex index="1" type="array">
-                                    <numIndex index="0">Publication simple list</numIndex>
-                                    <numIndex index="1">simpleList</numIndex>
+                                    <numIndex index="0">Coming dissertations</numIndex>
+                                    <numIndex index="1">comingdissertations</numIndex>
                                 </numIndex>
+                                
                                 <numIndex index="2" type="array">
                                     <numIndex index="0">Tag cloud</numIndex>
                                     <numIndex index="1">tagcloud</numIndex>
@@ -75,9 +76,30 @@
                     </TCEforms>
                 </display>
                 
+                <displayLayout>
+                    <TCEforms>
+                        <displayCond>FIELD:display:IN:publications,comingdissertations</displayCond>
+                        <onChange>reload</onChange>
+                        <label>List layout</label>
+                        <config>
+                            <type>radio</type>
+                            <items type="array">
+                                <numIndex index="0" type="array">
+                                    <numIndex index="0">Full list</numIndex>
+                                    <numIndex index="1">fullList</numIndex>
+                                </numIndex>
+                                <numIndex index="1" type="array">
+                                    <numIndex index="0">Simple list</numIndex>
+                                    <numIndex index="1">simpleList</numIndex>
+                                </numIndex>
+                            </items>
+                        </config>
+                    </TCEforms>
+                </displayLayout>
+                
                 <displayFromSimpleList>
                     <TCEforms>
-                       <displayCond>FIELD:display:=:simpleList</displayCond>
+                       <displayCond>FIELD:displayLayout:=:simpleList</displayCond>
                        <label>Page to show full publication post</label>
                        <config>
                             <type>group</type>
@@ -85,12 +107,12 @@
                             <allowed>pages</allowed>
                             <maxitems>1</maxitems>
                             <wizards>
-                                    <suggest>
-                                            <type>suggest</type>
-                                            <default>
-                                                    <searchWholePhrase>1</searchWholePhrase>
-                                            </default>
-                                    </suggest>
+                                <suggest>
+                                    <type>suggest</type>
+                                    <default>
+                                        <searchWholePhrase>1</searchWholePhrase>
+                                    </default>
+                                </suggest>
                             </wizards>
                         </config>
                    </TCEforms>
@@ -159,9 +181,10 @@
                 <fe_users>
                     <TCEforms type="array">
                         <label>FE Users</label>
+                        <displayCond>FIELD:display:IN:publications,tagcloud</displayCond>
                         <config>
                             <type>select</type>
-                            <maxitems>100</maxitems>
+                            <maxitems>1000</maxitems>
                             <size>10</size>
                             <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getStaff</itemsProcFunc>
                             <selectedListStyle>width:250px</selectedListStyle>
