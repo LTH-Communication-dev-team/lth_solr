@@ -771,7 +771,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
                 "attachmentMimeType" => $document->attachmentMimeType,
                 "attachmentSize" => $document->attachmentSize,
                 "attachmentUrl" => $document->attachmentUrl,
-                "bibliographicalNote" => $document->bibliographicalNote,
+                "bibliographicalNote" => "",//$document->bibliographicalNote,
                 "documentTitle" => $document->documentTitle,
                 "hostPublicationTitle" => $document->hostPublicationTitle,
                 "id" => $document->id,
