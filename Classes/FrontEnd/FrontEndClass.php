@@ -160,7 +160,7 @@ class FrontEndClass
         //hidden fields
         $content .= '
             <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-            <input type="hidden" id="lth_solr_detail_action" value="showStaff" />
+            <input type="hidden" id="lth_solr_action" value="showStaff" />
             <input type="hidden" id="lth_solr_staff_pos" value="' . $showStaffPos . '" />
             <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
 
