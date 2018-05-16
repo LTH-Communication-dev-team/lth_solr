@@ -184,24 +184,24 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $employeeArray[$primary_uid]['primary_affiliation'] = $row['primary_affiliation'];
             $employeeArray[$primary_uid]['homepage'] = $row['homepage'];
             $employeeArray[$primary_uid]['lang'] = $row['lang'];
-            $employeeArray[$primary_uid]['degree'] = utf8_encode($row['degree']);
-            $employeeArray[$primary_uid]['degree_en'] = utf8_encode($row['degree_en']);
+            $employeeArray[$primary_uid]['degree'] = $row['degree'];
+            $employeeArray[$primary_uid]['degree_en'] = $row['degree_en'];
             //arrays:
             $employeeArray[$primary_uid]['guid'] = explode('|', $row['guid']);
             $employeeArray[$primary_uid]['hide_on_web'] = explode('|', $row['hide_on_web']);
             $employeeArray[$primary_uid]['ophone'] = explode('|', $row['ophone']);
-	    $employeeArray[$primary_uid]['ostreet'] = explode('|', utf8_encode($row['ostreet']));
-            $employeeArray[$primary_uid]['ocity'] = explode('|', utf8_encode($row['ocity']));
-            $employeeArray[$primary_uid]['opostal_address'] = explode('|', utf8_encode($row['opostal_address']));
+	    $employeeArray[$primary_uid]['ostreet'] = explode('|', $row['ostreet']);
+            $employeeArray[$primary_uid]['ocity'] = explode('|', $row['ocity']);
+            $employeeArray[$primary_uid]['opostal_address'] = explode('|', $row['opostal_address']);
             $employeeArray[$primary_uid]['room_number'] = explode('|', $row['room_number']);
-            $employeeArray[$primary_uid]['title'] = explode('|', utf8_encode($row['title']));
-            $employeeArray[$primary_uid]['title_en'] = explode('|', utf8_encode($row['title_en']));
+            $employeeArray[$primary_uid]['title'] = explode('|', $row['title']);
+            $employeeArray[$primary_uid]['title_en'] = explode('|', $row['title_en']);
             $employeeArray[$primary_uid]['phone'] = explode('|', $row['phone']);
             $employeeArray[$primary_uid]['mobile'] = explode('|', $row['mobile']);
             $employeeArray[$primary_uid]['orgid'] = explode('|', $row['orgid']);
             $employeeArray[$primary_uid]['orgid_legacy'] = explode('|', $row['orgid_legacy']);
             $employeeArray[$primary_uid]['oname'] = explode('|', $row['oname']);
-            $employeeArray[$primary_uid]['oname_en'] = explode('|', utf8_encode($row['oname_en']));
+            $employeeArray[$primary_uid]['oname_en'] = explode('|', $row['oname_en']);
             $employeeArray[$primary_uid]['maildelivery'] = explode('|', $row['maildelivery']);
         }
 
@@ -1008,7 +1008,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         if($in) {
             $in = str_replace('-', ' - ', $in);
             //$in = ucwords(utf8_encode($in));
-            $in = mb_convert_case(utf8_encode($in), MB_CASE_TITLE, "UTF-8");
+            //$in = mb_convert_case(utf8_encode($in), MB_CASE_TITLE, "UTF-8");
             $in = str_replace(' - ', '-', $in);
         }
         return $in;
