@@ -1481,8 +1481,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
     if($action==='exportStaff') {
         $fieldArray = json_decode($tableFields, true);
     } else {
-        $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage",
-                "image","lucrisPhoto","intro","roomNumber","mobile","organisationId","guid","uuid","heritage");
+        $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile","organisationId","guid","uuid","heritage");
     }
     
     $facetResult = array();
