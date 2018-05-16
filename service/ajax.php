@@ -1713,8 +1713,8 @@ function showStaff($scope, $config, $syslang)
             }
 
             $data[] = array(
-                "firstName" => ucwords(strtolower($document->firstName)),
-                "lastName" => ucwords(strtolower($document->lastName)),
+                "firstName" => $document->firstName,
+                "lastName" => $document->lastName,
                 "title" => $document->title,
                 "phone" => $document->phone,
                 "email" => $document->email,
