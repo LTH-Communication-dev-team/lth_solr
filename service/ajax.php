@@ -1608,8 +1608,6 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
             $image = '/fileadmin' . $document->image;
         } else if($document->lucrisPhoto) {
             $image = $document->lucrisPhoto;
-        } else {
-            $image = '';
         }
         
         if($action==='exportStaff') {
@@ -1634,7 +1632,8 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
                 "mobile" => $document->mobile,
                 "organisationId" => $document->organisationId,
                 "guid" => $document->guid,
-                "uuid" => $document->uuid
+                "uuid" => $document->uuid,
+                "imgtest" => $document->image
             );
             $heritageArray[] = $document->heritage;
         }
