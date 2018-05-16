@@ -200,7 +200,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $employeeArray[$primary_uid]['mobile'] = explode('|', $row['mobile']);
             $employeeArray[$primary_uid]['orgid'] = explode('|', $row['orgid']);
             $employeeArray[$primary_uid]['orgid_legacy'] = explode('|', $row['orgid_legacy']);
-            $employeeArray[$primary_uid]['oname'] = explode('|', utf8_encode($row['oname']));
+            $employeeArray[$primary_uid]['oname'] = explode('|', $row['oname']);
             $employeeArray[$primary_uid]['oname_en'] = explode('|', utf8_encode($row['oname_en']));
             $employeeArray[$primary_uid]['maildelivery'] = explode('|', $row['maildelivery']);
         }
