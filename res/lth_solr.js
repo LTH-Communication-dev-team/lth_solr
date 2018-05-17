@@ -1411,7 +1411,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                     <button class="btn btn-default" type="button"><span class="glyphicon glyphicon-search"></span></button>
                 </span>
                  */
-                if(d.facet && display==='list') {
+                if(d.facet && !displayFromSimpleList) {
                     
                     //if($('.item-list').length == 0) {
                         if(mobileCheck()) {
