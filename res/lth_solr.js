@@ -567,7 +567,7 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                     template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
                     var phone = '', roomNumber = '', homepage = '', organisationName = '', roomNumber = '';
 
-                    if(aData.email) template = template.replace(/###email###/g, aData.email);
+                    if(aData.email) template = template.replace(/###email###/g, aData.email[0]);
 
                     //i=0;
                     //curI=0;
