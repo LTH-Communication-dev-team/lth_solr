@@ -985,6 +985,10 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
                         }
                     }
                     
+                    if(aData.email) email = aData.email[0];
+                    
+                    template = template.replace(/###email###/g, email);
+                    
                     if(organisationName) {
                         affiliation += addComma(organisationName);
                     }
