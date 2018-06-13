@@ -141,7 +141,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
             $this->pi_initPIflexForm();
             $piFlexForm = $this->cObj->data["pi_flexform"];
-            $index = $GLOBALS["TSFE"]->sys_language_uid;
+            $index = 0;//$GLOBALS["TSFE"]->sys_language_uid;
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
             $display = $this->pi_getFFvalue($piFlexForm, "display", "sDEF", $lDef[$index]);
@@ -209,7 +209,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $uuid = rtrim(array_pop(explode('(',$uuid)),")");
                 $showType = 'publication';
             }
-$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '212'.$GLOBALS["TSFE"]->sys_language_uid . ';' . $display, 'crdate' => time()));
+$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '212' . ';' . $displayLayout . ';' . $display, 'crdate' => time()));
             $FrontEndClass = new FrontEndClass();
             $FrontEndClass->addJsCss($display);
             
