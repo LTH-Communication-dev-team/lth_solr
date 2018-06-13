@@ -259,7 +259,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                             $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, $displayFromSimpleList);
                 }
             }
-        
+        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $content, 'crdate' => time()));
             //$this->debug($content);
 	
             return $content;
