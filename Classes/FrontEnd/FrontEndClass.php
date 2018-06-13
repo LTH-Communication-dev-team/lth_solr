@@ -334,7 +334,7 @@ class FrontEndClass
 
         $content .= '</div>';*/
         
-        
+        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '337'.$display.$displayLayout, 'crdate' => time()));
         if($display === 'publications' || $display==='comingdissertations' || $display === 'showProject' || $display === 'showStaff') {
             $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '339'.$display.$displayLayout, 'crdate' => time()));
 
