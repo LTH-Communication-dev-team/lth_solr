@@ -335,9 +335,7 @@ class FrontEndClass
         $content .= '</div>';*/
         
         
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '337'.$display.$displayLayout, 'crdate' => time()));
         if($display === 'publications' || $display==='comingdissertations' || $display === 'showProject' || $display === 'showStaff') {
-            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '339'.$display.$displayLayout, 'crdate' => time()));
 
             if($displayLayout==='fullList') {
                 $content .= '<div style="clear:both;width:100%;height:20px;margin:15px 0px 15px 0px;border-top:3px #000 solid;">'
