@@ -209,7 +209,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $uuid = rtrim(array_pop(explode('(',$uuid)),")");
                 $showType = 'publication';
             }
-
+$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '212'.$display, 'crdate' => time()));
             $FrontEndClass = new FrontEndClass();
             $FrontEndClass->addJsCss($display);
             
@@ -259,7 +259,6 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                             $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, $displayFromSimpleList);
                 }
             }
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $content, 'crdate' => time()));
             //$this->debug($content);
 	
             return $content;
