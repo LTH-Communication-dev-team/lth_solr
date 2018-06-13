@@ -227,7 +227,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
             } else {
                 $lth_solr_uuid = array();
-$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '229'.$display, 'crdate' => time()));
+
                 if($fe_users) {
                     $fe_usersArray = explode(',', $fe_users);
                     foreach ($fe_usersArray as $fkey => $fvalue) {
