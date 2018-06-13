@@ -31,6 +31,9 @@
  * @package	TYPO3
  * @subpackage	tx_lthsolr
  */
+
+include __DIR__ . "/../Classes/FrontEnd/FrontEndClass.php";
+
 class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	public $prefixId      = 'tx_lthsolr_pi4';		// Same as class name
 	public $scriptRelPath = 'pi4/class.tx_lthsolr_pi4.php';	// Path to this script relative to the extension dir.
@@ -55,22 +58,29 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
-            $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
-            $staffDetailPage = $this->pi_getFFvalue($piFlexForm, "staffDetailPage", "sDEF", $lDef[$index]);
-            $publicationDetailPage = $this->pi_getFFvalue($piFlexForm, "publicationDetailpage", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
             
-            if($staffDetailPage) {
-                $staffDetailPage = $this->detailUrl($staffDetailPage);
-            }
-            
-            if($publicationDetailPage) {
-                $publicationDetailPage = $this->detailUrl($publicationDetailPage);
+            if($fe_groups) {
+                $tmpArray = explode(',',$fe_groups);
+                foreach($tmpArray as $tmpValue) {
+                    $lth_solr_uuid['fe_groups'][] = $tmpValue;
+                }
+                $scope = urlencode(json_encode($lth_solr_uuid));
             }
             
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
+            if(strstr($uuid,"(participant)")) {
+                $showType = 'participant';
+                $uuid = str_replace(')','',explode('(',$uuid)[1]);
+            }
+            //die($uuid);
+            if(strstr($uuid,"(publication)")) {
+                $showType = 'publication';
+                $uuid = str_replace(')','',explode('(',$uuid)[1]);
+            }
             
             if(strstr($uuid,")")) {
+                $showType = 'project';
                 $uuid = rtrim(array_pop(explode('(',$uuid)),")");
             }
             
@@ -81,31 +91,9 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             if($syslang=='se') {
                 $syslang='sv';
             }
-            
-            $lth_solr_uuid = array();
-            if($fe_groups) {
-                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title','fe_groups',"uid in(" . explode('|',$fe_groups)[0].")");
-                while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                    $lth_solr_uuid['fe_groups'][] = explode('__', $row['title'])[0];
-                }
-                $GLOBALS['TYPO3_DB']->sql_free_result($res);
-            } 
-            if($fe_users) {
-                $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('lth_solr_uuid','fe_users',"uid in(" . explode('|',$fe_users)[0].")");
-                while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                    $lth_solr_uuid['fe_users'][] = $row['lth_solr_uuid'];
-                }
-                $GLOBALS['TYPO3_DB']->sql_free_result($res);
-            }
-            if(count($lth_solr_uuid > 0)) {
-                $scope = urlencode(json_encode($lth_solr_uuid));
-            }
-            
-            //Load main js- and css-files
-            $GLOBALS["TSFE"]->additionalFooterData["tx_lthsolr_lang"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr_lang_$syslang.js\"></script>"; 
-            $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_js"] = "<script language=\"JavaScript\" type=\"text/javascript\" src=\"/typo3conf/ext/lth_solr/res/lth_solr.js?" . rand(1,100000000) . "\"></script>"; 
-            $GLOBALS["TSFE"]->additionalHeaderData["tx_lthsolr_css"] = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/typo3conf/ext/lth_solr/res/lth_solr.css?" . rand(1,100000000) . "\" />";
-             
+                       
+            $FrontEndClass = new FrontEndClass();
+            $FrontEndClass->addJsCss('projects');     
             //$query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
             
             if(!$scope && !$uuid) {
@@ -113,50 +101,33 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             }
             $content = '';
                                 
-            if($uuid) {
-                $content .= $this->showProject($uuid, $staffDetailPage, $publicationDetailPage, $syslang);
+            if($showType === 'project') {
+                $content = $FrontEndClass->showProject($uuid);
+            } else if($showType === 'participant') {
+                $lth_solr_uuid = array();
+                $lth_solr_uuid['fe_users'][] = $uuid;
+                $scope = urlencode(json_encode($lth_solr_uuid));
+                $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
+            } else if($showType === 'publication') {
+                $content = $FrontEndClass->showPublication($uuid);
             } else {
-                $content .= $this->listProjects($scope, $detailUrl, $syslang, $noItemsToShow);
+                $content = $this->listProjects($scope, $detailUrl, $syslang, $noItemsToShow);
             }
         
             //$this->debug($content);
 	
             return $content;
 	}
-        
-        
-        private function showProject($uuid, $staffDetailPage, $publicationDetailPage, $syslang)
-        {
-            $content = '<div id="lth_solr_projects_container"><div id="lthsolr_projects_header"></div></div>';
-            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_presentation.html");
-            
-            $content .= '<input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
-                <input type="hidden" id="lth_solr_staffdetailpage" value="' . $staffDetailPage . '" />
-                <input type="hidden" id="lth_solr_publicationdetailpage" value="' . $publicationDetailPage . '" />
-                    <input type="hidden" id="lth_solr_action" value="showProject" />
-                    <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />';
-            return $content;
-        }
-        
+              
         
         private function listProjects($scope, $detailUrl, $syslang, $noItemsToShow)
         {
-            $content .= '<style>.glyphicon-search {font-size: 25px;}.glyphicon-filter, .glyphicon-export {font-size: 15px;}</style>';
-            $content .= '<div class="lth_solr_filter_container">';
-            $content .= '<div style="clear:both;height:50px;">';
-            $content .= '<div style="float:left;padding:15px 0px 0px 15px;width:10%"><span class="glyphicon glyphicon-search"></span></div>';
-            $content .= '<div style="float:left;padding-top:10px;width:50%">';
-            $content .= '<input style="border:0px;background-color:#fafafa;width:100%;box-shadow:none;" type="text" id="lthsolr_projects_filter" class="lthsolr_filter" placeholdera="' . $this->pi_getLL("freetext") . '" name="lthsolr_filter" value="" />';
-            $content .= '</div>';
-            $content .= '</div>';
-            $content .= '</div>'; 
             
             $content .= '<div id="lthsolr_projects_container" ><div style="clear:both;height:20px;" id="lthsolr_projects_header"></div></div>';
             
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_simple.html");
             
             $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-                    <input type="hidden" id="lth_solr_projectdetailpage" value="' . $detailUrl . '" />
                     <input type="hidden" id="lth_solr_action" value="listProjects" />
                     <input type="hidden" id="lth_solr_syslang" value="' . $syslang . '" />
                     <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';

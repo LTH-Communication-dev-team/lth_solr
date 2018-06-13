@@ -195,19 +195,21 @@
                 </fe_users>
                 
             
-                <!--<projects>
-                    <TCEforms>
-                        <label>Välj ett/flera forskningsprojekt</label>
+                <projects>
+                    <TCEforms type="array">
+                        <label>Projects</label>
+                        <displayCond>FIELD:display:IN:publications,tagcloud</displayCond>
                         <config>
-                            <type>user</type>
-                            <userFunc>user_sampleflex_addFieldsToFlexForm->getProjects</userFunc>
+                            <type>select</type>
+                            <maxitems>1000</maxitems>
+                            <size>10</size>
+                            <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getProjects</itemsProcFunc>
+                            <selectedListStyle>width:250px</selectedListStyle>
+                            <itemListStyle>width:250px</itemListStyle>
+                            <enableMultiSelectFilterTextfield>true</enableMultiSelectFilterTextfield>
                         </config>
-                         <config>
-                        <type>select</type>
-                         <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getProjects</itemsProcFunc>
-                       </config>
                     </TCEforms>
-                </projects> -->
+                </projects>
 
                 <categories>
                     <TCEforms>

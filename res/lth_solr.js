@@ -18,7 +18,7 @@ $(document).ready(function() {
         });
     } else if(action == 'showStaff') {
         showStaff();
-        listPublications(0,'','','publicationYear',0,'',action);
+        listPublications(0,'','','publicationYear',0,'','listPublications');
     } else if(action === 'listPublications' || action === 'listComingDissertations') {
         listPublications(0,'','','publicationYear',0,'',action);
     } else if($('#lth_solr_action').val() == 'listStudentPapers') {
@@ -35,6 +35,7 @@ $(document).ready(function() {
         showPublication();
     } else if($('#lth_solr_action').val() == 'showProject') {
         showProject();
+        listPublications(0,'','','publicationYear',0,'','listPublications');
     } 
     if($('#lth_solr_action').val() == 'listTagCloud') {
         listTagCloud();
@@ -1389,9 +1390,6 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
         },
         beforeSend: function () {
             if(!more) {
-                //console.log('1080');
-                //$('.lthsolr_publication_row').remove();
-                //$('#lthsolr_publications_container').before('<div class="loader"></div>');
                 $('#lthsolr_publications_container div').remove().append('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
             } else {
                 $('.lthsolr_more').html('').addClass('loader');
@@ -1433,7 +1431,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                             }
                         } else {
                             if($('#lth_solr_facet_container').length == 0) {
-                                $('#content_navigation').append('<div id="lth_solr_facet_container">'+
+                                $('#content_navigation,#subnavigation').append('<div id="lth_solr_facet_container">'+
                                         '<b>' + lth_solr_messages.filterSearchResult+'</b>'+
                                         '<div style="margin-top:15px;" class="input-group">'+
                                         '<span class="input-group-addon" id="basic-addon1"><i class="fa fa-search fa-sm slsGray20"></i></span>'+
@@ -2065,7 +2063,7 @@ function showPublication()
         //contentType: "application/json; charset=utf-8",
         dataType: 'json',
         beforeSend: function () {
-            $('#lth_solr_container').detach().insertAfter("#page_title");
+            $('#lth_solr_container').detach().insertAfter("#page_title, article h1");
             //var solrId = $('#lth_solr_container').parent().attr('id');
             //$('#'+solrId).parent().find('> div:not(#'+solrId+')').remove();
             $('#lth_solr_container').append('<div class="loader"></div>');
@@ -2366,10 +2364,15 @@ function fixResearchOutput(input)
 
 function listProjects(tableStart, query, more)
 {
-    var syslang = $('#lth_solr_syslang').val();
+    var syslang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
     var tableLength = $('#lth_solr_no_items').val();
-    var id, title, participants, projectStartDate, projectEndDate, projectStatus;
+    var path, id, curtailed, endDate, managingOrganisationId, managingOrganisationName, managingOrganisationType;
+    var organisationId, organisationName, organisationType, participantId, participantName, participantOrganisationId;
+    var participantOrganisationName, participantOrganisationType, participantRole, projectStatus, projectType, startDate, visibility;
+    var projectTitle, projectDescription, projectDescriptionType;
+    var content, maxClass;
+    var inputFacet = '';
     
     $.ajax({
         type : 'POST',
@@ -2393,13 +2396,88 @@ function listProjects(tableStart, query, more)
         },
         beforeSend: function () {
             if(!more) {
-                $('#lthsolr_projects_container div').not('#lthsolr_projects_header').remove().append('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
+                $('#lthsolr_projects_container div').remove().append('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            } else {
+                $('.lthsolr_more').html('').addClass('loader');
             }
-            //$('#lthsolr_all').remove();
-            $('.lthsolr_more').replaceWith('<img class="lthsolr_loader" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            $('#lth_solr_facet_container ul li ul li').remove();
         },
         success: function(d) {
             if(d.data) {
+                if(d.facet) {
+                    
+                    //if($('.item-list').length == 0) {
+                        if(mobileCheck()) {
+                            if($('#lth_solr_facet_container').length == 0) {
+                                $('#lthsolr_projects_container').append('<div id="lth_solr_facet_container">'+
+                                    '<div style="margin-top:15px;" class="input-group">'+
+                                        '<span class="input-group-addon" id="basic-addon1"><i class="fa fa-search fa-sm slsGray20"></i></span>'+
+                                        //'<i class="fa fa-search fa-lg slsGray50"></i>' +
+                                        '<input type="text" style="font-size:12px;" class="form-control" id="lthsolr_projects_filter" placeholder="" value="" />'+
+                                        '</div>'+
+                                        '<ul style=""><li><i class="fa fa-angle-right fa-sm slsGray20"></i><a href="javascript:" onclick="$(\'.maxlist-all\').toggle(500);">'+lth_solr_messages.moreFilteringOptions+'</a><ul class="maxlist-all"><li></li></ul></li></ul></div>');
+                                $('#lthsolr_projects_filter').keyup(function() {
+                                    listProjects(0, getFacets(), $(this).val().trim(), $("#lthsolr_sort").val(), 0,'', action);
+                                });
+                            }
+                        } else {
+                            if($('#lth_solr_facet_container').length == 0) {
+                                $('#content_navigation,#subnavigation').append('<div id="lth_solr_facet_container">'+
+                                        '<b>' + lth_solr_messages.filterSearchResult+'</b>'+
+                                        '<div style="margin-top:15px;" class="input-group">'+
+                                        '<span class="input-group-addon" id="basic-addon1"><i class="fa fa-search fa-sm slsGray20"></i></span>'+
+                                        //'<i class="fa fa-search fa-lg slsGray50"></i>' +
+                                        '<input type="text" style="font-size:12px;height:31px;" class="form-control" id="lthsolr_projects_filter" placeholder="" value="" />'+
+                                        '</div>'+
+                                        '<ul style="border-top:1px #dedede solid;margin-top:15px;padding-top:7px;"><li><ul><li></li></ul></li></ul></div>');
+                                $('#lthsolr_projects_filter').keyup(function() {
+                                    listProjects(0, getFacets(), $(this).val().trim(), $("#lthsolr_sort").val(), 0,'', action);
+                                });
+                            }
+                        }
+                        
+                        $.each( d.facet, function( key, value ) {
+                            maxClass='';
+                            more='';
+                            content = '';
+                            i=0;
+                            $.each( value, function( key1, value1 ) {
+                                if(i > 4) {
+                                    maxClass = ' class="maxlist-hidden"';
+                                    more = '<li class="maxlist-more"><i class="fa fa-chevron-right"></i><a href="#">' + lth_solr_messages.more + '</a></li>';
+                                }
+
+                                facet = value1[0].toString();
+                                count = value1[1];
+                                facetHeader = value1[2];
+                                var facetCheck = '';
+                                
+                                if(inputFacet) {
+                                    if(inArray(key + '###' + facet,JSON.parse(inputFacet))) {
+                                        facetCheck = ' checked="checked"';
+                                    }
+                                }
+                                if(parseInt(value1[1]) > 0 && value1[0]) {
+                                    content += '<li' + maxClass + ' style=""><label>';
+                                    content += facet.capitalize().replace(/_/g, ' ') + '&nbsp;[' + count + '] ';
+                                    content += '<input type="checkbox" class="lth_solr_facet item-list" name="lth_solr_facet" value="' + key + '###' + facet + '"' + facetCheck + '>';
+                                    content += '</label></li>';
+                                }
+                                i++;
+                            });
+
+                            
+                            /*$('.lthsolr_facet_close').click(function() {
+                                $('#lth_solr_facet_container').toggle(500);
+                                //$("#lthsolr_projects_container").toggleClass('expand', 500);
+                            });*/
+                            $('#lth_solr_facet_container ul > li > ul').append('<li style=""><b>'+facetHeader+'</b></li>' + content + more + '');
+                            i=0;
+                        });
+                        
+                        //createFacetClick('listPublications', sorting, action);
+                    //}
+                }
                 
                 var projectDetailPage = 'visa';
                 if(syslang=='en') {
@@ -2407,12 +2485,7 @@ function listProjects(tableStart, query, more)
                 }
                 
                 $.each( d.data, function( key, aData ) {
-                    id = aData.id;
-                    title = aData.title;
-                    if(title == "") {
-                        title = 'untitled';
-                    }
-                    var path = '';
+                    path = '';
                     if(window.location.href.indexOf('(') > 0) {
                         path = window.location.href.split('(').shift().split('/');
                         path.pop();
@@ -2424,20 +2497,40 @@ function listProjects(tableStart, query, more)
                     } else {
                         path = window.location.href + projectDetailPage;
                     }
-
-                    title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '(' + id + ')">' + title + '</a>';
-                    participants = aData.participants;
-                    projectStartDate = aData.projectStartDate;
-                    projectEndDate = aData.projectEndDate;
+                    
+                    id = aData.id;
+                    
+                    curtailed = aData.curtailed;
+                    endDate = aData.endDate;
+                    managingOrganisationId = aData.managingOrganisationId;
+                    managingOrganisationName = aData.managingOrganisationName;
+                    managingOrganisationType = aData.managingOrganisationType;
+                    organisationId = aData.organisationId;
+                    organisationName = aData.organisationName;
+                    organisationType = aData.organisationType;
+                    participantId = aData.participantId;
+                    participantName = aData.participantName;
+                    participantOrganisationId = aData.participantOrganisationId;
+                    participantOrganisationName = aData.participantOrganisationName;
+                    participantOrganisationType = aData.participantOrganisationType;
+                    participantRole = aData.participantRole;
+                    projectDescription = aData.projectDescription;
+                    projectDescriptionType = aData.projectDescriptionType;
                     projectStatus = aData.projectStatus;
+                    projectTitle = aData.projectTitle;
+                    projectType = aData.projectType;
+                    startDate = aData.startDate;
+                    visibility = aData.visibility;
+
+                    if(projectTitle) projectTitle = '<a href="' + path + '/' + projectTitle.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '(' + id + ')">' + projectTitle + '</a>';
                     
                     var template = $('#solrProjectTemplate').html();
 
                     template = template.replace('###id###', id);
-                    template = template.replace('###title###', title);
-                    template = template.replace('###participants###', participants);
-                    template = template.replace('###projectStartDate###', projectStartDate);
-                    template = template.replace('###projectEndDate###', projectEndDate);
+                    template = template.replace('###title###', projectTitle);
+                    template = template.replace('###participants###', participantName);
+                    template = template.replace('###projectStartDate###', startDate.substr(0,10));
+                    template = template.replace('###projectEndDate###', endDate.substr(0,10));
                     template = template.replace('###projectStatus###', projectStatus);
                     
                     $('#lthsolr_projects_container').append(template);
@@ -2456,8 +2549,8 @@ function listProjects(tableStart, query, more)
                     $('#lthsolr_projects_container').append(tempMore);
                 }
                 /*if(!mobileCheck()) {
-                    $('#lthsolr_projects_container').parent().height($('#lthsolr_publications_container').height());
-                    $('#lth_solr_facet_container').height($('#lthsolr_publications_container').height());
+                    $('#lthsolr_projects_container').parent().height($('#lthsolr_projects_container').height());
+                    $('#lth_solr_facet_container').height($('#lthsolr_projects_container').height());
                     $('#lthsolr_projects_container, #lth_solr_facet_container').css('float','left');
                 }*/
             }
@@ -2468,10 +2561,12 @@ function listProjects(tableStart, query, more)
 
 function showProject()
 {
-    var id, title, participants, projectStartDate, projectEndDate, projectStatus, description;
+    var id, projectTitle, curtailed, endDate, managingOrganisationId, managingOrganisationName, managingOrganisationType;
+    var organisationId, organisationName, organisationType, participantId, participantName, participantOrganisationId;
+    var participantOrganisationName, participantOrganisationType, participantRole, participants, projectStatus, projectType, startDate, visibility;
+    var projectTitle, projectDescription, projectDescriptionType, homepage;
     
-    var lth_solr_staffdetailpage = $('#lth_solr_staffdetailpage').val();
-    var lth_solr_publicationdetailpage = $('#lth_solr_publicationdetailpage').val();
+    var syslang = $('html').attr('lang');
     
     $.ajax({
         type : 'POST',
@@ -2479,45 +2574,93 @@ function showProject()
         data: {
             eID : 'lth_solr',
             action : 'showProject',
-            scope : $('#lth_solr_uuid').val(),
+            scope : $('#lth_solr_scope').val(),
             sys_language_uid : $('#sys_language_uid').val(),
             sid : Math.random(),
         },
         //contentType: "application/json; charset=utf-8",
         dataType: 'json',
         beforeSend: function () {
-            $('#lth_solr_projects_container').html('<img src="/fileadmin/templates/images/ajax-loader.gif" />');
+            $('#lthsolr_projects_container div').remove().append('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
         },
         success: function(d) {
             //console.log(d);
+            var staffDetailPage = 'visa';
+            if(syslang=='en') {
+                staffDetailPage = 'show';
+            }
             if(d.data) {
                 id = d.data.id;
-                title = d.data.title;
-                if(title == "") {
-                    title = 'untitled';
+                curtailed = d.data.curtailed;
+                endDate = d.data.endDate;
+                managingOrganisationName = d.data.managingOrganisationName;
+                organisationId = d.data.organisationId;
+                organisationName = d.data.organisationName;
+                organisationType = d.data.organisationType;
+                
+                if(d.data.participantId) {
+                    participantId = d.data.participantId;
+                    participantName = d.data.participantName;
+                    participantOrganisationId = d.data.participantOrganisationId;
+                    participantOrganisationName = d.data.participantOrganisationName;
+                    participantOrganisationType = d.data.participantOrganisationType;
+                    participantRole = d.data.participantRole;
+                    var participantIdArray = participantId.split(',');
+                    var participantNameArray = participantName.split(',');
+                    
+                    for (var j = 0; j < participantIdArray.length; j++) {
+                        homepage = window.location.href.split(staffDetailPage).shift() + staffDetailPage + '/' + 
+                                participantNameArray[j].trim().replace(' ','-') + '('+participantIdArray[j].trim()+')(participant)';
+                        participants += '<li><a href="' + homepage + '">' + participantNameArray[j].trim() + '</a></li>'
+                    }
+                    
+                    participants = '<div class="card"><div class="card-header" id="headingParticipants"><h5 class="mb-0">'+
+                    '<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseParticipants" aria-expanded="true" aria-controls="collapseParticipants">'+
+                        'Participants'+
+                    '</button></h5></div>'+
+                    '<div id="collapseParticipants" class="collapse" aria-labelledby="headingParticipants" data-parent="#lthSolrAccordion">'+
+                    '<div class="card-body"><ul class="list">' + participants + '</ul></div></div></div>';
                 }
-                participants = d.data.participants;
-                projectStartDate = d.data.projectStartDate;
-                projectEndDate = d.data.projectEndDate;
+                
+                if(d.data.projectDescription) {
+                    projectDescription = d.data.projectDescription;
+                    projectDescription = '<div class="card"><div class="card-header" id="headingDescription"><h5 class="mb-0">'+
+                    '<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">'+
+                        'Description'+
+                    '</button></h5></div>'+
+                    '<div id="collapseDescription" class="collapse show" aria-labelledby="headingDescription" data-parent="#lthSolrAccordion">'+
+                    '<div class="card-body">'+ projectDescription + '</div></div></div>';
+                }
+                
+                projectDescriptionType = d.data.projectDescriptionType;
                 projectStatus = d.data.projectStatus;
-                description = d.data.description;
+                projectTitle = d.data.projectTitle;
+                projectType = d.data.projectType;
+                startDate = d.data.startDate;
+                visibility = d.data.visibility;
                 
                 var template = $('#solrProjectTemplate').html();
-
-                template = template.replace('###title###', title);
+               
+                template = template.replace('###endDate###', endDate.substr(0,12));
+                template = template.replace('###managingOrganisationName###', managingOrganisationName);
+                template = template.replace('###organisationId###', organisationId);
+                template = template.replace('###organisationName###', organisationName);
+                template = template.replace('###organisationType###', organisationType);
                 template = template.replace('###participants###', participants);
-                template = template.replace('###projectStartDate###', projectStartDate);
-                template = template.replace('###projectEndDate###', projectEndDate);
+                template = template.replace('###projectDescription###', projectDescription);
+                template = template.replace('###projectDescriptionType###', projectDescriptionType);
                 template = template.replace('###projectStatus###', projectStatus);
-                template = template.replace('###description###', description);
+                template = template.replace('###projectType###', projectType);
+                template = template.replace('###startDate###', startDate.substr(0,12));
+                template = template.replace('###visibility###', d.data.visibility);
 
-                $('#lth_solr_projects_container').html(template);
+                $('#lthsolr_projects_container').html(template);
                 
-                if(!description) {
+                if(!projectDescription) {
                     $('.more-content').parent().remove();
                 }
                     
-                $('#page_title h1').text(title);
+                $('#page_title h1, article h1').text(projectTitle);
             }
         }
     });
@@ -2740,7 +2883,7 @@ function showStaff()
                     }
 
                     //Change page main header
-                    $('#page_title h1').text(displayName).append('<h2>'+title+'</h2>');
+                    $('#page_title h1, article h1').text(displayName).append('<h2>'+title+'</h2>');
                     
                     //template = template.replace('###title###', titleCase(title));
                     //template = template.replace('###phone###', addBreak(phone));

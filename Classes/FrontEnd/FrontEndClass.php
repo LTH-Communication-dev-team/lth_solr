@@ -102,6 +102,62 @@ class FrontEndClass
         return $content;
     }
     
+    public function showProject($uuid)
+    {
+        $lth_solr_uuid['projects'][] = $uuid;
+        if(count($lth_solr_uuid > 0)) {
+            $scope = urlencode(json_encode($lth_solr_uuid));
+        }
+        
+        //Buttons
+        $content = '<div class="accordion" id="lthSolrAccordion">';
+
+        //Project
+        $content .= '<div id="lthsolr_projects_container"><div id="lthsolr_projects_header"></div></div>';
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_presentation.html");
+        
+        //Publications
+        $content .= '<div class="card">
+            <div class="card-header" id="headingPublications"><h5 class="mb-0">
+        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapsePublications" aria-expanded="true" aria-controls="collapsePublications">
+          Publications
+        </button>
+      </h5>
+    </div>
+    <div id="collapsePublications" class="collapse" aria-labelledby="headingOne" data-parent="#lthSolrAccordion">
+      <div class="card-body">';
+        $content .= $this->listPublications($scope, '', '', '', '', '', '', 'showProject','fullList','');
+        $content .= '</div></div></div>';
+        
+        $content .= '</div>';
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_list.html");
+        
+        //mapModal
+        $content .= '<!-- projectModal -->
+            <div id="projectModal" class="modal fade" role="dialog">
+              <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h1 class="modal-title">???</h1>
+                  </div>
+                  <div class="modal-body" style="position:relative;font-size:14px;font-weight:bold;">
+                   </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>';
+
+        $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+                <input type="hidden" id="lth_solr_action" value="showProject" />';
+        
+        return $content;
+    }
+    
     
     public function showStaff($uuid, $html_template, $noItemsToShow)
     {      
@@ -125,7 +181,7 @@ class FrontEndClass
 
         //Publications
         //$content .= '<div id="lthsolr_publications_container"><div id="lthsolr_publications_header"></div></div>';
-        $content .= $this->listPublications('', '', '', '', '', '', '', 'list','','');
+        $content .= $this->listPublications($scope, '', '', '', '', '', '', 'showStaff','fullList','');
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_list.html");
 
         //Projects
@@ -279,8 +335,7 @@ class FrontEndClass
         $content .= '</div>';*/
         
         
-        
-        if($display === 'publications' || $display==='comingdissertations') {
+        if($display === 'publications' || $display==='comingdissertations' || $display === 'showProject' || $display === 'showStaff') {
             if($displayLayout==='fullList') {
                 $content .= '<div style="clear:both;width:100%;height:20px;margin:15px 0px 15px 0px;border-top:3px #000 solid;">'
                         . '<div style="float:left;" id="lthsolr_publications_header"></div>'
@@ -296,7 +351,7 @@ class FrontEndClass
             }
         }
 
-        if($scope) {
+        //if($scope) {
             if($display==='publications') {
                 $content .= '<input type="hidden" id="lth_solr_action" value="listPublications" />';
             } else if($display==='comingdissertations') {
@@ -310,7 +365,7 @@ class FrontEndClass
                 <input type="hidden" id="lth_solr_publicationCategories" value="' . $publicationCategories . '" />
                 <input type="hidden" id="lth_solr_publicationCategoriesSwitch" value="' . $publicationCategoriesSwitch . '" />
                 <input type="hidden" id="lth_solr_displayFromSimpleList" value="' . $displayFromSimpleList . '" />'; 
-        }
+        //}
         $content .= '<input type="hidden" id="lth_solr_display" value="' . $display . '" />';
         $content .= '<input type="hidden" id="lth_solr_displayLayout" value="' . $displayLayout . '" />';
 
@@ -357,10 +412,11 @@ class FrontEndClass
 
     public function showPublication($uuid)
     {
+        
         $content = '<div id="lth_solr_container" ></div>';
 
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_presentation.html");
-
+        
         $content = str_replace('###more###', "more", $content);
 
         $content .= '

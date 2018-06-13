@@ -620,19 +620,25 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
             }
             if($key === "fe_groups") {
                 $term .= "organisationSourceId:" . implode(' OR organisationSourceId:', $value);
-            } else {
+            } else if($key === "fe_users") {
                 $term .= "authorId:" . implode(' OR authorId:', $value);
+            } else if($key === "projects") {
+                $term .= "relatedProjectId:" . implode(' OR relatedProjectId:', $value);
             }
         }
+        $term = " AND ($term) ";
     }
 
     $listComingDissertations = '';
     if($action==='listComingDissertations') {
         $listComingDissertations = ' AND awardDate:[' . $currentDate . ' TO *]';
     }
-    $queryToSet = 'docType:publication' . $listComingDissertations . ' AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . '] AND (' . $term . ')' . $keyword . $publicationSelection . $filterQuery;
+    $queryToSet = 'docType:publication' . $listComingDissertations . ' AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . ']' . $term . $keyword . $publicationSelection . $filterQuery;
+
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
+    if(!$tableStart) $tableStart = 0;
+    if(!$tableLength) $tableLength = 10;
     $query->setStart($tableStart)->setRows($tableLength);
     
     // get the facetset component
@@ -1301,7 +1307,7 @@ function listProjects($scope, $syslang, $config, $tableLength, $tableStart, $fil
     
     if($filterQuery) {
         $filterQuery = str_replace(" ","\ ",$filterQuery);
-        $filterQuery = " AND ((projectTitle:*$filterQuery*) OR paticipant:*$filterQuery*)";
+        $filterQuery = " AND ((projectTitle:*$filterQuery*) OR participantName:*$filterQuery*)";
     }
     
     if($scope) {
@@ -1311,44 +1317,103 @@ function listProjects($scope, $syslang, $config, $tableLength, $tableStart, $fil
             if($term) {
                 $term .= " OR ";
             }
-            if($key === "fe_groups") {
-                $term .= "organisationSourceId:$value[0]";
-            } else {
-                $term .= "authorId:$value[0]";
-            }
+            $term .= "organisationSourceId:$value[0]";
         }
     }
 
-    $query->setQuery('docType:upmproject AND (' . $term . ')' . $filterQuery);
+    $query->setQuery('docType:project AND (' . $term . ')' . $filterQuery);
     //$query->addParam('rows', 1500);
     $query->setStart($tableStart)->setRows($tableLength);
+    
+    // get the facetset component
+    $facetSet = $query->getFacetSet();
+    
+    // create a facet field instance and set options
+    $facetSet->createFacetField('status')->setField('projectStatus');
+    $facetSet->createFacetField('type')->setField('projectType');
+
+    if($facet) {
+        $facetArray = json_decode($facet, true);
+        $facetQuery = '';
+        foreach($facetArray as $key => $value) {
+            $facetTempArray = explode('###', $value);
+            if($facetQuery) {
+                $facetQuery .= ' AND ';
+            }
+            $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"';
+        }
+        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
+    }
     
     $response = $client->select($query);
     
     $numFound = $response->getNumFound();
+    
+    // display facet query count
+    $facetStatus = $response->getFacetSet()->getFacet('status');
+    if($syslang==="en") {
+        $facetHeader = "Project Status";
+    } else {
+        $facetHeader = "Projektstatus";
+    }
+    foreach ($facetStatus as $value => $count) {
+        if($count > 0) $facetResult["status"][] = array($value, $count, $facetHeader);
+    }
+    
+    $facetType = $response->getFacetSet()->getFacet('type');
+    if($syslang==="en") {
+        $facetHeader = "Project Type";
+    } else {
+        $facetHeader = "Projekttyp";
+    }
+    foreach ($facetType as $value => $count) {
+        if($count > 0) $facetResult["type"][] = array($value, $count, $facetHeader);
+    }
         
     foreach ($response as $document) {     
         $data[] = array(
             'id' => $document->id,
-            'title' => $document->projectTitle,
-            'participants' => ucwords(strtolower($this->fixArray($document->participants))),
-            'projectStartDate' => substr($document->projectStartDate,0,10).'',
-            'projectEndDate' => substr($document->projectEndDate,0,10).'',
-            'projectStatus' => ucwords(strtolower(str_replace('_',' ',$document->projectStatus)))
+            
+            'curtailed' => $document->curtailed,
+            'endDate' => (string)$document->endDate,
+            'managingOrganisationId' => $document->managingOrganisationId,
+            'managingOrganisationName' => $document->managingOrganisationName,
+            'managingOrganisationType' => $document->managingOrganisationType,
+            'organisationId' => $this->fixArray($document->organisationId),
+            'organisationName' => $this->fixArray($document->organisationName),
+            'organisationType' => $this->fixArray($document->organisationType),
+            'participantId' => $this->fixArray($document->participantId),
+            'participantName' => $this->fixArray($document->participantName),
+            'participantOrganisationId' => $this->fixArray($document->participantOrganisationId),
+            'participantOrganisationName' => $this->fixArray($document->participantOrganisationName),
+            'participantOrganisationType' => $this->fixArray($document->participantOrganisationType),
+            'participantRole' => $this->fixArray($document->participantRole),
+            'projectDescription' => $this->fixArray($document->projectDescription),
+            'projectDescriptionType' => $this->fixArray($document->projectDescriptionType),
+            'projectStatus' => $document->projectStatus,
+            'projectTitle' => $document->projectTitle,
+            'projectType' => $document->projectType,
+            'startDate' => (string)$document->startDate,
+            'visibility' => $document->visibility,
         );
     }
-    $resArray = array('data' => $data, 'numFound'=> $numFound);
+    $resArray = array('data' => $data, 'facet' => $facetResult, 'numFound'=> $numFound);
     return json_encode($resArray);
 }
 
 
-function showProject($term, $syslang, $config)
+function showProject($scope, $syslang, $config)
 {
     $client = new Solarium\Client($config);
 
     $query = $client->createSelect();
+    
+    if($scope) {
+        $scope = json_decode(urldecode($scope),true);
+        $scope = $scope['projects'][0];
+    }
 
-    $query->setQuery('id:'.$term);
+    $query->setQuery('id:'.$scope);
     
     $response = $client->select($query);
     
@@ -1357,12 +1422,26 @@ function showProject($term, $syslang, $config)
     foreach ($response as $document) {     
         $data = array(
             'id' => $document->id,
-            'title' => $document->projectTitle,
-            'participants' => ucwords(strtolower($this->fixArray($document->participants))),
-            'projectStartDate' => substr($document->projectStartDate,0,10).'',
-            'projectEndDate' => substr($document->projectEndDate,0,10).'',
-            'projectStatus' => ucwords(strtolower(str_replace('_',' ',$document->projectStatus))),
-            'description' => $document->abstract,
+            'curtailed' => $document->curtailed,
+            'endDate' => (string)$document->endDate,
+            'managingOrganisationId' => $document->managingOrganisationId,
+            'managingOrganisationName' => $document->managingOrganisationName,
+            'managingOrganisationType' => $document->managingOrganisationType,
+            'organisationId' => $this->fixArray($document->organisationId),
+            'organisationName' => $this->fixArray($document->organisationName),
+            'organisationType' => $this->fixArray($document->organisationType),
+            'participantId' => $this->fixArray($document->participantId),
+            'participantName' => $this->fixArray($document->participantName),
+            'participantOrganisationId' => $this->fixArray($document->participantOrganisationId),
+            'participantOrganisationName' => $this->fixArray($document->participantOrganisationName),
+            'participantOrganisationType' => $this->fixArray($document->participantOrganisationType),
+            'participantRole' => $this->fixArray($document->participantRole),
+            'projectDescription' => $this->fixArray($document->projectDescription),
+            'projectStatus' => $document->projectStatus,
+            'projectTitle' => $document->projectTitle,
+            'projectType' => $document->projectType,
+            'startDate' => (string)$document->startDate,
+            'visibility' => $document->visibility,
         );
     }
     $resArray = array('data' => $data);

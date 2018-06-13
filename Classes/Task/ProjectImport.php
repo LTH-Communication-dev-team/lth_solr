@@ -34,26 +34,30 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 )
             )
         );
+        $solrLucrisApiKey = $settings['solrLucrisApiKey'];
+        $solrLucrisApiVersion = $settings['solrLucrisApiVersion'];
         
-        $dbhost = $settings['dbhost'];
-        $db = $settings['db'];
-        $user = $settings['user'];
-        $pw = $settings['pw'];
-
-        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("43; ".mysqli_error());
-        
-        $heritageArray = $this->getHeritage($con);
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($heritageArray, true), 'crdate' => time()));
         $client = new \Solarium\Client($config);
-        
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(200);
+        
+        $mode = 'reindex';
+        
+        $startFromHere = 0;
+        
+        if($mode==='') {
+            $executionSucceeded = $this->getFiles($startFromHere, $solrLucrisApiKey, $solrLucrisApiVersion);        
+        }
+        
+        if($mode==='reindex') {
+            //$this->deleteOldProjects($client);
+        }
 
         $current_date = gmDate("Y-m-d\TH:i:s\Z");
         
         //Get last modified
         $query = $client->createSelect();
-        $query->setQuery('docType:upmproject');
+        $query->setQuery('docType:project');
         //$query->addSort('tstamp', $query::SORT_DESC);
         $query->setStart(0)->setRows(1);
         $response = $client->select($query);
@@ -62,21 +66,39 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $lastModified = $document->changed;
         }
 
-        //$GLOBALS['TYPO3_DB']->exec_DELETEquery("tx_lthsolr_lucrisdata", "lucris_type='upmproject'");
+        $heritageArray = $this->getHeritage($client);
 
-	$executionSucceeded = $this->getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified, $heritageArray,  $syslang);
+	$executionSucceeded = $this->getProjects($config, $client, $buffer, $current_date, $maximumrecords, 
+                $settings, $lastModified, $heritageArray, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion, $mode);
         
-        //$executionSucceeded = $this->deleteOldProjects($client);
+        $syslang = "en";
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+        $client = new \Solarium\Client($config);
+
+        $buffer = $client->getPlugin('bufferedadd');
+        $buffer->setBufferSize(200);
         
+        $executionSucceeded = $this->getProjects($config, $client, $buffer, $current_date, $maximumrecords, 
+                $settings, $lastModified, $heritageArray, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion, $mode);
+                
 	return $executionSucceeded;
     }
     
     
-    /*function deleteOldProjects($client)
+    function deleteOldProjects($client)
     {
         try {
             $query = $client->createSelect();
-            $query->setQuery('doctype:upmproject');
+            $query->setQuery('docType:project');
             $query->setStart(0)->setRows(1000000);
             $response = $client->select($query);
         } catch(Exception $e) {
@@ -85,191 +107,229 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         foreach ($response as $document) {
             $id = $document->id;
-            $xmlpath = "https://lucris.lub.lu.se/ws/rest/upmprojects?uuids.uuid=" . $id;
-            $xml = file_get_contents($xmlpath);
-            $xml = simplexml_load_string($xml);
             
-            if($xml->children('core', true)->count == 0) {
-                $update = $client->createUpdate();
-                $update->addDeleteById($id);
-                $update->addCommit();
-                $result = $client->update($update);
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $id, 'crdate' => time()));
-            }
+            $update = $client->createUpdate();
+            $update->addDeleteById($id);
+            $update->addCommit();
+            $result = $client->update($update);
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $id, 'crdate' => time()));
         }
         
         return TRUE;
     }
-*/
+
     
-    function getUpmprojects($config, $client, $buffer, $current_date, $maximumrecords, $numberofloops, $settings, $lastModified, $heritageArray,  $syslang)
+    function getProjects($config, $client, $buffer, $current_date, $maximumrecords, 
+            $settings, $lastModified, $heritageArray, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion, $mode)
     {
-        $lucrisProjectsArray = array();
         $heritageArray = $heritageArray[0];
-        $i = 0;
-        for($i = 0; $i < $numberofloops; $i++) {
-            //echo $i.':'. $numberofloops . '<br />';
+        $directory = '/var/www/html/typo3/lucrisdump';
 
-            $startrecord = $i * $maximumrecords;
-            if($startrecord > 0) $startrecord++;
-
-            $lucrisId = $settings['solrLucrisId'];
-            $lucrisPw = $settings['solrLucrisPw'];
-
-            $xmlpath = "https://lucris.lub.lu.se/ws/rest/upmprojects?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/upmprojects?window.size=1&window.offset=1&orderBy.property=id&rendering=xml_long";
-            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/upmprojects?uuids.uuid=e5df23b5-415b-4a1b-82fa-3bafb26fbaba&rendering=xml_long";
-
-            try {
-                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '200: ' . $xmlpath, 'crdate' => time()));
-                $xml = file_get_contents($xmlpath);
-            } catch(Exception $e) {
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '500: ' . $xmlpath, 'crdate' => time()));
-            }
-            $xml = simplexml_load_string($xml);
+        if($mode === '' && $syslang==='sv') {
+            $fileArray = scandir($directory . '/projectstoindex');
+        } else if($syslang==='en') {
+            $fileArray = scandir($directory . '/svindexedprojects');
+        } else if($mode === 'reindex' && $syslang==='sv') {
+            $fileArray = scandir($directory . '/indexedprojects');
+        }
             
-            if($xml->children('core', true)->count == 0) {
-                return "no items";
+        $fileArray = array_slice($fileArray, 2);
+        
+        foreach ($fileArray as $filekey => $filename) {
+            if($mode === '' && $syslang==='sv') {
+                $xmlpath = $directory . '/projectstoindex/' . $filename;
+            } else if($syslang==='en') {
+                $xmlpath = $directory . '/svindexedprojects/' . $filename;
+            } else if($mode === 'reindex' && $syslang==='sv') {
+                $xmlpath = $directory . '/indexedprojects/' . $filename;
             }
 
-            $numberofloops = ceil($xml->children('core', true)->count / 20);
+            $xml = @file_get_contents($xmlpath);
+            
+            $xml = @simplexml_load_string($xml);
 
-            foreach($xml->xpath('//core:result//core:content') as $content) {
-                $id = '';
-                $portalUrl = '';
-                $created = '';
-                $modified = '';
-                $title_en = '';
-                $title_sv = '';
-                $title = '';
-                $startDate = '';
-                $endDate = '';
-                $status = '';
-                $managedById = '';
-                $managedByName_en = '';
-                $managedByName_sv = '';
-                $managedByName = '';
-                $organisationId = array();
-                $organisationName_en = array();
-                $organisationName_sv = array();
-                $organisationName = array();
-                $organisationSourceId = array();
-                $participants = array();
-                $participantsId = array();
-                $descriptions_en = '';
-                $descriptions_sv = '';
-                $descriptions = '';
-                $heritage = array();
-                
-                //id
-                $id = (string)$content->attributes();
+            $projectTitle = '';
+            $projectTitle_en = '';
+            $projectTitle_sv = '';
+            
+            $projectType = '';
+            $projectType_en = '';
+            $projectType_sv = '';
+            
+            $projectStatus = '';
+            $projectStatus_en = '';
+            $projectStatus_sv = '';
+            
+            $projectDescriptionType = array();
+            $descriptionType_en = '';
+            $descriptionType_sv = '';
+            $projectDescription = array();
+            $description_en = '';
+            $description_sv = '';
+            
+            $participantId = array();
+            $participantName = array();
+            $name_en = '';
+            $name_sv = '';
+            $participantRole = array();
+            $personRole_en = '';
+            $personRole_sv = '';
+            $participantOrganisationId = array();
+            $participantOrganisationName = array();
+            $organisationId = array();
+            $organisationName = array();
+            $organisationType = array();
+            $organisationalUnitName_en = '';
+            $organisationalUnitName_sv = '';
+            $participantOrganisationType = array();
+            $organisationalUnitType_en = '';
+            $organisationalUnitType_sv = '';
+            $organisationSourceId = array();
+            
+            $managingOrganisationId = ''; //NEW!added
+            $managingOrganisationName = ''; //NEW!added
+            $managingOrganisationalunitName_en = '';
+            $managingOrganisationalunitName_sv = '';
+            $managingOrganisationType = ''; //NEW!added
+            $managingOrganisationalunitType_en = '';
+            $managingOrganisationalunitType_sv = '';
 
-                //portalUrl
-                $portalUrl = (string)$content->children('core',true)->portalUrl;
-                
-                //created
-                $created = (string)$content->children('core',true)->created;
-                
-                //modified
-                $modified = (string)$content->children('core',true)->modified;
-                
-                //title
-                if($content->children('stab',true)->title) {
-                    foreach($content->children('stab',true)->title->children('core',true)->localizedString as $title) {
-                        if($title->attributes()->locale == 'en_GB') {
-                            $title_en = (string)$title;
-                        } else {
-                            $title_en = '';
-                        }
-                        if($title->attributes()->locale == 'sv_SE') {
-                            $title_sv = (string)$title;
-                        } else {
-                            $title_sv = '';
-                        }
-                    }
-                }
-                
-                //startEndDate
-                if($content->children('stab',true)->startEndDate) {
-                    $startDate = $content->children('stab',true)->startEndDate->children('extensions-core', true)->startDate;
-                    $endDate = $content->children('stab',true)->startEndDate->children('extensions-core', true)->endDate;
-                }
+            $startDate = '';
+            $endDate = '';
+            
+            $curtailed = '';
+            $visibility = '';
+            $visibility_en = '';
+            $visibility_sv = '';
+                    
+            $createdDate = '';
+            $modifiedDate = '';
+            $portalUrl = '';
+            
+            $heritage = array();
+            
+            $id = (string)$xml->attributes();
 
-                //status
-                if($content->children('stab',true)->status) {
-                    $status = $content->children('stab',true)->status;
-                }
-                
+            //projectTitle
+            if($xml->title) {
+                $projectTitle_en = (string)$xml->title[0];
+                $projectTitle_sv = (string)$xml->title[1];
+                $projectTitle = $this->languageSelector($syslang, $projectTitle_en, $projectTitle_sv);
+            }
+            
+            //projectType
+            if($xml->type) {
+                $projectType_en = (string)$xml->type[0];
+                $projectType_sv = (string)$xml->type[1];
+                $projectType = $this->languageSelector($syslang, $projectType_en, $projectType_sv);
+            }
+            
+            //projectStatus
+            if($xml->status) {
+                $projectStatus_en = (string)$xml->status[0];
+                $projectStatus_sv = (string)$xml->status[1];
+                $projectStatus = $this->languageSelector($syslang, $projectStatus_en, $projectStatus_sv);
+            }
+
+            foreach((array)$xml as $key => $value) {
                 //descriptions
-                if($content->children('stab',true)->descriptions) {
-                    foreach($content->children('stab',true)->descriptions as $descriptions) {
-                        if($descriptions->children('extensions-core',true)->classificationDefinedField) {
-                            foreach($descriptions->children('extensions-core',true)->classificationDefinedField->children('extensions-core',true)->value->children('core',true)->localizedString as $localizedString) {
-                                if($localizedString->attributes()->locale == 'en_GB') {
-                                    $descriptions_en = (string)$localizedString;
-                                }
-                                if($localizedString->attributes()->locale == 'sv_SE') {
-                                    $descriptions_sv = (string)$localizedString;
-                                }
-                            }
-                        }
+                if($key === 'descriptions') {
+                    //die($this->debug($value));
+                    foreach($value->description as $description) {
+                       //die($this->debug($description->attributes()));
+                        if((string)$description->attributes()->locale === 'en_GB') $descriptionType_en = (string)$description->attributes()->type;
+                        if((string)$description->attributes()->locale === 'sv_SE') $descriptionType_sv = (string)$description->attributes()->type;
+                        
+                        if((string)$description->attributes()->locale === 'en_GB') $description_en = (string)$description;
+                        if((string)$description->attributes()->locale === 'sv_SE') $description_sv = (string)$description;
+                        
                     }
+                    $projectDescriptionType[] = $this->languageSelector($syslang, $descriptionType_en, $descriptionType_sv);
+                    $projectDescription[] = $this->languageSelector($syslang, $description_en, $description_sv);
                 }
                 
                 //participants
-                if($content->children('stab',true)->participants) {
-                    foreach($content->children('stab',true)->participants->children('stab',true)->participantAssociation as $participantAssociation) {
-                        if($participantAssociation->children('person-template',true)->person) {
-                            $participantsId[] = (string)$participantAssociation->children('person-template',true)->person->attributes();
-                            $participants[] = $participantAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->firstName . ' ' . 
-                                $participantAssociation->children('person-template',true)->person->children('person-template',true)->name->children('core',true)->lastName;
+                if($key === 'participants') {
+                    foreach($value->participant as $participant) {
+                        if($participant->person) {
+                            $participantId[] = (string)$participant->person->attributes();
+                            if($participant->person->name[0]) $name_en = (string)$participant->person->name[0];
+                            if($participant->person->name[1]) $name_sv = (string)$participant->person->name[1];
+                            $participantName[] = $this->languageSelector($syslang, $name_en, $name_sv);
                         }
+                        if($participant->personRole) {
+                            $personRole_en = (string)$participant->personRole[0];
+                            $personRole_sv = (string)$participant->personRole[1];
+                            $participantRole[] = $this->languageSelector($syslang, $personRole_en, $personRole_sv);
+                        }
+                        if($participant->organisationalUnits) {
+                            foreach($participant->organisationalUnits->organisationalUnit as $organisationalUnit) {
+                                $participantOrganisationId[] = (string)$organisationalUnit->attributes();
+                                if($organisationalUnit->name[0]) $organisationalUnitName_en = (string)$organisationalUnit->name[0];
+                                if($organisationalUnit->name[1]) $organisationalUnitName_sv = (string)$organisationalUnit->name[1];
+                                $participantOrganisationName[] = $this->languageSelector($syslang, $organisationalUnitName_en, $organisationalUnitName_sv);
+                                if($organisationalUnit->type[0])  $organisationalUnitType_en = (string)$organisationalUnit->type[0];
+                                if($organisationalUnit->type[1]) $organisationalUnitType_sv = (string)$organisationalUnit->type[1];
+                                $participantOrganisationType[] = $this->languageSelector($syslang, $organisationalUnitType_en, $organisationalUnitType_sv);
+                            }
+                        }
+                        
                     }
                 }
                 
-                                
-                //managedBy
-                if($content->children('stab1',true)->managedBy) {
-                    foreach($content->children('stab1',true)->managedBy as $managedBy) {
-                        if($managedBy->children('organisation-template',true)->name) {
-                            foreach($managedBy->children('organisation-template',true)->name->children('core',true)->localizedString as $localizedString) {
-                                if($localizedString->attributes()->locale == 'en_GB') {
-                                    $managedByName_en = (string)$localizedString;
-                                }
-                                if($localizedString->attributes()->locale == 'sv_SE') {
-                                    $managedByName_sv = (string)$localizedString;
-                                }
-                            }
-                            
-                        }
-                        if($managedBy->children('organisation-template',true)->external) {
-                            $organisationSourceId[] = (string)$managedBy->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
-                            $managedById = (string)$managedBy->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
-                        }
-                    }
-                }
+                //Organisationalunit
+                if($key === 'organisationalUnits') {
 
-                //organisations
-                if($content->children('stab',true)->organisations) {
-                    foreach($content->children('stab',true)->organisations->children('organisation-template',true)->organisation as $organisation) {
-                        $organisationId[] = (string)$organisation->attributes();
-                        if($organisation->children('organisation-template',true)->name) {
-                            foreach($organisation->children('organisation-template',true)->name->children('core',true) as $localizedString) {
-                                if($localizedString->attributes()->locale == 'en_GB') {
-                                    $organisationName_en[] = (string)$localizedString;
-                                }
-                                if($localizedString->attributes()->locale == 'sv_SE') {
-                                    $organisationName_sv[] = (string)$localizedString;
-                                }
-                            }
-                        }
-                        if($organisation->children('organisation-template',true)->external) {
-                            $organisationSourceId[] = (string)$organisation->children('organisation-template',true)->external->children('extensions-core',true)->sourceId;
-                        }
+                    foreach($value->organisationalUnit as $organisationalUnit) {
+                        $organisationId[] = (string)$organisationalUnit->attributes();
+                        if($organisationalUnit->name[0]) $organisationName_en = (string)$organisationalUnit->name[0];
+                        if($organisationalUnit->name[1]) $organisationName_sv = (string)$organisationalUnit->name[1];
+                        $organisationName[] = $this->languageSelector($syslang, $organisationName_en, $organisationName_sv);
+                        if($organisationalUnit->type[0]) $organisationType_en = (string)$organisationalUnit->type[0];
+                        if($organisationalUnit->type[1]) $organisationType_sv = (string)$organisationalUnit->type[1];
+                        $organisationType[] = $this->languageSelector($syslang, $organisationType_en, $organisationType_sv);
                     }
                 }
-                       
-                foreach($organisationSourceId as $key1 => $value1) {
+                
+                //managingOrganisationalunit
+                if($key === 'managingOrganisationalUnit') {
+                    $managingOrganisationId = (string)$value->attributes();
+                    if($value->name[0]) $managingOrganisationalunitName_en = (string)$value->name[0];
+                    if($value->name[1]) $managingOrganisationalunitName_sv = (string)$value->name[1];
+                    $managingOrganisationName = $this->languageSelector($syslang, $managingOrganisationalunitName_en, $managingOrganisationalunitName_sv);
+                    if($value->type[0]) $managingOrganisationalunitType_en = (string)$value->type[0];
+                    if($value->type[1]) $managingOrganisationalunitType_sv = (string)$value->type[1];
+                    $managingOrganisationType = $this->languageSelector($syslang, $managingOrganisationalunitType_en, $managingOrganisationalunitType_sv);
+                }
+                
+                //period
+                if($key === 'period') {
+                    $startDate = (string)$value->startDate;
+                    $endDate = (string)$value->endDate;
+                }
+                
+                //curtailed
+                if($key === 'curtailed') {
+                    $curtailed = (string)$value;
+                }
+                
+                //visibility
+                if($key === 'visibility') {
+                    if($value[0]) $visibility_en = (string)$value[0];
+                    if($value[1]) $visibility_sv = (string)$value[1];
+                    $visibility = $this->languageSelector($syslang, $visibility_en, $visibility_sv);
+                }
+                
+                //info
+                if($key === 'info') {
+                    $createdDate = (string)$value->createdDate;
+                    $modifiedDate = (string)$value->modifiedDate;
+                    $portalUrl = (string)$value->portalUrl;
+                }
+            }
+            
+            if($organisationId) {
+                foreach($organisationId as $key1 => $value1) {
                     $heritage[] = $value1;
                     $parent = $heritageArray[$value1];
 
@@ -314,62 +374,52 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     array_filter($heritage);
                     $organisationSourceId = array_unique($heritage);
                 }
-                
-                $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($organisationSourceId, true), 'crdate' => time()));
-
-                if($syslang==="sv") {
-                    $title = $title_sv;
-                    $organisationName = $organisationName_sv;
-                    $descriptions = $descriptions_sv;
-                    $managedByName = $managedByName_sv;
-                } else {
-                    $title = $title_en;
-                    $organisationName = $organisationName_en;
-                    $descriptions = $descriptions_en;
-                    $managedByName = $managedByName_en;
-                }
-                
-                if(!$title && $title_en) {
-                    $title = $title_en;
-                }
-                if(!$title && $title_sv) {
-                    $title = $title_sv;
-                }
-                
-                if(!$descriptions && $descriptions_en) {
-                    $descriptions = $descriptions_en;
-                }
-                if(!$descriptions && $descriptions_sv) {
-                    $descriptions = $descriptions_sv;
-                }
-                
-                $data = array(
-                    'abstract' => $descriptions,
-                    'appKey' => 'lthsolr',
-                    'id' => $id,
-                    'docType' => 'upmproject',
-                    'managedById' => $managedById,
-                    'managedByName' => $managedByName,
-                    'organisationId' => $organisationId,
-                    'organisationName' => $organisationName,
-                    'organisationSourceId' => $organisationSourceId,                   
-                    'portalUrl' => $portalUrl,
-                    'projectStartDate' => $this->makeGmDate($startDate),
-                    'projectEndDate' => $this->makeGmDate($endDate),
-                    'projectStatus' => $status,
-                    'participants' => $participants,
-                    'participantsId' => $participantsId,
-                    'projectTitle' => $title,
-                    'type' => 'upmproject',
-                    'boost' => '1.0',
-                    'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($created)),
-                    'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modified)),
-                    'digest' => md5($id)
-                );
-                //$this->debug($data);
-                $buffer->createDocument($data);
-                //$GLOBALS["TYPO3_DB"]->exec_INSERTquery("tx_lthsolr_lucrisdata", array("lucris_id" => $id, "lucris_type" => "upmproject"));
             }
+                    
+            $data = array(
+                'appKey' => 'lthsolr',
+                'boost' => '1.0',
+                'curtailed' => $curtailed,
+                'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($createdDate)),
+                'digest' => md5($id),
+                'docType' => 'project',
+                'endDate' => $this->makeGmDate($endDate),
+                'id' => $id,
+                'managingOrganisationId' => $managingOrganisationId,
+                'managingOrganisationName' => $managingOrganisationName,
+                'managingOrganisationType' => $managingOrganisationType,
+                'organisationId' => $organisationId,
+                'organisationName' => $organisationName,
+                'organisationSourceId' => $organisationSourceId,
+                'organisationType' => $organisationType,
+                'participantId' => $participantId,
+                'participantName' => $participantName,
+                'participantOrganisationId' => $participantOrganisationId,
+                'participantOrganisationName' => $participantOrganisationName,
+                'participantOrganisationType' => $participantOrganisationType,
+                'participantRole' => $participantRole,
+                'projectDescription' => $projectDescription,
+                'projectDescriptionType' => $projectDescriptionType,
+                'projectStatus' => $projectStatus,
+                'projectTitle' => $projectTitle,
+                'projectType' => $projectType,
+                'startDate' => $this->makeGmDate($startDate),
+                'tstamp' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modifiedDate)),
+                'type' => 'project',
+                'visibility' => $visibility,
+            );
+            //die($this->debug($data));
+            //
+            //move files
+            if($mode === '' && $syslang==='sv') {
+                rename($directory . '/projectstoindex/' . $filename, $directory . '/svindexedprojects/' . $filename);
+            } else if($syslang==='en') {
+                rename($directory . '/svindexedprojects/' . $filename, $directory . '/indexedprojects/' . $filename);
+            } else if($mode === 'reindex' && $syslang==='sv') {
+                rename($directory . '/indexedprojects/' . $filename, $directory . '/svindexedprojects/' . $filename);
+            }
+
+            $buffer->createDocument($data);
         }
         $buffer->commit();
         
@@ -380,7 +430,86 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function getHeritage($con)
+    function getFiles($startFromHere, $solrLucrisApiKey, $solrLucrisApiVersion)
+    {
+        
+        $directory = '/var/www/html/typo3/lucrisdump';
+        
+        $numberOfFilesAlreadyIndexed = count( scandir($directory.'/projectstoindex') ) - 2;
+        if($numberOfFilesAlreadyIndexed > 0) {
+            $startFromHere = $numberOfFilesAlreadyIndexed;
+        }
+        
+        for($i = 0; $i <= $numberofloops; $i++) {
+            
+            $startrecord = $startFromHere + ($i * 20);
+            
+            $xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/projects?size=20&offset=$startrecord&apiKey=$solrLucrisApiKey";
+                    
+            $xml = file_get_contents($xmlpath);
+        
+            $xml = @simplexml_load_string($xml);
+
+            $numberofloops = ceil($xml->count / 20);
+            
+            foreach($xml->project as $project) {
+                $id = (string)$project->attributes();
+                $project->asXml($directory . '/projectstoindex/' . $id . '.xml');
+            }
+        }
+        return true;                           
+    }
+    
+    
+    function languageSelector($syslang, $value_en, $value_sv)
+    {
+        if($value_en || $value_sv) {
+            if($syslang==="sv") {
+                $value = $value_sv;
+            } else if($syslang==="en") {
+                $value = $value_en;
+            }
+
+            if(!$value && $value_en) {
+                $value = $value_en;
+            }
+            if(!$value && $value_sv) {
+                $value = $value_sv;
+            }
+            return trim($value);
+        } else {
+            return false;
+        }
+    }
+    
+    
+    private function getHeritage($client)
+    {
+        $heritageArray = array();
+        
+        /*$sql = "SELECT orgid, parent FROM lucache_vorg";
+        
+        $res = mysqli_query($con, $sql);
+        
+        while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
+            $heritageArray[$row['orgid']] = $row['parent'];
+        }*/
+        $query = $client->createSelect();
+        $query->setQuery('docType:organisation');
+        $query->setStart(0)->setRows(3000);
+        $response = $client->select($query);
+        foreach ($response as $document) {
+            if($document->organisationParent) {
+                foreach($document->organisationParent as $organisationParent) {
+                    $heritageArray[$document->id] = $organisationParent;
+                }
+            }
+        }
+        return array($heritageArray);
+    }
+    
+    
+    /*private function getHeritage($con)
     {
         $heritageArray = array();
         
@@ -392,7 +521,7 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $heritageArray[$row['orgid']] = $row['parent'];
         }
         return array($heritageArray);
-    }
+    }*/
     
     
     private function makeGmDate($input)

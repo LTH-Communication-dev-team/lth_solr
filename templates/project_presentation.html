@@ -6,15 +6,16 @@
 </table>-->
 
 <script id="solrProjectTemplate" type="text/x-jquery-templ">
+    ###projectDescription###
     <div>
-        <div class="textblock more-content" style="height: 80px; overflow: hidden;">###description###</div>
-
-        <a href="#" onclick="showMore(this);return false;" class="readmore" data-height="144">More</a>
-    </div>
-    
-    <div>
-        <p>###participants###</p>
-        <p>###projectStartDate### -- ###projectEndDate###</p>
-        <p>###projectStatus###</p>    
+        <p><b>Period</b><br />###startDate### -- ###endDate###</p>
+        <p><b>managingOrganisationName</b><br />###managingOrganisationName###</p>
+        <p><b>organisationId</b><br />###organisationId###</p>
+        <p><b>organisationName</b><br />###organisationName###</p>
+        <p><b>organisationType</b><br />###organisationType###</p>
+        <p><b>###participants###</p>
+        <p><b>projectStatus</b><br />###projectStatus###</p>
+        <p><b>projectType</b><br />###projectType###</p>
+        <p><b>visibility</b><br />###visibility###</p>
     </div>
 </script>

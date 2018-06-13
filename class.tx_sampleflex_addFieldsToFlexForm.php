@@ -480,69 +480,6 @@ class user_sampleflex_addFieldsToFlexForm
     }
     
     
-    function getProjects()
-    {
-        require(__DIR__.'/service/init.php');
-        
-        $content = "";
-
-        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
-        
-        $sconfig = array(
-            'endpoint' => array(
-                'localhost' => array(
-                    'host' => $settings['solrHost'],
-                    'port' => $settings['solrPort'],
-                    'path' => "/solr/core_sv/",//$settings['solrPath'],
-                    'timeout' => $settings['solrTimeout']
-                )
-            )
-        );
-
-	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
-	    die('Please make all settings in extension manager');
-	}
-        
-        $client = new Solarium\Client($sconfig);
-        $query = $client->createSelect();
-        
-        $queryToSet = '(docType:upmproject)';
-        $query->setQuery($queryToSet);
-        $query->addSort('title_sort2', $query::SORT_ASC);
-        $query->setStart(0)->setRows(1000000);
-        $response = $client->select($query);
-        
-        if($response) {
-            foreach ($response as $document) {
-                $title = (string)$document->title[0];
-                $objects .= '<option value="' . $document->id . '">' . $title . '</option>';
-            }
-        }
-        
-        $content .= '<table id="lth_solr_projects" class="lth_solr_projects"><tbody class="">';
-                
-        $content .= '<tr>';
-        
-        $content .= '<tr><td>Valda</td><td>Objekt</td></tr>';
-        
-        $content .= '<td><select class="projectChoice" id="projectChoice" name="projectChoice" multiple="multiple">';
-        $content .= $choices;
-        $content .= '</select></td>';
-                
-        $content .= '<td><select class="projectObject" id="projectObject" name="projectObject" multiple="multiple">';
-        $content .= $objects;
-        $content .= '</select></td>';
-        
-        $content .= '</tr>';
-        
-        $content .= "</tbody></table>";
-            
-        $content .= "</tbody></table>";
-        
-        return $content;
-    }
-    
-    
     function getOrganisations($config)
     {
         $uid = $config['row']['uid'];
@@ -615,6 +552,60 @@ class user_sampleflex_addFieldsToFlexForm
         
         return $content;*/
 
+
+        return $config;
+    }
+    
+    
+    function getProjects($config)
+    {
+        $uid = $config['row']['uid'];
+        require(__DIR__.'/service/init.php');
+        
+        $content = "";
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $fieldArray = array("id", "projectTitle");
+        $queryToSet = '(docType:project)';
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        $sortArray = array(
+            'projectTitle' => 'asc'
+        );
+        $query->addSorts($sortArray);
+        $query->setStart(0)->setRows(30000);
+        $response = $client->select($query);
+        
+        if($response) {
+            $feObjects = array();
+            $i=0;
+            foreach ($response as $document) {
+                $projectTitle = (string)$document->projectTitle;
+                $id = $document->id;
+                //$objects .= '<option value="' . $document->id . '">' . $title . '</option>';
+                $config['items'][$i] = array(0 => $projectTitle, 1 => $id);
+                $i++;
+            }
+        }
 
         return $config;
     }

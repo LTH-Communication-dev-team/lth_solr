@@ -154,6 +154,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
+            $projects = $this->pi_getFFvalue($piFlexForm, "projects", "sDEF", $lDef[$index]);
             $categories = $this->pi_getFFvalue($piFlexForm, "categories", "sDEF", $lDef[$index]);
             $publicationCategories = $this->pi_getFFvalue($piFlexForm, "publicationCategories", "sDEF", $lDef[$index]);
             $publicationCategoriesSwitch = $this->pi_getFFvalue($piFlexForm, "publicationCategoriesSwitch", "sDEF", $lDef[$index]);
@@ -238,6 +239,13 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                     $tmpArray = explode(',',$fe_groups);
                     foreach($tmpArray as $tmpValue) {
                         $lth_solr_uuid['fe_groups'][] = $tmpValue;
+                    }
+                    $scope = urlencode(json_encode($lth_solr_uuid));
+                }
+                if($projects) {
+                    $tmpArray = explode(',',$projects);
+                    foreach($tmpArray as $tmpValue) {
+                        $lth_solr_uuid['projects'][] = $tmpValue;
                     }
                     $scope = urlencode(json_encode($lth_solr_uuid));
                 }

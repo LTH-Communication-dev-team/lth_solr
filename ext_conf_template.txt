@@ -42,5 +42,7 @@ solrLadokDb=
 solrLadokId=
   # cat=basic/dev/181; type=input; label=Solr Ladok pw
 solrLadokPw=
-# cat=basic/dev/182; type=input; label=Lucris API nyckel
+  # cat=basic/dev/182; type=input; label=Lucris API nyckel
 solrLucrisApiKey=
+  # cat=basic/dev/183; type=input; label=Lucris API version
+solrLucrisApiVersion=

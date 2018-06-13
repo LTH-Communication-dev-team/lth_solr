@@ -138,6 +138,14 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
     'additionalFields' => ''
 );
 
+//calenderImport
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\CalendarImport'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Import Calendar events',
+    'description' => '',
+    'additionalFields' => ''
+);
+
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi1/class.tx_lthsolr_pi1.php', '_pi1', 'list_type', 0);
 

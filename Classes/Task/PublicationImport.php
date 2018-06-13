@@ -47,8 +47,9 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $user = $settings['user'];
         $pw = $settings['pw'];
         $solrLucrisApiKey = $settings['solrLucrisApiKey'];
+        $solrLucrisApiVersion = $settings['solrLucrisApiVersion'];
 
-        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("44; ".mysqli_error());
+        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("52; ".mysqli_error());
         
         $client = new \Solarium\Client($config);
         
@@ -77,10 +78,12 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $mode = '';
         //$startFromHere = $numFound;
         $startFromHere = 0;
+        
         $mode = ''; //'' '' 'files'
         if($mode==='' && $mode!='files') {
             //Novo
-            $executionSucceeded = $this->getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey);
+            $executionSucceeded = $this->getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, 
+                    $startFromHere, $lastModified, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion);
         
             //$executionSucceeded = $this->getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey);
         } else if($mode==='files') {
@@ -88,8 +91,11 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $executionSucceeded = $this->getOrganisations($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
             return TRUE;
         }
-	if($executionSucceeded || $mode==='reindex' || $mode==='restart') {
+        if($executionSucceeded || $mode==='reindex' || $mode==='restart') {
             //novo
+            if($mode==='restart') {
+                $mode = '';
+            }
             $executionSucceeded = $this->getPublicationsNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
             
             //$executionSucceeded = $this->getPublications($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
@@ -194,629 +200,828 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $fileArray = scandir($directory . '/indexedfilesnovo');
         } else if($mode==='reindex' && $syslang==='en') {
             $fileArray = scandir($directory . '/svindexedfilesnovo');
+        } else if($mode==='' && $syslang==='en') {
+            $fileArray = scandir($directory . '/svindexedfilesnovo');
         } else {
             $fileArray = scandir($directory . '/filestoindexnovo');
         }
         $fileArray = array_slice($fileArray, 2);
-/*echo '<br>k<br>k<br>k<br>k<br>k<br>k<br>k<br>k<br>k<br>k<br>k<br>k<br>k<br>k<br>k<br>k<br>k<pre>';
-print_r($fileArray);
-echo '</pre>';*/
 
-        foreach ($fileArray as $key => $filename) {
+        foreach ($fileArray as $filekey => $filename) {
             if($mode==='reindex' && $syslang==='sv') {
                 $xmlpath = $directory . '/indexedfilesnovo/' . $filename;
             } else if($mode==='reindex' && $syslang==='en') {
                 $xmlpath = $directory . '/svindexedfilesnovo/' . $filename;
-            } else {
+            } else if($syslang==='sv') {
                 $xmlpath = $directory . '/filestoindexnovo/' . $filename;
+            } else if($mode==='' && $syslang==='en') {
+                $xmlpath = $directory . '/svindexedfilesnovo/' . $filename;
             }
 
             $xml = @file_get_contents($xmlpath);
-            
+
             $xml = @simplexml_load_string($xml);
-/*echo '<pre>';
-print_r($xml);
-echo '</pre>';
-die();*/
-            $id = (string)$xml->attributes();
-            
-            $documentTitle = ''; //ok
-            $publicationType = ''; //ok
-            $publicationType_en = '';
-            $publicationType_sv = '';
-            $publicationTypeUri = ''; //ok
-            $publicationDateYear = ''; //ok
-            $publicationDateMonth = ''; //ok
-            $publicationDateDay = ''; //ok
-            $publicationStatus = ''; //ok
-            $publicationStatus_en = '';
-            $publicationStatus_sv = '';
-            $language = ''; //ok
-            $language_en = '';
-            $language_sv = '';
-            $abstract = ''; //ok
-            $abstract_en = '';
-            $abstract_sv = '';
-            $authorId = array(); //ok
-            $authorName = array(); //ok
-            $authorFirstName = array(); //ok
-            $authorLastName = array(); //ok
-            $authorRole = array(); //NEW!added
-            $authorOrganisationId = array(); //NEW!added
-            $authorOrganisationName = array(); //NEW!added
-            $authorOrganisationType = array(); //NEW!added
-            $organisationId = array(); //ok
-            $organisationName = array(); //ok
-            $organisationName_en = '';
-            $organisationName_sv = '';
-            $organisationType = array(); //NEW!added
-            $organisationType_en = '';
-            $organisationType_sv = '';
-            $managingOrganisationId = ''; //NEW!added
-            $managingOrganisationName = ''; //NEW!added
-            $managingOrganisationType = ''; //NEW!added
-            $openAccessPermission = ''; //NEW!added
-            $electronicVersionAccessType = array(); //NEW!added
-            $electronicVersionVersionType = array(); //NEW!added
-            $electronicVersionLicenseType = array(); //NEW!added
-            $electronicVersionDoi = array(); //NEW!added
-            $electronicVersionTitle = array(); //NEW!added
-            $electronicVersionFileName = array(); //NEW!added
-            $electronicVersionFileURL = array(); //NEW!added
-            $electronicVersionMimeType = array(); //NEW!added
-            $electronicVersionSize = array(); //NEW!added
-            $keywordType = array(); //NEW!added
-            $keywordName = array(); //NEW!added
-            $logicalName = '';
-            $keyword_se = '';
-            $keyword_en = '';
-            $relatedActivityId = array(); //NEW!added
-            $relatedActivityName = array(); //NEW!added
-            $relatedActivityType = array(); //NEW!added
-            $relatedProjectId = array(); //NEW!added
-            $relatedProjectName = array(); //NEW!added
-            $relatedProjectType = array(); //NEW!added
-            $bibliographicalNote_sv = '';
-            $bibliographicalNote_en = '';
-            $bibliographicalNote = ''; //ok
-            $relatedResearchOutputId = array(); //NEW!added
-            $relatedResearchOutputName = array(); //NEW!added
-            $relatedResearchOutputType = array(); //NEW!added
-            $confidential = ''; //NEW!added
-            $visibility = ''; //NEW!added
-            $workflow = ''; //NEW!added
-            $createdDate = ''; //NEW!added
-            $modifiedDate = ''; //NEW!added
-            $portalUrl = ''; //ok
-            $placeOfPublication = ''; //ok
-            $isbn2 = array(); //NEW!added
-            $electronicIsbn = array(); //NEW!added
-            $publisher = ''; //ok
-            $qualification = ''; //NEW!added
-            $awardingInstitution = array(); //NEW!added
-            $supervisorName = array(); //ok
-            $supervisorId = array(); //ok
-            $supervisorOrganisationId = array(); //NEW!added
-            $supervisorOrganisationName = array(); //NEW!added
-            $sponsorId = array(); //NEW!added
-            $sponsorName = array(); //NEW!added
-            $awardedDate = ''; //NEW!;added
-            $pages = ''; //ok
-            $volume = ''; //ok
-            $journalNumber = ''; //ok
-            $journalIssn = ''; //NEW!;added
-            $journalTitle = ''; //ok
-            $type = 'publication';
-          
-            foreach((array)$xml as $key => $value) {
-                
-                //echo $key.$value.'<br />';
-                //title
-                if($key === 'title') {
-                    $documentTitle = $value;
-                }
-                
-                //Publication type
-                if($key === 'type') {
-                    $publicationType_en = $value[0];
-                    $publicationType_sv = $value[1];
-                    $publicationType = $this->languageSelector($syslang, $publicationType_en, $publicationType_sv);
-                }
-                
-                //peerReview
-                if($key === 'peerReview') {
-                    $peerReview = $value;
-                }
-                
-                //publicationStatus, publicationDateYear, publicationDateMonth, publicationDateDay
-                if($key === 'publicationStatuses') {
-                    foreach($value as $publicationStatusItem) {
-                        if($publicationStatusItem->attributes()->current) {
-                            $publicationStatus_en = (string)$publicationStatusItem->publicationStatus[0];
-                            $publicationStatus_sv = (string)$publicationStatusItem->publicationStatus[1];
-                            $publicationStatus = $this->languageSelector($syslang, $publicationStatus_en, $publicationStatus_sv);
-                            $publicationDateYear = (string)$publicationStatusItem->publicationDate->year;
-                            $publicationDateMonth = (string)$publicationStatusItem->publicationDate->month;
-                            $publicationDateDay = (string)$publicationStatusItem->publicationDate->day;
-                        }
-                    }
-                }
-                
-                //Language
-                if($key === 'language') {
-                    $language_en = $value[0];
-                    $language_sv = $value[1];
-                    $language = $this->languageSelector($syslang, $language_en, $language_sv);
-                }
-                
+
+            if($xml) {
+                $id = (string)$xml->attributes();
+
+                $abstract = ''; //ok
+                $abstract_en = '';
+                $abstract_sv = '';
+                $additionalLink = array(); //New
+                $authorFirstName = array(); //ok
+                $authorId = array(); //ok
+                $authorLastName = array(); //ok
+                $authorName = array(); //ok
+                $authorRole = array(); //ok
+                $authorOrganisationId = array(); //NEW!added
+                $authorOrganisationName = array(); //NEW!added
+                $authorOrganisationType = array(); //NEW!added
+                $authorRole = array(); //NEW!added
+                $awardedDate = ''; //NEW!;added
+                $awardingInstitution = array(); //NEW!added
+                $awardingInstitution_en = '';
+                $awardingInstitution_sv = '';
+                $bibliographicalNote = ''; //ok
+                $confidential = ''; //NEW!added
+                $createdDate = ''; //NEW!added
+                $documentTitle = ''; //ok
+                $documentType = '';
+                $electronicIsbn = array(); //NEW!added
+                $electronicVersionAccessType = array(); //NEW!added
+                $electronicVersionAccessType_en = '';
+                $electronicVersionAccessType_sv = '';
+                $electronicVersionDoi = array(); //NEW!added
+                $electronicVersionFileName = array(); //NEW!added
+                $electronicVersionFileURL = array(); //NEW!added
+                $electronicVersionLicenseType = array(); //NEW!added
+                $electronicVersionLicenseType_en = '';
+                $electronicVersionLicenseType_sv = '';
+                $electronicVersionLink = array();
+                $electronicVersionMimeType = array(); //NEW!added
+                $electronicVersionSize = array(); //NEW!added
+                $electronicVersionTitle = array(); //NEW!added
+                $electronicVersionVersionType = array(); //NEW!added
+                $electronicVersionVersionType_en = '';
+                $electronicVersionVersionType_sv = '';
+                $endDate = '';
+                $eventCity = '';
+                $eventCountry = '';
+                $eventCountry_en = '';
+                $eventCountry_sv = '';
+                $eventLink = array();
+                $eventLocation = '';
+                $eventName = ''; //NEW!
+                $eventName_en = '';
+                $eventName_sv = '';
+                $eventLink = '';
+                $eventType = ''; //NEW!
+                $eventType_en = '';
+                $eventType_sv = '';
+                $hostPublicationEditor = array(); // NEW!
+                $hostPublicationTitle = '';
+                $ipc = '';
+                $isbn2 = array(); //NEW!added
+                $journalIssn = ''; //NEW!;added
+                $journalNumber = ''; //ok
+                $journalTitle = ''; //ok
+                $keyword = array(); //NEW!added
+                $keywordType = array(); //NEW!added
+                $keyword_en = '';
+                $keyword_se = '';
+                $keywordGroupType_en = '';
+                $keywordGroupType_sv = '';
+                $language = ''; //ok
+                $language_en = '';
+                $language_sv = '';
+                $logicalName = '';
+                $managingOrganisationId = ''; //NEW!added
+                $managingOrganisationName = ''; //NEW!added
+                $managingOrganisationalunitName_en = '';
+                $managingOrganisationalunitName_sv = '';
+                $managingOrganisationType = ''; //NEW!added
+                $managingOrganisationalunitType_en = '';
+                $managingOrganisationalunitType_sv = '';
+                $modifiedDate = ''; //NEW!added
+                $numberOfPages = '';
+                $openAccessPermission = ''; //NEW!added
+                $openAccessPermission_en = '';
+                $openAccessPermission_sv = '';
+                $organisationalUnitName_en = '';
+                $organisationalUnitName_sv = '';
+                $organisationalUnitType_en = '';
+                $organisationalUnitType_sv = '';
+                $organisationId = array(); //ok
+                $organisationName = array(); //ok
+                $organisationName_en = '';
+                $organisationName_sv = '';
+                $organisationSourceId = array();
+                $organisationType = array(); //NEW!added
+                $organisationType_en = '';
+                $organisationType_sv = '';
+                $pages = ''; //ok
+                $patentNumber = '';
+                $peerReview = '';
+                $personRole_en = '';
+                $personRole_sv = '';
+                $placeOfPublication = ''; //ok
+                $portalUrl = ''; //ok
+                $publicationDateDay = ''; //ok
+                $publicationDateMonth = ''; //ok
+                $publicationDateYear = ''; //ok
+                $publicationSerieElectronicIssn = array(); //NEW!
+                $publicationSerieName = array(); //NEW!
+                $publicationStatus = ''; //ok
+                $publicationStatus_en = '';
+                $publicationStatus_sv = '';
+                $publicationType = ''; //ok
+                $publicationType_en = '';
+                $publicationType_sv = '';
+                $publicationTypeUri = ''; //ok
+                $publisher = ''; //ok
+                $publisher_en = '';
+                $publisher_sv = '';
+                $qualification = ''; //NEW!added
+                $relatedActivityId = array(); //NEW!added
+                $relatedActivityName = array(); //NEW!added
+                $relatedActivityName_en = '';
+                $relatedActivityName_sv = '';
+                $relatedActivityType = array(); //NEW!added
+                $relatedActivityType_en = '';
+                $relatedActivityType_sv = '';
+                $relatedProjectId = array(); //NEW!added
+                $relatedProjectName = array(); //NEW!added
+                $relatedProjectName_en = '';
+                $relatedProjectName_sv = '';
+                $relatedProjectType = array(); //NEW!added
+                $relatedProjectType_en = '';
+                $relatedProjectType_sv = '';
+                $relatedResearchOutputId = array(); //NEW!added
+                $relatedResearchOutputName = array(); //NEW!added
+                $relatedResearchOutputName_en = '';
+                $relatedResearchOutputName_sv = '';
+                $relatedResearchOutputType = array(); //NEW!added
+                $relatedResearchOutputType_en = '';
+                $relatedResearchOutputType_sv = '';
+                $sponsorId = array(); //NEW!added
+                $sponsorName = array(); //NEW!added
+                $sponsorName_en = '';
+                $sponsorName_sv = '';
+                $startDate = '';
+                $supervisorId = array(); //ok
+                $supervisorName = array(); //ok
+                $supervisorOrganisationId = array(); //NEW!added
+                $supervisorOrganisationName = array(); //NEW!added
+                $supervisorOrganisationName_en = '';
+                $supervisorOrganisationName_sv = '';
+                $supervisorPersonRole = array(); //NEW!
+                $supervisorPersonRole_en = '';
+                $supervisorPersonRole_sv = '';
+                $type = 'publication';
+                $visibility = ''; //NEW!added
+                $visibility_en = '';
+                $visibility_sv = '';
+                $volume = ''; //ok
+                $workflow = ''; //NEW!added
+                $workflow_en = '';
+                $workflow_sv = '';
+
+               /* echo '<pre>';
+    print_r((array)$xml);
+    echo '</pre>';
+    die();*/
                 //abstract
-                if($key === 'abstract') {
-                    $abstract = $value;
-                }
-                
-                //personsAssociations
-                if($key === 'personAssociations') {
-                    foreach($value->personAssociation as $personAssociation) {
-                        if($personAssociation->person) {
-                            $authorId[] = (string)$personAssociation->person->attributes();
-                        } else if($personAssociation->externalPerson) {
-                            $authorId[] = (string)$personAssociation->externalPerson->attributes();
-                            
-                        }
-                        $authorName[] = (string)$personAssociation->name->firstName . ' ' . (string)$personAssociation->name->lastName;
-                        $authorFirstName[] = (string)$personAssociation->name->firstName;
-                        $authorLastName[] = (string)$personAssociation->name->lastName;
-                        if($personAssociation->personRole) {
-                            $personRole_en = (string)$personAssociation->personRole[0];
-                            $personRole_sv = (string)$personAssociation->personRole[1];
-                            $authorRole[] = $this->languageSelector($syslang, $personRole_en, $personRole_sv);
-                        }
-                        if($personAssociation->organisationalUnits) {
-                            foreach($personAssociation->organisationalUnits->organisationalUnit as $organisationalUnit) {
-                                $authorOrganisationId[] = (string)$organisationalUnit->attributes();
-                                $organisationalUnitName_en = (string)$organisationalUnit->name[0];
-                                $organisationalUnitName_sv = (string)$organisationalUnit->name[1];
-                                $authorOrganisationName[] = $this->languageSelector($syslang, $organisationalUnitName_en, $organisationalUnitName_sv);
-                                $organisationalUnitType_en = (string)$organisationalUnit->type[0];
-                                $organisationalUnitType_sv = (string)$organisationalUnit->type[1];
-                                $authorOrganisationType[] = $this->languageSelector($syslang, $organisationalUnitType_en, $organisationalUnitType_sv);
-                            }
-                        }
-                        
-                    }
-                }
-                
-                //Organisationalunit
-                if($key === 'organisationalUnits') {
-                    foreach($value->organisationalUnit as $organisationalUnit) {
-                        $organisationId[] = (string)$organisationalUnit->attributes();
-                        $organisationalUnitName_en = (string)$organisationalUnit->name[0];
-                        $organisationalUnitName_sv = (string)$organisationalUnit->name[1];
-                        $organisationName[] = $this->languageSelector($syslang, $organisationalUnitName_en, $organisationalUnitName_sv);
-                        $organisationalUnitType_en = (string)$organisationalUnit->type[0];
-                        $organisationalUnitType_sv = (string)$organisationalUnit->type[1];
-                        $organisationType[] = $this->languageSelector($syslang, $organisationalUnitType_en, $organisationalUnitType_sv);
-                    }
-                }
-                
-                //managingOrganisationalunit
-                if($key === 'managingOrganisationalUnit') {
-                    $managingOrganisationId = (string)$value->attributes();
-                    $managingOrganisationalunitName_en = (string)$value->name[0];
-                    $managingOrganisationalunitName_sv = (string)$value->name[1];
-                    $managingOrganisationName = $this->languageSelector($syslang, $managingOrganisationalunitName_en, $managingOrganisationalunitName_sv);
-                    $managingOrganisationalunitType_en = (string)$value->type[0];
-                    $managingOrganisationalunitType_sv = (string)$value->type[1];
-                    $managingOrganisationType = $this->languageSelector($syslang, $managingOrganisationalunitType_en, $managingOrganisationalunitType_sv);
-                }
-                
-                //openAccessPermission
-                if($key === 'openAccessPermission') {
-                    $openAccessPermission_en = (string)$value[0];
-                    $openAccessPermission_sv = (string)$value[1];
-                    $openAccessPermission = $this->languageSelector($syslang, $openAccessPermission_en, $openAccessPermission_sv);
+                if($xml->abstract) {
+                    $abstract_en = (string)$xml->abstract[0];
+                    $abstract_sv = (string)$xml->abstract[1];
+                    $abstract = $this->languageSelector($syslang, $abstract_en, $abstract_sv);
                 }
 
-                //electronicVersions
-                if($key === 'electronicVersions') {
-                    foreach($value->electronicVersion as $electronicVersion) {
-                        if($electronicVersion->accessType) {
-                            $electronicVersionAccessType_en = (string)$electronicVersion->accessType[0];
-                            $electronicVersionAccessType_sv = (string)$electronicVersion->accessType[1];
-                            $electronicVersionAccessType[] = $this->languageSelector($syslang, $electronicVersionAccessType_en, $electronicVersionAccessType_sv);
-                        }
-                        if($electronicVersion->versionType) {
-                            $electronicVersionVersionType_en = (string)$electronicVersion->versionType[0];
-                            $electronicVersionVersionType_sv = (string)$electronicVersion->versionType[1];
-                            $electronicVersionVersionType[] = $this->languageSelector($syslang, $electronicVersionVersionType_en, $electronicVersionVersionType_sv);
-                        }
-                        if($electronicVersion->licenseType) {
-                            $electronicVersionLicenseType_en = (string)$electronicVersion->licenseType[0];
-                            $electronicVersionLicenseType_sv = (string)$electronicVersion->licenseType[1];
-                            $electronicVersionLicenseType[] = $this->languageSelector($syslang, $electronicVersionLicenseType_en, $electronicVersionLicenseType_sv);
-                        }
-                        if($electronicVersion->doi) {
-                            $electronicVersionDoi[] = (string)$electronicVersion->doi;
-                        }
-                        if($electronicVersion->title) {
-                            $electronicVersionTitle[] = (string)$electronicVersion->title;
-                        }
-                        if($electronicVersion->file) {
-                            $electronicVersionFileName[] = (string)$electronicVersion->file->fileName;
-                            $electronicVersionFileURL[] = (string)$electronicVersion->file->fileURL;
-                            $electronicVersionMimeType[] = (string)$electronicVersion->file->mimeType;
-                            $electronicVersionSize[] = (string)$electronicVersion->file->size;
+                foreach((array)$xml as $key => $value) {
+
+                    //addtionalLinks
+                    if($key === 'additionalLinks') {
+                        foreach($value->additionalLink as $additionalLinkItem) {
+                            if($additionalLinkItem->url) {
+                                $additionalLink[] = (string)$additionalLinkItem->url;
+                            }
                         }
                     }
-                }
-                
-                //keywordGroups
-                if($key === 'keywordGroups') {
-                    foreach($value->keywordGroup as $keywordGroup) {
-                        $logicalName = (string)$keywordGroup->attributes();
-                        
-                        if($keywordGroup->type) {
-                            $keywordGroupType_en = (string)$keywordGroup->type[0];
-                            $keywordGroupType_sv = (string)$keywordGroup->type[1];
+
+                    //awardedDate
+                    if($key === 'awardedDate') {
+                        $awardedDate = (string)$value;
+                    }
+
+                    //awardingInstitutions
+                    if($key === 'awardingInstitutions') {
+                        foreach($value->awardingInstitution as $awardingInstitutionItem) {
+                            if($awardingInstitutionItem->organisationalUnit) {
+                                if($awardingInstitutionItem->organisationalUnit->name) {
+                                    $awardingInstitution_en = (string)$awardingInstitutionItem->organisationalUnit->name[0];
+                                    $awardingInstitution_sv = (string)$awardingInstitutionItem->organisationalUnit->name[1];
+                                    $awardingInstitution[] = $this->languageSelector($syslang, $awardingInstitution_en, $awardingInstitution_sv);
+                                }
+                            }
                         }
-                        if($keywordGroup->keywords) {
-                            if($logicalName === 'uka_full') {
-                               $keyword_en = (string)$keywordGroup->keywords->keyword[0];
-                               $keyword_sv = (string)$keywordGroup->keywords->keyword[1];
-                               $keyword[] = $this->languageSelector($syslang, $keyword_en, $keyword_sv);
-                               $keywordType[] = $this->languageSelector($syslang, $keywordGroupType_en, $keywordGroupType_sv);
+                    }
+
+                    //bibliographicalNote
+                    if($key === 'bibliographicalNote') {
+                        $bibliographicalNote = (string)$value;
+                    }
+
+                    //confidential
+                    if($key === 'confidential') {
+                        $confidential = (string)$value;
+                    }
+
+                    //documentTitle
+                    if($key === 'title') {
+                        $documentTitle = $value;
+                    }
+
+                    //electronicIsbns
+                    if($key === 'electronicIsbns') {
+                        foreach($value->electronicIsbn as $electronicIsbn) {
+                            $electronicIsbn[] = (string)$electronicIsbn;
+                        }
+                    }
+
+                    //electronicVersions
+                    if($key === 'electronicVersions') {
+                        foreach($value->electronicVersion as $electronicVersion) {
+                            if($electronicVersion->accessType) {
+                                $electronicVersionAccessType_en = (string)$electronicVersion->accessType[0];
+                                $electronicVersionAccessType_sv = (string)$electronicVersion->accessType[1];
+                                $electronicVersionAccessType[] = $this->languageSelector($syslang, $electronicVersionAccessType_en, $electronicVersionAccessType_sv);
+                            }
+                            if($electronicVersion->versionType) {
+                                $electronicVersionVersionType_en = (string)$electronicVersion->versionType[0];
+                                $electronicVersionVersionType_sv = (string)$electronicVersion->versionType[1];
+                                $electronicVersionVersionType[] = $this->languageSelector($syslang, $electronicVersionVersionType_en, $electronicVersionVersionType_sv);
+                            }
+                            if($electronicVersion->licenseType) {
+                                $electronicVersionLicenseType_en = (string)$electronicVersion->licenseType[0];
+                                $electronicVersionLicenseType_sv = (string)$electronicVersion->licenseType[1];
+                                $electronicVersionLicenseType[] = $this->languageSelector($syslang, $electronicVersionLicenseType_en, $electronicVersionLicenseType_sv);
+                            }
+                            if($electronicVersion->doi) {
+                                $electronicVersionDoi[] = (string)$electronicVersion->doi;
+                            }
+                            if($electronicVersion->title) {
+                                $electronicVersionTitle[] = (string)$electronicVersion->title;
+                            }
+                            if($electronicVersion->file) {
+                                $electronicVersionFileName[] = (string)$electronicVersion->file->fileName;
+                                $electronicVersionFileURL[] = (string)$electronicVersion->file->fileURL;
+                                $electronicVersionMimeType[] = (string)$electronicVersion->file->mimeType;
+                                $electronicVersionSize[] = (string)$electronicVersion->file->size;
+                            }
+                            if($electronicVersion->link) {
+                                $electronicVersionLink[] = (string)$electronicVersion->link;
+                            }
+                        }
+                    }
+
+                    //eventName
+                    if($key === 'event') {
+                        if($value->name) {
+                            $eventName_en = (string)$value->name[0];
+                            $eventName_sv = (string)$value->name[1];
+                            $eventName = $this->languageSelector($syslang, $eventName_en, $eventName_sv);
+                        }
+                        if($value->type) {
+                            $eventType_en = (string)$value->type[0];
+                            $eventType_sv = (string)$value->type[1];
+                            $eventType = $this->languageSelector($syslang, $eventType_en, $eventType_sv);
+                        }
+                        if($value->link) {
+                            $eventPath = (string)$value->link->attributes()->href;
+                            if($eventPath) {
+                                $eventXml = file_get_contents($eventPath);
+                                $eventXml = @simplexml_load_string($eventXml);
+                                $startDate = (string)$eventXml->period->startDate;
+                                $endDate = (string)$eventXml->period->endDate;
+                                if($eventXml->links) {
+                                    foreach($eventXml->links as $eventLinkItem) {
+                                        $eventLink[] = (string)$eventLinkItem->url;
+                                    }
+                                }
+                                $eventLocation = (string)$eventXml->location;
+                                $eventCity = (string)$eventXml->city;
+                                $eventCountry_en = (string)$eventXml->country[0];
+                                $eventCountry_sv = (string)$eventXml->country[1];
+                                $eventCountry = $this->languageSelector($syslang, $eventCountry_en, $eventCountry_sv);
+                            }
+                        }
+                    }
+
+                    //hostPublicationsEditor
+                    if($key === 'hostPublicationEditors') {
+                        foreach($value->hostPublicationEditor as $hostPublicationEditorItem) {
+                            if($hostPublicationEditorItem->firstName && $hostPublicationEditorItem->lastName) {
+                                $hostPublicationEditor[] = (string)$hostPublicationEditorItem->firstName . ' ' . (string)$hostPublicationEditorItem->lastName;
+                            }
+                        }
+                    }
+
+                    //hostPublicationTitle
+                    if($key === 'hostPublicationTitle') {
+                        $hostPublicationTitle = (string)$value;
+                    }
+
+                    //info
+                    if($key === 'info') {
+                        $createdDate = (string)$value->createdDate;
+                        $modifiedDate = (string)$value->modifiedDate;
+                        $portalUrl = (string)$value->portalUrl;
+                    }
+
+                    //ipc
+                    if($key === 'ipc') {
+                        $ipc = (string)$value;
+                    }
+
+                    //isbns!!!!!!!!!!!!!!!!!!!!!!OBS ändra till isbn senare
+                    if($key === 'isbns') {
+                        foreach($value->isbn as $isbn) {
+                            $isbn2[] = (string)$isbn;
+                        }
+                    }
+
+                    //journalAssociation
+                    if($key === 'journalAssociation') {
+                        $journalTitle = (string)$value->title;
+                        $journalIssn = (string)$value->issn;
+                    }
+
+                    //journalNumber
+                    if($key === 'journalNumber') {
+                        $journalNumber = (string)$value;
+                    }
+
+                    //keywordGroups
+                    if($key === 'keywordGroups') {
+                        foreach($value->keywordGroup as $keywordGroup) {
+                            $logicalName = (string)$keywordGroup->attributes();
+
+                            if($keywordGroup->type) {
+                                $keywordGroupType_en = (string)$keywordGroup->type[0];
+                                $keywordGroupType_sv = (string)$keywordGroup->type[1];
+                            }
+                            foreach($keywordGroup->keywords->keyword as $keywordItem) {
+                                $keywordType[] = $this->languageSelector($syslang, $keywordGroupType_en, $keywordGroupType_sv);
+                                $keyword[] = (string)$keywordItem;
+                            }
+                        }
+                    }
+
+                    //Language
+                    if($key === 'language') {
+                        $language_en = $value[0];
+                        $language_sv = $value[1];
+                        $language = $this->languageSelector($syslang, $language_en, $language_sv);
+                    }
+
+                    //managingOrganisationalunit
+                    if($key === 'managingOrganisationalUnit') {
+                        $managingOrganisationId = (string)$value->attributes();
+                        $managingOrganisationalunitName_en = (string)$value->name[0];
+                        $managingOrganisationalunitName_sv = (string)$value->name[1];
+                        $managingOrganisationName = $this->languageSelector($syslang, $managingOrganisationalunitName_en, $managingOrganisationalunitName_sv);
+                        $managingOrganisationalunitType_en = (string)$value->type[0];
+                        $managingOrganisationalunitType_sv = (string)$value->type[1];
+                        $managingOrganisationType = $this->languageSelector($syslang, $managingOrganisationalunitType_en, $managingOrganisationalunitType_sv);
+                    }
+
+                    //numberOfPages
+                    if($key === 'numberOfPages') {
+                        $numberOfPages = (string)$value;
+                    }
+
+                    //openAccessPermission
+                    if($key === 'openAccessPermission') {
+                        $openAccessPermission_en = (string)$value[0];
+                        $openAccessPermission_sv = (string)$value[1];
+                        $openAccessPermission = $this->languageSelector($syslang, $openAccessPermission_en, $openAccessPermission_sv);
+                    }
+
+                    //Organisationalunit
+                    if($key === 'organisationalUnits') {
+                        foreach($value->organisationalUnit as $organisationalUnit) {
+                            $organisationId[] = (string)$organisationalUnit->attributes();
+                            $organisationName_en = (string)$organisationalUnit->name[0];
+                            $organisationName_sv = (string)$organisationalUnit->name[1];
+                            $organisationName[] = $this->languageSelector($syslang, $organisationName_en, $organisationName_sv);
+                            $organisationType_en = (string)$organisationalUnit->type[0];
+                            $organisationType_sv = (string)$organisationalUnit->type[1];
+                            $organisationType[] = $this->languageSelector($syslang, $organisationType_en, $organisationType_sv);
+                        }
+                    }
+
+                    //peerReview
+                    if($key === 'peerReview') {
+                        $peerReview = $value;
+                    }
+
+                    //personsAssociations
+                    if($key === 'personAssociations') {
+                        foreach($value->personAssociation as $personAssociation) {
+                            if($personAssociation->person) {
+                                $authorId[] = (string)$personAssociation->person->attributes();
+                            } else if($personAssociation->externalPerson) {
+                                $authorId[] = (string)$personAssociation->externalPerson->attributes();
+
+                            }
+                            $authorName[] = (string)$personAssociation->name->firstName . ' ' . (string)$personAssociation->name->lastName;
+                            $authorFirstName[] = (string)$personAssociation->name->firstName;
+                            $authorLastName[] = (string)$personAssociation->name->lastName;
+                            if($personAssociation->personRole) {
+                                $personRole_en = (string)$personAssociation->personRole[0];
+                                $personRole_sv = (string)$personAssociation->personRole[1];
+                                $authorRole[] = $this->languageSelector($syslang, $personRole_en, $personRole_sv);
+                            }
+                            if($personAssociation->organisationalUnits) {
+                                foreach($personAssociation->organisationalUnits->organisationalUnit as $organisationalUnit) {
+                                    $authorOrganisationId[] = (string)$organisationalUnit->attributes();
+                                    $organisationalUnitName_en = (string)$organisationalUnit->name[0];
+                                    $organisationalUnitName_sv = (string)$organisationalUnit->name[1];
+                                    $authorOrganisationName[] = $this->languageSelector($syslang, $organisationalUnitName_en, $organisationalUnitName_sv);
+                                    $organisationalUnitType_en = (string)$organisationalUnit->type[0];
+                                    $organisationalUnitType_sv = (string)$organisationalUnit->type[1];
+                                    $authorOrganisationType[] = $this->languageSelector($syslang, $organisationalUnitType_en, $organisationalUnitType_sv);
+                                }
+                            }
+
+                        }
+                    }
+
+                    //placeOfPublication
+                    if($key === 'placeOfPublication') {
+                        $placeOfPublication = (string)$value;
+                    }
+
+                    //publicationStatus, publicationDateYear, publicationDateMonth, publicationDateDay
+                    if($key === 'publicationStatuses') {
+                        foreach($value as $publicationStatusItem) {
+                            if($publicationStatusItem->attributes()->current) {
+                                $publicationStatus_en = (string)$publicationStatusItem->publicationStatus[0];
+                                $publicationStatus_sv = (string)$publicationStatusItem->publicationStatus[1];
+                                $publicationStatus = $this->languageSelector($syslang, $publicationStatus_en, $publicationStatus_sv);
+                                $publicationDateYear = (string)$publicationStatusItem->publicationDate->year;
+                                $publicationDateMonth = (string)$publicationStatusItem->publicationDate->month;
+                                $publicationDateDay = (string)$publicationStatusItem->publicationDate->day;
+                            }
+                        }
+                    }
+
+                    //publicationType
+                    if($key === 'type') {
+                        $publicationType_en = $value[0];
+                        $publicationType_sv = $value[1];
+                        $publicationType = $this->languageSelector($syslang, $publicationType_en, $publicationType_sv);
+                    }
+
+                    //publicationSeries
+                    if($key === 'publicationSeries') {
+                        foreach($value->publicationSerie as $publicationSerie) {
+                            $publicationSerieName[] = (string)$publicationSerie->name;
+                            $publicationSerieElectronicIssn[] = (string)$publicationSerie->electronicIssn;
+                        }
+                    }
+
+                    //publisher
+                    if($key === 'publisher') {
+                        $publisher_en = (string)$value->name;
+                        $publisher_sv = (string)$value->name;
+                        $publisher = $this->languageSelector($syslang, $publisher_en, $publisher_sv);
+                    }
+
+                    //qualification
+                    if($key === 'qualification') {
+                        $qualification = (string)$value;
+                    }
+
+                    //pages
+                    if($key === 'pages') {
+                        $pages = (string)$value;
+                    }
+
+                    //patentNumber
+                    if($key === 'patentNumber') {
+                        $patentNumber = (string)$value;
+                    }
+
+                    //relatedActivities
+                    if($key === 'relatedActivities') {
+                        foreach($value->relatedActivity as $relatedActivity) {
+                            $relatedActivityId[] = (string)$relatedActivity->attributes();
+                            if($relatedActivity->name) {
+                                $relatedActivityName_en = (string)$relatedActivity->name[0];
+                                $relatedActivityName_sv = (string)$relatedActivity->name[1];
+                                $relatedActivityName[] = $this->languageSelector($syslang, $relatedActivityName_en, $relatedActivityName_sv);
+                            }
+                            if($relatedActivity->type) {
+                                $relatedActivityType_en = (string)$relatedActivity->type[0];
+                                $relatedActivityType_sv = (string)$relatedActivity->type[1];
+                                $relatedActivityType[] = $this->languageSelector($syslang, $relatedActivityType_en, $relatedActivityType_sv);
+                            }
+                        }
+                    }
+
+                    //relatedProjects
+                    if($key === 'relatedProjects') {
+                        foreach($value->relatedProject as $relatedProject) {
+                            $relatedProjectId[] = (string)$relatedProject->attributes();
+                            if($relatedProject->name) {
+                                $relatedProjectName_en = (string)$relatedProject->name[0];
+                                $relatedProjectName_sv = (string)$relatedProject->name[1];
+                                $relatedProjectName[] = $this->languageSelector($syslang, $relatedProjectName_en, $relatedProjectName_sv);
+                            }
+                            if($relatedProject->type) {
+                                $relatedProjectType_en = (string)$relatedProject->type[0];
+                                $relatedProjectType_sv = (string)$relatedProject->type[1];
+                                $relatedProjectType[] = $this->languageSelector($syslang, $relatedProjectType_en, $relatedProjectType_sv);
+                            }
+                        }
+                    }
+
+                    //relatedResearchOutputs
+                    if($key === 'relatedResearchOutputs') {
+                        foreach($value->relatedResearchOutput as $relatedResearchOutput) {
+                            $relatedResearchOutputId[] = (string)$relatedResearchOutput->attributes();
+                            if($relatedResearchOutput->name) {
+                                $relatedResearchOutputName_en = (string)$relatedResearchOutput->name[0];
+                                $relatedResearchOutputName_sv = (string)$relatedResearchOutput->name[1];
+                                $relatedResearchOutputName = $this->languageSelector($syslang, $relatedResearchOutputName_en, $relatedResearchOutputName_sv);
+                            }
+                            if($relatedResearchOutput->type) {
+                                $relatedResearchOutputType_en = (string)$relatedResearchOutput->type[0];
+                                $relatedResearchOutputType_sv = (string)$relatedResearchOutput->type[1];
+                                $relatedResearchOutputType = $this->languageSelector($syslang, $relatedResearchOutputType_en, $relatedResearchOutputType_sv);
+                            }
+                        }
+                    }
+
+                    //sponsors
+                    if($key === 'sponsors') {
+                        foreach($value->sponsor as $sponsor) {
+                            $sponsorId[] = (string)$sponsor->attributes();
+                            if($sponsors->name) {
+                                $sponsorName_en = (string)$sponsor->name[0];
+                                $sponsorName_sv = (string)$sponsor->name[1];
+                            }
+                            $sponsorName[] = $this->languageSelector($syslang, $sponsorName_en, $sponsorName_sv);
+                        }
+                    }
+
+                    //supervisors
+                    if($key === 'supervisors') {
+                        foreach($value->supervisor as $supervisor) {
+                            if($supervisor->person) {
+                                $supervisorId[] = (string)$supervisor->person->attributes();
+                            } else if($supervisor->externalPerson) {
+                                $supervisorId[] = (string)$supervisor->externalPerson->attributes();
+                            }
+                            if($supervisor->name) {
+                                $supervisorName[] = $supervisor->name->firstName . ' ' . $supervisorItem->name->lastName;
+                            }
+                            if($supervisor->personRole) {
+                                $supervisorPersonRole_en = (string)$supervisor->personRole[0];
+                                $supervisorPersonRole_sv = (string)$supervisor->personRole[1];
+                                $supervisorPersonRole[] = $this->languageSelector($syslang, $supervisorPersonRole_en, $supervisorPersonRole_sv);
+                            }
+                            if($supervisor->organisationalUnits) {
+                                foreach($supervisor->organisationalUnits->organisationalUnit as $supervisorOrganisation) {
+                                    $supervisorOrganisationId[] = (string)$supervisorOrganisation->attributes();
+                                    if($supervisorOrganisation->name) {
+                                        $supervisorOrganisationName_en = (string)$supervisorOrganisation->name[0];
+                                        $supervisorOrganisationName_sv = (string)$supervisorOrganisation->name[1];
+                                        $supervisorOrganisationName[] = $this->languageSelector($syslang, $supervisorOrganisationName_en, $supervisorOrganisationName_sv);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    //visibility
+                    if($key === 'visibility') {
+                        $visibility_en = (string)$value[0];
+                        $visibility_sv = (string)$value[1];
+                        $visibility = $this->languageSelector($syslang, $visibility_en, $visibility_sv);
+                    }
+
+                    //volume
+                    if($key === 'volume') {
+                        $volume = (string)$value;
+                    }
+
+                    //workflow
+                    if($key === 'workflow') {
+                        $workflow_en = (string)$value[0];
+                        $workflow_sv = (string)$value[1];
+                        $workflow = $this->languageSelector($syslang, $workflow_en, $workflow_sv);
+                    }         
+
+                    //CITE OCH BIBTEX
+                    $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", "Vancouver" => "vancouver",
+                        "Author" => "author", "RIS" => "ris", "Bibtex" => "bibtex");
+                    $cite = "";
+                    $bibtex = "";
+                    foreach($citeArray as $citebibKey => $citebib) {
+                        $citebibxml = @file_get_contents($directory . '/bibtexfilesnovo/' . str_replace('.xml','', $filename) . '_' . $citebib . '.xml');
+                        if($citebibxml) {
+                            $citebibxml = @simplexml_load_string($citebibxml);
+    /*echo '<pre>';
+    echo (string)$citebibxml->rendering;
+    echo '</pre>';
+    die();*/
+                            if($citebib==="bibtex") {
+                                $bibtex = "<h3>$citebibKey</h3>" . (string)$citebibxml->rendering;
                             } else {
-                                foreach($keywordGroup->keywords->keyword as $keywordItem) {
-                                    $keyword[] = (string)$keywordItem;
-                                    $keywordType[] = $this->languageSelector($syslang, $keywordGroupType_en, $keywordGroupType_sv);
-                                }
+                                $cite .= "<h3>$citebibKey</h3>" . (string)$citebibxml->rendering;
                             }
+                            /*$citebibxml = str_replace('$$$', '', $citebibxml);
+                            $citebibxml = preg_replace('/<div/', '$$$<div', $citebibxml, 1);
+                            $citebibxml = $this->lreplace('</div>', '</div>$$$', $citebibxml);
+                            $citebibxmlArray = explode('$$$', $citebibxml);
+                            if($citebib==="bibtex") {
+                                $bibtex = "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
+                            } else {
+                                $cite .= "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
+                            }*/
                         }
                     }
-                }
-                
-                //relatedActivities
-                if($key === 'relatedActivities') {
-                    foreach($value->relatedActivity as $relatedActivity) {
-                        $relatedActivityId[] = (string)$relatedActivity->attributes();
-                        if($relatedActivity->name) {
-                            $relatedActivityName_en = (string)$relatedActivity->name[0];
-                            $relatedActivityName_sv = (string)$relatedActivity->name[1];
-                            $relatedActivityName[] = $this->languageSelector($syslang, $relatedActivityName_en, $relatedActivityName_sv);
-                        }
-                        if($relatedActivity->type) {
-                            $relatedActivityType_en = (string)$relatedActivity->type[0];
-                            $relatedActivityType_sv = (string)$relatedActivity->type[1];
-                            $relatedActivityType[] = $this->languageSelector($syslang, $relatedActivityType_en, $relatedActivityType_sv);
-                        }
-                    }
-                }
-                
-                //relatedProjects
-                if($key === 'relatedProjects') {
-                    foreach($value->relatedProject as $relatedProject) {
-                        $relatedProjectId[] = (string)$relatedProject->attributes();
-                        if($relatedProject->name) {
-                            $relatedProjectName_en = (string)$relatedProject->name[0];
-                            $relatedProjectName_sv = (string)$relatedProject->name[1];
-                            $relatedProjectName[] = $this->languageSelector($syslang, $relatedProjectName_en, $relatedProjectName_sv);
-                        }
-                        if($relatedProject->type) {
-                            $relatedProjectType_en = (string)$relatedProject->type[0];
-                            $relatedProjectType_sv = (string)$relatedProject->type[1];
-                            $relatedProjectType[] = $this->languageSelector($syslang, $relatedProjectType_en, $relatedProjectType_sv);
-                        }
-                    }
-                }
-                
-                //bibliographicalNote
-                if($key === 'bibliographicalNote') {
-                    $bibliographicalNote = (string)$value;
-                }
-                
-                //relatedResearchOutputs
-                if($key === 'relatedResearchOutputs') {
-                    foreach($value->relatedResearchOutput as $relatedResearchOutput) {
-                        $relatedResearchOutputId[] = (string)$relatedResearchOutput->attributes();
-                        if($relatedResearchOutput->name) {
-                            $relatedResearchOutputName_en = (string)$relatedResearchOutput->name[0];
-                            $relatedResearchOutputName_sv = (string)$relatedResearchOutput->name[1];
-                            $relatedResearchOutputName = $this->languageSelector($syslang, $relatedResearchOutputName_en, $relatedResearchOutputName_sv);
-                        }
-                        if($relatedResearchOutput->type) {
-                            $relatedResearchOutputType_en = (string)$relatedResearchOutput->type[0];
-                            $relatedResearchOutputType_sv = (string)$relatedResearchOutput->type[1];
-                            $relatedResearchOutputType = $this->languageSelector($syslang, $relatedResearchOutputType_en, $relatedResearchOutputType_sv);
-                        }
-                    }
-                }
-                
-                //confidential
-                if($key === 'confidential') {
-                    $confidential = (string)$value;
-                }
-                
-                //visibility
-                if($key === 'visibility') {
-                    $visibility_en = (string)$value[0];
-                    $visibility_sv = (string)$value[1];
-                    $visibility = $this->languageSelector($syslang, $visibility_en, $visibility_sv);
-                }
-                
-                //workflow
-                if($key === 'workflow') {
-                    $workflow_en = (string)$value[0];
-                    $workflow_sv = (string)$value[1];
-                    $workflow = $this->languageSelector($syslang, $workflow_en, $workflow_sv);
-                }
-                
-                //info
-                if($key === 'info') {
-                    $createdDate = (string)$value->createdDate;
-                    $modifiedDate = (string)$value->modifiedDate;
-                    $portalUrl = (string)$value->portalUrl;
                 }
 
-                //placeOfPublication
-                if($key === 'placeOfPublication') {
-                    $placeOfPublication = (string)$value;
-                }
-                
-                //isbns!!!!!!!!!!!!!!!!!!!!!!OBS ändra till isbn senare
-                if($key === 'isbns') {
-                    foreach($value->isbn as $isbn) {
-                        $isbn2[] = (string)$isbn;
+                $heritage = array();
+                foreach($organisationId as $key1 => $value1) {
+                    $heritage[] = $value1;
+                    $parent = $heritageArray[$value1];
+                    if($parent) { 
+                        $heritage[] = $parent;
                     }
-                }
-                
-                //electronicIsbns
-                if($key === 'electronicIsbns') {
-                    foreach($value->electronicIsbn as $electronicIsbn) {
-                        $electronicIsbn[] = (string)$electronicIsbn;
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
                     }
-                }
-                
-                //publisher
-                if($key === 'publisher') {
-                    $publisher_en = (string)$value->name;
-                    $publisher_sv = (string)$value->name;
-                    $publisher = $this->languageSelector($syslang, $publisher_en, $publisher_sv);
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
+                    $parent = $heritageArray[$parent];
+                    if($parent) {
+                        $heritage[] = $parent;
+                    }
                 }
 
-                //qualification
-                if($key === 'qualification') {
-                    $qualification = (string)$value;
+                if($heritage) {
+                    array_filter($heritage);
+                    $organisationSourceId = array_unique($heritage);
                 }
-               
-                //awardingInstitutions
-                if($key === 'awardingInstitutions') {
-                    foreach($value->awardingInstitution as $awardingInstitutionItem) {
-                        if($awardingInstitutionItem->organisationalUnit) {
-                            if($awardingInstitutionItem->organisationalUnit->name) {
-                                $awardingInstitution_en = (string)$awardingInstitutionItem->organisationalUnit->name[0];
-                                $awardingInstitution_sv = (string)$awardingInstitutionItem->organisationalUnit->name[1];
-                                $awardingInstitution[] = $this->languageSelector($syslang, $awardingInstitution_en, $awardingInstitution_sv);
-                            }
-                        }
-                    }
+
+                $data = array(
+                    'abstract' => $abstract,
+                    'additionalLink' => $additionalLink,
+                    'appKey' => 'lthsolr',
+                    'authorFirstName' => $authorFirstName,
+                    'authorId' => $authorId,
+                    'authorLastName' => $authorLastName,
+                    'authorName' => $authorName,
+                    'authorOrganisationId' => $authorOrganisationId,
+                    'authorOrganisationName' => $authorOrganisationName,
+                    'authorOrganisationType' => $authorOrganisationType,
+                    'authorRole' => $authorRole,
+                    'awardedDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardedDate)),
+                    'awardingInstitution' => $awardingInstitution,
+                    'bibliographicalNote' => $bibliographicalNote,
+                    'bibtex' => $bibtex,
+                    'boost' => '1.0',
+                    'changed' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modifiedDate)),
+                    'cite' => $cite,
+                    'confidential' => $confidential,
+                    'createdDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($createdDate)),
+                    'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($createdDate)),
+                    'digest' => md5($id),
+                    'docType' => 'publication',
+                    'documentTitle' => $documentTitle,
+                    'electronicIsbn' => $electronicIsbn,
+                    'electronicVersionAccessType' => $electronicVersionAccessType,
+                    'electronicVersionDoi' => $electronicVersionDoi,
+                    'electronicVersionFileName' => $electronicVersionFileName,
+                    'electronicVersionFileURL' => $electronicVersionFileURL,
+                    'electronicVersionLicenseType' => $electronicVersionLicenseType,
+                    'electronicVersionLink' => $electronicVersionLink,
+                    'electronicVersionMimeType' => $electronicVersionMimeType,
+                    'electronicVersionSize' => $electronicVersionSize,
+                    'electronicVersionTitle' => $electronicVersionTitle,
+                    'electronicVersionVersionType' => $electronicVersionVersionType,
+                    'endDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($endDate)),
+                    'eventCity' =>$eventCity,
+                    'eventCountry' =>$eventCountry,
+                    'eventName' => $eventName,
+                    'eventLink' =>$eventLink,
+                    'eventType' => $eventType,
+                    'hostPublicationEditor' => $hostPublicationEditor,
+                    'hostPublicationTitle' => $hostPublicationTitle,
+                    'id' => $id,
+                    'ipc' => $ipc,
+                    'isbn2' => $isbn2,
+                    'journalIssn' => $journalIssn,
+                    'journalNumber' => $journalNumber,
+                    'journalTitle' => $journalTitle,
+                    'keyword' => $keyword,
+                    'keywordType' => $keywordType,
+                    'language' => $language,
+                    'logicalName' => $logicalName,
+                    'managingOrganisationId' => $managingOrganisationId,
+                    'managingOrganisationName' => $managingOrganisationName,
+                    'managingOrganisationType' => $managingOrganisationType,
+                    'modifiedDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modifiedDate)),
+                    'numberOfPages' => $numberOfPages,
+                    'openAccessPermission' => $openAccessPermission,
+                    'organisationId' => $organisationId,
+                    'organisationName' => $organisationName,
+                    'organisationSourceId' => $organisationSourceId,
+                    'organisationType' => $organisationType,
+                    'pages' => $pages,
+                    'patentNumber' => $patentNumber,
+                    'peerReview' => $peerReview,
+                    'placeOfPublication' => $placeOfPublication,
+                    'portalUrl' => $portalUrl,
+                    'publicationDateDay' => $publicationDateDay,
+                    'publicationDateMonth' => $publicationDateMonth,
+                    'publicationDateYear' => $publicationDateYear,
+                    'publicationSerieElectronicIssn' => $publicationSerieElectronicIssn,
+                    'publicationSerieName' => $publicationSerieName,
+                    'publicationStatus' => $publicationStatus,
+                    'publicationType' => $publicationType,
+                    'publicationTypeUri' => $publicationTypeUri,
+                    'publisher' => $publisher,
+                    'qualification' => $qualification,
+                    'relatedActivityId' => $relatedActivityId,
+                    'relatedActivityName' => $relatedActivityName,
+                    'relatedActivityType' => $relatedActivityType,
+                    'relatedProjectId' => $relatedProjectId,
+                    'relatedProjectName' => $relatedProjectName,
+                    'relatedProjectType' => $relatedProjectType,
+                    'relatedResearchOutputId' => $relatedResearchOutputId,
+                    'relatedResearchOutputName' => $relatedResearchOutputName,
+                    'relatedResearchOutputType' => $relatedResearchOutputType,
+                    'sponsorId' => $sponsorId,
+                    'sponsorName' => $sponsorName,
+                    'startDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($startDate)),
+                    'supervisorId' => $supervisorId,
+                    'supervisorName' => $supervisorName,
+                    'supervisorOrganisationId' => $supervisorOrganisationId,
+                    'supervisorOrganisationName' => $supervisorOrganisationName,
+                    'supervisorPersonRole' => $supervisorPersonRole,
+                    'type' => $type,
+                    'visibility' => $visibility,
+                    'volume' => $volume,
+                    'workflow' => $workflow,
+                );
+
+                /*echo '<pre>';
+                print_r($data);
+                echo '</pre>';*/
+
+                //move files
+                if($mode==='reindex' && $syslang==='sv') {
+                    rename($directory . '/indexedfilesnovo/' . $filename, $directory . '/svindexedfilesnovo/' . $filename);
+                } else if($mode==='' && $syslang==='sv') {
+                    rename($directory . '/filestoindexnovo/' . $filename, $directory . '/svindexedfilesnovo/' . $filename);
+                } else if($mode==='reindex' && $syslang==='en') {
+                    rename($directory . '/svindexedfilesnovo/' . $filename, $directory . '/indexedfilesnovo/' . $filename);
+                } else if($mode==='' && $syslang==='en') {
+                    rename($directory . '/svindexedfilesnovo/' . $filename, $directory . '/indexedfilesnovo/' . $filename);
+                } else if($mode!='files' && $syslang==='en') {
+                    rename($directory . '/filestoindexnovo/' . $filename, $directory . '/indexedfilesnovo/' . $filename);
                 }
-                 
-                /*
-                //supervisorOrganisationalUnits
-                if($key === 'supervisorOrganisationalUnits') {
-                    foreach($value->supervisorOrganisationalUnit as $supervisorOrganisationalUnit) {
-                        $supervisorOrganisationId[] = (string)$supervisorOrganisationalUnit->attributes();
-                        $supervisorOrganisationName_en = (string)$supervisorOrganisationalUnit->name[0];
-                        $supervisorOrganisationName_sv = (string)$supervisorOrganisationalUnit->name[1];
-                        $supervisorOrganisationName[] = $this->languageSelector($syslang, $supervisorOrganisationName_en, $supervisorOrganisationName_sv);
-                        $supervisorOrganisationType_en = (string)$supervisorOrganisationalUnit->type[0];
-                        $supervisorOrganisationType_sv = (string)$supervisorOrganisationalUnit->type[1];
-                        $supervisorOrganisationType[] = $this->languageSelector($syslang, $supervisorOrganisationType_en, $supervisorOrganisationType_sv);
-                    }
-                }
-                
-                //supervisorExternalOrganisations
-                if($key === 'supervisorExternalOrganisations') {
-                    foreach($value->supervisorExternalOrganisation as $supervisorExternalOrganisationItem) {
-                        $supervisorExternalOrganisation_en = (string)$supervisorExternalOrganisationItem[0];
-                        $supervisorExternalOrganisation_sv = (string)$supervisorExternalOrganisationItem[1];
-                        $supervisorExternalOrganisation[] = $this->languageSelector($syslang, $supervisorExternalOrganisation_en, $supervisorExternalOrganisation_sv);
-                    }
-                }
-                */
-              
-                //supervisors
-                if($key === 'supervisors') {
-                    foreach($value->supervisor as $supervisor) {
-                        if($supervisor->person) {
-                            $supervisorId[] = (string)$supervisor->person->attributes();
-                        } else if($supervisor->externalPerson) {
-                            $supervisorId[] = (string)$supervisor->externalPerson->attributes();
-                        }
-                        if($supervisor->name) {
-                            $supervisorName[] = $supervisor->name->firstName . ' ' . $supervisorItem->name->lastName;
-                        }
-                        if($supervisor->personRole) {
-                            $supervisorPersonRole_en = (string)$supervisor->personRole[0];
-                            $supervisorPersonRole_sv = (string)$supervisor->personRole[1];
-                            $supervisorPersonRole[] = $this->languageSelector($syslang, $supervisorPersonRole_en, $supervisorPersonRole_sv);
-                        }
-                        if($supervisor->organisationalUnits) {
-                            foreach($supervisor->organisationalUnits->organisationalUnit as $supervisorOrganisation) {
-                                $supervisorOrganisationId[] = (string)$supervisorOrganisation->attributes();
-                                if($supervisorOrganisation->name) {
-                                    $supervisorOrganisationName_en = (string)$supervisorOrganisation->name[0];
-                                    $supervisorOrganisationName_sv = (string)$supervisorOrganisation->name[1];
-                                    $supervisorOrganisationName[] = $this->languageSelector($syslang, $supervisorOrganisationName_en, $supervisorOrganisationName_sv);
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                //sponsors
-                if($key === 'sponsors') {
-                    foreach($value->sponsor as $sponsor) {
-                        $sponsorId[] = (string)$sponsor->attributes();
-                        if($sponsors->name) {
-                            $sponsorName_en = (string)$sponsor->name[0];
-                            $sponsorName_sv = (string)$sponsor->name[1];
-                        }
-                        $sponsorName[] = $this->languageSelector($syslang, $sponsorName_en, $sponsorName_sv);
-                    }
-                }
-                
-                //awardedDate
-                if($key === 'awardedDate') {
-                    $awardedDate = (string)$value;
-                }
-                
-                //pages
-                if($key === 'pages') {
-                    $pages = (string)$value;
-                }
-                
-                //volume
-                if($key === 'volume') {
-                    $volume = (string)$value;
-                }
-                
-                //journalAssociation
-                if($key === 'journalAssociation') {
-                    $journalTitle = (string)$value->title;
-                    $journalIssn = (string)$value->issn;
-                }
-                
-                //journalNumber
-                if($key === 'journalNumber') {
-                    $journalNumber = (string)$value;
-                }
-                
-                //CITE OCH BIBTEX
-                $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", "Vancouver" => "vancouver",
-                    "Author" => "author", "RIS" => "ris", "Bibtex" => "bibtex");
-                $cite = "";
-                $bibtex = "";
-                foreach($citeArray as $citebibKey => $citebib) {
-                    $citebibxml = @file_get_contents($directory . '/bibtexfilesnovo/' . str_replace('.xml','', $filename) . '_' . $citebib . '.xml');
-                    if($citebibxml) {
-                        $citebibxml = @simplexml_load_string($citebibxml);
-/*echo '<pre>';
-echo (string)$citebibxml->rendering;
-echo '</pre>';
-die();*/
-                        if($citebib==="bibtex") {
-                            $bibtex = "<h3>$citebibKey</h3>" . (string)$citebibxml->rendering;
-                        } else {
-                            $cite .= "<h3>$citebibKey</h3>" . (string)$citebibxml->rendering;
-                        }
-                        /*$citebibxml = str_replace('$$$', '', $citebibxml);
-                        $citebibxml = preg_replace('/<div/', '$$$<div', $citebibxml, 1);
-                        $citebibxml = $this->lreplace('</div>', '</div>$$$', $citebibxml);
-                        $citebibxmlArray = explode('$$$', $citebibxml);
-                        if($citebib==="bibtex") {
-                            $bibtex = "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
-                        } else {
-                            $cite .= "<h3>$citebibKey</h3>" . $citebibxmlArray[1];
-                        }*/
-                    }
-                }
+
+                $buffer->createDocument($data);
             }
-            $data = array(
-                'id' => $id,
-                'documentTitle' => $documentTitle,
-                'publicationType' => $publicationType,
-                'peerReview' => $peerReview,
-                'publicationDateYear' => $publicationDateYear,
-                'publicationDateMonth' => $publicationDateMonth,
-                'publicationDateDay' => $publicationDateDay,
-                'publicationStatus' => $publicationStatus,
-                'language' => $language,
-                'abstract' => $abstract,
-                'authorId' => $authorId,
-                'authorName' => $authorName,
-                'authorFirstName' => $authorFirstName,
-                'authorLastName' => $authorLastName,
-                'authorRole' => $authorRole,
-                'authorOrganisationId' => $authorOrganisationId,
-                'authorOrganisationName' => $authorOrganisationName,
-                'authorOrganisationType' => $authorOrganisationType,
-                'organisationId' => $organisationId,
-                'organisationName' => $organisationName,
-                'organisationType' => $organisationType,
-                'managingOrganisationId' => $managingOrganisationId,
-                'managingOrganisationName' => $managingOrganisationName,
-                'managingOrganisationType' => $managingOrganisationType,
-                'openAccessPermission' => $openAccessPermission,
-                'electronicVersionAccessType' => $electronicVersionAccessType,
-                'electronicVersionVersionType' => $electronicVersionVersionType,
-                'electronicVersionLicenseType' => $electronicVersionLicenseType,
-                'electronicVersionDoi' => $electronicVersionDoi,
-                'electronicVersionTitle' => $electronicVersionTitle,
-                'electronicVersionFileName' => $electronicVersionFileName,
-                'electronicVersionFileURL' => $electronicVersionFileURL,
-                'electronicVersionMimeType' => $electronicVersionMimeType,
-                'electronicVersionSize' => $electronicVersionSize,
-                'keywordType' => $keywordType,
-                'keyword' => $keyword,
-                'relatedActivityId' => $relatedActivityId,
-                'relatedActivityName' => $relatedActivityName,
-                'relatedActivityType' => $relatedActivityType,
-                'relatedProjectId' => $relatedProjectId,
-                'relatedProjectName' => $relatedProjectName,
-                'relatedProjectType' => $relatedProjectType,
-                'bibliographicalNote' => $bibliographicalNote,
-                'relatedResearchOutputId' => $relatedResearchOutputId,
-                'relatedResearchOutputName' => $relatedResearchOutputName,
-                'relatedResearchOutputType' => $relatedResearchOutputType,
-                'confidential' => $confidential,
-                'visibility' => $visibility,
-                'workflow' => $workflow,
-                'createdDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($createdDate)),
-                'modifiedDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modifiedDate)),
-                'portalUrl' => $portalUrl,
-                'placeOfPublication' => $placeOfPublication,
-                'isbn2' => $isbn2,
-                'electronicIsbn' => $electronicIsbn,
-                'publisher' => $publisher,
-                'qualification' => $qualification,
-                'awardingInstitution' => $awardingInstitution,
-                'supervisorName' => $supervisorName,
-                'supervisorId' => $supervisorId,
-                'supervisorOrganisationId' => $supervisorOrganisationId,
-                'supervisorOrganisationName' => $supervisorOrganisationName,
-                'sponsorId' => $sponsorId,
-                'sponsorName' => $sponsorName,
-                'awardedDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardedDate)),
-                'pages' => $pages,
-                'volume' => $volume,
-                'journalNumber' => $journalNumber,
-                'journalIssn' => $journalIssn,
-                'journalTitle' => $journalTitle,
-                'type' => $type,
-                'boost' => '1.0',
-                'date' => gmdate('Y-m-d\TH:i:s\Z', strtotime($createdDate)),
-                'changed' => gmdate('Y-m-d\TH:i:s\Z', strtotime($modifiedDate)),
-                'digest' => md5($id),
-                'bibtex' => $bibtex,
-                'cite' => $cite,
-                'appKey' => 'lthsolr',
-            );
-           
-            /*echo '<pre>';
-            print_r($data);
-            echo '</pre>';*/
-
-            //move files
-            if($mode==='reindex' && $syslang==='sv') {
-                rename($directory . '/indexedfilesnovo/' . $filename, $directory . '/svindexedfilesnovo/' . $filename);
-            } else if($mode==='reindex' && $syslang==='en') {
-                rename($directory . '/svindexedfilesnovo/' . $filename, $directory . '/indexedfilesnovo/' . $filename);
-            } else if($mode!='files' && $syslang==='en') {
-                rename($directory . '/filestoindexnovo/' . $filename, $directory . '/indexedfilesnovo/' . $filename);
-            }
-
-            $buffer->createDocument($data);
         }
         $buffer->commit();
         return TRUE;
@@ -926,8 +1131,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
                 $authorFirstNameExact = '';
                 $authorLastNameExact = '';
                 $awardDate;
-                $bibliographicalNote_sv;
-                $bibliographicalNote_en;
+                $bibliographicalNote_sv = '';
+                $bibliographicalNote_en = '';
                 $bibliographicalNote = '';
                 $created = '';
                 $documentTitle = '';
@@ -1822,68 +2027,167 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
         return TRUE;
     }
     
-    function getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey)
+    function getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion)
     {
+        //TESTAREA BEGIN
+        //Tidskriftsbidrag: 073e9848-cf8f-47c3-9293-b24086a6bb4a
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/073e9848-cf8f-47c3-9293-b24086a6bb4a?size=20&apiKey=$solrLucrisApiKey";
+
+        //Kapitel i bok: a4080171-cfde-4fea-a32b-82df7e840cdd
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/a4080171-cfde-4fea-a32b-82df7e840cdd?size=20&apiKey=$solrLucrisApiKey";
+        
+        //Bok: 2a526fdb-2365-4c30-b514-59531c67ddc8
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/2a526fdb-2365-4c30-b514-59531c67ddc8?size=20&apiKey=$solrLucrisApiKey";
+        
+        //Bidrag till övrig tidskrift: 27f601cb-0605-47f0-b065-75f6f3127159
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/27f601cb-0605-47f0-b065-75f6f3127159?size=20&apiKey=$solrLucrisApiKey";
+        
+        //Working paper: 25e71cba-64c7-4621-b734-39f65f621797
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/25e71cba-64c7-4621-b734-39f65f621797?size=20&apiKey=$solrLucrisApiKey";
+        
+        //Konferensbidrag: 2af604a9-40be-4572-b15e-eab730b45751
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/2af604a9-40be-4572-b15e-eab730b45751?size=20&apiKey=$solrLucrisApiKey";
+        
+        //Icke textbaserad output: 8785f3a6-e0f6-467f-ae93-0bd09a28bfdf
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/8785f3a6-e0f6-467f-ae93-0bd09a28bfdf?size=20&apiKey=$solrLucrisApiKey";
+        
+        //Avhandling: a5d1d4ea-9eab-4154-a0f8-b65664e80afc
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/59/research-outputs/a5d1d4ea-9eab-4154-a0f8-b65664e80afc?size=20&apiKey=$solrLucrisApiKey";
+        
+        //Patent: 5fd2c529-b00c-40fc-a3a6-9243a85638fd
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/5fd2c529-b00c-40fc-a3a6-9243a85638fd?size=20&apiKey=$solrLucrisApiKey";
+        
+        //Övrigt: 951ccc19-08c2-441e-bacb-09f8ce5dc11a
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/951ccc19-08c2-441e-bacb-09f8ce5dc11a?size=20&apiKey=$solrLucrisApiKey";
+        
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/?size=2&offset=0&apiKey=$solrLucrisApiKey";
+        
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/changes/2018-06-11/?apiKey=$solrLucrisApiKey";
+        //TESTAREA ENDS
+        
         $directory = '/var/www/html/typo3/lucrisdump';
         
-        for($i = 0; $i <= $numberofloops; $i++) {
-            
-            $startrecord = $startFromHere + ($i * 20);
+        $numberOfFilesAlreadyIndexed = count( scandir($directory.'/filestoindexnovo') ) - 2;
+        if($numberOfFilesAlreadyIndexed > 0) {
+            $startFromHere = $numberOfFilesAlreadyIndexed;
+        }
         
-            //contributionToJournal
-            $xmlpath = "https://lucris.lub.lu.se/ws/api/59/research-outputs/16a3b263-dd0a-4284-9494-ef315495b691?size=20&apiKey=$solrLucrisApiKey";
-            
-            //thesis
-            $xmlpath = "https://lucris.lub.lu.se/ws/api/59/research-outputs/ca00ea30-30ce-4d62-9b2f-6718d09591c0?size=20&apiKey=$solrLucrisApiKey";
-                    
-            $xml = file_get_contents($xmlpath);
+        if($mode==='reindex') {
         
-            $xml = @simplexml_load_string($xml);
-            
-            $numberofloops = ceil($xml->children('core', true)->count / 20);
-        
-            $id = (string)$xml->attributes();
-        
-            $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", 
-                            "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
+            for($i = 0; $i <= $numberofloops; $i++) {
 
-            $cite = "";
-            $bibtex = "";
-            foreach($citeArray as $citebibKey => $citebib) {
-                $citebibxmlpath = "https://lucris.lub.lu.se/ws/api/59/research-outputs/$id?rendering=$citebib&apiKey=$solrLucrisApiKey";
-                $citebibxml = @file_get_contents($citebibxmlpath);
-                $citebibxml = @simplexml_load_string($citebibxml);
-                //print '<p>' . $citebibxml . '</p>';
-                if($citebibxml) {
-                    switch($citebib) {
-                        case 'standard':
-                            $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_standard.xml');
-                            break;
-                        case 'harvard':
-                            $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_harvard.xml');
-                            break;
-                        case 'apa':
-                            $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_apa.xml');
-                            break;
-                        case 'vancouver':
-                            $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_vancouver.xml');
-                            break;
-                        case 'author':
-                            $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_author.xml');
-                            break;
-                        case 'RIS':
-                            $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_ris.xml');
-                            break;
-                        case 'BIBTEX':
-                            $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_bibtex.xml');
-                            break;
+                $startrecord = $startFromHere + ($i * 20);
+
+                //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=20&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
+                $xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs?size=20&offset=$startrecord&apiKey=$solrLucrisApiKey";
+
+                $xml = file_get_contents($xmlpath);
+
+                $xml = @simplexml_load_string($xml);
+
+                $numberofloops = ceil(($xml->count - intval($startrecord)) / 20);
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $numberofloops . ';' . $xmlpath, 'crdate' => time()));
+                //$xml = $fileArray = array_slice((array)$xml, 2);
+
+                //die($this->debug($xml));
+
+                foreach($xml->children() as $publication) {
+
+                    if($publication->getName() !== 'count' && $publication->getName() !== 'navigationLink') {
+
+                        $id = (string)$publication->attributes();
+
+                        $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", 
+                                        "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
+
+                        $cite = "";
+                        $bibtex = "";
+                        foreach($citeArray as $citebibKey => $citebib) {
+                            $citebibxmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/$id?rendering=$citebib&apiKey=$solrLucrisApiKey";
+                            $citebibxml = @file_get_contents($citebibxmlpath);
+                            $citebibxml = @simplexml_load_string($citebibxml);
+                            //print '<p>' . $citebibxml . '</p>';
+                            if($citebibxml) {
+                                switch($citebib) {
+                                    case 'standard':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_standard.xml');
+                                        break;
+                                    case 'harvard':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_harvard.xml');
+                                        break;
+                                    case 'apa':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_apa.xml');
+                                        break;
+                                    case 'vancouver':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_vancouver.xml');
+                                        break;
+                                    case 'author':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_author.xml');
+                                        break;
+                                    case 'RIS':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_ris.xml');
+                                        break;
+                                    case 'BIBTEX':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_bibtex.xml');
+                                        break;
+                                }
+                            }
+                        }
+                        $publication->asXml($directory . '/filestoindexnovo/' . $id . '.xml');
                     }
                 }
             }
-            $xml->asXml($directory . '/filestoindexnovo/' . $id . '.xml');
-        }
-        return true;                       
-                        
+        } else {
+            $xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/changes/2018-06-11/?apiKey=$solrLucrisApiKey";
+            $xml = file_get_contents($xmlpath);
+            $xml = @simplexml_load_string($xml);
+            foreach($xml->children() as $contentChange) {
+                if($contentChange->getName() === 'contentChange') {
+                    if((string)$contentChange->familySystemName === 'ResearchOutput') {
+                        $id = (string)$contentChange->uuid;
+
+                        $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", 
+                                        "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
+
+                        $cite = "";
+                        $bibtex = "";
+                        foreach($citeArray as $citebibKey => $citebib) {
+                            $citebibxmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/$id?rendering=$citebib&apiKey=$solrLucrisApiKey";
+                            $citebibxml = @file_get_contents($citebibxmlpath);
+                            $citebibxml = @simplexml_load_string($citebibxml);
+                            //print '<p>' . $citebibxml . '</p>';
+                            if($citebibxml) {
+                                switch($citebib) {
+                                    case 'standard':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_standard.xml');
+                                        break;
+                                    case 'harvard':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_harvard.xml');
+                                        break;
+                                    case 'apa':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_apa.xml');
+                                        break;
+                                    case 'vancouver':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_vancouver.xml');
+                                        break;
+                                    case 'author':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_author.xml');
+                                        break;
+                                    case 'RIS':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_ris.xml');
+                                        break;
+                                    case 'BIBTEX':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_bibtex.xml');
+                                        break;
+                                }
+                            }
+                        }
+                        $publication->asXml($directory . '/filestoindexnovo/' . $id . '.xml');
+                    }
+                }
+            }
+        } 
+        return TRUE;                
     }
     
     
