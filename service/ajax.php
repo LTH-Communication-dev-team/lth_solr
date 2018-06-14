@@ -631,7 +631,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
 
     $listComingDissertations = '';
     if($action==='listComingDissertations') {
-        $listComingDissertations = ' AND awardDate:[' . $currentDate . ' TO *]';
+        $listComingDissertations = ' AND awardedDate:[' . $currentDate . ' TO *]';
     }
     $queryToSet = 'docType:publication' . $listComingDissertations . ' AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . ']' . $term . $keyword . $publicationSelection . $filterQuery;
 
