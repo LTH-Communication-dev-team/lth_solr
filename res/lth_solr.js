@@ -1494,12 +1494,12 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                 }
 
                 $.each( d.data, function( key, aData ) {
-                    if(sorting==='publicationYear' && display==='list') {
+                    if(sorting==='publicationYear' && display==='publications') {
                         if(lastGroupValue!=aData.publicationDateYear) {
                             $('#lthsolr_publications_container').append('<div class="lthsolr_publication_row" style="margin-top:0px;padding-top:15px;font-weight:bold;">'+aData.publicationDateYear+'</div>');
                         }
                     }
-                    if(sorting==='publicationType' && display==='list') {
+                    if(sorting==='publicationType' && display==='publications') {
                         if(lastGroupValue!=aData.publicationType) {
                             $('#lthsolr_publications_container').append('<div class="lthsolr_publication_row" style="margin-top:0px;">'+aData.publicationType+'</div>');
                         }
@@ -1646,7 +1646,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                 });
                 
                 $('.lthsolr_loader').remove();
-                if(display==='list') {
+                if(display==='publications') {
                     var sortButton = '<select id="lthsolr_sort" style="direction: rtl;"></select>';
                     $('#lthsolr_publications_sort').html(sortButton);
                     var sortoptions = ["publicationYear,"+lth_solr_messages.publicationYear+",&#xf161;","publicationType,"+lth_solr_messages.type+",&#xf160;","documentTitle,"+lth_solr_messages.title+",&#xf160;","authorName,"+lth_solr_messages.authorLastName+",&#xf160;"];
