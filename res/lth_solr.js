@@ -175,7 +175,7 @@ function exportPublications(syslang,tableStart,parts,t)
                 var csvContent='';
                 //console.log(parts);
                 if(d.numFound > 2000 && parts==0) {
-                    $('.modal-body').css("float","left").after('<div style="float:left;padding:25px;0px;0px;25px;"><ul id="exportParts"></ul></div>');
+                    $('#exportModal .modal-body').css("float","left").after('<div style="float:left;padding:25px;0px;0px;25px;"><ul id="exportParts"></ul></div>');
                     for (var iii=0; iii<(Math.ceil(d.numFound/2000)-1); iii++) {
                         $('#exportParts').append('<li><a href="javascript:" onclick="exportPublications(\''+
                             syslang+'\','+((iii*2000))+',1,this);">Download publications ' + ((iii*2000)+1) + '-' + (iii+1)*2000 + '</a></li>');
