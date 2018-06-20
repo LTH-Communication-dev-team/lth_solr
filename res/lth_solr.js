@@ -1681,6 +1681,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                             $('#lth_solr_facet_container').append('<div style="margin-top:15px;border-top:1px #dedede solid;padding-top:7px;"><b>' + lth_solr_messages.export + '</b></div><a class="fa-downloada" href="javascript:"><i style="cursor:pointer;" class="fa fa-download fa-lg slsGray50"></i></a>');
                         }
                         $('.fa-downloada').click(function() {
+                            console.log($('.modal-body .checkbox').length);
                             if($('.modal-body .checkbox').length === 0) {
                                 console.log(exportArray.length);
                                 for (var i=0; i<exportArray.length; i++) {
