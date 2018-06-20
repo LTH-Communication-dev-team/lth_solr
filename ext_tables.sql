@@ -31,7 +31,7 @@ CREATE TABLE sys_file (
 
 
 CREATE TABLE tx_lthsolr_categories (
-  id int(10) unsigned NOT NULL AUTO_INCREMENT,
+  id int(11) NOT NULL auto_increment,
   parentId int(10) unsigned DEFAULT NULL,
   type varchar(31) NOT NULL,
   name_sv varchar(63) CHARACTER SET utf8 COLLATE utf8_swedish_ci DEFAULT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE tx_lthsolr_categories (
 
 
 CREATE TABLE tx_lthsolr_titles (
-    id int(10) unsigned NOT NULL AUTO_INCREMENT,
+    id int(11) NOT NULL auto_increment,
     title_sv varchar(64) CHARACTER SET utf8 COLLATE utf8_swedish_ci NOT NULL,
     title_en varchar(64) NOT NULL,
     category int(10) unsigned NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE tx_lthsolr_titles (
 
 
 CREATE TABLE tx_lthsolr_lucrisdata (
-    id int(10) unsigned NOT NULL AUTO_INCREMENT,
+    id int(11) NOT NULL auto_increment,
     typo3_id varchar(255) DEFAULT NULL,
     lucris_id varchar(255) DEFAULT NULL,
     lucris_photo varchar(255) DEFAULT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE tx_lthsolr_lucrisdata (
 
 
 CREATE TABLE tx_lthsolr_uniquetitle (
-    uid int(10) unsigned NOT NULL AUTO_INCREMENT,
+    uid int(11) NOT NULL auto_increment,
     title varchar(255) DEFAULT NULL,
     lucris_id varchar(255) DEFAULT NULL,
     PRIMARY KEY (uid)
@@ -83,7 +83,7 @@ CREATE TABLE tx_lthsolr_uniquetitle (
 
 
 CREATE TABLE tx_lthsolr_cleanup (
-    uid int(10) unsigned NOT NULL AUTO_INCREMENT,
+    uid int(11) NOT NULL auto_increment,
     lucris_id varchar(255) DEFAULT NULL,
     index_type varchar(25) DEFAULT NULL,
     modified varchar(50) DEFAULT NULL,
