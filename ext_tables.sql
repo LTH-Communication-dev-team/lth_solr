@@ -8,20 +8,20 @@ CREATE TABLE fe_groups (
 );
 
 CREATE TABLE fe_users (
-    lth_solr_cat text DEFAULT '' NOT NULL,
-    lth_solr_sort text DEFAULT '' NOT NULL,
-    lth_solr_intro text DEFAULT '' NOT NULL,
-    lth_solr_image text DEFAULT '' NOT NULL,
-    lth_solr_hide text DEFAULT '' NOT NULL,
-    lth_solr_show text DEFAULT '' NOT NULL,
-    lth_solr_heritage text DEFAULT '' NOT NULL,
-    lth_solr_legacy_heritage text DEFAULT '' NOT NULL,
+    lth_solr_cat text NOT NULL,
+    lth_solr_sort text NOT NULL,
+    lth_solr_intro text NOT NULL,
+    lth_solr_image text NOT NULL,
+    lth_solr_hide text NOT NULL,
+    lth_solr_show text NOT NULL,
+    lth_solr_heritage text NOT NULL,
+    lth_solr_legacy_heritage text NOT NULL,
     lth_solr_index tinyint(1) NOT NULL DEFAULT '0',
     image_id tinyint(1) NOT NULL DEFAULT '0',
     hide_on_web tinyint(1) NOT NULL DEFAULT '0',
     lucache_id varchar(15) DEFAULT '' NOT NULL,
     lth_solr_uuid varchar(255) DEFAULT '' NOT NULL,
-    lth_solr_autohomepage text DEFAULT '' NOT NULL,
+    lth_solr_autohomepage text NOT NULL,
     title varchar(255) DEFAULT '' NOT NULL
 );
 
@@ -68,7 +68,7 @@ CREATE TABLE tx_lthsolr_lucrisdata (
     lucris_photo varchar(255) DEFAULT NULL,
     lucris_photo_width int(10) unsigned NOT NULL,
     lucris_photo_height int(10) unsigned NOT NULL,
-    lucris_profile_information text DEFAULT '' NOT NULL,
+    lucris_profile_information text NOT NULL,
     lucris_type varchar(25) DEFAULT NULL,
     PRIMARY KEY (id)
 );
