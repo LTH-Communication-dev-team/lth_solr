@@ -1678,10 +1678,11 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                                     '</button></div>');
                             */
                         } else {
-                            $('#lth_solr_facet_container').append('<div style="margin-top:15px;border-top:1px #dedede solid;padding-top:7px;"><b>' + lth_solr_messages.export + '</b></div><i style="cursor:pointer;" class="fa fa-download fa-lg slsGray50"></i>');
+                            $('#lth_solr_facet_container').append('<div style="margin-top:15px;border-top:1px #dedede solid;padding-top:7px;"><b>' + lth_solr_messages.export + '</b></div><a class="fa-downloada" href="javascript:"><i style="cursor:pointer;" class="fa fa-download fa-lg slsGray50"></i></a>');
                         }
-                        $('.fa-download').click(function() {
+                        $('.fa-downloada').click(function() {
                             //exportPublications(syslang);
+                            console.log('???');
                             if($('.modal-body .checkbox').length === 0) {
                                 for (var i=0; i<exportArray.length; i++) {
                                     $('.modal-body').append('<div class="checkbox"><label><input type="checkbox" name="exportField" value="'+exportArray[i]+'">'+exportArray[i]+
