@@ -1689,7 +1689,7 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                                 $('.modal-body').prepend('<div class="checkbox"><label><input type="checkbox" id="select_all" /></label><i class="fa fa-check"></i></div>');
                                 $('.modal-body').append('<button id="exportButton" type="button" class="btn btn-default">Export</button>');
                                 $('.modal-body').wrap('<form></form>');
-                                $('#exportButton').click(function(){
+                                $('#exportModal #exportButton').click(function(){
                                     exportPublications(syslang,0,0,null);
                                 });
                                 $('#select_all').change(function() {
