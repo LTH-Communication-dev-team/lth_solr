@@ -804,13 +804,13 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
 
 function showPublication($response, $term, $syslang, $config)
 {
-    $fieldArray = array("abstract","electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
+    $fieldArray = array("abstract","authorExternal","authorId","authorName","authorOrganisation","authorReverseName","authorReverseNameShort",
+        "bibtex","cite","documentTitle","doi","edition","electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
         "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
-        "electronicVersionVersionType","authorExternal","authorId","authorName","authorOrganisation","authorReverseName","authorReverseNameShort",
-        "bibtex","cite","documentTitle","doi","edition","electronicIsbns","externalOrganisations",
+        "electronicVersionVersionType","electronicIsbns","endDate","externalOrganisations","eventCity","eventCountry","eventName","eventLink","eventType",
         "id","hostPublicationTitle","issn","journalTitle","journalNumber","keywords_uka","keywords_user","language","numberOfPages","openAccessPermission","organisationName",
         "organisationId","organisationSourceId","pages","peerReview","placeOfPublication","printIsbns","publicationDateYear","publicationDateMonth",
-        "publicationDateDay","publicationType","publicationTypeUri","publisher","publicationStatus","standard_category_en","supervisors","title","volume");
+        "publicationDateDay","publicationType","publicationTypeUri","publisher","publicationStatus","standard_category_en","startDate","supervisors","title","volume");
     
     if(!$response) {
         $client = new Solarium\Client($config);
@@ -900,7 +900,10 @@ function showPublication($response, $term, $syslang, $config)
         $electronicVersionTitle = $document->electronicVersionTitle;
         $electronicVersionVersionType = $document->electronicVersionVersionType;
         $edition = $document->edition;
-        $event = $document->event;
+        $endDate = $document->endDate;
+        $eventName = $document->eventName;
+        $eventLink = $document->eventLink;
+        $eventType = $document->eventType;
         $eventCity = $document->eventCity;
         $eventCountry = $document->eventCountry;
         $hostPublicationTitle = $document->hostPublicationTitle;
@@ -923,23 +926,13 @@ function showPublication($response, $term, $syslang, $config)
         $publisher = $document->publisher;
         $publicationType = $this->fixArray($document->publicationType);
         $publicationTypeUri = $document->publicationTypeUri;
+        $startDate = $document->startDate;
         $supervisors = $document->supervisorName;
         $type = $document->type;
         $volume = $document->volume;
         
         $data = array(
             'abstract' => $abstract,
-            'electronicIsbn' => $electronicIsbn,
-            'electronicVersionAccessType' => $electronicVersionAccessType,
-            'electronicVersionDoi' => $electronicVersionDoi,
-            'electronicVersionFileName' => $electronicVersionFileName,
-            'electronicVersionFileURL' => $electronicVersionFileURL,
-            'electronicVersionLicenseType' => $electronicVersionLicenseType,
-            'electronicVersionLink' => $electronicVersionLink,
-            'electronicVersionMimeType' => $electronicVersionMimeType,
-            'electronicVersionSize' => $electronicVersionSize,
-            'electronicVersionTitle' => $electronicVersionTitle,
-            'electronicVersionVersionType' => $electronicVersionVersionType,
             'authorExternal' => $authorExternal,
             'authorId' => $document->authorId,
             'authorName' => $document->authorName,
@@ -951,6 +944,23 @@ function showPublication($response, $term, $syslang, $config)
             'doi' => $doi,
             'edition' => $edition,
             'electronicIsbns' => $electronicIsbns,
+            'electronicIsbn' => $electronicIsbn,
+            'electronicVersionAccessType' => $electronicVersionAccessType,
+            'electronicVersionDoi' => $electronicVersionDoi,
+            'electronicVersionFileName' => $electronicVersionFileName,
+            'electronicVersionFileURL' => $electronicVersionFileURL,
+            'electronicVersionLicenseType' => $electronicVersionLicenseType,
+            'electronicVersionLink' => $electronicVersionLink,
+            'electronicVersionMimeType' => $electronicVersionMimeType,
+            'electronicVersionSize' => $electronicVersionSize,
+            'electronicVersionTitle' => $electronicVersionTitle,
+            'electronicVersionVersionType' => $electronicVersionVersionType,
+            'endDate' => $endDate,
+            'eventName' => $eventName,
+            'eventLink' => $eventLink,
+            'eventType' => $eventType,
+            'eventCity' => $eventCity,
+            'eventCountry' => $eventCountry,
             'externalOrganisations' => $externalOrganisations,
             'id' => $id,
             'hostPublicationTitle' => $hostPublicationTitle,
@@ -977,6 +987,7 @@ function showPublication($response, $term, $syslang, $config)
             'publisher' => $publisher,
             'publicationStatus' => $publicationStatus,
             'standard_category_en' => $standardCategory,
+            'startDate' => $startDate,
             'supervisors' => $supervisors,
             'title' => $title,
             'volume' => $volume,

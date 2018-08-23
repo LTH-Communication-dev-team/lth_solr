@@ -651,7 +651,7 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                             }
                             
                             if(aData.organisationLeaveOfAbsence) {
-                                if(aData.if(aData.organisationLeaveOfAbsence)[i]) {
+                                if(aData.organisationLeaveOfAbsence[i]) {
                                     displayName = displayName + '(' + lth_solr_messages.organisationLeaveOfAbsence + ')';
                                 }
                             }
@@ -2083,12 +2083,14 @@ function showPublication()
     //var lth_solr_staffdetailpage = $('#lth_solr_staffdetailpage').val();
     //var lth_solr_projectdetailpage = $('#lth_solr_projectdetailpage').val();
     var syslang = $('html').attr('lang');
-    var id,title,abstract,authorId,authorExternal,authorName,authorOrganisation,authorReverseName,authorReverseNameShort,organisationName,organisationId;
-    var organisationSourceId,externalOrganisations,keywords_uka,keywords_user,language,pages,numberOfPages,journalTitle,volume,journalNumber;
-    var bibtex,cite,doi,electronicIsbns,edition,issn,peerReview,placeOfPublication,event,eventCity,eventCountry,hostPublicationTitle;
-    var printIsbns,publicationStatus,publicationDateYear,publicationDateMonth,publicationDateDay,publicationType,publicationTypeUri,publisher,supervisors;
-    var openAccessPermission, electronicVersionAccessType, electronicVersionDoi, electronicVersionFileName, electronicVersionFileURL, electronicVersionLicenseType;
-    var electronicVersion, electronicVersionLink, electronicVersionMimeType, electronicVersionSize, electronicVersionTitle, electronicVersionVersionType;
+    var abstract,authorId,authorExternal,authorName,authorOrganisation,authorReverseName,authorReverseNameShort,bibtex,cite,doi,edition,electronicIsbns;
+    var electronicVersionAccessType, electronicVersionDoi, electronicVersionFileName, electronicVersionFileURL, electronicVersionLicenseType;
+    var electronicVersion, electronicVersionLink, electronicVersionMimeType, electronicVersionSize, electronicVersionTitle, electronicVersionVersionType, endDate;
+    var externalOrganisations,event,eventName,eventLink,eventType,eventCity,eventCountry,hostPublicationTitle,id,issn,journalNumber,journalTitle,keywords_uka,keywords_user;
+    var language,pages,numberOfPages,openAccessPermission;
+    var organisationName,organisationSourceId,organisationId,peerReview,placeOfPublication;
+    var printIsbns,publicationStatus,publicationDateYear,publicationDateMonth,publicationDateDay,publicationType,publicationTypeUri,publisher,startDate,supervisors;
+    var title,volume;
     
     $.ajax({
         type : 'POST',
@@ -2150,9 +2152,9 @@ function showPublication()
 
                 //electronicVersionVersionType
                 if(d.data.electronicVersionVersionType) electronicVersionVersionType = d.data.electronicVersionVersionType;
+                
                 authorId = d.data.authorId;
                 authorExternal = d.data.authorExternal;
-                authorId = d.data.authorId;
                 authorName = d.data.authorName;
                 authorOrganisation = d.data.authorOrganisation;
                 authorReverseName = d.data.authorReverseName;
@@ -2162,7 +2164,10 @@ function showPublication()
                 doi = d.data.doi;
                 edition = d.data.edition;
                 electronicIsbns = d.data.electronicIsbns;
-                event = d.data.event;
+                endDate = d.data.endDate;
+                eventName = d.data.eventName;
+                eventLink = d.data.eventLink;
+                eventType = d.data.eventType;
                 eventCity = d.data.eventCity;
                 eventCountry = d.data.eventCountry;
                 externalOrganisations = d.data.externalOrganisations;
@@ -2190,6 +2195,7 @@ function showPublication()
                 publicationType = d.data.publicationType;
                 publicationTypeUri = d.data.publicationTypeUri;
                 publisher = d.data.publisher;
+                startDate = d.data.startDate;
                 supervisors = d.data.supervisors;
                 title = d.data.title;
                 volume = d.data.volume;
@@ -2218,11 +2224,20 @@ function showPublication()
                     }
                 }
                 
-                if(eventCity) {
-                    event = eventCity;
+                if(eventName) {
+                    event = eventName;
                 }
-                if(eventCity && eventCountry) {
-                    event += ', ' + eventCountry;
+                if(eventCity) {
+                    event += addComma(eventCity);
+                }
+                if(eventCountry) {
+                    event += addComma(eventCountry);
+                }
+                if(startDate) {
+                    event += '<br />' + startDate.substr(0,10);
+                }
+                if(endDate) {
+                    event +=  ' -- ' + endDate.substr(0,10);
                 }
                 
                 if(organisationSourceId) {
