@@ -548,10 +548,13 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
 
+
                     var guid = '';
                     var image = '';
-                    if(aData.guid) guid = aData.guid[0];
                     var uuid = '';
+                    var phone = '', homepage = '', organisationName = '';
+                    if(aData.guid) guid = aData.guid[0];
+                   
                     if(aData.uuid) uuid = aData.uuid;
                     if(!uuid && guid) {
                         uuid = guid;
@@ -565,8 +568,6 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                     if(aData.homepage) {
                         homepage = aData.homepage;
                     }
-                    template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
-                    var phone = '', roomNumber = '', homepage = '', organisationName = '', roomNumber = '';
 
                     if(aData.email) template = template.replace(/###email###/g, aData.email[0]);
 
@@ -649,8 +650,16 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                                 }
                             }
                             
+                            if(aData.organisationLeaveOfAbsence) {
+                                if(aData.if(aData.organisationLeaveOfAbsence)[i]) {
+                                    displayName = displayName + '(' + lth_solr_messages.organisationLeaveOfAbsence + ')';
+                                }
+                            }
                         }
                     }
+                    
+                    template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
+
                     if(organisationName) {
                         affiliation += addComma(organisationName);
                     }
@@ -661,9 +670,13 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                     //template = template.replace('###title###', titleCase(title));
                     //template = template.replace('###phone###', phone);
                     //template = template.replace('###organisationName###', organisationName);*/
+                    
+                    
 
                     if(aData.homepage) {
                         homepage = '<a data-homepage="' + aData.homepage + '" href="' + aData.homepage + '"><img class="lthsolr_home" src="/typo3conf/ext/lth_solr/res/home.png" /></a>';
+                    } else {
+                        homepage = '';
                     }
                     template = template.replace('###homepage###', homepage);
 
@@ -1349,11 +1362,12 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
     var displayFromSimpleList = $('#lth_solr_displayFromSimpleList').val();
     var inputFacet = facet;
     var i = 0;
-    var maxClass, count, facetHeader, more, content, numberOfPages, publicationDate, journalTitle, title, placeOfPublication, authorName, documentTitle;
-    var id, publisher, attachmentLimitedVisibility, attachmentMimeType, attachmentTitle, attachmentSize, attachmentUrl, attachment, hostPublicationTitle;
-    var volume, pages, articleNumber, bibliographicalNote;
+    var maxClass, count, facetHeader, more, content, numberOfPages, publicationDate, journalTitle, title, placeOfPublication, authorName, openAccessPermission;
+    var id, publisher, hostPublicationTitle, volume, pages, articleNumber, bibliographicalNote;
+    var electronicIsbn, electronicVersionAccessType, electronicVersionDoi, electronicVersionFileName, electronicVersionFileURL, electronicVersionLicenseType;
+    var electronicVersion, electronicVersionLink, electronicVersionMimeType, electronicVersionSize, electronicVersionTitle, electronicVersionVersionType;
     var exportArray = ["articleNumber","authorName","documentTitle","documentLimitedVisibility","documentMimeType","documentSize",
-            "documentUrl","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","pages","publicationType","publicationDateYear",
+            "documentUrl","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","openAccessPermission","pages","publicationType","publicationDateYear",
             "publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume"];
         
     if(publicationCategoriesSwitch === 'all') {
@@ -1507,18 +1521,25 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                     var template = $('#solrPublicationTemplate').html();
                     
                     articleNumber = '';
-                    attachment = '';
-                    attachmentLimitedVisibility = '';
-                    attachmentSize = '';
-                    attachmentMimeType = '';
-                    attachmentUrl = '';
-                    attachmentTitle = '';
                     authorName = '';
                     bibliographicalNote = ''.
                     documentTitle = '';
+                    electronicIsbn = '';
+                    electronicVersion = '';
+                    electronicVersionAccessType = '';
+                    electronicVersionDoi = '';
+                    electronicVersionFileName = '';
+                    electronicVersionFileURL = '';
+                    electronicVersionLicenseType = '';
+                    electronicVersionLink = '';
+                    electronicVersionMimeType = '';
+                    electronicVersionSize = '';
+                    electronicVersionTitle = '';
+                    electronicVersionVersionType = '';
                     hostPublicationTitle = '';
                     journalTitle = '';
                     numberOfPages = '';
+                    openAccessPermission = '';
                     pages = '';
                     publicationDate = '';
                     publisher = '';
@@ -1555,17 +1576,35 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
                     //articleNumber
                     if(aData.articleNumber) articleNumber = ', ' + aData.articleNumber;
                     
-                    //attachmentLimitedVisibility
-                    if(aData.attachmentLimitedVisibility) attachmentLimitedVisibility = aData.attachmentLimitedVisibility;
+                    //openAccessPermission
+                    if(aData.openAccessPermission) openAccessPermission = aData.openAccessPermission;
+
+                    //electronicVersionDoi
+                    if(aData.electronicVersionDoi) electronicVersionDoi = aData.electronicVersionDoi;
                             
-                    //attachmentMimeType
-                    if(aData.attachmentMimeType) attachmentMimeType = aData.attachmentMimeType;
-                            
-                    //attachmentSize
-                    if(aData.attachmentSize) attachmentSize = aData.attachmentSize;
+                    //electronicVersionFileName
+                    if(aData.electronicVersionFileName) electronicVersionFileName = aData.electronicVersionFileName;
                     
-                    //attachmentUrl
-                    if(aData.attachmentUrl) attachmentUrl = aData.attachmentUrl;
+                    //electronicVersionFileURL
+                    if(aData.electronicVersionFileURL) electronicVersionFileURL = aData.electronicVersionFileURL;
+                    
+                    //electronicVersionLicenseType
+                    if(aData.electronicVersionLicenseType) electronicVersionLicenseType = aData.electronicVersionLicenseType;
+                    
+                    //electronicVersionLink
+                    if(aData.electronicVersionLink) electronicVersionLink = aData.electronicVersionLink;
+                    
+                    //electronicVersionMimeType
+                    if(aData.electronicVersionMimeType) electronicVersionMimeType = aData.electronicVersionMimeType;
+                    
+                    //electronicVersionSize
+                    if(aData.electronicVersionSize) electronicVersionSize = aData.electronicVersionSize;
+                    
+                    //electronicVersionTitle
+                    if(aData.electronicVersionTitle) electronicVersionTitle = aData.electronicVersionTitle;
+                    
+                    //electronicVersionVersionType
+                    if(aData.electronicVersionVersionType) electronicVersionVersionType = aData.electronicVersionVersionType;
         
                     //authorName
                     if(aData.authorName) authorName = aData.authorName + '. ';
@@ -1626,17 +1665,18 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
 
                     $('#lthsolr_publications_container').append(template);
 
-                    if(attachmentLimitedVisibility || attachmentUrl) {
-                        if(attachmentLimitedVisibility==='free') {
-                            attachment = '<i class="fa fa-unlock"></i>';
-                        } else if(attachmentLimitedVisibility==='campus') {
-                            attachment = '<i class="fa fa-lock"></i>';
-                        } 
-                        if(attachmentUrl) {
-                            attachment += '<i class="fa fa-paperclip"></i>';
+                    if(electronicVersionFileURL || openAccessPermission) {
+                        if(electronicVersionFileURL) {
+                            electronicVersion = '<i class="fa fa-paperclip"></i>';
                         }
-                        $('#'+id).append('<div class="lthsolr_attachments">'+attachment+'</div>');
+                        if(openAccessPermission) {
+                            if(openAccessPermission==='Öppen' || openAccessPermission==='Open') {
+                                electronicVersion += '<i class="fa fa-unlock"></i>';
+                            }
+                        }
+                        $('#'+id).append('<div class="lthsolr_electronicVersion">'+electronicVersion+'</div>');
                     }
+                        
                     if(sorting==='publicationYear') {
                         lastGroupValue = aData.publicationDateYear;
                     }
@@ -2045,9 +2085,10 @@ function showPublication()
     var syslang = $('html').attr('lang');
     var id,title,abstract,authorId,authorExternal,authorName,authorOrganisation,authorReverseName,authorReverseNameShort,organisationName,organisationId;
     var organisationSourceId,externalOrganisations,keywords_uka,keywords_user,language,pages,numberOfPages,journalTitle,volume,journalNumber;
-    var bibtex,cite,doi,electronicIsbns,edition,issn,peerReview,placeOfPublication,event,eventCity,eventCountry;
+    var bibtex,cite,doi,electronicIsbns,edition,issn,peerReview,placeOfPublication,event,eventCity,eventCountry,hostPublicationTitle;
     var printIsbns,publicationStatus,publicationDateYear,publicationDateMonth,publicationDateDay,publicationType,publicationTypeUri,publisher,supervisors;
-    var attachment='',attachmentLimitedVisibility,attachmentMimeType,attachmentSize,attachmentTitle,attachmentUrl,hostPublicationTitle;
+    var openAccessPermission, electronicVersionAccessType, electronicVersionDoi, electronicVersionFileName, electronicVersionFileURL, electronicVersionLicenseType;
+    var electronicVersion, electronicVersionLink, electronicVersionMimeType, electronicVersionSize, electronicVersionTitle, electronicVersionVersionType;
     
     $.ajax({
         type : 'POST',
@@ -2080,11 +2121,35 @@ function showPublication()
                     detailLink = window.location.href.split('/show').shift()+ '/show/';
                 }
 
-                attachmentLimitedVisibility = d.data.attachmentLimitedVisibility;
-                attachmentMimeType = d.data.attachmentMimeType;
-                attachmentSize = d.data.attachmentSize;
-                attachmentTitle = d.data.attachmentTitle;
-                attachmentUrl = d.data.attachmentUrl;
+                //electronicVersionAccessType
+                if(d.data.electronicVersionAccessType) electronicVersionAccessType = d.data.electronicVersionAccessType;
+
+                //electronicVersionDoi
+                if(d.data.electronicVersionDoi) electronicVersionDoi = d.data.electronicVersionDoi;
+
+                //electronicVersionFileName
+                if(d.data.electronicVersionFileName) electronicVersionFileName = d.data.electronicVersionFileName;
+
+                //electronicVersionFileURL
+                if(d.data.electronicVersionFileURL) electronicVersionFileURL = d.data.electronicVersionFileURL;
+
+                //electronicVersionLicenseType
+                if(d.data.electronicVersionLicenseType) electronicVersionLicenseType = d.data.electronicVersionLicenseType;
+
+                //electronicVersionLink
+                if(d.data.electronicVersionLink) electronicVersionLink = d.data.electronicVersionLink;
+
+                //electronicVersionMimeType
+                if(d.data.electronicVersionMimeType) electronicVersionMimeType = d.data.electronicVersionMimeType;
+
+                //electronicVersionSize
+                if(d.data.electronicVersionSize) electronicVersionSize = d.data.electronicVersionSize;
+
+                //electronicVersionTitle
+                if(d.data.electronicVersionTitle) electronicVersionTitle = d.data.electronicVersionTitle;
+
+                //electronicVersionVersionType
+                if(d.data.electronicVersionVersionType) electronicVersionVersionType = d.data.electronicVersionVersionType;
                 authorId = d.data.authorId;
                 authorExternal = d.data.authorExternal;
                 authorId = d.data.authorId;
@@ -2110,6 +2175,7 @@ function showPublication()
                 keywords_user = d.data.keywords_user;
                 language = titleCase(d.data.language);
                 numberOfPages = d.data.numberOfPages;
+                openAccessPermission = d.data.openAccessPermission;
                 organisationName = d.data.organisationName;
                 organisationId = d.data.organisationId;
                 organisationSourceId = d.data.organisationSourceId;
@@ -2172,26 +2238,46 @@ function showPublication()
                 }
                 
                 //attachment
-                if(attachmentUrl || doi) {
+                if(electronicVersionVersionType) {
+                    for(var i = 0; i < electronicVersionVersionType.length; i++) {
+                        if(electronicVersionDoi[i]) {
+                            electronicVersion = '<p><b>DOI</b><br />';
+                            electronicVersion += checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
+                            electronicVersion += '<a href="'+electronicVersionDoi[i]+'">'+electronicVersionDoi[i]+'</a><br /><i>' + electronicVersionVersionType[i] + '</i></p>';
+                        } else if(electronicVersionFileURL[i]) {
+                            electronicVersion = '<p><b>Dokument</b><br />';
+                            checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
+                            electronicVersion += '<a href="'+electronicVersionFileURL[i]+'">'+electronicVersionFileName+'</a><br /><i>' + electronicVersionMimeType[i] + addComma(electronicVersionSize[i]) + '</i></p>';                           
+                        } else if(electronicVersionLink[i]) {
+                            electronicVersion = '<p><b>Länkar</b><br />';
+                            checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
+                            electronicVersion += '<a href="'+electronicVersionLink[i]+'">'+electronicVersionLink[i]+'</a><br /><i>' + electronicVersionVersionType[i] + '</i></p>';
+                        }
+                    }
+                }
+                /*if(electronicVersionLink || electronicVersionDoi || electronicVersionFileURL) {
                     
-                    if(attachmentLimitedVisibility) {
-                        if(attachmentLimitedVisibility.toLowerCase()==='free') {
-                            attachment = '<i class="fa fa-unlock"></i>' + attachment;
-                        } else if(attachmentLimitedVisibility.toLowerCase()==='campus') {
-                            attachment = '<i class="fa fa-lock"></i>' + attachment;
+                    if(electronicVersionAccessType) {
+                        if(electronicVersionAccessType.toLowerCase()==='öppen' || electronicVersionAccessType.toLowerCase()==='free') {
+                            electronicVersion = '<i class="fa fa-unlock"></i>';
+                        } else if(electronicVersionAccessType.toLowerCase()==='begränsad' || electronicVersionAccessType.toLowerCase()==='closed') {
+                            electronicVersion = '<i class="fa fa-lock"></i>';
                         }
                     }
                     
-                    if(attachmentUrl) {
-                        attachment = '<p><b>' + lth_solr_messages.documents + '</b><br>' + attachment + '<a href="' + attachmentUrl + '">' + attachmentTitle + '</a></p>';
+                    if(electronicVersionLink || electronicVersionFileURL) {
+                        if(!electronicVersionLink && electronicVersionFileURL) {
+                            electronicVersionLink = electronicVersionFileURL;
+                        }
+                        electronicVersion = '<p><b>' + lth_solr_messages.documents + '</b><br>' + electronicVersion + '<a href="' + electronicVersionLink + '">' + electronicVersionLink + '</a></p>';
                     } else {
-                        attachment = checkData(attachment + '<a href="' + doi + '">' + doi + '</a>',lth_solr_messages.doi);
+                        electronicVersion = checkData(electronicVersion + '<a href="' + electronicVersionDoi + '">' + electronicVersionDoi + '</a>',electronicVersion.doi);
                     }
-                }
+                }*/
 
                 template = template.replace('###tabOverview###', lth_solr_messages.overview);
                 template = template.replace('###abstract###', checkData(abstract, lth_solr_messages.abstract));
-                template = template.replace('###attachment###', attachment)
+                template = template.replace('###electronicVersion###', electronicVersion)
                 template = template.replace(/###authors###/g, checkData(authors, lth_solr_messages.authors));
                 template = template.replace('###edition###', checkData(edition, lth_solr_messages.edition));
                 template = template.replace('###electronicIsbns###', checkData(electronicIsbns, lth_solr_messages.electronicIsbns));
@@ -2219,8 +2305,8 @@ function showPublication()
                 template = template.replace('###bibtex###', bibtex);
                 template = template.replace('###cite###', cite);
                 
-                $('#page_title h1').text(d.data.title).css('max-width','650px').css('margin-bottom','18px');
-                $('#page_title h1').after('<p class="type">' + d.data.publicationType + '</p>');
+                $('#page_title h1, article h1').text(d.data.title).css('max-width','650px').css('margin-bottom','18px');
+                $('#page_title h1, article h1').after('<p class="type">' + d.data.publicationType + '</p>');
                 $('#lth_solr_container').html(template);
                 /*if(abstract==="") {
                     $("#lthsolrAbstract").remove();
@@ -3126,6 +3212,16 @@ function splitString(str, length) {
         }
     }
     return words.join(" ");
+}
+
+function checkOpen(electronicVersionVersionType, electronicVersionAccessType)
+{
+    if((electronicVersionVersionType.toLowerCase() === 'publicerad version' || electronicVersionVersionType.toLowerCase() === 'final published version') &&
+        (electronicVersionAccessType.toLowerCase() === 'öppen' || electronicVersionAccessType.toLowerCase() === 'open')) {
+        return '<i class="fa fa-unlock"></i>';
+    } else {
+        return '';
+    }
 }
 
 

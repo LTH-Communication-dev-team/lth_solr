@@ -49,7 +49,9 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         //$allCalendars = $executionSucceeded = $this->getCalendars();
         
-        $executionSucceeded = $this->getEvents($buffer);
+        //$executionSucceeded = $this->getEvents($buffer);
+        
+        $executionSucceeded = $this->createOrder($client);
 
         /*$syslang = "en";
         $config = array(
@@ -93,6 +95,7 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
 	return $allCalendars;
     }
+    
     
     function getEvents($buffer)
     {
@@ -145,6 +148,43 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $buffer->commit();
         
+        return TRUE;
+    }
+    
+    
+    function createOrder($client)
+    {
+        $numberofloops = 1;
+        $fieldArray = array("id");
+        $update = $client->createUpdate();
+        $query = $client->createSelect();
+        
+        $ii = 0;
+        $docArray = array();
+        for($i = 0; $i < $numberofloops; $i++) {
+            $startrecord = $i * 1000;
+            $query->setQuery('docType:calendar');
+            $query->setStart($startrecord)->setRows(1000);
+            $query->addSorts(array("startTime" => "asc","id" => "asc"));        
+            $query->setFields($fieldArray);
+            $response = $client->select($query);
+            $numFound = $response->getNumFound();
+            $numberofloops = ceil($numFound / 1000);
+            $iii = 0;
+            foreach ($response as $document) {
+                $id = $document->id;
+                ${"doc" . $iii} = $update->createDocument(); 
+                ${"doc" . $iii}->setKey('id', $id);
+                ${"doc" . $iii}->addField('dateOrder', $ii);
+                ${"doc" . $iii}->setFieldModifier('dateOrder', 'set');
+                $docArray[] = ${"doc" . $iii};
+                $ii++;
+                $iii++;
+            }
+            $update->addDocuments($docArray);
+            $update->addCommit();
+            $result = $client->update($update);
+        }
         return TRUE;
     }
     

@@ -7,127 +7,119 @@ class lthSolrAjax
     
 function myInit()
 {
-require(__DIR__.'/init.php');
+    /* require(__DIR__.'/init.php');*/
 
-$term = '';
-$content = '';
-$query = '';
-$action = '';
-$sid = '';
+    $term = '';
+    $content = '';
+    $query = '';
+    $action = '';
+    $sid = '';
 
-$term = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("term");
-$peopleOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("peopleOffset"));
-$pageOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("pageOffset"));
-$courseOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("courseOffset"));
-$more = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("more"));
-$query = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("query"));
-if($query) $query = trim($query);
-$action = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("action"));
-$scope = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("scope"));
-$facet = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("facet");
-$pid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('pid');
-$syslang = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('syslang');
-$tableStart = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tableStart');
-$tableLength = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tableLength');
-$tableFields = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tableFields');
-$pageid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('pageid');
-$custom_categories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('custom_categories');
-$categories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('categories');
-$publicationCategories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('publicationCategories');
-//$introThisPage = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('introThisPage');
-$addPeople = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('addPeople');
-$keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
-$papertype = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('papertype');
-$limitToStandardCategories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('limitToStandardCategories');
-$webSearchScope = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('webSearchScope');
-$sorting = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sorting');
-        
-$sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("sid");
-date_default_timezone_set('Europe/Stockholm');
+    $term = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("term");
+    $peopleOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("peopleOffset"));
+    $pageOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("pageOffset"));
+    $courseOffset = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("courseOffset"));
+    $more = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("more"));
+    $query = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("query"));
+    if($query) $query = trim($query);
+    $action = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("action"));
+    $scope = htmlspecialchars(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP("scope"));
+    $facet = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("facet");
+    $pid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('pid');
+    $syslang = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('syslang');
+    $tableStart = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tableStart');
+    $tableLength = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tableLength');
+    $tableFields = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('tableFields');
+    $pageid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('pageid');
+    $custom_categories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('custom_categories');
+    $categories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('categories');
+    $publicationCategories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('publicationCategories');
+    $addPeople = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('addPeople');
+    $keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
+    $papertype = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('papertype');
+    $limitToStandardCategories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('limitToStandardCategories');
+    $webSearchScope = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('webSearchScope');
+    $sorting = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sorting');
 
-$settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
-if(!$syslang) $syslang = "sv";
-        
-$config = array(
-    'endpoint' => array(
-        'localhost' => array(
-            'host' => $settings['solrHost'],
-            'port' => $settings['solrPort'],
-            'path' => "/solr/core_$syslang/",//$settings['solrPath'],
-            'timeout' => $settings['solrTimeout']
+    $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("sid");
+    date_default_timezone_set('Europe/Stockholm');
+
+    $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+    if(!$syslang) $syslang = "sv";
+
+    $config = array(
+        'endpoint' => array(
+            'localhost' => array(
+                'host' => $settings['solrHost'],
+                'port' => $settings['solrPort'],
+                'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                'timeout' => $settings['solrTimeout']
+            )
         )
-    )
-);
+    );
 
 
-if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
-    return 'Please make all settings in extension manager';
-}
+    if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+        return 'Please make all settings in extension manager';
+    }
 
-//tslib_eidtools::connectDB();
-//  $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $term, 'crdate' => time()));
-//$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $sys_language_uid, 'crdate' => time()));
+    switch($action) {
+        case 'searchListShort':
+            $content = $this->searchListShort($term, $config);
+            break;
+        case 'searchShort':
+            $content = $this->searchShort($query, $config);
+            break;
+        case 'searchLong':
+            $content = $this->searchLong($term, $query, $tableLength, $peopleOffset, $pageOffset, $courseOffset, $webSearchScope, $more, $config);
+            break;
+        case 'searchMorePeople':
+            $content = $this->searchMore($term, 'people', $peopleOffset, $pageOffset, $documentOffset, $config);
+            break;
+        case 'searchMorePages':
+            $content = $this->searchMore($term, 'pages', $peopleOffset, $pageOffset, $documentOffset, $config);
+            break;    
+        case 'searchMoreDocuments':
+            $content = $this->searchMore($term, 'documents', $peopleOffset, $pageOffset, $documentOffset, $config);
+            break;
+        case 'listPublications':
+        case 'exportPublications':
+        case 'listComingDissertations':
+            $content = $this->listPublications($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $query, $keyword, $sorting, $tableFields, $action, $publicationCategories);
+            break;
+        case 'listStudentPapers':
+        case 'exportStudentPapers':
+            $content = $this->listStudentpapers($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $categories, $query, $papertype, $tableFields, $action, $publicationCategories);
+            break;
+        case 'showPublication':
+            $content = $this->showPublication('', $term, $syslang, $config);
+            break;
+        case 'showStudentPaper':
+            $content = $this->showStudentPaper($term, $syslang, $config);
+            break;
+        case 'listProjects':
+            $content = $this->listProjects($scope, $syslang, $config, $tableLength, $tableStart, $query);
+            break;
+        case 'showProject':
+            $content = $this->showProject($scope, $syslang, $config);
+            break;
+        case 'listStaff':
+        case 'exportStaff':
+            $content = $this->listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $tableStart, $categories, 
+                    $custom_categories, $config, $query, $tableFields, $action, $limitToStandardCategories);
+            break;
+        case 'showStaff':
+            $content = $this->showStaff($scope, $config, $syslang);
+            break;
+        case 'rest':
+            $content = $this->rest();
+            break;
+        case 'listTagCloud':
+            $content = $this->listTagCloud($scope, $syslang, $config, $pageid, $term);
+            break;
+    }
 
-switch($action) {
-    case 'searchListShort':
-        $content = $this->searchListShort($term, $config);
-        break;
-    case 'searchShort':
-        $content = $this->searchShort($query, $config);
-        break;
-    case 'searchLong':
-        $content = $this->searchLong($term, $query, $tableLength, $peopleOffset, $pageOffset, $courseOffset, $webSearchScope, $more, $config);
-        break;
-    case 'searchMorePeople':
-        $content = $this->searchMore($term, 'people', $peopleOffset, $pageOffset, $documentOffset, $config);
-        break;
-    case 'searchMorePages':
-        $content = $this->searchMore($term, 'pages', $peopleOffset, $pageOffset, $documentOffset, $config);
-        break;    
-    case 'searchMoreDocuments':
-        $content = $this->searchMore($term, 'documents', $peopleOffset, $pageOffset, $documentOffset, $config);
-        break;
-    case 'listPublications':
-    case 'exportPublications':
-    case 'listComingDissertations':
-        $content = $this->listPublications($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $query, $keyword, $sorting, $tableFields, $action, $publicationCategories);
-        break;
-    case 'listStudentPapers':
-    case 'exportStudentPapers':
-        $content = $this->listStudentpapers($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $categories, $query, $papertype, $tableFields, $action, $publicationCategories);
-        break;
-    case 'showPublication':
-        $content = $this->showPublication('', $term, $syslang, $config);
-        break;
-    case 'showStudentPaper':
-        $content = $this->showStudentPaper($term, $syslang, $config);
-        break;
-    case 'listProjects':
-        $content = $this->listProjects($scope, $syslang, $config, $tableLength, $tableStart, $query);
-        break;
-    case 'showProject':
-        $content = $this->showProject($scope, $syslang, $config);
-        break;
-    case 'listStaff':
-    case 'exportStaff':
-        $content = $this->listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $tableStart, $categories, 
-                $custom_categories, $config, $query, $tableFields, $action, $limitToStandardCategories);
-        break;
-    case 'showStaff':
-        $content = $this->showStaff($scope, $config, $syslang);
-        break;
-    case 'rest':
-        $content = $this->rest();
-        break;
-    case 'listTagCloud':
-        $content = $this->listTagCloud($scope, $syslang, $config, $pageid, $term);
-        break;
-    /*default:
-        $content = $this->basicSelect($query, $config);
-        break;*/
-}
-
-print $content;
+    print $content;
 
 }
 
@@ -572,9 +564,11 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     if($action==='exportPublications') {
         $fieldArray = json_decode($tableFields, true);
     } else {
-        $fieldArray = array("articleNumber","authorName","bibliographicalNote","documentTitle","attachmentLimitedVisibility","attachmentMimeType","attachmentSize",
-                "attachmentUrl","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","pages","publicationType",
-                "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
+        $fieldArray = array("articleNumber","authorName","bibliographicalNote","documentTitle",
+            "electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
+            "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
+            "electronicVersionVersionType","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","openAccessPermission","pages","publicationType",
+            "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
     }
     
     $currentDate = gmDate("Y-m-d\TH:i:s\Z");
@@ -648,7 +642,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     $facetSet->createFacetField('standard')->setField('standardCategory');
     $facetSet->createFacetField('language')->setField('language');
     $facetSet->createFacetField('year')->setField('publicationDateYear');
-    $facetSet->createFacetField('visibility')->setField('attachmentLimitedVisibility');
+    $facetSet->createFacetField('electronicVersionAccessType')->setField('electronicVersionAccessType');
 
     if($facet) {
         $facetArray = json_decode($facet, true);
@@ -753,14 +747,14 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     }
     if($facetResult['publicationDateYear']) usort($facetResult['publicationDateYear'],array($this,'compareOrder'));
     
-    $facetVisibility = $response->getFacetSet()->getFacet('visibility');
+    $facetElectronicVersionAccessType = $response->getFacetSet()->getFacet('electronicVersionAccessType');
     if($syslang==="en") {
         $facetHeader = "Full text";
     } else {
         $facetHeader = "Fulltext";
     }
-    foreach ($facetVisibility as $value => $count) {
-        if($count > 0) $facetResult['attachmentLimitedVisibility'][] = array($value, $count, $facetHeader);
+    foreach ($facetElectronicVersionAccessType as $value => $count) {
+        if($count > 0) $facetResult['electronicVersionAccessType'][] = array($value, $count, $facetHeader);
     }
         
     foreach ($response as $document) {
@@ -773,17 +767,25 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
             $data[] = array(
                 "articleNumber" => $document->$articleNumber,
                 "authorName" => ucwords(strtolower($this->fixArray($document->authorName))),
-                "attachmentLimitedVisibility" => $document->attachmentLimitedVisibility,
-                "attachmentMimeType" => $document->attachmentMimeType,
-                "attachmentSize" => $document->attachmentSize,
-                "attachmentUrl" => $document->attachmentUrl,
                 "bibliographicalNote" => "",//$document->bibliographicalNote,
                 "documentTitle" => $document->documentTitle,
+                "electronicIsbn" => $document->electronicIsbn,
+                "electronicVersionAccessType" => $document->electronicVersionAccessType,
+                "electronicVersionDoi" => $document->electronicVersionDoi,
+                "electronicVersionFileName" => $document->electronicVersionFileName,
+                "electronicVersionFileURL" => $document->electronicVersionFileURL,
+                "electronicVersionLicenseType" => $document->electronicVersionLicenseType,
+                "electronicVersionLink" => $document->electronicVersionLink,
+                "electronicVersionMimeType" => $document->electronicVersionMimeType,
+                "electronicVersionSize" => $document->electronicVersionSize,
+                "electronicVersionTitle" => $document->electronicVersionTitle,
+                "electronicVersionVersionType" => $document->electronicVersionVersionType,
                 "hostPublicationTitle" => $document->hostPublicationTitle,
                 "id" => $document->id,
                 "journalTitle" => $document->journalTitle,
                 "journalNumber" => $document->journalNumber,
                 "numberOfPages" => $document->numberOfPages,
+                "openAccessPermission" => $document->openAccessPermission,
                 "pages" => $document->pages,
                 "publicationType" => $this->fixArray($document->publicationType),
                 "publicationDateYear" => $document->publicationDateYear,
@@ -802,11 +804,13 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
 
 function showPublication($response, $term, $syslang, $config)
 {
-    $fieldArray = array('abstract','attachmentLimitedVisibility','attachmentMimeType','attachmentSize','attachmentTitle','attachmentUrl','authorExternal','authorId',
-        'authorName','authorOrganisation','authorReverseName','authorReverseNameShort','bibtex','cite','documentTitle','doi','edition','electronicIsbns','externalOrganisations',
-        'id','hostPublicationTitle','issn','journalTitle','journalNumber','keywords_uka','keywords_user','language','numberOfPages','organisationName',
-        'organisationId','organisationSourceId','pages','peerReview','placeOfPublication','printIsbns','publicationDateYear','publicationDateMonth',
-        'publicationDateDay','publicationType','publicationTypeUri','publisher','publicationStatus','standard_category_en','supervisors','title','volume');
+    $fieldArray = array("abstract","electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
+        "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
+        "electronicVersionVersionType","authorExternal","authorId","authorName","authorOrganisation","authorReverseName","authorReverseNameShort",
+        "bibtex","cite","documentTitle","doi","edition","electronicIsbns","externalOrganisations",
+        "id","hostPublicationTitle","issn","journalTitle","journalNumber","keywords_uka","keywords_user","language","numberOfPages","openAccessPermission","organisationName",
+        "organisationId","organisationSourceId","pages","peerReview","placeOfPublication","printIsbns","publicationDateYear","publicationDateMonth",
+        "publicationDateDay","publicationType","publicationTypeUri","publisher","publicationStatus","standard_category_en","supervisors","title","volume");
     
     if(!$response) {
         $client = new Solarium\Client($config);
@@ -881,15 +885,20 @@ function showPublication($response, $term, $syslang, $config)
         }
         
         $abstract = $this->fixArray($document->abstract);
-        $attachmentLimitedVisibility = $document->attachmentLimitedVisibility;
-        $attachmentMimeType = $document->attachmentMimeType;
-        $attachmentSize = $document->attachmentSize;
-        $attachmentTitle = $document->attachmentTitle;
-        $attachmentUrl = $document->attachmentUrl;
         $bibtex = $document->bibtex;
         $cite = $document->cite;
         $doi = $document->doi;
-        $electronicIsbns = $document->electronicIsbns;
+        $electronicIsbn = $document->electronicIsbn;
+        $electronicVersionAccessType = $this->fixArray($document->electronicVersionAccessType);
+        $electronicVersionDoi = $document->electronicVersionDoi;
+        $electronicVersionFileName = $document->electronicVersionFileName;
+        $electronicVersionFileURL = $this->fixArray($document->electronicVersionFileURL);
+        $electronicVersionLicenseType = $document->electronicVersionLicenseType;
+        $electronicVersionLink = $document->electronicVersionLink;
+        $electronicVersionMimeType = $document->electronicVersionMimeType;
+        $electronicVersionSize = $document->electronicVersionSize;
+        $electronicVersionTitle = $document->electronicVersionTitle;
+        $electronicVersionVersionType = $document->electronicVersionVersionType;
         $edition = $document->edition;
         $event = $document->event;
         $eventCity = $document->eventCity;
@@ -902,6 +911,7 @@ function showPublication($response, $term, $syslang, $config)
         $keywordsUser = $document->keywordsUser;
         $language = $this->fixArray($document->language);
         $numberOfPages = $document->numberOfPages;
+        $openAccessPermission = $document->openAccessPermission;
         $pages = $document->pages;
         $peerReview = $document->peerReview;
         $printIsbns = $document->printIsbns;
@@ -919,11 +929,17 @@ function showPublication($response, $term, $syslang, $config)
         
         $data = array(
             'abstract' => $abstract,
-            'attachmentLimitedVisibility' => $attachmentLimitedVisibility,
-            'attachmentMimeType' => $attachmentMimeType,
-            'attachmentSize' => $attachmentSize,
-            'attachmentTitle' => $attachmentTitle,
-            'attachmentUrl' => $attachmentUrl,
+            'electronicIsbn' => $electronicIsbn,
+            'electronicVersionAccessType' => $electronicVersionAccessType,
+            'electronicVersionDoi' => $electronicVersionDoi,
+            'electronicVersionFileName' => $electronicVersionFileName,
+            'electronicVersionFileURL' => $electronicVersionFileURL,
+            'electronicVersionLicenseType' => $electronicVersionLicenseType,
+            'electronicVersionLink' => $electronicVersionLink,
+            'electronicVersionMimeType' => $electronicVersionMimeType,
+            'electronicVersionSize' => $electronicVersionSize,
+            'electronicVersionTitle' => $electronicVersionTitle,
+            'electronicVersionVersionType' => $electronicVersionVersionType,
             'authorExternal' => $authorExternal,
             'authorId' => $document->authorId,
             'authorName' => $document->authorName,
@@ -945,6 +961,7 @@ function showPublication($response, $term, $syslang, $config)
             'keywords_user' => $keywordsUser,
             'language' => $language,
             'numberOfPages' => $numberOfPages,
+            'openAccessPermission' => $openAccessPermission,
             'organisationName' => $organisationName,
             'organisationId' => $organisationId,
             'organisationSourceId' => $organisationSourceId,
@@ -964,29 +981,6 @@ function showPublication($response, $term, $syslang, $config)
             'title' => $title,
             'volume' => $volume,
         );
-
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($data,true), 'crdate' => time()));
-        /*$content .= "<h3>$publicationType</h3>";
-
-        if($abstract) {
-            $content .= "<div><div class=\"textblock more-content\" style=\"height: 80px; overflow: hidden;\"></div>";
-
-            $content .= "<a href=\"#\" onclick=\"showMore(this);return false;\" class=\"readmore\" data-height=\"144\">More</a></div>";
-        }
-        $content .= "<h2>Details</h2><table>";
-
-        if($authors) $content .= "<tr><th>Authors</th><td></td></tr>";
-        if($organisations) $content .= "<tr><th>Organisations</th><td></td></tr>";
-        if($externalOrganisations) $content .= "<tr><th>External organisations</th><td></td></tr>";
-        if($language) $content .= "<tr><th>Orginal language</th><td></td></tr>";
-        if($pages) $content .= "<tr><th>Pages (from-to)</th><td></td></tr>";
-        if($numberOfPages) $content .= "<tr><th>Number of pages</th><td></td></tr>";
-        if($journal) $content .= "<tr><th>Journal</th><td></td></tr>";
-        if($volume) $content .= "<tr><th>Volume</th><td></td></tr>";
-        if($publicationStatus) $content .= "<tr><th>State</th><td></td></tr>";
-        if($peerReview) $content .= "<tr><th>Peer-reviewed</th><td></td></tr>";*/
-        //$content .= "<div><div></div><div>$publicationDateYear</td></tr>";
-        //if($abstract) $content .= "<tr><th></th><td>$abstract_en</td></tr>";
 
     }
     
@@ -1560,7 +1554,7 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
     if($action==='exportStaff') {
         $fieldArray = json_decode($tableFields, true);
     } else {
-        $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile","organisationId","guid","uuid","heritage");
+        $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile","organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","guid","uuid","heritage");
     }
     
     $facetResult = array();
@@ -1702,6 +1696,8 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
                 "id" => $document->guid,
                 "email" => $document->email,
                 "organisationName" => $document->organisationName,
+                "organisationHideOnWeb" => $document->organisationHideOnWeb,
+                "organisationLeaveOfAbsence" => $document->organisationLeaveOfAbsence,
                 "primaryAffiliation" => $document->primaryAffiliation,
                 "homepage" => $document->homepage,
                 "image" => $image,

@@ -75,15 +75,14 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         print_r($heritageArray);
         echo '</pre>';
         return TRUE;*/
-        $mode = '';
+
         //$startFromHere = $numFound;
         $startFromHere = 0;
         
-        $mode = ''; //'' '' 'files'
+        $mode = 'reindex'; //'' '' 'files'
         if($mode==='' && $mode!='files') {
             //Novo
-            $executionSucceeded = $this->getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, 
-                    $startFromHere, $lastModified, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion);
+            $executionSucceeded = $this->getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion);
         
             //$executionSucceeded = $this->getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey);
         } else if($mode==='files') {
@@ -455,31 +454,48 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 $electronicVersionAccessType_en = (string)$electronicVersion->accessType[0];
                                 $electronicVersionAccessType_sv = (string)$electronicVersion->accessType[1];
                                 $electronicVersionAccessType[] = $this->languageSelector($syslang, $electronicVersionAccessType_en, $electronicVersionAccessType_sv);
+                            } else {
+                                $electronicVersionAccessType[] = '';
                             }
                             if($electronicVersion->versionType) {
                                 $electronicVersionVersionType_en = (string)$electronicVersion->versionType[0];
                                 $electronicVersionVersionType_sv = (string)$electronicVersion->versionType[1];
                                 $electronicVersionVersionType[] = $this->languageSelector($syslang, $electronicVersionVersionType_en, $electronicVersionVersionType_sv);
+                            } else {
+                                $electronicVersionVersionType[] = '';
                             }
                             if($electronicVersion->licenseType) {
                                 $electronicVersionLicenseType_en = (string)$electronicVersion->licenseType[0];
                                 $electronicVersionLicenseType_sv = (string)$electronicVersion->licenseType[1];
                                 $electronicVersionLicenseType[] = $this->languageSelector($syslang, $electronicVersionLicenseType_en, $electronicVersionLicenseType_sv);
+                            } else {
+                                $electronicVersionLicenseType[] = '';
                             }
                             if($electronicVersion->doi) {
                                 $electronicVersionDoi[] = (string)$electronicVersion->doi;
+                            } else {
+                                $electronicVersionDoi[] = '';
                             }
                             if($electronicVersion->title) {
                                 $electronicVersionTitle[] = (string)$electronicVersion->title;
+                            } else {
+                                $electronicVersionTitle[] = '';
                             }
                             if($electronicVersion->file) {
                                 $electronicVersionFileName[] = (string)$electronicVersion->file->fileName;
                                 $electronicVersionFileURL[] = (string)$electronicVersion->file->fileURL;
                                 $electronicVersionMimeType[] = (string)$electronicVersion->file->mimeType;
                                 $electronicVersionSize[] = (string)$electronicVersion->file->size;
+                            } else {
+                                $electronicVersionFileName[] = '';
+                                $electronicVersionFileURL[] = '';
+                                $electronicVersionMimeType[] = '';
+                                $electronicVersionSize[] = '';
                             }
                             if($electronicVersion->link) {
                                 $electronicVersionLink[] = (string)$electronicVersion->link;
+                            } else {
+                                $electronicVersionLink[] = '';
                             }
                         }
                     }
@@ -499,20 +515,22 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         if($value->link) {
                             $eventPath = (string)$value->link->attributes()->href;
                             if($eventPath) {
-                                $eventXml = file_get_contents($eventPath);
+                                $eventXml = @file_get_contents($eventPath);
                                 $eventXml = @simplexml_load_string($eventXml);
-                                $startDate = (string)$eventXml->period->startDate;
-                                $endDate = (string)$eventXml->period->endDate;
-                                if($eventXml->links) {
-                                    foreach($eventXml->links as $eventLinkItem) {
-                                        $eventLink[] = (string)$eventLinkItem->url;
+                                if($eventXml) {
+                                    $startDate = (string)$eventXml->period->startDate;
+                                    $endDate = (string)$eventXml->period->endDate;
+                                    if($eventXml->links) {
+                                        foreach($eventXml->links as $eventLinkItem) {
+                                            $eventLink[] = (string)$eventLinkItem->url;
+                                        }
                                     }
+                                    $eventLocation = (string)$eventXml->location;
+                                    $eventCity = (string)$eventXml->city;
+                                    $eventCountry_en = (string)$eventXml->country[0];
+                                    $eventCountry_sv = (string)$eventXml->country[1];
+                                    $eventCountry = $this->languageSelector($syslang, $eventCountry_en, $eventCountry_sv);
                                 }
-                                $eventLocation = (string)$eventXml->location;
-                                $eventCity = (string)$eventXml->city;
-                                $eventCountry_en = (string)$eventXml->country[0];
-                                $eventCountry_sv = (string)$eventXml->country[1];
-                                $eventCountry = $this->languageSelector($syslang, $eventCountry_en, $eventCountry_sv);
                             }
                         }
                     }
@@ -913,7 +931,6 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'authorOrganisationName' => $authorOrganisationName,
                     'authorOrganisationType' => $authorOrganisationType,
                     'authorRole' => $authorRole,
-                    'awardedDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($awardedDate)),
                     'awardingInstitution' => $awardingInstitution,
                     'bibliographicalNote' => $bibliographicalNote,
                     'bibtex' => $bibtex,
@@ -1002,6 +1019,10 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'volume' => $volume,
                     'workflow' => $workflow,
                 );
+                
+                if($awardedDate!=='') {
+                    $data['awardedDate'] = gmdate('Y-m-d\TH:i:s\Z', strtotime($awardedDate));
+                }
 
                 /*echo '<pre>';
                 print_r($data);
@@ -2027,6 +2048,7 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
         return TRUE;
     }
     
+    
     function getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion)
     {
         //TESTAREA BEGIN
@@ -2064,132 +2086,108 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
         
         //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/changes/2018-06-11/?apiKey=$solrLucrisApiKey";
         //TESTAREA ENDS
+
+        $dateOrId = substr($lastModified,0,10); //'2018-06-11';
+        $type='';
+        //$executionSucceded = FALSE;
+        do {
+            $dateOrId = $this->getXml($solrLucrisApiVersion, $dateOrId, $solrLucrisApiKey, $type);
+        } while ($dateOrId);
         
-        $directory = '/var/www/html/typo3/lucrisdump';
-        
-        $numberOfFilesAlreadyIndexed = count( scandir($directory.'/filestoindexnovo') ) - 2;
-        if($numberOfFilesAlreadyIndexed > 0) {
-            $startFromHere = $numberOfFilesAlreadyIndexed;
-        }
-        
-        if($mode==='reindex') {
-        
-            for($i = 0; $i <= $numberofloops; $i++) {
-
-                $startrecord = $startFromHere + ($i * 20);
-
-                //$xmlpath = "https://lucris.lub.lu.se/ws/rest/publication?window.size=20&window.offset=$startrecord&orderBy.property=created&rendering=xml_long";
-                $xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs?size=20&offset=$startrecord&apiKey=$solrLucrisApiKey";
-
-                $xml = file_get_contents($xmlpath);
-
-                $xml = @simplexml_load_string($xml);
-
-                $numberofloops = ceil(($xml->count - intval($startrecord)) / 20);
-                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $numberofloops . ';' . $xmlpath, 'crdate' => time()));
-                //$xml = $fileArray = array_slice((array)$xml, 2);
-
-                //die($this->debug($xml));
-
-                foreach($xml->children() as $publication) {
-
-                    if($publication->getName() !== 'count' && $publication->getName() !== 'navigationLink') {
-
-                        $id = (string)$publication->attributes();
-
-                        $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", 
-                                        "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
-
-                        $cite = "";
-                        $bibtex = "";
-                        foreach($citeArray as $citebibKey => $citebib) {
-                            $citebibxmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/$id?rendering=$citebib&apiKey=$solrLucrisApiKey";
-                            $citebibxml = @file_get_contents($citebibxmlpath);
-                            $citebibxml = @simplexml_load_string($citebibxml);
-                            //print '<p>' . $citebibxml . '</p>';
-                            if($citebibxml) {
-                                switch($citebib) {
-                                    case 'standard':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_standard.xml');
-                                        break;
-                                    case 'harvard':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_harvard.xml');
-                                        break;
-                                    case 'apa':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_apa.xml');
-                                        break;
-                                    case 'vancouver':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_vancouver.xml');
-                                        break;
-                                    case 'author':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_author.xml');
-                                        break;
-                                    case 'RIS':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_ris.xml');
-                                        break;
-                                    case 'BIBTEX':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_bibtex.xml');
-                                        break;
-                                }
-                            }
-                        }
-                        $publication->asXml($directory . '/filestoindexnovo/' . $id . '.xml');
-                    }
-                }
-            }
-        } else {
-            $xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/changes/2018-06-11/?apiKey=$solrLucrisApiKey";
-            $xml = file_get_contents($xmlpath);
-            $xml = @simplexml_load_string($xml);
-            foreach($xml->children() as $contentChange) {
-                if($contentChange->getName() === 'contentChange') {
-                    if((string)$contentChange->familySystemName === 'ResearchOutput') {
-                        $id = (string)$contentChange->uuid;
-
-                        $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", 
-                                        "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
-
-                        $cite = "";
-                        $bibtex = "";
-                        foreach($citeArray as $citebibKey => $citebib) {
-                            $citebibxmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/$id?rendering=$citebib&apiKey=$solrLucrisApiKey";
-                            $citebibxml = @file_get_contents($citebibxmlpath);
-                            $citebibxml = @simplexml_load_string($citebibxml);
-                            //print '<p>' . $citebibxml . '</p>';
-                            if($citebibxml) {
-                                switch($citebib) {
-                                    case 'standard':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_standard.xml');
-                                        break;
-                                    case 'harvard':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_harvard.xml');
-                                        break;
-                                    case 'apa':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_apa.xml');
-                                        break;
-                                    case 'vancouver':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_vancouver.xml');
-                                        break;
-                                    case 'author':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_author.xml');
-                                        break;
-                                    case 'RIS':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_ris.xml');
-                                        break;
-                                    case 'BIBTEX':
-                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_bibtex.xml');
-                                        break;
-                                }
-                            }
-                        }
-                        $publication->asXml($directory . '/filestoindexnovo/' . $id . '.xml');
-                    }
-                }
-            }
-        } 
         return TRUE;                
     }
     
+    
+    
+    function getXml($solrLucrisApiVersion, $dateOrId, $solrLucrisApiKey, $type)
+    {
+        $directory = '/var/www/html/typo3/lucrisdump';
+        
+        $xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/changes/$dateOrId/?apiKey=$solrLucrisApiKey";
+        //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs?order=publicationYear&size=100&offset=" . (string)$dateOrId . "&fields=id&apiKey=$solrLucrisApiKey";
+        $xml = file_get_contents($xmlpath);
+        $xml = @simplexml_load_string($xml);
+        $nextLink = '';
+        $moreChanges = '';
+        $lastId = '';
+
+        foreach($xml->children() as $contentChange) {
+            if((string)$contentChange->getName() === 'navigationLink') {
+                $nextLink = (string)$contentChange->attributes()->href;
+            }
+            if((string)$contentChange->getName() === 'moreChanges') {
+                $moreChanges = (string)$contentChange;
+            }
+            if((string)$contentChange->getName() === 'lastId') {
+                $lastId = (string)$contentChange;
+            }
+
+            if(((string)$contentChange->getName() === 'contentChange') || ($type==='again' && (string)$contentChange->getName() !== 'count' && (string)$contentChange->getName() !== 'navigationLink')) {
+                //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => (string)$contentChange->getName(), 'crdate' => time()));
+
+                if(((string)$contentChange->familySystemName === 'ResearchOutput') || ($type==='again')) {
+                    
+                    $id = (string)$contentChange->attributes();
+                    
+                    $xmlSinglePath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/$id?apiKey=$solrLucrisApiKey";
+
+                    $xmlSingle = @file_get_contents($xmlSinglePath);
+
+                    if($xmlSingle) {
+                        $xmlSingle = @simplexml_load_string($xmlSingle);
+
+                        $citeArray = array("Standard" => "standard", "Harvard" => "harvard", "APA" => "apa", 
+                                        "Vancouver" => "vancouver", "Author" => "author", "RIS" => "RIS", "Bibtex" => "BIBTEX");
+
+                        $cite = "";
+                        $bibtex = "";
+                        foreach($citeArray as $citebibKey => $citebib) {
+                            $citebibxmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/$id?rendering=$citebib&apiKey=$solrLucrisApiKey";
+                            $citebibxml = @file_get_contents($citebibxmlpath);
+                            $citebibxml = @simplexml_load_string($citebibxml);
+                            //print '<p>' . $citebibxml . '</p>';
+                            if($citebibxml) {
+                                switch($citebib) {
+                                    case 'standard':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_standard.xml');
+                                        break;
+                                    case 'harvard':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_harvard.xml');
+                                        break;
+                                    case 'apa':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_apa.xml');
+                                        break;
+                                    case 'vancouver':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_vancouver.xml');
+                                        break;
+                                    case 'author':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_author.xml');
+                                        break;
+                                    case 'RIS':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_ris.xml');
+                                        break;
+                                    case 'BIBTEX':
+                                        $citebibxml->asXml($directory . '/bibtexfilesnovo/' . $id . '_bibtex.xml');
+                                        break;
+                                }
+                            }
+                        }
+                        $xmlSingle->asXml($directory . '/filestoindexnovo/' . $id . '.xml');
+                    }
+                }
+            }
+        }
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $lastId, 'crdate' => time()));
+        if($moreChanges==='true') {
+            //$this->getXml($solrLucrisApiVersion, $lastId, $solrLucrisApiKey);
+            return $lastId;
+        } else if($type==='again' && $nextLink) {
+            return $dateOrId + 100;
+        } else {
+            return FALSE;
+        }
+        //return $moreChanges;
+    }
     
     
     function getFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey)

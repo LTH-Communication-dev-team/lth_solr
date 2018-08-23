@@ -33,6 +33,7 @@ var lth_solr_messages = {
     numberOfPages: "Number of pages",
     of: "of",
     on: "on",
+    organisationLeaveOfAbsence: "Leave of Absence",
     organisations: "Organisations",
     overview: "Overview",
     pages: "Pages",

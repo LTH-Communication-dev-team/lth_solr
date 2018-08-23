@@ -152,6 +152,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             P.primary_lu_email,
             GROUP_CONCAT(V.guid SEPARATOR '|') AS guid,
             GROUP_CONCAT(V.hide_on_web SEPARATOR '|') AS hide_on_web,
+            GROUP_CONCAT(V.leave_of_absence SEPARATOR '|') AS leave_of_absence,
             GROUP_CONCAT(V.orgid SEPARATOR '|') AS orgid,
             GROUP_CONCAT(V.room_number SEPARATOR '|') AS room_number,
             GROUP_CONCAT(V.title SEPARATOR '|') AS title,
@@ -189,6 +190,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             //arrays:
             $employeeArray[$primary_uid]['guid'] = explode('|', $row['guid']);
             $employeeArray[$primary_uid]['hide_on_web'] = explode('|', $row['hide_on_web']);
+            $employeeArray[$primary_uid]['leave_of_absence'] = explode('|', $row['leave_of_absence']);
             $employeeArray[$primary_uid]['ophone'] = explode('|', $row['ophone']);
 	    $employeeArray[$primary_uid]['ostreet'] = explode('|', $row['ostreet']);
             $employeeArray[$primary_uid]['ocity'] = explode('|', $row['ocity']);
@@ -770,6 +772,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'mobile' => $value['mobile'],
                             'organisationId' => $value['orgid'],
                             'organisationHideOnWeb' => $value['hide_on_web'],
+                            'organisationLeaveOfAbsence' => $value['leave_of_absence'],
                             'organisationName' => $organisationName,
                             'organisationPhone' => $value['ophone'],
                             'organisationStreet' => $value['ostreet'],
