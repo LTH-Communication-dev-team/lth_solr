@@ -68,6 +68,7 @@ and open the template in the editor.
 
 #lth_solr_container {
     max-width:800px;
+    color:black;
 }
 
 #lth_solr_container .tab-content {
