@@ -552,7 +552,7 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                     var guid = '';
                     var image = '';
                     var uuid = '';
-                    var phone = '', homepage = '', organisationName = '';
+                    var phone = '', homepage = '', organisationName = '', organisationLeaveOfAbsence = '';
                     if(aData.guid) guid = aData.guid[0];
                    
                     if(aData.uuid) uuid = aData.uuid;
@@ -651,7 +651,7 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                             }
                             
                             if(aData.organisationLeaveOfAbsence) {
-                                if(aData.organisationLeaveOfAbsence[i]) {
+                                if(aData.organisationLeaveOfAbsence[i]==='1') {
                                     displayName = displayName + '(' + lth_solr_messages.organisationLeaveOfAbsence + ')';
                                 }
                             }
