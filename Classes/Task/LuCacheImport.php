@@ -574,18 +574,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $docArray = array();
                 
                 foreach($employeeArray as $key => $value) {
-                    /*if($value['exist']==='disable') {
-                        ${"doc"} = $update->createDocument();
-                        ${"doc"}->setKey('id', $value['id']);
-                        ${"doc"}->addField('disable_intS', 1);
-                        ${"doc"}->setFieldModifier('disable_intS', 'set');
-                        ${"doc"}->addField('type', 'staff');
-                        ${"doc"}->setFieldModifier('type', 'set');
-                        ${"doc"}->addField('appKey', 'lthsolr');
-                        ${"doc"}->setFieldModifier('appKey', 'set');
-                        $docArray[] = ${"doc"};
-                    } else*/ 
-                    if($value['id'] && ($value['primary_affiliation']==='employee' || $value['primary_affiliation']==='member')) {
+                    if($value['exist']==='disable' && $value['id']) {
+                        // add the delete id and a commit command to the update query
+                        $update->addDeleteById($value['id']);
+                    } else if($value['id'] && ($value['primary_affiliation']==='employee' || $value['primary_affiliation']==='member')) {
                         $heritage = array();
                         $heritage2 = array();
                         $legacy = array();
