@@ -2083,7 +2083,7 @@ function showPublication()
     //var lth_solr_staffdetailpage = $('#lth_solr_staffdetailpage').val();
     //var lth_solr_projectdetailpage = $('#lth_solr_projectdetailpage').val();
     var syslang = $('html').attr('lang');
-    var abstract,authorId,authorExternal,authorName,authorOrganisation,authorReverseName,authorReverseNameShort,bibtex,cite,doi,edition,electronicIsbns;
+    var abstract='',additionalLink = '',authorId='',authorExternal='',authorName='',authorOrganisation,authorReverseName,authorReverseNameShort,bibtex,cite,doi,edition,electronicIsbns;
     var electronicVersionAccessType, electronicVersionDoi, electronicVersionFileName, electronicVersionFileURL, electronicVersionLicenseType;
     var electronicVersion, electronicVersionLink, electronicVersionMimeType, electronicVersionSize, electronicVersionTitle, electronicVersionVersionType, endDate;
     var externalOrganisations,event,eventName,eventLink,eventType,eventCity,eventCountry,hostPublicationTitle,id,issn,journalNumber,journalTitle,keywords_uka,keywords_user;
@@ -2121,6 +2121,15 @@ function showPublication()
                     detailLink = window.location.href.split('/visa').shift() + '/visa/';
                 } else if(window.location.href.indexOf('/show/') > 0) {
                     detailLink = window.location.href.split('/show').shift()+ '/show/';
+                }
+                
+                //additionalLink
+                if(d.data.additionalLink) {
+                    additionalLink = '<p><b>' + lth_solr_messages.additionalLink + '</b>';
+                    for(var i = 0; i < d.data.additionalLink.length; i++) {
+                        additionalLink += '<br /><a href="' + d.data.additionalLink[i] + '">' + d.data.additionalLink[i] + '</a>';
+                    }
+                    additionalLink += '</p>';
                 }
 
                 //electronicVersionAccessType
@@ -2215,7 +2224,7 @@ function showPublication()
                         if(authors) {
                             authors += ', ';
                         }
-
+console.log(authorId[i]+authorExternalArray[i]);
                         if(authorId[i] && authorExternalArray[i]==0) {
                             authors += '<a href="' + detailLink + authorName[i].replace(' ','-') + '(' + authorId[i] + ')(author)">' + authorName[i] + '</a>';
                         } else {
@@ -2233,10 +2242,10 @@ function showPublication()
                 if(eventCountry) {
                     event += addComma(eventCountry);
                 }
-                if(startDate) {
+                if(startDate && startDate !== '1970-01-01T00:00:00Z') {
                     event += '<br />' + startDate.substr(0,10);
                 }
-                if(endDate) {
+                if(endDate && endDate !== '1970-01-01T00:00:00Z') {
                     event +=  ' -- ' + endDate.substr(0,10);
                 }
                 
@@ -2252,21 +2261,21 @@ function showPublication()
                     }
                 }
                 
-                //attachment
+                //electronic version
                 if(electronicVersionVersionType) {
                     for(var i = 0; i < electronicVersionVersionType.length; i++) {
                         if(electronicVersionDoi[i]) {
                             electronicVersion = '<p><b>DOI</b><br />';
                             electronicVersion += checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
-                            electronicVersion += '<a href="'+electronicVersionDoi[i]+'">'+electronicVersionDoi[i]+'</a><br /><i>' + electronicVersionVersionType[i] + '</i></p>';
+                            electronicVersion += '<a href="'+electronicVersionDoi[i]+'">'+electronicVersionDoi[i]+'</a> (<i>' + electronicVersionVersionType[i] + '</i>)</p>';
                         } else if(electronicVersionFileURL[i]) {
                             electronicVersion = '<p><b>Dokument</b><br />';
                             checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
-                            electronicVersion += '<a href="'+electronicVersionFileURL[i]+'">'+electronicVersionFileName+'</a><br /><i>' + electronicVersionMimeType[i] + addComma(electronicVersionSize[i]) + '</i></p>';                           
+                            electronicVersion += '<a href="'+electronicVersionFileURL[i]+'">'+electronicVersionFileName+'</a> (<i>' + electronicVersionVersionType[i] + addComma(formatBytes(electronicVersionSize[i],0)) + addComma(electronicVersionMimeType[i]) + '</i>)</p>';                           
                         } else if(electronicVersionLink[i]) {
                             electronicVersion = '<p><b>Länkar</b><br />';
                             checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
-                            electronicVersion += '<a href="'+electronicVersionLink[i]+'">'+electronicVersionLink[i]+'</a><br /><i>' + electronicVersionVersionType[i] + '</i></p>';
+                            electronicVersion += '<a href="'+electronicVersionLink[i]+'">'+electronicVersionLink[i]+'</a> (<i>' + electronicVersionVersionType[i] + '</i>)</p>';
                         }
                     }
                 }
@@ -2292,6 +2301,7 @@ function showPublication()
 
                 template = template.replace('###tabOverview###', lth_solr_messages.overview);
                 template = template.replace('###abstract###', checkData(abstract, lth_solr_messages.abstract));
+                template = template.replace('###additionalLink###', additionalLink);
                 template = template.replace('###electronicVersion###', electronicVersion)
                 template = template.replace(/###authors###/g, checkData(authors, lth_solr_messages.authors));
                 template = template.replace('###edition###', checkData(edition, lth_solr_messages.edition));
@@ -2346,6 +2356,9 @@ function showPublication()
         }
     });
 }
+
+
+function formatBytes(a,b){if(0==a)return"0 Bytes";var c=1024,d=b||2,e=["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f]}
 
 
 function firstToUpperCase( str )

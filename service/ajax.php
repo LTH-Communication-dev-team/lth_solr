@@ -804,7 +804,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
 
 function showPublication($response, $term, $syslang, $config)
 {
-    $fieldArray = array("abstract","authorExternal","authorId","authorName","authorOrganisation","authorReverseName","authorReverseNameShort",
+    $fieldArray = array("abstract","additionalLink","authorExternal","authorId","authorName","authorOrganisation","authorReverseName","authorReverseNameShort",
         "bibtex","cite","documentTitle","doi","edition","electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
         "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
         "electronicVersionVersionType","electronicIsbns","endDate","externalOrganisations","eventCity","eventCountry","eventName","eventLink","eventType",
@@ -836,6 +836,8 @@ function showPublication($response, $term, $syslang, $config)
     foreach ($response as $document) {
         $id = $document->id;
         $title = $this->fixArray($document->documentTitle);
+        $abstract = $this->fixArray($document->abstract);
+        $additionalLink = $document->additionalLink;
         $authorNameArray = $document->authorName;
         $authorFirstNameArray = $document->authorFirstName;
         $authorLastNameArray = $document->authorLastName;
@@ -883,16 +885,14 @@ function showPublication($response, $term, $syslang, $config)
                 $i++;
             }
         }
-        
-        $abstract = $this->fixArray($document->abstract);
         $bibtex = $document->bibtex;
         $cite = $document->cite;
         $doi = $document->doi;
         $electronicIsbn = $document->electronicIsbn;
-        $electronicVersionAccessType = $this->fixArray($document->electronicVersionAccessType);
+        $electronicVersionAccessType = $document->electronicVersionAccessType;
         $electronicVersionDoi = $document->electronicVersionDoi;
         $electronicVersionFileName = $document->electronicVersionFileName;
-        $electronicVersionFileURL = $this->fixArray($document->electronicVersionFileURL);
+        $electronicVersionFileURL = $document->electronicVersionFileURL;
         $electronicVersionLicenseType = $document->electronicVersionLicenseType;
         $electronicVersionLink = $document->electronicVersionLink;
         $electronicVersionMimeType = $document->electronicVersionMimeType;
@@ -924,7 +924,7 @@ function showPublication($response, $term, $syslang, $config)
         $publicationStatus = $document->publicationStatus;
         $placeOfPublication = $document->placeOfPublication;
         $publisher = $document->publisher;
-        $publicationType = $this->fixArray($document->publicationType);
+        $publicationType = $document->publicationType;
         $publicationTypeUri = $document->publicationTypeUri;
         $startDate = $document->startDate;
         $supervisors = $document->supervisorName;
@@ -933,6 +933,7 @@ function showPublication($response, $term, $syslang, $config)
         
         $data = array(
             'abstract' => $abstract,
+            'additionalLink' => $additionalLink,
             'authorExternal' => $authorExternal,
             'authorId' => $document->authorId,
             'authorName' => $document->authorName,

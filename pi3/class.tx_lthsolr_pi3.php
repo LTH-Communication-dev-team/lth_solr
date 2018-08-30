@@ -194,17 +194,16 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             if(strstr($uuid,"(publication)")) {
                 $showType = 'publication';
                 $uuid = str_replace('(publication)', '', $uuid);
-            }
-            if(strstr($uuid,"(department)")) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),')');
+            } else if(strstr($uuid,"(department)")) {
                 $showType = 'department';
                 $uuid = str_replace('(department)', '', $uuid);
-                
-            }
-            if(strstr($uuid,"(author)")) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),')');
+            } else if(strstr($uuid,"(author)")) {
                 $showType = 'author';
                 $uuid = str_replace('(author)', '', $uuid);
-            }
-            if($uuid) {
+                $uuid = rtrim(array_pop(explode('(',$uuid)),')');
+            } else if($uuid) {
                 $pageTitle = array_pop(explode('/',array_shift(explode('(',$uuid))));
                 $uuid = rtrim(array_pop(explode('(',$uuid)),")");
                 $showType = 'publication';

@@ -316,7 +316,7 @@ class FrontEndClass
             $filterText = 'Kategorier';
             $placeholderText = 'Fritextsökning';
         }
-        
+
         $clientIp = $_SERVER['REMOTE_ADDR'];
         
         /*$content .= '<div class="lth_solr_filter_container">';

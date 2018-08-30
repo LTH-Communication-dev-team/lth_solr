@@ -79,7 +79,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$startFromHere = $numFound;
         $startFromHere = 0;
         
-        $mode = '';// 'files'
+        $mode = 'reindex';// 'files'
         if($mode==='' && $mode!='files') {
             //Novo
             $executionSucceeded = $this->getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion);
@@ -228,6 +228,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $abstract_en = '';
                 $abstract_sv = '';
                 $additionalLink = array(); //New
+                $authorExternal = array(); //ok
                 $authorFirstName = array(); //ok
                 $authorId = array(); //ok
                 $authorLastName = array(); //ok
@@ -648,9 +649,10 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         foreach($value->personAssociation as $personAssociation) {
                             if($personAssociation->person) {
                                 $authorId[] = (string)$personAssociation->person->attributes();
+                                $authorExternal[] = 0;
                             } else if($personAssociation->externalPerson) {
                                 $authorId[] = (string)$personAssociation->externalPerson->attributes();
-
+                                $authorExternal[] = 1;
                             }
                             $authorName[] = (string)$personAssociation->name->firstName . ' ' . (string)$personAssociation->name->lastName;
                             $authorFirstName[] = (string)$personAssociation->name->firstName;
@@ -923,6 +925,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'abstract' => $abstract,
                     'additionalLink' => $additionalLink,
                     'appKey' => 'lthsolr',
+                    'authorExternal' => $authorExternal,
                     'authorFirstName' => $authorFirstName,
                     'authorId' => $authorId,
                     'authorLastName' => $authorLastName,
@@ -954,7 +957,6 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'electronicVersionSize' => $electronicVersionSize,
                     'electronicVersionTitle' => $electronicVersionTitle,
                     'electronicVersionVersionType' => $electronicVersionVersionType,
-                    'endDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($endDate)),
                     'eventCity' =>$eventCity,
                     'eventCountry' =>$eventCountry,
                     'eventName' => $eventName,
@@ -1008,7 +1010,6 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'relatedResearchOutputType' => $relatedResearchOutputType,
                     'sponsorId' => $sponsorId,
                     'sponsorName' => $sponsorName,
-                    'startDate' => gmdate('Y-m-d\TH:i:s\Z', strtotime($startDate)),
                     'supervisorId' => $supervisorId,
                     'supervisorName' => $supervisorName,
                     'supervisorOrganisationId' => $supervisorOrganisationId,
@@ -1022,6 +1023,12 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 
                 if($awardedDate!=='') {
                     $data['awardedDate'] = gmdate('Y-m-d\TH:i:s\Z', strtotime($awardedDate));
+                }
+                if($endDate!=='') {
+                    $data['endDate'] = gmdate('Y-m-d\TH:i:s\Z', strtotime($endDate));
+                }
+                if($startDate!=='') {
+                    $data['startDate'] = gmdate('Y-m-d\TH:i:s\Z', strtotime($startDate));
                 }
 
                 /*echo '<pre>';
@@ -2127,7 +2134,8 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
 
                 if(((string)$contentChange->familySystemName === 'ResearchOutput') || ($type==='again')) {
                     
-                    $id = (string)$contentChange->attributes();
+                    //$id = (string)$contentChange->attributes();
+                    $id = (string)$contentChange->uuid;
                     
                     $xmlSinglePath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/research-outputs/$id?apiKey=$solrLucrisApiKey";
 

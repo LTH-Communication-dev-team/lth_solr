@@ -1,5 +1,6 @@
 var lth_solr_messages = {
     abstract: "Abstract",
+    additionalLink: "Additional links",
     authorLastName: "Lastname",
     authors: "Authors",
     close: "Close",

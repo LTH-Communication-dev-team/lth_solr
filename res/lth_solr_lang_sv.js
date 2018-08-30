@@ -1,5 +1,6 @@
 var lth_solr_messages = {
     abstract: "Abstract",
+    additionalLink: "Andra länkar",
     authorLastName: "Efternamn",
     authors: "Författare",
     close: "Stäng",
