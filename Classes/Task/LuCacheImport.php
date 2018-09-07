@@ -144,7 +144,11 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             P.primary_uid, 
             LCASE(P.first_name) AS first_name, 
             LCASE(P.last_name) AS last_name, 
-            P.primary_affiliation, 
+            P.primary_affiliation,
+            P.primary_vrole_ou,
+            P.primary_vrole_title,
+            P.primary_vrole_orgid,
+            P.primary_vrole_phone,
             P.homepage, 
             P.lang, 
             P.degree, 
@@ -183,6 +187,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $employeeArray[$primary_uid]['last_name'] = $this->toUC($row['last_name']);
             $employeeArray[$primary_uid]['email'] = $row['primary_lu_email'];
             $employeeArray[$primary_uid]['primary_affiliation'] = $row['primary_affiliation'];
+            $employeeArray[$primary_uid]['primary_vrole_ou'] = $row['primary_vrole_ou'];
+            $employeeArray[$primary_uid]['primary_vrole_title'] = $row['primary_vrole_title'];
+            $employeeArray[$primary_uid]['primary_vrole_orgid'] = $row['primary_vrole_orgid'];
+            $employeeArray[$primary_uid]['primary_vrole_phone'] = $row['primary_vrole_phone'];
             $employeeArray[$primary_uid]['homepage'] = $row['homepage'];
             $employeeArray[$primary_uid]['lang'] = $row['lang'];
             $employeeArray[$primary_uid]['degree'] = $row['degree'];
@@ -754,6 +762,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'lastName' => $value['last_name'],
                             'email' => $value['email'],
                             'primaryAffiliation' => $value['primary_affiliation'],
+                            'primaryVroleOu' => $value['primary_vrole_ou'],
+                            'primaryVroleTitle' => $value['primary_vrole_title'],
+                            'primaryVroleOrgid' => $value['primary_vrole_orgid'],
+                            'primaryVrolePhone' => $value['primary_vrole_phone'],
                             'homepage' => $value['homepage'],
                             'language' => $value['lang'],
                             'degree' => $value['degree'],
