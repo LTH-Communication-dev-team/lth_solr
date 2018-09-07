@@ -474,15 +474,9 @@ class FrontEndClass
         
         $clientIp = $_SERVER['REMOTE_ADDR'];
         
-        $content .= '<p class="lth_solr_filter_container">';
-            $content .= '<i class="fa fa-filter fa-lg slsGray50"></i><a class="slsPadL5 refine">Filter</a>';
-            $content .= '<i class="fa fa-search fa-lg slsGray50"></i>';
-            $content .= '<input style="border:0px;box-shadow:none;" type="text" id="lthsolr_studentpapers_filter" class="lthsolr_filter" placeholder="" name="lthsolr_filter" value="" />';
-        $content .= '</p>';
         $content .= '<div style="clear:both;width:100%;height:30px;margin:15px 0px 15px 0px;"><div style="width:50%;float:left;" id="lthsolr_publications_header"></div><div style="float:right;" id="lthsolr_publications_sort"></div></div>';
 
         $content .= '<div style="width:100%;clear:both;">';
-            $content .= '<div id="lth_solr_facet_container"></div>';
             $content .= '<div id="lthsolr_publications_container"></div>';
         $content .= '</div>';
 
