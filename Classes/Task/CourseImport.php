@@ -21,9 +21,11 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $maximumrecords = 20;
         $numberofloops = 1;
         
-        $syslang = "sv";
-        
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $executionSucceeded = $this->clearIndex($settings);
+        
+        $syslang = "sv";
         
         $config = array(
             'endpoint' => array(
@@ -159,6 +161,46 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         $buffer->commit();
+        return TRUE;
+    }
+    
+    
+    function clearIndex($settings)
+    {
+        $syslang = "sv";
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+        $client = new \Solarium\Client($config);
+        $update = $client->createUpdate();
+        $update->addDeleteQuery('docType:course');
+        $update->addCommit();
+        $result = $client->update($update);
+        
+        $syslang = "en";
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+        $client = new \Solarium\Client($config);
+        $update = $client->createUpdate();
+        $update->addDeleteQuery('docType:course');
+        $update->addCommit();
+        $result = $client->update($update);
+        
         return TRUE;
     }
     
