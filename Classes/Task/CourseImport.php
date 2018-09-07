@@ -40,7 +40,21 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
 	$executionSucceeded = $this->getCourses($client, $syslang);
         
-        $executionSucceeded = $this->getPrograms($client, $syslang);
+        $syslang = "en";
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+        
+        $executionSucceeded = $this->getCourses($client, $syslang);
+        
+        //$executionSucceeded = $this->getPrograms($client, $syslang);
         
 	return $executionSucceeded;
     }
@@ -51,26 +65,60 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(250);
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, KI.Webbsida", 
-                "LubasPP_dbo.Kurs K JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK", "", "K.Kurskod", "K.KursID", "");
+        $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, KI.Webbsida,
+            P.ProgramID, P.ProgramEng, P.ProgramSve, P.ProgramKod, L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, I.InriktningSve, I.InriktningEng, 
+            PO.Omgang, LA.Arskurser
+            FROM LubasPP_dbo.Kurs K 
+            JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK
+            JOIN LubasPP_dbo.Kurs_Program KP ON K.KursID = KP.KursFK
+            JOIN LubasPP_dbo.Program P ON P.ProgramID = KP.ProgramFK
+            JOIN LubasPP_dbo.Laroplan L ON L.KursProgramFK = KP.KursProgramID
+            JOIN LubasPP_dbo.Laroplan_Arskurser LA ON L.LaroplanID = LA.LaroplanFK
+            JOIN LubasPP_dbo.Inriktning I ON I.InriktningID = L.InriktningFK
+            JOIN LubasPP_dbo.PlanOmgang PO ON K.PlanOmgangFK = PO.PlanOmgangID
+            WHERE PO.PlanOmgangID = 29 AND K.Nedlagd = 0 AND P.Nedlagd = 0 AND K.Kurskod NOT LIKE '%??%'
+            GROUP BY K.KursID, PO.PlanOmgangID
+            ORDER BY P.ProgramId, LA.Arskurser, K.KursSve";
+        $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
+        
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-            $KursID = $row['KursID'];
-            $KursSve = $row['KursSve'];
-            $KursEng = $row['KursEng'];
-            $kurskod = $row['Kurskod'];
+            $Arskurser = $row['Arskurser'];
+            $Betygskala = $row['Betygskala'];
             $Hskpoang = $row['Hskpoang'];
+            $InriktningEng = $row['InriktningEng'];
+            $InriktningSve = $row['InriktningSve'];
+            $KursID = $row['KursID'];
+            $KursEng = $row['KursEng'];
+            $KursID = $row['KursID'];
+            $kurskod = $row['Kurskod'];
+            $KursSve = $row['KursSve'];
+            $LasesFran = $row['LasesFran'];
+            $Omgang = $row['Omgang'];
+            $ProgramID = $row['ProgramID'];
+            $ProgramKod = $row['ProgramKod'];
+            $ProgramEng = $row['ProgramEng'];
+            $ProgramSve = $row['ProgramSve'];
+            $Valfrihetsgrad = $row['Valfrihetsgrad'];
             $Webbsida = $row['Webbsida'];
-            $data = array(
-                'appKey' => 'lth_solr',
-                'type' => 'course',
-                'id' => 'course_' . $row['KursID'],
+            
+            $data = array(                
+                'id' => 'course_' . $KursID,
+                'courseCode' => $Kurskod,
+                'courseTitle' =>  $this->titleChoice(array($KursSve, $KursEng), $syslang),
+                'courseYear' =>  $Arskurser,
+                'credit' => $Hskpoang,
+                'homepage' => $Webbsida,
+                'optional' => $Valfrihetsgrad,
+                'programCode' => $ProgramKod,
+                'programDirection' => $this->titleChoice(array($InriktningSve, $InriktningEng), $syslang),
+                'programTitle' => $this->titleChoice(array($ProgramSve, $ProgramEng), $syslang),
+                'ratingScale' => $Betygskala,
+                'round' => $Omgang,
                 'docType' => 'course',
-                'title' =>  $this->titleChoice(array($row['KursSve'], $row['KursEng']), $syslang),
-                'courseCode' => $row['Kurskod'],
-                'credit' => $row['Hskpoang'],
-                'homepage' => $row['Webbsida'],
-                'boost' => '1.0'
+                'appKey' => 'lth_solr',
+                'boost' => '1.0',
+                'type' => 'course'
             );
             try {
                 $buffer->createDocument($data);
