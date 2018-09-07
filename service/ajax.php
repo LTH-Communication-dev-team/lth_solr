@@ -41,6 +41,7 @@ function myInit()
     $webSearchScope = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('webSearchScope');
     $sorting = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sorting');
     $thisGroupOnly = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('thisGroupOnly');
+    $primaryRoleOnly = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('primaryRoleOnly');
 
     $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("sid");
     date_default_timezone_set('Europe/Stockholm');
@@ -107,7 +108,7 @@ function myInit()
         case 'listStaff':
         case 'exportStaff':
             $content = $this->listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $tableStart, $categories, 
-                    $custom_categories, $config, $query, $tableFields, $action, $limitToStandardCategories, $thisGroupOnly);
+                    $custom_categories, $config, $query, $tableFields, $action, $limitToStandardCategories, $thisGroupOnly, $primaryRoleOnly);
             break;
         case 'showStaff':
             $content = $this->showStaff($scope, $config, $syslang);
@@ -1562,12 +1563,15 @@ function rest()
 
 
 function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $tableStart, $categories, 
-        $custom_categories, $config, $filterQuery, $tableFields, $action, $limitToStandardCategories, $thisGroupOnly)
+        $custom_categories, $config, $filterQuery, $tableFields, $action, $limitToStandardCategories, $thisGroupOnly, $primaryRoleOnly)
 {
     if($action==='exportStaff') {
         $fieldArray = json_decode($tableFields, true);
     } else {
-        $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile","organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","guid","uuid","heritage");
+        $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName",
+            "primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile",
+            "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","guid","uuid","heritage",
+            "primaryVroleOu","primaryVroleTitle","primaryVroleOrgid","primaryVrolePhone");
     }
     
     $facetResult = array();
@@ -1716,6 +1720,10 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
                 "organisationHideOnWeb" => $document->organisationHideOnWeb,
                 "organisationLeaveOfAbsence" => $document->organisationLeaveOfAbsence,
                 "primaryAffiliation" => $document->primaryAffiliation,
+                "primaryVroleOu" => $document->primaryVroleOu,
+                "primaryVroleTitle" => $document->primaryVroleTitle,
+                "primaryVroleOrgid" => $document->primaryVroleOrgid,
+                "primaryVrolePhone" => $document->primaryVrolePhone,
                 "homepage" => $document->homepage,
                 "image" => $image,
                 "intro" => $intro,

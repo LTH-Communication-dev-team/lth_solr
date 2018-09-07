@@ -92,6 +92,15 @@
                         </config>
                     </TCEforms>
                 </thisGroupOnly>
+                
+                <primaryRoleOnly>
+                    <TCEforms>
+                        <label>Show only primary role</label>
+                        <config>
+                            <type>check</type>
+                        </config>
+                    </TCEforms>
+                </primaryRoleOnly>
 
                 <fe_users>
                     <TCEforms type="array">

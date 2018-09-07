@@ -404,6 +404,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
     var showPictures = $('#lth_solr_showPictures').val();
     var heritage = $('#lth_solr_heritage').val();
     var thisGroupOnly = $('#lth_solr_thisGroupOnly').val();
+    var primaryRoleOnly = $('#lth_solr_primaryRoleOnly').val();
 
     $.ajax({
         type : 'POST',
@@ -420,6 +421,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
             query: query,
             categories: $('#lth_solr_categories').val(),
             thisGroupOnly: thisGroupOnly,
+            primaryRoleOnly: primaryRoleOnly,
             custom_categories: $('#lth_solr_custom_categories').val(),
             introThisPage: $('#introThisPage').val(),
             //addPeople : $('#addPeople').val(),
@@ -554,7 +556,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                     var guid = '';
                     var image = '';
                     var uuid = '';
-                    var phone = '', homepage = '', organisationName = '', organisationLeaveOfAbsence = '';
+                    var phone = '', homepage = '', organisationName = '', primaryVroleOu = '', primaryVroleTitle = '', primaryVroleOrgid = '',primaryVrolePhone = '';
                     if(aData.guid) guid = aData.guid[0];
                    
                     if(aData.uuid) uuid = aData.uuid;
@@ -574,8 +576,10 @@ function listStaff(tableStart, facet, query, noQuery, more)
                     if(aData.email) template = template.replace(/###email###/g, aData.email[0]);
 
                     var affiliation='';
+                    
                     heritage = decodeURIComponent(heritage);
-                    for (i=0; i<aData.organisationId.length; i++) {
+
+                    for(i=0; i<aData.organisationId.length; i++) {
                         if((heritage.indexOf(aData.organisationId[i]) > 0 && thisGroupOnly==0) || (scope.indexOf(aData.organisationId[i]) > 0 && thisGroupOnly==1)) {
                             if(affiliation) affiliation += '<br />';
                             if(aData.title) {
@@ -616,10 +620,17 @@ function listStaff(tableStart, facet, query, noQuery, more)
 
                     template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
 
-                    if(organisationName) {
+                    if(primaryRoleOnly==1 && aData.primaryVroleTitle) affiliation = titleCase(aData.primaryVroleTitle);
+
+                    if(primaryRoleOnly==1 && aData.primaryVroleOu) {
+                        affiliation += addComma(aData.primaryVroleOu);
+                    } else if(organisationName) {
                         affiliation += addComma(organisationName);
                     }
-                    if(phone) {
+                    
+                    if(primaryRoleOnly==1 && aData.primaryVrolePhone) {
+                        affiliation += aData.primaryVrolePhone;
+                    } else if(phone) {
                         affiliation += phone;
                     }
                     template = template.replace('###affiliation###', affiliation);
