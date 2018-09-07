@@ -68,8 +68,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $buffer->setBufferSize(250);
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, KI.Webbsida,
-            P.ProgramID, P.ProgramEng, P.ProgramSve, P.ProgramKod, L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, I.InriktningSve, I.InriktningEng, 
-            PO.Omgang, LA.Arskurser
+            P.ProgramID, P.ProgramSve, P.ProgramKod, L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, I.InriktningSve, PO.Omgang, LA.Arskurser
             FROM LubasPP_dbo.Kurs K 
             JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK
             JOIN LubasPP_dbo.Kurs_Program KP ON K.KursID = KP.KursFK
