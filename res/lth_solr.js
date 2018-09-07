@@ -403,6 +403,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
     var limitToStandardCategories = $('#lth_solr_limitToStandardCategories').val();
     var showPictures = $('#lth_solr_showPictures').val();
     var heritage = $('#lth_solr_heritage').val();
+    var thisGroupOnly = $('#lth_solr_thisGroupOnly').val();
 
     $.ajax({
         type : 'POST',
@@ -418,7 +419,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
             syslang: syslang,
             query: query,
             categories: $('#lth_solr_categories').val(),
-            thisGroupOnly: $('#lth_solr_thisGroupOnly').val(),
+            thisGroupOnly: thisGroupOnly,
             custom_categories: $('#lth_solr_custom_categories').val(),
             introThisPage: $('#introThisPage').val(),
             //addPeople : $('#addPeople').val(),
@@ -511,7 +512,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
                                     maxClass = ' class="maxlist-hidden"';
                                     more = '<p class="maxlist-more"><i class="fa fa-chevron-right"></i><a href="javascript:">' + lth_solr_messages.more + '</a></p>';
                                 }*/
-if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
+                                if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                                 facet = value1[0].toString();
                                 count = value1[1];
                                 facetHeader = value1[2];
@@ -572,38 +573,18 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
 
                     if(aData.email) template = template.replace(/###email###/g, aData.email[0]);
 
-                    //i=0;
-                    //curI=0;
                     var affiliation='';
                     heritage = decodeURIComponent(heritage);
                     for (i=0; i<aData.organisationId.length; i++) {
-
-                        if(heritage.indexOf(aData.organisationId[i]) > 0) {
+                        if((heritage.indexOf(aData.organisationId[i]) > 0 && thisGroupOnly==0) || (scope.indexOf(aData.organisationId[i]) > 0 && thisGroupOnly==1)) {
                             if(affiliation) affiliation += '<br />';
-                            //phone = '';
-                            /*if(scope===aData.organisationId[i]) {
-                                curI=i;
-                            }*/
                             if(aData.title) {
                                 if(aData.title[i]) {
-                                    /*if(aData.title[i+1]) {
-                                        affiliation += titleCase(aData.title[i])+', ';
-                                    } else {
-                                        affiliation += titleCase(aData.title[i]);
-                                    }*/
                                     affiliation += titleCase(aData.title[i]);
                                 }
                             }
                             if(aData.organisationName) {
                                 if(aData.organisationName[i]) {
-                                    /*if(aData.organisationName[i+1]) {
-                                        console.log(displayName + ';'+aData.organisationName[i+1]+';'+aData.organisationName[i]);
-                                        if(aData.organisationName[i+1]!==aData.organisationName[i]) {
-                                            affiliation += addComma(aData.organisationName[i]);
-                                        }
-                                    } else {
-                                        affiliation += addComma(aData.organisationName[i]);
-                                    }*/
                                     organisationName = aData.organisationName[i];
                                 }
                             }
@@ -613,39 +594,13 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                                 }
                             }
                             if(aData.phone) {
-                                /*if(aData.phone[curI]) {
-                                    phone = aData.phone[curI];
-                                } else {*/
-                                
                                     if(aData.phone[i] && aData.phone[i] != 'NULL') {
-                                        
-                                        /*if(aData.phone[i+1]) {
-                                            console.log(i+aData.phone[i] + ';' + aData.phone[i+1] + ';' + displayName);
-                                            if(aData.phone[i+1]!==aData.phone[i]) {
-                                                phone = addBreak(aData.phone[i]);
-                                            }
-                                        } else {
-                                            phone = addBreak(aData.phone[i]);
-                                            console.log(i+aData.phone[i] + ';' + displayName);
-                                        }*/
                                         phone = addBreak(aData.phone[i]);
                                         if(phone) phone = phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1');
-                                    }
-                                //}
-                                
+                                    }                               
                             }
-                            //console.log(phone + ';' + displayName);
                             
                             if(aData.mobile) {
-                                /*if(aData.mobile[i+1]) {
-                                    if(aData.mobile[i+1]!==aData.mobile[i]) {
-                                        //if(phone) phone += ', ';
-                                        if(aData.mobile[i]) phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
-                                    }
-                                } else {
-                                    //if(phone) phone += ', ';
-                                    if(aData.mobile[i]) phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
-                                }*/
                                 if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
                                     phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
                                 }
@@ -658,7 +613,7 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                             }
                         }
                     }
-                    
+
                     template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
 
                     if(organisationName) {
@@ -668,11 +623,6 @@ if(mobileCheck()) maxClass = ' class="maxlist-hidden"';
                         affiliation += phone;
                     }
                     template = template.replace('###affiliation###', affiliation);
-                    //template = template.replace('###title###', titleCase(title));
-                    //template = template.replace('###phone###', phone);
-                    //template = template.replace('###organisationName###', organisationName);*/
-                    
-                    
 
                     if(aData.homepage) {
                         homepage = '<a data-homepage="' + aData.homepage + '" href="' + aData.homepage + '"><img class="lthsolr_home" src="/typo3conf/ext/lth_solr/res/home.png" /></a>';
