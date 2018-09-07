@@ -262,7 +262,7 @@ class FrontEndClass
 
             $content .= '<div style="width:100%;clear:both;">';
                 //$content .= '<div id="lth_solr_facet_container"></div>';
-                $content .= '<div id="lthsolr_staff_container" style="clear:both;width:100%;"></div>';
+                $content .= '<div id="lthsolr_staff_container"></div><div style="clear:both;width:100%;"></div>';
             $content .= '</div>';
 
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact.html");
