@@ -1806,7 +1806,7 @@ function listStudentPapers(tableStart, facet, query, more)
                                     '</div>'+
                                     '<ul style=""><li><i class="fa fa-angle-right fa-sm slsGray20"></i><a href="javascript:" onclick="$(\'.maxlist-all\').toggle(500);">'+lth_solr_messages.moreFilteringOptions+'</a><ul class="maxlist-all"><li></li></ul></li></ul></div>');
                             $('#lthsolr_publications_filter').keyup(function() {
-                                listStudentPapers(0, getFacets(), $(this).val().trim(), more);
+                                listStudentPapers(0, getFacets(), $(this).val().trim(), 0);
                             });
                         }
                     } else {
@@ -1820,7 +1820,7 @@ function listStudentPapers(tableStart, facet, query, more)
                                     '</div>'+
                                     '<ul style="border-top:1px #dedede solid;margin-top:15px;padding-top:7px;"><li><ul><li></li></ul></li></ul></div>');
                             $('#lthsolr_publications_filter').keyup(function() {
-                                listStudentPapers(0, getFacets(), $(this).val().trim(), more);
+                                listStudentPapers(0, getFacets(), $(this).val().trim(), 0);
                             });
                         }
                     }
