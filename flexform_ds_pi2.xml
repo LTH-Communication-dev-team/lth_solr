@@ -83,6 +83,15 @@
                         </config>
                     </TCEforms>
                 </fe_groups>
+                
+                <thisGroupOnly>
+                    <TCEforms>
+                        <label>This group only (no subgroups)</label>
+                        <config>
+                            <type>check</type>
+                        </config>
+                    </TCEforms>
+                </thisGroupOnly>
 
                 <fe_users>
                     <TCEforms type="array">

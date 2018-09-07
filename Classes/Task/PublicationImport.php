@@ -79,7 +79,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$startFromHere = $numFound;
         $startFromHere = 0;
         
-        $mode = 'reindex';// 'files'
+        $mode = '';// 'reindex' // 'files'
         if($mode==='' && $mode!='files') {
             //Novo
             $executionSucceeded = $this->getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion);

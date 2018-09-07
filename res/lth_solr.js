@@ -418,6 +418,7 @@ function listStaff(tableStart, facet, query, noQuery, more)
             syslang: syslang,
             query: query,
             categories: $('#lth_solr_categories').val(),
+            thisGroupOnly: $('#lth_solr_thisGroupOnly').val(),
             custom_categories: $('#lth_solr_custom_categories').val(),
             introThisPage: $('#introThisPage').val(),
             //addPeople : $('#addPeople').val(),

@@ -224,7 +224,7 @@ class FrontEndClass
     }
     
     
-    public function listStaff($scope, $html_template, $noItemsToShow, $categories, $limitToStandardCategories, $heritage, $showPictures)
+    public function listStaff($scope, $html_template, $noItemsToShow, $categories, $limitToStandardCategories, $heritage, $showPictures, $thisGroupOnly)
     {
         $syslang = $GLOBALS['TSFE']->config['config']['language'];
         if($syslang==='en') {
@@ -274,8 +274,9 @@ class FrontEndClass
             <input type="hidden" id="lth_solr_categories" value="' . $categories . '" />
             <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />
             <input type="hidden" id="lth_solr_limitToStandardCategories" value="' . $limitToStandardCategories . '" />
-            <input type="hidden" id="lth_solr_showPictures" value="' . $showPictures . '" />';
-
+            <input type="hidden" id="lth_solr_showPictures" value="' . $showPictures . '" />
+            <input type="hidden" id="lth_solr_thisGroupOnly" value="' . $thisGroupOnly . '" />';
+    
             if(substr($clientIp,0,7) === '130.235' || $clientIp === '127.0.0.1') {
                 $content .= '<input type="hidden" id="lth_solr_lu" value="yes" />';
                 

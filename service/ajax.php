@@ -40,6 +40,7 @@ function myInit()
     $limitToStandardCategories = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('limitToStandardCategories');
     $webSearchScope = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('webSearchScope');
     $sorting = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sorting');
+    $thisGroupOnly = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('thisGroupOnly');
 
     $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("sid");
     date_default_timezone_set('Europe/Stockholm');
@@ -106,7 +107,7 @@ function myInit()
         case 'listStaff':
         case 'exportStaff':
             $content = $this->listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $tableStart, $categories, 
-                    $custom_categories, $config, $query, $tableFields, $action, $limitToStandardCategories);
+                    $custom_categories, $config, $query, $tableFields, $action, $limitToStandardCategories, $thisGroupOnly);
             break;
         case 'showStaff':
             $content = $this->showStaff($scope, $config, $syslang);
@@ -1561,7 +1562,7 @@ function rest()
 
 
 function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $tableStart, $categories, 
-        $custom_categories, $config, $filterQuery, $tableFields, $action, $limitToStandardCategories)
+        $custom_categories, $config, $filterQuery, $tableFields, $action, $limitToStandardCategories, $thisGroupOnly)
 {
     if($action==='exportStaff') {
         $fieldArray = json_decode($tableFields, true);
@@ -1592,8 +1593,12 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
                 $term .= " OR ";
             }
             if($key === "fe_groups") {
-                $term .= "heritage:" . implode(' OR heritage:', $value);
-                $feGroupsArray = $value;
+                if($thisGroupOnly) {
+                    $term .= "organisationId:" . implode(' OR organisationId:', $value);
+                } else {
+                    $term .= "heritage:" . implode(' OR heritage:', $value);
+                    $feGroupsArray = $value;
+                }
             } else {
                 $term .= "primaryUid:" . implode(' OR primaryUid:', $value);
             }

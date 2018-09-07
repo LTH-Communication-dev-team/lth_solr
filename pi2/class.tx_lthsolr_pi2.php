@@ -60,6 +60,7 @@ class tx_lthsolr_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $fe_users = $this->pi_getFFvalue($piFlexForm, "fe_users", "sDEF", $lDef[$index]);
             $limitToStandardCategories = $this->pi_getFFvalue($piFlexForm, "limitToStandardCategories", "sDEF", $lDef[$index]);
             $showPictures = $this->pi_getFFvalue($piFlexForm, "showPictures", "sDEF", $lDef[$index]);
+            $thisGroupOnly = $this->pi_getFFvalue($piFlexForm, "thisGroupOnly", "sDEF", $lDef[$index]);
 
             $scope = array();
             $heritage = array();
@@ -170,7 +171,7 @@ LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid LEFT JOIN fe_groups f5 ON f5.subg
                 }
             //   $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow);
             } else {
-                $content = $FrontEndClass->listStaff($scope, $html_template, $noItemsToShow, $categories, $limitToStandardCategories, $heritage, $showPictures);
+                $content = $FrontEndClass->listStaff($scope, $html_template, $noItemsToShow, $categories, $limitToStandardCategories, $heritage, $showPictures, $thisGroupOnly);
             }
             return $content;
 	}

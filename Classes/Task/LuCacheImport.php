@@ -168,7 +168,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             GROUP_CONCAT(VORG.city SEPARATOR '|') AS ocity,
             GROUP_CONCAT(VORG.postal_address SEPARATOR '|') AS opostal_address
             FROM lucache_person AS P 
-            LEFT JOIN lucache_vrole AS V ON P.id = V.id 
+            LEFT JOIN lucache_vrole AS V ON (P.id = V.id AND V.hide_on_web = 0) 
             LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid 
             GROUP BY P.id
             ORDER BY P.id, V.orgid";
