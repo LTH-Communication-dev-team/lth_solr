@@ -99,7 +99,6 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             ORDER BY K.KursKod, P.ProgramId, LA.Arskurser";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
         
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $row['KursSve'].$row['KursEng'], 'crdate' => time()));
         while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
             $Arskurser = $row['Arskurser'];
             $Betygskala = $row['Betygskala'];
@@ -153,7 +152,8 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 }
                 $abstract .= '</ul>';
             }
-            
+                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $KursSve.$KursEng, 'crdate' => time()));
+
             $data = array(
                 'abstract' => $abstract,
                 'id' => 'course_' . $KursID,
