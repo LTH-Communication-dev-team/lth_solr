@@ -105,7 +105,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $Betygskala = $row['Betygskala'];
             $Forfattare = explode('|', $row['Forfattare']);
             $ForkunKrav = $row['ForkunKrav'];
-            $Forlag = $explode('|', row['Forlag']);
+            $Forlag = $explode('|', $row['Forlag']);
             $Hskpoang = $row['Hskpoang'];
             $Innehall = $this->langChoice(explode('|', $row['Innehall']));
             $InriktningEng = $row['InriktningEng'];
