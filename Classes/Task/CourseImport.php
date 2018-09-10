@@ -38,9 +38,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             )
         );
         
-        $client = new \Solarium\Client($config);
-
-	$executionSucceeded = $this->getCourses($client, $syslang);
+	$executionSucceeded = $this->getCourses($config, $syslang);
         
         $syslang = "en";
         $config = array(
@@ -54,9 +52,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             )
         );
         
-        $client = new \Solarium\Client($config);
-        
-        $executionSucceeded = $this->getCourses($client, $syslang);
+        $executionSucceeded = $this->getCourses($config, $syslang);
         
         //$executionSucceeded = $this->getPrograms($client, $syslang);
         
@@ -64,8 +60,10 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
 
     
-    public function getCourses($client, $syslang)
+    public function getCourses($config, $syslang)
     {
+        $client = new \Solarium\Client($config);
+        $update = $client->createUpdate();
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(250);
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
@@ -182,6 +180,8 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         $buffer->commit();
+        $update->addCommit();
+        $client->update($update);
         return TRUE;
     }
     
