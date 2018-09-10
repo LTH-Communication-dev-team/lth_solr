@@ -54,6 +54,8 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             )
         );
         
+        $client = new \Solarium\Client($config);
+        
         $executionSucceeded = $this->getCourses($client, $syslang);
         
         //$executionSucceeded = $this->getPrograms($client, $syslang);
@@ -152,7 +154,6 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 }
                 $abstract .= '</ul>';
             }
-                    $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r(array($KursSve,$KursEng),true).$syslang, 'crdate' => time()));
 
             $data = array(
                 'abstract' => $abstract,
