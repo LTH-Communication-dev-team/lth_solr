@@ -67,8 +67,24 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(250);
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
-        $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, KI.Webbsida,
-            P.ProgramID, P.ProgramSve, P.ProgramKod, L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, I.InriktningSve, PO.Omgang, LA.Arskurser
+        $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, KI.Webbsida, 
+            GROUP_CONCAT(REPLACE(KI.ForkunKrav,'|','') SEPARATOR '|') AS ForkunKrav,
+            GROUP_CONCAT(REPLACE(KI.Innehall,'|','') SEPARATOR '|') AS Innehall,
+            GROUP_CONCAT(REPLACE(KI.LarandeMal1,'|','') SEPARATOR '|') AS LarandeMal1,
+            GROUP_CONCAT(REPLACE(KI.LarandeMal2,'|','') SEPARATOR '|') AS LarandeMal2,
+            GROUP_CONCAT(REPLACE(KI.LarandeMal3,'|','') SEPARATOR '|') AS LarandeMal3,
+            GROUP_CONCAT(REPLACE(KI.Ovrigt,'|','') SEPARATOR '|') AS Ovrigt,
+            GROUP_CONCAT(REPLACE(KI.Prestationbed,'|','') SEPARATOR '|') AS Prestationbed,
+            GROUP_CONCAT(REPLACE(KI.syfte,'|','') SEPARATOR '|') AS syfte,
+            GROUP_CONCAT(REPLACE(KI.Urval,'|','') SEPARATOR '|') AS Urval,
+            P.ProgramID, P.ProgramSve, P.ProgramEng, P.ProgramKod, L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, I.InriktningSve, PO.Omgang,
+            LA.Arskurser, LI.FriText_en, LI.FriText_sv,
+            GROUP_CONCAT(REPLACE(LI.Forfattare,'|','') SEPARATOR '|') AS Forfattare,
+            GROUP_CONCAT(REPLACE(LI.Forlag,'|','') SEPARATOR '|') AS Forlag,
+            GROUP_CONCAT(REPLACE(LI.ISBN,'|','') SEPARATOR '|') AS ISBN,
+            GROUP_CONCAT(REPLACE(LI.Titel,'|','') SEPARATOR '|') AS Titel,
+            GROUP_CONCAT(REPLACE(LI.Undertitel,'|','') SEPARATOR '|') AS Undertitel,
+            GROUP_CONCAT(REPLACE(LI.Utgivningsar,'|','') SEPARATOR '|') AS Utgivningsar
             FROM LubasPP_dbo.Kurs K 
             JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK
             JOIN LubasPP_dbo.Kurs_Program KP ON K.KursID = KP.KursFK
@@ -77,43 +93,79 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             JOIN LubasPP_dbo.Laroplan_Arskurser LA ON L.LaroplanID = LA.LaroplanFK
             JOIN LubasPP_dbo.Inriktning I ON I.InriktningID = L.InriktningFK
             JOIN LubasPP_dbo.PlanOmgang PO ON K.PlanOmgangFK = PO.PlanOmgangID
+            LEFT JOIN Litteratur LI ON LI.KursFK = K.KursID
             WHERE PO.PlanOmgangID = 29 AND K.Nedlagd = 0 AND P.Nedlagd = 0 AND K.Kurskod NOT LIKE '%??%'
             GROUP BY K.KursID, PO.PlanOmgangID
-            ORDER BY P.ProgramId, LA.Arskurser, K.KursSve";
+            ORDER BY K.KursKod, P.ProgramId, LA.Arskurser";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
         
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'crdate' => time()));
         while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
             $Arskurser = $row['Arskurser'];
             $Betygskala = $row['Betygskala'];
+            $Forfattare = explode('|', $row['Forfattare']);
+            $ForkunKrav = $row['ForkunKrav'];
+            $Forlag = $explode('|', row['Forlag']);
             $Hskpoang = $row['Hskpoang'];
+            $Innehall = $this->langChoice(explode('|', $row['Innehall']));
             $InriktningEng = $row['InriktningEng'];
             $InriktningSve = $row['InriktningSve'];
+            $ISBN = explode('|', $row['ISBN']);
             $KursID = $row['KursID'];
             $KursEng = $row['KursEng'];
             $KursID = $row['KursID'];
             $kurskod = $row['Kurskod'];
             $KursSve = $row['KursSve'];
+            $LarandeMal1 = $this->langChoice(explode('|', $row['LarandeMal1']));
+            $LarandeMal2 = $this->langChoice(explode('|', $row['LarandeMal2']));
+            $LarandeMal3 = $this->langChoice(explode('|', $row['LarandeMal3']));
             $LasesFran = $row['LasesFran'];
             $Omgang = $row['Omgang'];
+            $Ovrigt = $row['Ovrigt'];
+            $Prestationbed = $this->langChoice(explode('|', $row['Prestationbed']));
             $ProgramID = $row['ProgramID'];
             $ProgramKod = $row['ProgramKod'];
             $ProgramEng = $row['ProgramEng'];
             $ProgramSve = $row['ProgramSve'];
+            $Sprak = $row['Sprak'];
+            $syfte = $this->langChoice(explode('|', $row['syfte']));
+            $Titel = explode('|', $row['Titel']);
+            $Undertitel = explode('|', $row['Undertitel']);
+            $Urval = $row['Urval'];
+            $Utgivningsar = explode('|', $row['Utgivningsar']);
             $Valfrihetsgrad = $row['Valfrihetsgrad'];
             $Webbsida = $row['Webbsida'];
+            //Build abstract
+            $abstract = '';
+            $i=0;
+            $abstract .= $syfte;
+            $abstract .= $LarandeMal1;
+            $abstract .= $LarandeMal2;
+            $abstract .= $LarandeMal3;
+            $abstract .= $Innehall;
+            $abstract .= $Betygskala;
+            $abstract .= $Prestationbed;
+            if(is_array($Titel)) {
+                $abstract .= '<ul>';
+                foreach($Titel as $value) {
+                   $abstract .= '<li>' . $Forfattare[$i] . ': ' . $Titel[$i] . $this->addComma($Forlag[$i]) . $this->addComma($Utgivningsar[$i]) . $this->addComma($ISBN[$i]) . '</li>';
+                   $i++;
+                }
+                $abstract .= '</ul>';
+            }
             
-            $data = array(                
+            $data = array(
+                'abstract' => $abstract,
                 'id' => 'course_' . $KursID,
                 'courseCode' => $Kurskod,
-                'courseTitle' =>  $this->titleChoice(array($KursSve, $KursEng), $syslang),
+                'courseTitle' =>  $this->langChoice(array($KursSve, $KursEng), $syslang),
                 'courseYear' =>  $Arskurser,
                 'credit' => $Hskpoang,
                 'homepage' => $Webbsida,
                 'optional' => $Valfrihetsgrad,
                 'programCode' => $ProgramKod,
-                'programDirection' => $this->titleChoice(array($InriktningSve, $InriktningEng), $syslang),
-                'programTitle' => $this->titleChoice(array($ProgramSve, $ProgramEng), $syslang),
+                'programDirection' => $this->langChoice(array($InriktningSve, $InriktningEng), $syslang),
+                'programTitle' => $this->langChoice(array($ProgramSve, $ProgramEng), $syslang),
                 'ratingScale' => $Betygskala,
                 'round' => $Omgang,
                 'docType' => 'course',
@@ -132,6 +184,14 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         return TRUE;
     }
     
+    public function addComma($input)
+    {
+        if($input) {
+            $input .= ", " + $input;
+        }
+        return $input;
+    }
+    
     
     public function getPrograms($client, $syslang)
     {
@@ -147,9 +207,9 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'type' => 'program',
                 'id' => 'program_' . $row['ProgramID'],
                 'docType' => 'program',
-                'title' =>  $this->titleChoice(array($row['ProgramSve'], $row['ProgramEng']), $syslang),
+                'title' =>  $this->langChoice(array($row['ProgramSve'], $row['ProgramEng']), $syslang),
                 'courseCode' => $row['ProgramKod'],
-                'courseLocation' =>  $this->titleChoice(array($row['kursOrtSve'], $row['kursOrtEng']), $syslang),
+                'courseLocation' =>  $this->langChoice(array($row['kursOrtSve'], $row['kursOrtEng']), $syslang),
                 'boost' => '1.0'
             );
             try {
@@ -204,12 +264,12 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    function titleChoice($titleArray, $syslang)
+    function langChoice($inputArray, $syslang)
     {
         if($syslang === "sv") {
-            return $titleArray[0];
+            return $inputArray[0];
         } else {
-            return $titleArray[1];
+            return $inputArray[1];
         }
     }
 }
