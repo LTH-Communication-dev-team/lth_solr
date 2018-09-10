@@ -93,7 +93,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             JOIN LubasPP_dbo.Laroplan_Arskurser LA ON L.LaroplanID = LA.LaroplanFK
             JOIN LubasPP_dbo.Inriktning I ON I.InriktningID = L.InriktningFK
             JOIN LubasPP_dbo.PlanOmgang PO ON K.PlanOmgangFK = PO.PlanOmgangID
-            LEFT JOIN Litteratur LI ON LI.KursFK = K.KursID
+            LEFT JOIN LubasPP_dbo.Litteratur LI ON LI.KursFK = K.KursID
             WHERE PO.PlanOmgangID = 29 AND K.Nedlagd = 0 AND P.Nedlagd = 0 AND K.Kurskod NOT LIKE '%??%'
             GROUP BY K.KursID, PO.PlanOmgangID
             ORDER BY K.KursKod, P.ProgramId, LA.Arskurser";
