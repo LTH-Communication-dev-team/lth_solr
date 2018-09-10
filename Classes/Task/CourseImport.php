@@ -66,7 +66,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(250);
-        $GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
+        //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, KI.Webbsida, 
             GROUP_CONCAT(REPLACE(KI.ForkunKrav,'|','') SEPARATOR '|') AS ForkunKrav,
             GROUP_CONCAT(REPLACE(KI.Innehall,'|','') SEPARATOR '|') AS Innehall,
@@ -99,7 +99,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             ORDER BY K.KursKod, P.ProgramId, LA.Arskurser";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
         
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $sql, 'crdate' => time()));
+        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $row['KursSve'].$row['KursEng'], 'crdate' => time()));
         while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
             $Arskurser = $row['Arskurser'];
             $Betygskala = $row['Betygskala'];
