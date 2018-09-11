@@ -42,6 +42,7 @@ function myInit()
     $sorting = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sorting');
     $thisGroupOnly = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('thisGroupOnly');
     $primaryRoleOnly = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('primaryRoleOnly');
+$dataSettings = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('dataSettings');
 
     $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("sid");
     date_default_timezone_set('Europe/Stockholm');
@@ -119,11 +120,117 @@ function myInit()
         case 'listTagCloud':
             $content = $this->listTagCloud($scope, $syslang, $config, $pageid, $term);
             break;
+        case 'listCompare':
+            $content = $this->listCompare($dataSettings, $config);
+            break;
+        case 'showCompare':
+            $content = $this->showCompare($dataSettings, $config);
+            break;
     }
 
     print $content;
 
 }
+
+
+function listCompare($dataSettings, $config)
+{
+    $scope = $dataSettings['scope'];
+    $syslang = $dataSettings['syslang'];
+    $term = '';
+    
+    $fieldArray = array("id","courseCode","courseTitle","courseYear","credit","homepage",
+        "optional","programCode","programDirection","programTitle","ratingScale");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+    
+    if($scope) {
+        $scope = explode(',',urldecode($scope));
+        foreach($scope as $key => $value) {
+            if($term) {
+                $term .= ' OR ';
+            }
+            $term .= "programCode:$value";
+        }
+        $term = " AND ($term) ";
+    }
+    
+    $queryToSet = "docType:course$term";
+
+    $query->setQuery($queryToSet);
+        
+    $query->setFields($fieldArray);
+        
+    $query->setStart(0)->setRows(100000);
+    
+    $sortArray = array(
+        'programTitle' => 'asc',
+        'courseYear' => 'asc',
+        'programDirection' => 'asc',
+        'optional' => 'asc',
+        'courseTitle' => 'asc'
+    );
+    
+    $query->addSorts($sortArray);
+
+    $response = $client->select($query);
+    
+    $numFound = $response->getNumFound();
+    
+    foreach ($response as $document) {
+        $data[$document->programTitle][$document->courseYear][$document->programDirection][$document->optional][] = array(
+            "courseCode" => $document->courseCode,
+            "courseTitle" => $document->courseTitle,
+            "credit" => $document->credit,
+            "id" => $document->id,
+            "ratingScale" => $document->ratingScale
+        );
+    }
+    
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
+}
+
+
+function showCompare($dataSettings, $config)
+{
+    $scope = $dataSettings['scope'];
+    $syslang = $dataSettings['syslang'];
+    
+    $fieldArray = array("abstract","courseCode","courseTitle","courseYear","credit","homepage","id",
+        "optional","programCode","programDirection","programTitle","ratingScale");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+    
+    $queryToSet = "docType:course AND id:$scope";
+
+    $query->setQuery($queryToSet);
+        
+    $query->setFields($fieldArray);
+    
+    $response = $client->select($query);
+        
+    foreach ($response as $document) {
+        $data[] = array(
+            "abstract" => $document->abstract,
+            "courseCode" => $document->courseCode,
+            "courseTitle" => $document->courseTitle,
+            "credit" => $document->credit,
+            "id" => $document->id,
+            "ratingScale" => $document->ratingScale
+        );
+    }
+    
+    $resArray = array('data' => $data, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
+}
+
 
 function exportPublications()
 {

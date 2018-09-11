@@ -517,6 +517,44 @@ class FrontEndClass
         return '<div style="font-size:17px;">'.$content.'</div>';
     }
     
+    
+    public function compare($round, $scope)
+    {
+        $content = '';
+        $content .= '<div class="container">';
+        $content .= '<div id="lthsolr_compare_container" class="row"></div>';
+        $content .= '</div>';
+
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/compare.html");
+
+        $content .= '
+            <input type="hidden" id="lth_solr_round" value="' . $round . '" />
+            <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+            <input type="hidden" id="lth_solr_action" value="listCompare" />';
+        
+        $content .= '<!-- exportModal -->
+            <div id="compareModal" class="modal fade" role="dialog">
+              <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h1 class="modal-title"></h1>
+                  </div>
+                  <div class="modal-body" style="position:relative;">
+                    </div>
+                  <div style="clear:both;" class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>';
+
+        return $content;
+    }
+    
     public function rssFeeder($scope, $noItemsToShow, $categories, $keyword, $pageTitle, $publicationCategories, $publicationCategoriesSwitch)
     {
         /*

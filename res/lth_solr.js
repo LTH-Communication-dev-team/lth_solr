@@ -36,7 +36,10 @@ $(document).ready(function() {
     } else if($('#lth_solr_action').val() == 'showProject') {
         showProject();
         listPublications(0,'','','publicationYear',0,'','listPublications');
-    } 
+    } else if($('#lth_solr_action').val() == 'listCompare') {
+        listCompare('listCompare');
+    }
+    
     if($('#lth_solr_action').val() == 'listTagCloud') {
         listTagCloud();
     }
@@ -62,10 +65,150 @@ $(document).ready(function() {
     $('#lth_solr_tools').click(function() {
         $('#lth_solr_hidden_tools').toggle('slow');
     });
+   
 });
 
 
-function mobileCheck() {
+function listCompare(action)
+{
+    var syslang = $('html').attr('lang');
+    var round = $('#lth_solr_round').val();
+    var scope = $('#lth_solr_scope').val();
+    var courseCode,courseTitle,courseYear,credit,homepage,id,optional,programCode,programDirection,programTitle,ratingScale;
+
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: action,
+            dataSettings: {
+                syslang: syslang,
+                round: round,
+                scope: scope,
+                pageid: $('body').attr('id')
+            },
+            sid: Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            $('#lthsolr_compare_container div').prepend('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
+        },
+        success: function(d) {
+            $('.lthsolr_loader').remove();
+            if(d.data) {
+                $.each( d.data, function( key, aData ) {
+                    $('#lthsolr_compare_container').append('<div id="'+key+'" class="card col-sm">'+key+'</div>');
+                    $.each( aData, function (pkey, pData) {
+                        if(pData) $('#'+key).append('<div id="'+key+pkey+'" class="card-header">Årskurs'+pkey+'</div>');
+                        $.each( pData, function (akkey, akData) {
+                            if(akData) $('#'+key+pkey).append('<div id="'+key+pkey+akkey+'">'+akkey+'</div>');
+                            $.each( akData, function (ikey, iData) {
+                                if(iData) $('#'+key+pkey+akkey).append('<div id="'+key+pkey+akkey+ikey+'">'+ikey+'</div>');
+                                $.each( iData, function (okey, oData) {
+                                    if(oData.length>0) $('#'+key+pkey+akkey+ikey).append('<ul id="'+okey+'" class="list-group list-group-flush"></ul>');
+                                    courseCode = '';
+                                    courseTitle = '';
+                                    courseYear = '';
+                                    credit = '';
+                                    homepage = '';
+                                    id = '';
+                                    optional = '';
+                                    programCode = '';
+                                    programDirection = '';
+                                    programTitle = '';
+                                    ratingScale = '';
+
+                                    if(oData.courseCode) courseCode = oData.courseCode;
+                                    if(oData.courseTitle) courseTitle = oData.courseTitle;
+                                    if(oData.courseYear) courseYear = oData.courseYear;
+                                    if(oData.credit) credit = oData.credit;
+                                    if(oData.id) id = oData.id;
+                                    if(oData.optional) optional = oData.optional;
+                                    if(oData.programDirection) programDirection = oData.programDirection;
+                                    if(oData.ratingScale) ratingScale = oData.ratingScale;
+
+                                    /*template = template.replace('###id###', id);
+                                    template = template.replace('###courseTitle###', courseTitle);
+                                    template = template.replace('###courseYear###', courseYear);
+                                    template = template.replace('###credit###', credit);
+                                    template = template.replace('###optional###', optional);
+                                    template = template.replace('###programDirection###',programDirection);
+                                    template = template.replace('###ratingScale###',ratingScale);*/
+
+                                    $('#'+key+pkey).append('<li id="'+id+'" class="list-group-item">'+courseCode+' '+courseTitle + '</li>');
+                                    $('#'+id).click(function(){
+                                        $('#compareModal').modal('toggle');
+                                        showCompare(id);
+                                    });
+                                });
+                            });
+                            //var template = $('#solrCompareTemplate').html();
+                        });
+                    }); 
+                });
+            }
+        }
+    });
+}
+
+
+function showCompare(scope)
+{
+    var syslang = $('html').attr('lang');
+    var abstract,id,courseTitle,courseYear,credit,homepage,optional,programCode,programDirection,programTitle,ratingScale;
+
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'showCompare',
+            dataSettings: {
+                syslang: syslang,
+                scope: scope,
+                pageid: $('body').attr('id')
+            },
+            sid: Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            //$('#lthsolr_compare_container div').prepend('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
+        },
+        success: function(d) {
+            //$('.lthsolr_loader').remove();
+            if(d.data) {
+                $.each( d.data, function( key, aData ) {
+                    abstract = '';
+                    courseTitle = '';
+                    courseYear = '';
+                    credit = '';
+                    homepage = '';
+                    id = '';
+                    optional = '';
+                    programCode = '';
+                    programDirection = '';
+                    programTitle = '';
+                    ratingScale = '';
+                    if(aData.abstract) abstract = aData.abstract;
+                    if(aData.courseTitle) courseTitle = aData.courseTitle;
+                    $('#compareModal .modal-title').html(aData.courseTitle);
+                    $('#compareModal .modal-body').html(aData.abstract);
+                });
+            }
+        }
+    });
+}
+
+
+function mobileCheck()
+{
     var check = false;
     if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
         check=true;

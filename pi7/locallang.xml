@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>module</type>
+		<description>Language labels for plugin &quot;tx_lthsolr_pi7&quot;</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="more">More</label>
+                        <label index="freetext">Free text</label>
+                        <label index="filter">Filter</label>
+		</languageKey>
+                <languageKey index="sv" type="array">
+			<label index="more">Mer</label>
+                        <label index="freetext">Fritext</label>
+                        <label index="filter">Filter</label>
+                </languageKey>
+	</data>
+</T3locallang>

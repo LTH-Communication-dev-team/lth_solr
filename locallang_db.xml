@@ -12,6 +12,7 @@
             <label index="tt_content.list_type_pi4">Project list</label>
             <label index="tt_content.list_type_pi5">Staff detail</label>
             <label index="tt_content.list_type_pi6">Student papers</label>
+            <label index="tt_content.list_type_pi7">Compare</label>
         </languageKey>
     </data>
 </T3locallang>

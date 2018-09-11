@@ -8,6 +8,10 @@ and open the template in the editor.
     Author     : kans-th0
 */
 
+#lthsolr_compare_container .list-group-item {
+    cursor:pointer;
+}
+
 #lthsolr_show_staff_container {
     position:relative;
 }

@@ -34,7 +34,7 @@ include __DIR__ . "/../Classes/FrontEnd/FrontEndClass.php";
  */
 class tx_lthsolr_pi6 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	public $prefixId      = 'tx_lthsolr_pi6';		// Same as class name
-	public $scriptRelPath = 'pi5/class.tx_lthsolr_pi6.php';	// Path to this script relative to the extension dir.
+	public $scriptRelPath = 'pi6/class.tx_lthsolr_pi6.php';	// Path to this script relative to the extension dir.
 	public $extKey        = 'lth_solr';	// The extension key.
 	public $pi_checkCHash = TRUE;
 	

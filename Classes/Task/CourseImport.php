@@ -113,7 +113,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $KursID = $row['KursID'];
             $KursEng = $row['KursEng'];
             $KursID = $row['KursID'];
-            $kurskod = $row['Kurskod'];
+            $Kurskod = $row['Kurskod'];
             $KursSve = $row['KursSve'];
             $LarandeMal1 = $this->langChoice(explode('|', $row['LarandeMal1']));
             $LarandeMal2 = $this->langChoice(explode('|', $row['LarandeMal2']));
