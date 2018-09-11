@@ -122,7 +122,7 @@ function listCompare(action)
                                     programTitle = '';
                                     ratingScale = '';
 
-                                    if(oData.courseCode) courseCode = oData.courseCode;
+                                    if(oData.courseCode) courseCode = oData.courseCode.toUpperCase();
                                     if(oData.courseTitle) courseTitle = oData.courseTitle;
                                     if(oData.courseYear) courseYear = oData.courseYear;
                                     if(oData.credit) credit = oData.credit;
@@ -159,7 +159,7 @@ function listCompare(action)
 function showCompare(scope)
 {
     var syslang = $('html').attr('lang');
-    var abstract,id,courseTitle,courseYear,credit,homepage,optional,programCode,programDirection,programTitle,ratingScale;
+    var abstract,courseCode,courseTitle,courseYear,credit,homepage,id,optional,programCode,programDirection,programTitle,ratingScale;
 
     $.ajax({
         type : 'POST',
@@ -186,6 +186,7 @@ function showCompare(scope)
             if(d.data) {
                 $.each( d.data, function( key, aData ) {
                     abstract = '';
+                    courseCode = '';
                     courseTitle = '';
                     courseYear = '';
                     credit = '';
@@ -197,9 +198,10 @@ function showCompare(scope)
                     programTitle = '';
                     ratingScale = '';
                     if(aData.abstract) abstract = aData.abstract;
+                    if(aData.courseCode) courseCode = aData.courseCode.toUpperCase();
                     if(aData.courseTitle) courseTitle = aData.courseTitle;
-                    $('#compareModal .modal-title').html(aData.courseTitle);
-                    $('#compareModal .modal-body').html(aData.abstract);
+                    $('#compareModal .modal-title').html(courseCode + ' ' + courseTitle);
+                    $('#compareModal .modal-body').html(abstract);
                 });
             }
         }
