@@ -1,3 +1,5 @@
+  # cat=basic/dev/159; type=input; label=Student main group
+solrStudentMainGroup=
   # cat=basic/dev/160; type=input; label=Solr Host
 solrHost=
   # cat=basic/dev/161; type=input; label=Solr Path
