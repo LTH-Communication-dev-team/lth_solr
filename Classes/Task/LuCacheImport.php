@@ -566,6 +566,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 foreach($employeeArray as $key => $value) {
                     if($value['exist']==='disable' && $value['id']) {
                         // add the delete id and a commit command to the update query
+                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $value['id'], 'crdate' => time()));
                         $update->addDeleteById($value['id']);
                     } else if($value['id'] && ($value['primary_affiliation']==='employee' || $value['primary_affiliation']==='member')) {
                         $heritage = array();
