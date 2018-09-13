@@ -51,6 +51,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $grsp = $settings['grsp'];
         $studentGrsp = $settings['studentGrsp'];
         $hideonwebGrsp = $settings['hideonwebGrsp'];
+        $studentMainGroup = $settings['solrStudentMainGroup'];
 
         $dbhost = $settings['dbhost'];
         $db = $settings['db'];
@@ -85,7 +86,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $feGroupsArray = $this->getFeGroups($grsp);
         
-        $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp);
+        $employeeArray = $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp, $studentMainGroup);
 
         $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang);
         $syslang = "en";
@@ -445,7 +446,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp)
+    private function createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp, $studentMainGroup)
     {
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $title;
@@ -468,15 +469,14 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             } 
             $usergroupArray = $this->getUids($value['orgid'], $feGroupsArray);
 
-            if($usergroupArray[0]) {
+            if($usergroupArray[0] || $value['primary_affiliation'] === 'student') {
                 $ugFe = $value['usergroup'];
-                if($ugFe) {
+                if($value['primary_affiliation'] === 'student') {
+                    $usergroupArray[0] = $studentMainGroup;
+                    $usergroupArray[1] = $studentGrsp;
+                }
+                if($ugFe && $usergroupArray[0]) {
                     $ugFeArray = explode(',', $ugFe);
-                    /*foreach($ugFeArray as $keyF =>$valueF) {
-                        if($valueF != $usergroupArray[0]) {
-                            $employeeArray[$key]['extra_orgid'][] = explode('__', $this->getGroupName($valueF))[0];
-                        }
-                    }*/
                     array_push($ugFeArray, $usergroupArray[0]);
                     $ugFeArray = array_unique($ugFeArray);
                     $usergroupArray[0] = implode(',', $ugFeArray);
@@ -492,11 +492,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     if(!$value['roomnumber']) {
                         $value['roomnumber'] = '';
                     }
-                    if($value['primary_affiliation'] === 'student') {
-                        $usergroupArray[1] = $studentGrsp;
-                    } /*else if($value['hide_on_web']) {
-                        $usergroupArray[1] = $hideonwebGrsp;
-                    }*/
                     $updateArray = array(
                         'pid' => $usergroupArray[1],
                         'usergroup' => $usergroupArray[0],
@@ -514,20 +509,11 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         'lth_solr_index' => 1,
                         'tstamp' => time()
                     );
-                    
-                    //$this->debug($updateArray);
-                    //echo '443';
                     $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username = '" . $value['primary_uid'] . "'", $updateArray);
-                    //echo $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
-                    /*$employeeArray[$key]['image'] = $feUsersArray[$key]['image'];
-                    $employeeArray[$key]['lth_solr_intro'] = $feUsersArray[$key]['lth_solr_intro'];
-                    $employeeArray[$key]['lth_solr_txt'] = $feUsersArray[$key]['lth_solr_txt'];*/
-                } else if($usergroupArray[1]) {
+                } else if($usergroupArray[1]  || $value['primary_affiliation'] === 'student') {
                     if($value['primary_affiliation'] === 'student') {
                         $usergroupArray[1] = $studentGrsp;
-                    } /*else if($value['hide_on_web']) {
-                        $usergroupArray[1] = $hideonwebGrsp;
-                    }*/
+                    }
                     $insertArray = array(
                         'username' => $value['primary_uid'],
                         'password' => $this->setRandomPassword(),
@@ -547,11 +533,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         'crdate' => time(), 
                         'tstamp' => time()
                     );
-                    //$this->debug($insertArray);
-                    //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
                     $GLOBALS['TYPO3_DB']->exec_INSERTquery('fe_users', $insertArray);
-                    //echo $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
-                    //echo '471';
                 }
             } else if($value['exist'] === 'disable') {
                  $updateArray = array(
@@ -567,7 +549,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     private function updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang)
     {
-        //echo count($employeeArray);
         $coordinatesArray = $this->getCoordinates();
         try {
             if(count($employeeArray) > 0) {
@@ -584,6 +565,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 foreach($employeeArray as $key => $value) {
                     if($value['exist']==='disable' && $value['id']) {
                         // add the delete id and a commit command to the update query
+                        if($value['id'] === 'ju1665ca') {
+                            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => '???', 'crdate' => time()));
+                        }
                         $update->addDeleteById($value['id']);
                     } else if($value['id'] && ($value['primary_affiliation']==='employee' || $value['primary_affiliation']==='member')) {
                         $heritage = array();
@@ -677,16 +661,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         //$heritage = array_unique($heritage);
                         $legacy = array_unique($legacy);
 
-                        /*if($value['extra_orgid']) {
-                            $value['orgid'] = array_unique(array_merge($value['orgid'], $value['extra_orgid']));
-                        }
-                        
-                        $display_name_t = $value['first_name'] . ' ' . $value['last_name'];
-                        $homepage = $value['homepage'];
-                        /*if(!$homepage || $homepage === '') {
-                            $homepage = str_replace(' ', '_', $display_name_t);
-                        }*/
-
                         $standard_category_sv = array();
                         $standard_category_en = array();
                         $standardCategory = array();
@@ -712,46 +686,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $organisationName = $value['oname_en'];
                         }
 
-                        //echo $value['id'].',';
                         $data = array(
-                            /*'id' => $key,
-                            'doctype_s' => 'lucat',
-                            'display_name_t' => $display_name_t,
-                            'first_name_t' => $value['first_name'],
-                            'last_name_t' => $value['last_name'],
-                            'first_name_s' => $value['first_name'],
-                            'last_name_s' => $value['last_name'],
-                            'email_t' => $value['email'],
-                            'primary_affiliation_t' => $value['primary_affiliation'],
-                            'homepage_t' => strtolower($homepage),
-                            'lang_t' => $value['lang'],
-                            'degree_t' => $value['degree'],
-                            'degree_en_t' => $value['degree_en'],                        
-                            'hide_on_web_i' => intval($value['hide_on_web']),
-                            'update_flag_i' => intval($value['update_flag']),
-                            'title_sort' => explode('###', $value['title']),
-                            'ou_sort' => explode('###', $value['oname']),
-                            'guid_s' => $value['guid'],
-                            'standard_category_sv_txt' => $standard_category_sv,
-                            'standard_category_en_txt' => $standard_category_en,
-                            //arrays:
-                            'title_txt' => $titleArray,
-                            'title_en_txt' => $title_enArray,
-                            'phone_txt' => explode('###', $value['phone']),
-                            'mobile_txt' => explode('###', $value['mobile']),
-                            'room_number_s' => $value['room_number'],
-                            'orgid_txt' => explode('###', $value['orgid']),
-                            'oname_txt' => explode('###', $value['oname']),
-                            'oname_en_txt' => explode('###', $value['oname_en']),
-                            'maildelivery_txt' => explode('###', $value['maildelivery']),
-                            //extra:
-                            'image_s' => $value['image'],
-                            'image_id_s' => $value['image_id'],
-                            //'lth_solr_intro_txt' => $value['lth_solr_intro'],
-                            //'lth_solr_txt_t' => $value['lth_solr_txt'],
-                            'usergroup_txt' => $heritage,
-                            'lth_solr_sort_ss' => $value['lth_solr_sort'],*/
-                            //New
                             'appKey' => 'lthsolr',
                             'id' => $value['id'],
                             'primaryUid' => $key,
@@ -834,11 +769,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 // this executes the query and returns the result
                 $buffer->commit();
 
-                /*if(count($docArray) > 0) {
-                    $update->addDocuments($docArray);
-                    $update->addCommit();
-                    $client->update($update);
-                }*/
                 $update->addCommit();
                 $client->update($update);
                 return TRUE;
