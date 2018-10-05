@@ -97,6 +97,49 @@
                     </TCEforms>
                 </displayLayout>
                 
+                <backgroundcolor>
+                    <TCEforms>
+                        <label>Background color</label>
+                        <displayCond>FIELD:displayLayout:=:simpleList</displayCond>
+                        <config>
+                            <type>select</type>
+                            <default>sky.gif</default>
+                            <items type="array">
+                                <numIndex index="0" type="array">
+                                    <numIndex index="0"></numIndex>
+                                </numIndex>
+                            </items>
+                            <fileFolder>EXT:lth_solr/res/syscolors/</fileFolder>
+                            <fileFolder_extList>png,jpg,jpeg,gif</fileFolder_extList>
+                            <fileFolder_recursions>0</fileFolder_recursions>
+                            <size>1</size>
+                            <minitems>0</minitems>
+                            <maxitems>1</maxitems>
+                            <selicon_cols>8</selicon_cols>
+                        </config>
+                    </TCEforms>
+                </backgroundcolor>
+                
+                <header>
+                    <TCEforms>
+                        <label>Header simple list</label>
+                        <displayCond>FIELD:displayLayout:=:simpleList</displayCond>
+                        <config>
+                            <type>input</type>
+                        </config>
+                    </TCEforms>
+                </header>
+                
+                <fixColorBoxes>
+                    <TCEforms>
+                        <displayCond>FIELD:displayLayout:=:simpleList</displayCond>
+                        <config>
+                            <type>user</type>
+                            <userFunc>user_lthpackageflex_addFieldsToFlexForm->fixColorBoxes</userFunc>
+                        </config>
+                    </TCEforms>
+                </fixColorBoxes>
+                
                 <displayFromSimpleList>
                     <TCEforms>
                        <displayCond>FIELD:displayLayout:=:simpleList</displayCond>
@@ -238,22 +281,110 @@
                             <type>select</type>
                             <items type="array">
                                 <numIndex index="0" type="array">
+                                    <numIndex index="0">1</numIndex>
+                                    <numIndex index="1">1</numIndex>
+                                </numIndex>
+                                <numIndex index="1" type="array">
+                                    <numIndex index="0">2</numIndex>
+                                    <numIndex index="1">2</numIndex>
+                                </numIndex>
+                                <numIndex index="2" type="array">
+                                    <numIndex index="0">3</numIndex>
+                                    <numIndex index="1">3</numIndex>
+                                </numIndex>
+                                <numIndex index="3" type="array">
+                                    <numIndex index="0">4</numIndex>
+                                    <numIndex index="1">4</numIndex>
+                                </numIndex>
+                                <numIndex index="4" type="array">
                                     <numIndex index="0">5</numIndex>
                                     <numIndex index="1">5</numIndex>
                                 </numIndex>
-                                <numIndex index="1" type="array">
+                                <numIndex index="5" type="array">
+                                    <numIndex index="0">6</numIndex>
+                                    <numIndex index="1">6</numIndex>
+                                </numIndex>
+                                <numIndex index="6" type="array">
+                                    <numIndex index="0">7</numIndex>
+                                    <numIndex index="1">7</numIndex>
+                                </numIndex>
+                                <numIndex index="7" type="array">
+                                    <numIndex index="0">8</numIndex>
+                                    <numIndex index="1">8</numIndex>
+                                </numIndex>
+                                <numIndex index="8" type="array">
+                                    <numIndex index="0">9</numIndex>
+                                    <numIndex index="1">9</numIndex>
+                                </numIndex>
+                                <numIndex index="9" type="array">
                                     <numIndex index="0">10</numIndex>
                                     <numIndex index="1">10</numIndex>
                                 </numIndex>
-                                <numIndex index="2" type="array">
+                                <numIndex index="10" type="array">
+                                    <numIndex index="0">11</numIndex>
+                                    <numIndex index="1">11</numIndex>
+                                </numIndex>
+                                <numIndex index="11" type="array">
+                                    <numIndex index="0">12</numIndex>
+                                    <numIndex index="1">12</numIndex>
+                                </numIndex>
+                                <numIndex index="12" type="array">
+                                    <numIndex index="0">13</numIndex>
+                                    <numIndex index="1">13</numIndex>
+                                </numIndex>
+                                <numIndex index="13" type="array">
+                                    <numIndex index="0">14</numIndex>
+                                    <numIndex index="1">14</numIndex>
+                                </numIndex>
+                                <numIndex index="14" type="array">
+                                    <numIndex index="0">15</numIndex>
+                                    <numIndex index="1">15</numIndex>
+                                </numIndex>
+                                <numIndex index="15" type="array">
+                                    <numIndex index="0">16</numIndex>
+                                    <numIndex index="1">16</numIndex>
+                                </numIndex>
+                                <numIndex index="16" type="array">
+                                    <numIndex index="0">17</numIndex>
+                                    <numIndex index="1">17</numIndex>
+                                </numIndex>
+                                <numIndex index="17" type="array">
+                                    <numIndex index="0">18</numIndex>
+                                    <numIndex index="1">18</numIndex>
+                                </numIndex>
+                                <numIndex index="18" type="array">
+                                    <numIndex index="0">19</numIndex>
+                                    <numIndex index="1">19</numIndex>
+                                </numIndex>
+                                <numIndex index="19" type="array">
+                                    <numIndex index="0">20</numIndex>
+                                    <numIndex index="1">20</numIndex>
+                                </numIndex>
+                                <numIndex index="20" type="array">
+                                    <numIndex index="0">21</numIndex>
+                                    <numIndex index="1">21</numIndex>
+                                </numIndex>
+                                <numIndex index="21" type="array">
+                                    <numIndex index="0">22</numIndex>
+                                    <numIndex index="1">22</numIndex>
+                                </numIndex>
+                                <numIndex index="22" type="array">
+                                    <numIndex index="0">23</numIndex>
+                                    <numIndex index="1">23</numIndex>
+                                </numIndex>
+                                <numIndex index="23" type="array">
+                                    <numIndex index="0">24</numIndex>
+                                    <numIndex index="1">24</numIndex>
+                                </numIndex>
+                                <numIndex index="24" type="array">
                                     <numIndex index="0">25</numIndex>
                                     <numIndex index="1">25</numIndex>
                                 </numIndex>
-                                <numIndex index="3" type="array">
+                                <numIndex index="50" type="array">
                                     <numIndex index="0">50</numIndex>
                                     <numIndex index="1">50</numIndex>
                                 </numIndex>
-                                <numIndex index="4" type="array">
+                                <numIndex index="51" type="array">
                                     <numIndex index="0">All</numIndex>
                                     <numIndex index="1">15000</numIndex>
                                 </numIndex>

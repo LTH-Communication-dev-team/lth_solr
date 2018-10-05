@@ -308,7 +308,7 @@ class FrontEndClass
     
     
     public function listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle, 
-            $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, $displayFromSimpleList)
+            $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, $displayFromSimpleList, $backgroundcolor, $header)
     {   
         $syslang = $GLOBALS['TSFE']->config['config']['language'];
         if($syslang==='en') {
@@ -349,7 +349,11 @@ class FrontEndClass
 
                 $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_list.html");
             } else if($displayLayout==='simpleList') {
-                $content .= '<div id="lthsolr_publications_container"></div>';
+                $backgroundcolorClass = "";
+                if($backgroundcolor) $backgroundcolorClass = "bg-" . substr($backgroundcolor,0,-4);
+                $content .= "<div style=\"padding:15px;height:100%;\" class=\"$backgroundcolorClass\">";
+                if($header) $content .= "<h3>$header</h3>";
+                $content .= "<div id=\"lthsolr_publications_container\"></div></div>";
                 $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_simple_list.html");
             }
         }

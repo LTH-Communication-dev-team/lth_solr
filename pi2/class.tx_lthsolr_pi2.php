@@ -168,7 +168,7 @@ LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid LEFT JOIN fe_groups f5 ON f5.subg
                     $lth_solr_uuid = array();
                     $lth_solr_uuid['fe_groups'][] = $uuid;
                     $scope = urlencode(json_encode($lth_solr_uuid));
-                    $content = $FrontEndClass->listPublications($scope, 25, '', '', $pageTitle, '', '', 'list');
+                    $content = $FrontEndClass->listPublications($scope, 25, '', '', $pageTitle, '', '', 'list', '', '', '', '');
                 }
             //   $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow);
             } else {

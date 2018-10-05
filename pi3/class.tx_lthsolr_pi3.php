@@ -146,6 +146,8 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $lDef = array_keys($sDef);
             $display = $this->pi_getFFvalue($piFlexForm, "display", "sDEF", $lDef[$index]);
             $displayLayout = $this->pi_getFFvalue($piFlexForm, "displayLayout", "sDEF", $lDef[$index]);
+            $backgroundcolor = $this->pi_getFFvalue($piFlexForm, "backgroundcolor", "sDEF", $lDef[$index]);
+            $header = $this->pi_getFFvalue($piFlexForm, "header", "sDEF", $lDef[$index]);
             
             $display = str_replace('list','publications',$display);
             if(!$displayLayout) {
@@ -218,7 +220,8 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_groups'][] = $uuid;
                 $scope = urlencode(json_encode($lth_solr_uuid));
-                $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle, $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, '');
+                $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle, $publicationCategories, 
+                        $publicationCategoriesSwitch, $display, $displayLayout, '', $backgroundcolor, '');
             } else if($showType==='author') {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_users'][] = $uuid;
@@ -255,7 +258,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                         $keyword = urlencode($keyword);
                     }
                     $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle, 
-                            $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, $displayFromSimpleList);
+                            $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, $displayFromSimpleList, $backgroundcolor, $header);
                 }
             }
             //$this->debug($content);

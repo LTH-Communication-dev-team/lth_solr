@@ -1456,6 +1456,7 @@ function format ( d ) {
 
 function listPublications(tableStart, facet, query, sorting, more, lastGroupValue, action)
 {
+    
     var syslang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
     var tableLength = $('#lth_solr_no_items').val();
@@ -1465,7 +1466,6 @@ function listPublications(tableStart, facet, query, sorting, more, lastGroupValu
     var publicationCategoriesSwitch = $('#lth_solr_publicationCategoriesSwitch').val();
     var display = $('#lth_solr_display').val();
     var displayLayout = $('#lth_solr_displayLayout').val();
-    
     var displayFromSimpleList = $('#lth_solr_displayFromSimpleList').val();
     var inputFacet = facet;
     var i = 0;
@@ -2330,7 +2330,6 @@ function showPublication()
                         if(authors) {
                             authors += ', ';
                         }
-console.log(authorId[i]+authorExternalArray[i]);
                         if(authorId[i] && authorExternalArray[i]==0) {
                             authors += '<a href="' + detailLink + authorName[i].replace(' ','-') + '(' + authorId[i] + ')(author)">' + authorName[i] + '</a>';
                         } else {
