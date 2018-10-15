@@ -146,6 +146,21 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
     'additionalFields' => ''
 );
 
+//FixTtnewsSorting
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\FixTtnewsSorting'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Fix tt_news Sorting',
+    'description' => '',
+    'additionalFields' => ''
+);
+
+//FixTxnewsMedia
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\FixTxnewsMedia'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Fix tx_news media',
+    'description' => '',
+    'additionalFields' => ''
+);
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi1/class.tx_lthsolr_pi1.php', '_pi1', 'list_type', 0);
 

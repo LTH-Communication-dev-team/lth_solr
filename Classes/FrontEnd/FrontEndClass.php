@@ -126,7 +126,7 @@ class FrontEndClass
     </div>
     <div id="collapsePublications" class="collapse" aria-labelledby="headingOne" data-parent="#lthSolrAccordion">
       <div class="card-body">';
-        $content .= $this->listPublications($scope, '', '', '', '', '', '', 'showProject','fullList','');
+        $content .= $this->listPublications($scope, '', '', '', '', '', '', 'showProject','fullList','','','');
         $content .= '</div></div></div>';
         
         $content .= '</div>';
@@ -181,7 +181,7 @@ class FrontEndClass
 
         //Publications
         //$content .= '<div id="lthsolr_publications_container"><div id="lthsolr_publications_header"></div></div>';
-        $content .= $this->listPublications($scope, '', '', '', '', '', '', 'showStaff','fullList','');
+        $content .= $this->listPublications($scope, '', '', '', '', '', '', 'showStaff','fullList','','','');
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_list.html");
 
         //Projects

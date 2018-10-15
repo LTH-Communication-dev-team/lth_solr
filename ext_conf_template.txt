@@ -48,3 +48,5 @@ solrLadokPw=
 solrLucrisApiKey=
   # cat=basic/dev/183; type=input; label=Lucris API version
 solrLucrisApiVersion=
+  # cat=basic/dev/184; type=input; label=News grsp (for Task)
+nrsp=

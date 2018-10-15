@@ -7,6 +7,13 @@ CREATE TABLE fe_groups (
     title varchar(255) DEFAULT '' NOT NULL
 );
 
+#
+# Table structure for table 'tt_news'
+#
+CREATE TABLE tt_news (
+    sorting int(11) DEFAULT '0' NOT NULL,
+);
+
 CREATE TABLE fe_users (
     lth_solr_cat text NOT NULL,
     lth_solr_sort text NOT NULL,

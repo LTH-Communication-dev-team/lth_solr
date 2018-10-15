@@ -44,16 +44,26 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $client = new \Solarium\Client($config);
         
+        $query = $client->createSelect();
+        $query->setQuery('docType:calendar');
+        $query->addSort('changed', $query::SORT_DESC);
+        $query->setStart(0)->setRows(1);
+        $response = $client->select($query);
+        $idArray = array();
+        $numFound = $response->getNumFound();
+        foreach ($response as $document) {
+            $lastModified = $document->changed;
+        }
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(200);
 
-        //$allCalendars = $executionSucceeded = $this->getCalendars();
+        $allCalendars = $executionSucceeded = $this->getCalendars();
         
-        //$executionSucceeded = $this->getEvents($buffer);
+        $executionSucceeded = $this->getEvents($buffer);
         
         $executionSucceeded = $this->createOrder($client);
 
-        /*$syslang = "en";
+        $syslang = "en";
         $config = array(
             'endpoint' => array(
                 'localhost' => array(
@@ -66,8 +76,13 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         );
         $client = new \Solarium\Client($config);
         
-        $executionSucceeded = $this->getEvents($client);*/
+        $client = new \Solarium\Client($config);
+            
+        $buffer = $client->getPlugin('bufferedadd');
+        $buffer->setBufferSize(200);
         
+        $executionSucceeded = $this->getEvents($client);
+        $executionSucceeded = $this->createOrder($client);
         return $executionSucceeded;
     }
      
@@ -106,14 +121,14 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         do {
             $urlToDecode = "http://lb3v2.net.lu.se/lucal/event?limit=100&offset=$offset";
             $timeout = 10;	
-            $ctx = stream_context_create(array('http' => array('timeout' => $timeout))); 
-            $tmpEvents = file_get_contents($urlToDecode, 0, $ctx);
+            $ctx = stream_context_create(array('http' => array('timeout' => $timeout)));
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $urlToDecode, 'crdate' => time()));
+            $tmpEvents = @file_get_contents($urlToDecode, 0, $ctx);
             if($tmpEvents !== false) {
-               
-                if(count(json_decode($tmpEvents, true))===0) {
+               $tmpEvents = json_decode($tmpEvents, true);
+                if(count($tmpEvents)===0) {
                     $run = FALSE;
-                } else {
-                    $tmpEvents = json_decode($tmpEvents, true);
+                } else if(is_array($tmpEvents)) {
 
                     foreach($tmpEvents as $key => $value) {
                         $data = array(
@@ -132,6 +147,7 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'location' => $value['field_ns_calendar_location']['und'][0]['safe_value'],
                             'lead' => $this->handleChar($value['field_ns_calendar_lead']['und'][0]['safe_value']),
                             'language' => $value['language'],
+                            'image' => $value['field_ns_calendar_media']['und'][0]['uri'],
                             'appKey' => 'lthsolr',
                             'docType' => 'calendar',
                             'type' => 'calendar'
@@ -222,8 +238,4 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         print_r($inputArray);
         echo '</pre>';
     }
-    
-    
-    
-    
 }
