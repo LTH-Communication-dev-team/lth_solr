@@ -412,6 +412,7 @@ class FrontEndClass
 
         $content .= '
             <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+            <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />
             <input type="hidden" id="lth_solr_action" value="listTagCloud" />';
         return $content;
     }

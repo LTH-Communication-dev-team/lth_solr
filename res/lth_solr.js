@@ -1865,6 +1865,8 @@ function listTagCloud()
         data: {
             eID : 'lth_solr',
             action : 'listTagCloud',
+            pageid: $('body').attr('id'),
+            tableLength: $('#lth_solr_no_items').val(),
             scope : scope,
             syslang : syslang,
             term : encodeURIComponent(path),
@@ -1879,7 +1881,6 @@ function listTagCloud()
             if(d) {
                 $('#lthsolr_tagcloud_container').html('');
                 $('#lthsolr_tagcloud_container').jQCloud(d.data);
-                
             }
         },
         failure: function(errMsg) {

@@ -276,7 +276,7 @@
             
                 <noItemsToShow>
                     <TCEforms>
-                        <label>No of items to show</label>
+                        <label>No of items to show (if tagcloud min num keywords)</label>
                         <config>
                             <type>select</type>
                             <items type="array">

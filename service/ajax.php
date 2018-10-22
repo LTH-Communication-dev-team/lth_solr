@@ -118,7 +118,7 @@ $dataSettings = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('dataSettings');
             $content = $this->rest();
             break;
         case 'listTagCloud':
-            $content = $this->listTagCloud($scope, $syslang, $config, $pageid, $term);
+            $content = $this->listTagCloud($scope, $syslang, $config, $pageid, $term, $tableLength);
             break;
         case 'listCompare':
             $content = $this->listCompare($dataSettings, $config);
@@ -1232,8 +1232,10 @@ function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tabl
 }
 
 
-function listTagCloud($scope, $syslang, $config, $pageid, $path)
+function listTagCloud($scope, $syslang, $config, $pageid, $term, $tableLength)
 {
+    $fieldArray = array("keyword","keywordType");
+            
     $client = new Solarium\Client($config);
 
     $query = $client->createSelect();
@@ -1255,9 +1257,11 @@ function listTagCloud($scope, $syslang, $config, $pageid, $path)
         }
     }
 
-    $query->setQuery('docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND ('.$term.')');
+    $queryToSet = 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND ('.$term.')';
+    $query->setQuery($queryToSet);
     //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND ('.$term.')', 'crdate' => time()));
     //$query->addParam('rows', 1500);
+    $query->setFields($fieldArray);
     $query->setStart(0)->setRows(10000);
     $sortArray = array(
         'documentTitle' => 'asc'
@@ -1269,43 +1273,45 @@ function listTagCloud($scope, $syslang, $config, $pageid, $path)
     $numFound = $response->getNumFound();
     $tagArray = array();
     $i=1;
+    $randomClasses = array("", "vertical", "", "");
     
+
     foreach ($response as $document) {
-        if(is_array($document->keywordsUser)) {
-            foreach($document->keywordsUser as $key => $value) {
-                $keywordsArray[] = $value;
-            }
-        }
-        if(is_array($document->keywordsUka)) {
-            foreach($document->keywordsUka as $key => $value) {
+        if(is_array($document->keyword)) {
+            foreach($document->keyword as $key => $value) {
                 $keywordsArray[] = $value;
             }
         }
     }
-    asort($keywordsArray);
-    foreach($keywordsArray as $key => $value) {
-        if($oldValue != $value && $i > 0) {
-            $data[] = array(
-                /*$document->id,
-                ,
-                ucwords(strtolower($this->fixArray($document->authorName))),
-                $this->fixArray($document->publicationType),
-                $document->publicationDateYear,
-                $document->publicationDateMonth,
-                $document->publicationDateDay,
-                $document->pages,
-                $document->journalTitle,
-                $document->journalNumber*/
-                'text' => $value,
-                'link' => urldecode($path) . '?keyword=' . $value,
-                'weight' => (13*$i)
-            );
-            $i=0;
+    $data = array();
+    if($tableLength) $tableLength = intval($tableLength);
+    if($keywordsArray) {
+        asort($keywordsArray);
+        foreach($keywordsArray as $key => $value) {
+            if($oldValue != $value && $i > $tableLength) {
+                $data[] = array(
+                    /*$document->id,
+                    ,
+                    ucwords(strtolower($this->fixArray($document->authorName))),
+                    $this->fixArray($document->publicationType),
+                    $document->publicationDateYear,
+                    $document->publicationDateMonth,
+                    $document->publicationDateDay,
+                    $document->pages,
+                    $document->journalTitle,
+                    $document->journalNumber*/
+                    'text' => $value . $i,
+                    'link' => urldecode($path) . '?keyword=' . $value,
+                    'html' => array('class' => $randomClasses[array_rand($randomClasses, 1)]),
+                    'weight' => $i//(13*$i),
+                );
+                $i=0;
+            }
+            $oldValue = $value;
+            $i++;
         }
-        $oldValue = $value;
-        $i++;
     }
-    $resArray = array('data' => $data, 'numFound' => $numFound);
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'queryToSet' => $queryToSet);
     return json_encode($resArray);
 }
 
