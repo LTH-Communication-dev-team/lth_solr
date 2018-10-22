@@ -1300,7 +1300,7 @@ function listTagCloud($scope, $syslang, $config, $pageid, $term, $tableLength)
                     $document->pages,
                     $document->journalTitle,
                     $document->journalNumber*/
-                    'text' => $value . $i,
+                    'text' => $value,
                     'link' => urldecode($path) . '?keyword=' . $value,
                     'html' => array('class' => $randomClasses[array_rand($randomClasses, 1)]),
                     'weight' => $i//(13*$i),
