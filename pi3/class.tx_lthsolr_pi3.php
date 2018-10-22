@@ -256,6 +256,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 } else {
                     if($keyword) {
                         $keyword = urlencode($keyword);
+                        $display = "publications";
                     }
                     $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, $keyword, $pageTitle, 
                             $publicationCategories, $publicationCategoriesSwitch, $display, $displayLayout, $displayFromSimpleList, $backgroundcolor, $header);

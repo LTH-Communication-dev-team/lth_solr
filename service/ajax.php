@@ -710,7 +710,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     }
     
     if($keyword) {
-        $keyword = ' AND (keywordsUser:' . str_replace(' ', '\\ ', urldecode($keyword)) . ' OR keywordsUka:' . str_replace(' ', '\\ ', urldecode($keyword)) . ')';
+        $keyword = ' AND keyword:' . str_replace(' ', '\\ ', urldecode($keyword));
     }
     
     if($scope) {
@@ -1232,7 +1232,7 @@ function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tabl
 }
 
 
-function listTagCloud($scope, $syslang, $config, $pageid, $term, $tableLength)
+function listTagCloud($scope, $syslang, $config, $pageid, $path, $tableLength)
 {
     $fieldArray = array("keyword","keywordType");
             

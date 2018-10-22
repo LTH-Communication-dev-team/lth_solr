@@ -1853,11 +1853,11 @@ function listTagCloud()
 {
     var syslang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
-    var publicationDetailPage = 'publikationer';
+    /*var publicationDetailPage = 'publikationer';
     if(syslang=='en') {
         publicationDetailPage = 'publications';
-    }
-    path = window.location.pathname + publicationDetailPage;
+    }*/
+    var path = window.location.pathname;
     
     $.ajax({
         type : "POST",
