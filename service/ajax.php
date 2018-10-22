@@ -1234,7 +1234,7 @@ function listStudentPapers($facet, $term, $syslang, $config, $tableLength, $tabl
 
 function listTagCloud($scope, $syslang, $config, $pageid, $path, $tableLength)
 {
-    $fieldArray = array("keyword","keywordType");
+    $fieldArray = array("keyword");
             
     $client = new Solarium\Client($config);
 
@@ -1275,37 +1275,35 @@ function listTagCloud($scope, $syslang, $config, $pageid, $path, $tableLength)
     $i=1;
     $randomClasses = array("", "vertical", "", "");
     
-
+    $keywordsArray = array();
+    $tmpArray = array();
     foreach ($response as $document) {
         if(is_array($document->keyword)) {
-            foreach($document->keyword as $key => $value) {
+            
+            $tmpArray = array_unique($document->keyword);
+            foreach($tmpArray as $key => $value) {
                 $keywordsArray[] = $value;
             }
         }
     }
+
     $data = array();
     if($tableLength) $tableLength = intval($tableLength);
     if($keywordsArray) {
         asort($keywordsArray);
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($keywordsArray, true), 'crdate' => time()));
         foreach($keywordsArray as $key => $value) {
-            if($oldValue != $value && $i > $tableLength) {
-                $data[] = array(
-                    /*$document->id,
-                    ,
-                    ucwords(strtolower($this->fixArray($document->authorName))),
-                    $this->fixArray($document->publicationType),
-                    $document->publicationDateYear,
-                    $document->publicationDateMonth,
-                    $document->publicationDateDay,
-                    $document->pages,
-                    $document->journalTitle,
-                    $document->journalNumber*/
-                    'text' => $value,
-                    'link' => urldecode($path) . '?keyword=' . $value,
-                    'html' => array('class' => $randomClasses[array_rand($randomClasses, 1)]),
-                    'weight' => $i//(13*$i),
-                );
-                $i=0;
+            if($oldValue !== $value) {
+                if($i > $tableLength) {
+                    $data[] = array(
+                        'text' => $oldValue,
+                        'link' => urldecode($path) . '?keyword=' . $oldValue,
+                        'html' => array('class' => $randomClasses[array_rand($randomClasses, 1)]),
+                        'weight' => ($i)+1
+                    );
+                }
+                $i = 0;
+                
             }
             $oldValue = $value;
             $i++;
