@@ -19,7 +19,7 @@ var lth_solr_messages = {
     in: "in",
 
     applyButtonText: 'Login and apply',
-    job: "job",
+    job: "work",
     jobAnstForm: "Type of employment",
     jobTilltrade: "First day of employment",
     jobLoneform: "Salary",
