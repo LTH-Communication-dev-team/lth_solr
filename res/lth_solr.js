@@ -86,6 +86,7 @@ function listJobs()
         data: {
             eID: 'lth_solr',
             action: 'listJobs',
+            syslang: syslang,
             dataSettings: {
                 syslang: syslang,
                 pageid: $('body').attr('id')
@@ -199,7 +200,7 @@ function showJob()
                 $('.lthsolr_job_apply_button').attr('href',loginAndApplyURI).text(lth_solr_messages.applyButtonText).show();
                 $('.breadcrumb li:last').removeClass('active').wrapInner('<a href="/'+lth_solr_messages.job+'/"></a>');
                 $('.breadcrumb').append('<li class="breadcrumb-item active">'+jobTitle+'</li>');
-                
+                                
                 $('#lthsolr_job_container > .col').prepend(abstract);
                 if(jobAnstForm) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobAnstForm+'</th><td>'+jobAnstForm+'</td></tr>');
                 if(jobTilltrade) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobTilltrade+'</th><td>'+jobTilltrade+'</td></tr>');
