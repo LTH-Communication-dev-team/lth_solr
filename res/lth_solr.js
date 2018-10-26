@@ -151,6 +151,7 @@ function showJob()
         data: {
             eID: 'lth_solr',
             action: 'showJob',
+            syslang: syslang,
             dataSettings: {
                 syslang: syslang,
                 scope: scope,
