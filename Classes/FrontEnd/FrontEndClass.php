@@ -48,7 +48,7 @@ class FrontEndClass
     }
     
     
-    public function listJobs()
+    public function listJobs($syslang)
     {
         $jobHeader = 'Lediga anställningar';
         if($syslang==='en') {
@@ -70,7 +70,7 @@ class FrontEndClass
     }
     
     
-    public function showJob($refNr)
+    public function showJob($refNr, $syslang)
     {
         $content = '';
         //$content .= '<div class="container">';

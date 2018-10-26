@@ -69,9 +69,9 @@ class tx_lthsolr_pi8 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
             if($uuid) {
                 $refNr = rtrim(array_pop(explode('(',$uuid)),")");
-                $content .= $FrontEndClass->showJob($refNr);
+                $content .= $FrontEndClass->showJob($refNr,$syslang);
             } else {
-                $content .= $FrontEndClass->listJobs();
+                $content .= $FrontEndClass->listJobs($syslang);
             }
             
             return $content;
