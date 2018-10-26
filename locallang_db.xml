@@ -13,6 +13,7 @@
             <label index="tt_content.list_type_pi5">Staff detail</label>
             <label index="tt_content.list_type_pi6">Student papers</label>
             <label index="tt_content.list_type_pi7">Compare</label>
+            <label index="tt_content.list_type_pi8">Job List</label>
         </languageKey>
     </data>
 </T3locallang>

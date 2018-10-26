@@ -48,6 +48,48 @@ class FrontEndClass
     }
     
     
+    public function listJobs()
+    {
+        $jobHeader = 'Lediga anställningar';
+        if($syslang==='en') {
+            $jobHeader = 'Vacant Positions';
+        }
+        $content = '';
+       
+        //$content .= '<div class="container">';
+        $content .= '<div class="row"><div class="col"><h1 class=" my-0 pb-2 border-bottom">'.$jobHeader.'</h1></div></div>';
+        $content .= '<div id="lthsolr_job_container" class="row"><div class="col"></div></div>';
+       // $content .= '</div>';
+
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/jobs_list.html");
+
+        $content .= '
+            <input type="hidden" id="lth_solr_action" value="listJobs" />';
+        
+        return $content;
+    }
+    
+    
+    public function showJob($refNr)
+    {
+        $content = '';
+        //$content .= '<div class="container">';
+        $content .= '<div class="row"><div class="col"><h1 class="my-0 pb-2 border-bottom"></h1></div></div>';
+        $content .= '<div id="lthsolr_job_container" class="row">';
+        $content .= '<div class="col"><table class="table table-condensed quick-info"><tbody></tbody></table></div>';
+        $content .= '</div>';
+        //$content .= '</div>';
+
+        //$content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/job_presentation.html");
+
+        $content .= '
+            <input type="hidden" id="lth_solr_scope" value="' . $refNr . '" />
+            <input type="hidden" id="lth_solr_action" value="showJob" />';
+        
+        return $content;
+    }
+    
+    
     public function searchResult($query, $webSearchScope, $linkStaffDetailPage)
     {
         $content .= '<div id="lthsolr_search_container">';

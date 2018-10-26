@@ -32,9 +32,9 @@ include __DIR__ . "/../Classes/FrontEnd/FrontEndClass.php";
  * @package	TYPO3
  * @subpackage	tx_lthsolr
  */
-class tx_lthsolr_pi7 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
-	public $prefixId      = 'tx_lthsolr_pi7';		// Same as class name
-	public $scriptRelPath = 'pi7/class.tx_lthsolr_pi7.php';	// Path to this script relative to the extension dir.
+class tx_lthsolr_pi8 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
+	public $prefixId      = 'tx_lthsolr_pi8';		// Same as class name
+	public $scriptRelPath = 'pi8/class.tx_lthsolr_pi8.php';	// Path to this script relative to the extension dir.
 	public $extKey        = 'lth_solr';	// The extension key.
 	public $pi_checkCHash = TRUE;
 	
@@ -49,15 +49,8 @@ class tx_lthsolr_pi7 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $this->conf = $conf;
             $this->pi_setPiVarDefaults();
             $this->pi_loadLL();
-            
-            $this->pi_initPIflexForm();
-            $piFlexForm = $this->cObj->data["pi_flexform"];
-            $index = $GLOBALS["TSFE"]->sys_language_uid;
-            $sDef = current($piFlexForm["data"]);       
-            $lDef = array_keys($sDef);
-
-            $round = $this->pi_getFFvalue($piFlexForm, "round", "sDEF", $lDef[$index]);
-            $scope = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('scope');
+                       
+            $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
                         
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
             if(!$syslang) {
@@ -71,14 +64,15 @@ class tx_lthsolr_pi7 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             $FrontEndClass->addJsCss('');
             //
-            if($scope && $round) {
-                $scope = urlencode(implode(',',$scope));
-            }
+           
             $content = '';
 
-            if($scope) {
-                $content .= $FrontEndClass->compare($round, $scope);
-            } 
+            if($uuid) {
+                $refNr = rtrim(array_pop(explode('(',$uuid)),")");
+                $content .= $FrontEndClass->showJob($refNr);
+            } else {
+                $content .= $FrontEndClass->listJobs();
+            }
             
             return $content;
 	}

@@ -74,6 +74,12 @@ $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi2'] = '
 	\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath($_EXTKEY) . 'ext_icon.gif'
 ),'list_type');
 
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPlugin(array(
+	'LLL:EXT:lth_solr/locallang_db.xml:tt_content.list_type_pi8',
+	$_EXTKEY . '_pi8',
+	\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath($_EXTKEY) . 'ext_icon.gif'
+),'list_type');
+
 //be-ajax :(
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::registerAjaxHandler('lthsolrM1::ajaxControl', 'lth_solr_ajax->ajaxControl');
 

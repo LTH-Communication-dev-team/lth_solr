@@ -126,10 +126,105 @@ $dataSettings = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('dataSettings');
         case 'showCompare':
             $content = $this->showCompare($dataSettings, $config);
             break;
+        case 'listJobs':
+            $content = $this->listJobs($dataSettings, $config);
+            break;
+        case 'showJob':
+            $content = $this->showJob($dataSettings, $config);
+            break;
     }
 
     print $content;
 
+}
+
+
+function listJobs($dataSettings, $config)
+{
+    $syslang = $dataSettings['syslang'];
+    
+    $currentDate = gmDate("Y-m-d\TH:i:s\Z");
+    
+    $fieldArray = array("id", "endDate", "jobType", "refNr", "jobTitle");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+      
+    $queryToSet = "docType:job AND endDate:[$currentDate TO *] AND hidden:0";
+
+    $query->setQuery($queryToSet);
+        
+    $query->setFields($fieldArray);
+        
+    $query->setStart(0)->setRows(1000);
+    
+    $sortArray = array(
+        'endDate' => 'desc',
+        'jobTitle' => 'asc'
+    );
+    
+    $query->addSorts($sortArray);
+
+    $response = $client->select($query);
+    
+    $numFound = $response->getNumFound();
+    
+    foreach ($response as $document) {
+        $data[] = array(
+            "endDate" => $document->endDate,
+            "id" => $document->id,
+            "jobTitle" => $document->jobTitle,
+            "jobType" => $document->jobType,
+            "refNr" => $document->refNr
+        );
+    }
+    
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
+}
+
+
+function showJob($dataSettings, $config)
+{
+    $scope = $dataSettings['scope'];
+    
+    if($scope) $scope = str_replace('-','\/',strtoupper($scope));
+    
+    $syslang = $dataSettings['syslang'];
+    
+    $fieldArray = array("abstract","endDate","jobPositionContact","jobUnionRepresentative","jobTitle","jobType","loginAndApplyURI","published");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+    
+    $queryToSet = "docType:job AND refNr:$scope";
+
+    $query->setQuery($queryToSet);
+        
+    $query->setFields($fieldArray);
+    
+    $response = $client->select($query);
+        
+    foreach ($response as $document) {
+        $data = array(
+            "abstract" => $document->abstract,
+            "endDate" => $document->endDate,
+            "id" => $document->id,
+            "jobPositionContact" => $document->jobPositionContact,
+            "jobUnionRepresentative" => $document->jobUnionRepresentative,
+            "jobTitle" => $document->jobTitle,
+            "jobType" => $document->jobType,
+            "loginAndApplyURI" => $document->loginAndApplyURI,
+            "published" => $document->published
+        );
+    }
+    
+    $resArray = array('data' => $data, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
 }
 
 

@@ -44,6 +44,12 @@ $(document).ready(function() {
         listTagCloud();
     }
     
+    if($('#lth_solr_action').val() == 'listJobs') {
+        listJobs();
+    } else if($('#lth_solr_action').val() == 'showJob') {
+        showJob();
+    }
+    
     $('#lthsolr_studentpapers_filter').keyup(function() {
         listStudentPapers(0, getFacets(), $(this).val().trim(),'');
     });
@@ -67,6 +73,167 @@ $(document).ready(function() {
     });
    
 });
+
+
+function listJobs()
+{
+    var syslang = $('html').attr('lang');
+    var endDate,id,jobType,link,refNr,jobTitle;
+
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'listJobs',
+            dataSettings: {
+                syslang: syslang,
+                pageid: $('body').attr('id')
+            },
+            sid: Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            $('#lthsolr_job_container > .col').append('<div class="lthPackageLoader"></div>');
+        },
+        success: function(d) {
+            $('.lthPackageLoader').remove();
+            
+            if(d.data) {
+                $.each( d.data, function( key, aData ) {
+                    endDate = '';
+                    id = '';
+                    jobTitle = '';
+                    link = '';
+                    refNr = '';
+
+                    if(aData.endDate) endDate = aData.endDate.substr(0,10);
+                    if(aData.id) id = aData.id;
+                    if(aData.jobTitle) jobTitle = aData.jobTitle;
+                    if(aData.jobType) jobType = aData.jobType;
+                    if(aData.refNr) refNr = aData.refNr;
+                    
+                    if(syslang==='sv') {
+                        link = 'visa/'+encodeURI(jobTitle+'('+refNr.replace('/','-')+')');
+                    } else {
+                        link = 'show/'+encodeURI(jobTitle+'('+refNr.replace('/','-')+')');
+                    }
+                    
+                    var template = $('#solrJobTemplate').html();
+                    template = template.replace('###endDate###', endDate);
+                    template = template.replace('###type###', jobType[0]);
+                    template = template.replace('###category###', jobType[1]);
+                    template = template.replace('###link###', link);
+                    template = template.replace(/###jobTitle###/g, jobTitle);
+                    $('#lthsolr_job_container > .col').append(template);
+                });
+            }
+        }
+    });
+}
+
+
+function showJob()
+{
+    var syslang = $('html').attr('lang');
+    var scope = $('#lth_solr_scope').val();
+    var abstract,endDate,id,jobTitle,jobType,link,refNr,jobTitle,loginAndApplyURI;
+    var jobAnstForm,jobTilltrade,jobLoneform,jobAntal,jobSysselsattningsgrad,jobOrt,jobLan,jobLand,jobReferensnummer,jobKontakt;
+    var jobPublicerat,jobSistaAnsokningsdag,jobPositionContact,jobUnionRepresentative;
+
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'showJob',
+            dataSettings: {
+                syslang: syslang,
+                scope: scope,
+                pageid: $('body').attr('id')
+            },
+            sid: Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            
+        },
+        success: function(d) {
+            
+            
+            //$('.article').html('<div class="lthPackageLoader"></div>');
+            //$('.lthsolr_loader').remove();
+            if(d.data.abstract) {
+                //$('main > div > div:eq(0)').empty();
+                abstract = '';
+                jobTitle = '';
+                loginAndApplyURI = '';
+                if(d.data.abstract) abstract = d.data.abstract;
+                if(d.data.endDate) jobSistaAnsokningsdag = d.data.endDate;
+                if(d.data.jobTitle) jobTitle = d.data.jobTitle;
+                if(d.data.jobType) {
+                    jobAnstForm = d.data.jobType[0];
+                    jobTilltrade = d.data.jobType[2];
+                    jobLoneform = d.data.jobType[3];
+                    jobAntal = d.data.jobType[4];
+                    jobSysselsattningsgrad = d.data.jobType[5];
+                    jobOrt = d.data.jobType[6];
+                    jobLan = d.data.jobType[7];
+                    jobLand = d.data.jobType[8];
+                }
+                if(d.data.jobPositionContact) jobPositionContact = d.data.jobPositionContact;
+                if(d.data.jobUnionRepresentative) jobUnionRepresentative = d.data.jobUnionRepresentative;
+                if(d.data.endDate) jobSistaAnsokningsdag = d.data.endDate.substr(0,10);
+                if(d.data.loginAndApplyURI) loginAndApplyURI = decodeURIComponent(d.data.loginAndApplyURI);
+                if(d.data.published) jobPublicerat = d.data.published.substr(0,10);
+                if(d.data.refNr) jobReferensnummer = d.data.refNr;
+                
+                //console.log(d.data.abstract);
+                $('h1').text(jobTitle).attr('style', 'margin-bottom:18px !important;max-width:650px;');
+                $('.lthsolr_job_apply_button').attr('href',loginAndApplyURI).text(lth_solr_messages.applyButtonText).show();
+                $('.breadcrumb li:last').removeClass('active').wrapInner('<a href="/'+lth_solr_messages.job+'/"></a>');
+                $('.breadcrumb').append('<li class="breadcrumb-item active">'+jobTitle+'</li>');
+                
+                $('#lthsolr_job_container > .col').prepend(abstract);
+                if(jobAnstForm) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobAnstForm+'</th><td>'+jobAnstForm+'</td></tr>');
+                if(jobTilltrade) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobTilltrade+'</th><td>'+jobTilltrade+'</td></tr>');
+                if(jobLoneform) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobLoneform+'</th><td>'+jobLoneform+'</td></tr>');
+                if(jobAntal) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobAntal+'</th><td>'+jobAntal+'</td></tr>');
+                if(jobSysselsattningsgrad) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobSysselsattningsgrad+'</th><td>'+jobSysselsattningsgrad+'</td></tr>');
+                if(jobOrt) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobOrt+'</th><td>'+jobOrt+'</td></tr>');
+                if(jobLan) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobLan+'</th><td>'+jobLan+'</td></tr>');
+                if(jobLand) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobLand+'</th><td>'+jobLand+'</td></tr>');
+                if(jobReferensnummer) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobReferensnummer+'</th><td>'+jobReferensnummer+'</td></tr>');
+                if(jobPositionContact) {
+                    for (var pc = 0; pc < jobPositionContact.length; pc++) {
+                        if(pc===0) {
+                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobKontakt+'</th><td>'+jobPositionContact[pc]+'</td></tr>');
+                        } else {
+                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><td></td><td>'+jobPositionContact[pc]+'</td></tr>');
+                        }
+                    };
+                }
+                if(jobUnionRepresentative) {
+                    for (var ur = 0; ur < jobUnionRepresentative.length; ur++) {
+                        if(ur===0) {
+                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobFack+'</th><td>'+jobUnionRepresentative[ur]+'</td></tr>');
+                        } else {
+                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><td></td><td>'+jobUnionRepresentative[ur]+'</td></tr>');
+                        }
+                    };
+                }
+                if(jobPublicerat) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobPublicerat+'</th><td>'+jobPublicerat+'</td></tr>');
+                if(jobSistaAnsokningsdag) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobSistaAnsokningsdag+'</th><td>'+jobSistaAnsokningsdag+'</td></tr>');
+            }
+        }
+    });
+}
 
 
 function listCompare(action)

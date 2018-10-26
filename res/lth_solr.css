@@ -13,6 +13,11 @@ div.jqcloud span.vertical {
         writing-mode: tb-rl;
       }
       
+      .lthsolr_job_apply_button {
+          display:none;
+          margin:25px 0px 50px 0px;
+      }
+      
 #lthsolr_compare_container .list-group-item {
     cursor:pointer;
 }
