@@ -1067,8 +1067,8 @@ function showPublication($response, $term, $syslang, $config)
             $i++;
         }
         if($document->organisationName) {
-            $organisationName = $document->organisationName[0];
-            $organisationId = $document->organisationId[0];
+            $organisationName = $document->organisationName;
+            $organisationId = $document->organisationId;
             /*$i=0;
             foreach($organisationNameArray as $key => $organisationName) {
                 if($organisations) $organisations .= ', ';
