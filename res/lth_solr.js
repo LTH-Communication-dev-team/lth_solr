@@ -2524,11 +2524,22 @@ function showPublication()
                     event +=  ' -- ' + endDate.substr(0,10);
                 }
                 
-                if(organisationId && organisationId !== '####') {
+                for(var i = 0; i < organisationName.length; i++) {
+                    if(organisations) {
+                        organisations += ', ';
+                    }
+                    if(organisationId[i] && organisationId[i] !== '####') {
+                        organisations += '<a href="' + detailLink + organisationName[i] + '(' + organisationId[i] + ')(department)">' + organisationName[i] + '</a>';
+                    } else {
+                        organisations += organisationName[i];
+                    }
+                }
+                
+                /*if(organisationId && organisationId !== '####') {
                    organisations = '<a href="' + detailLink + organisationName + '('+ organisationId + ')(department)">' + organisationName + '</a>';
                 } else {
                     organisations = organisationName;
-                }
+                }*/
                 
                 if(keywords_user) {
                     for(var i = 0; i < keywords_user.length; i++) {
