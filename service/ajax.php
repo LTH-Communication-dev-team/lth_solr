@@ -1014,7 +1014,8 @@ function showPublication($response, $term, $syslang, $config)
         "electronicVersionVersionType","electronicIsbns","endDate","externalOrganisations","eventCity","eventCountry","eventName","eventLink","eventType",
         "id","hostPublicationTitle","issn","journalTitle","journalNumber","keywords_uka","keywords_user","language","numberOfPages","openAccessPermission","organisationName",
         "organisationId","organisationSourceId","pages","peerReview","placeOfPublication","printIsbns","publicationDateYear","publicationDateMonth",
-        "publicationDateDay","publicationType","publicationTypeUri","publisher","publicationStatus","standard_category_en","startDate","supervisors","title","volume");
+        "publicationDateDay","publicationType","publicationTypeUri","publisher","publicationStatus","standard_category_en","startDate","supervisorId","supervisorName",
+        "supervisorOrganisationId","supervisorOrganisationName","supervisorPersonRole","title","volume");
     
     if(!$response) {
         $client = new Solarium\Client($config);
@@ -1132,6 +1133,13 @@ function showPublication($response, $term, $syslang, $config)
         $publicationTypeUri = $document->publicationTypeUri;
         $startDate = $document->startDate;
         $supervisors = $document->supervisorName;
+        //Novo begin
+        $supervisorId = $document->supervisorId;
+        $supervisorName = $document->supervisorName;
+        $supervisorOrganisationId = $document->supervisorOrganisationId;
+        $supervisorOrganisationName = $document->supervisorOrganisationName;
+        $supervisorPersonRole = $document->supervisorPersonRole;
+        //Novo ends
         $type = $document->type;
         $volume = $document->volume;
         
@@ -1194,6 +1202,11 @@ function showPublication($response, $term, $syslang, $config)
             'standard_category_en' => $standardCategory,
             'startDate' => $startDate,
             'supervisors' => $supervisors,
+            'supervisorId' => $document->supervisorId,
+            'supervisorName' => $document->supervisorName,
+            'supervisorOrganisationId' => $document->supervisorOrganisationId,
+            'supervisorOrganisationName' => $document->supervisorOrganisationName,
+            'supervisorPersonRole' => $document->supervisorPersonRole,
             'title' => $title,
             'volume' => $volume,
         );

@@ -2500,7 +2500,7 @@ function showPublication()
                         if(authors) {
                             authors += ', ';
                         }
-                        if(authorId[i] && authorExternalArray[i]==0) {
+                        if(authorId[i] && authorId[i] !== '####' && authorExternalArray[i]==0) {
                             authors += '<a href="' + detailLink + authorName[i].replace(' ','-') + '(' + authorId[i] + ')(author)">' + authorName[i] + '</a>';
                         } else {
                             authors += authorName[i];
@@ -2524,8 +2524,8 @@ function showPublication()
                     event +=  ' -- ' + endDate.substr(0,10);
                 }
                 
-                if(organisationSourceId) {
-                   organisations = '<a href="' + detailLink + organisationName + '('+ organisationSourceId + ')(department)">' + organisationName + '</a>';
+                if(organisationId && organisationId !== '####') {
+                   organisations = '<a href="' + detailLink + organisationName + '('+ organisationId + ')(department)">' + organisationName + '</a>';
                 } else {
                     organisations = organisationName;
                 }

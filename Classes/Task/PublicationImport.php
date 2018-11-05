@@ -79,7 +79,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$startFromHere = $numFound;
         $startFromHere = 0;
         
-        $mode = '';// 'reindex' // 'files'
+        $mode = 'reindex';// 'reindex' // 'files'
         if($mode==='' && $mode!='files') {
             //Novo
             $executionSucceeded = $this->getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion);
@@ -648,10 +648,10 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     if($key === 'personAssociations') {
                         foreach($value->personAssociation as $personAssociation) {
                             if($personAssociation->person) {
-                                $authorId[] = (string)$personAssociation->person->attributes();
+                                $authorId[] = $this->replaceEmpty((string)$personAssociation->person->attributes());
                                 $authorExternal[] = 0;
                             } else if($personAssociation->externalPerson) {
-                                $authorId[] = (string)$personAssociation->externalPerson->attributes();
+                                $authorId[] = $this->replaceEmpty((string)$personAssociation->externalPerson->attributes());
                                 $authorExternal[] = 1;
                             }
                             $authorName[] = (string)$personAssociation->name->firstName . ' ' . (string)$personAssociation->name->lastName;
@@ -664,13 +664,13 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             }
                             if($personAssociation->organisationalUnits) {
                                 foreach($personAssociation->organisationalUnits->organisationalUnit as $organisationalUnit) {
-                                    $authorOrganisationId[] = (string)$organisationalUnit->attributes();
+                                    $authorOrganisationId[] = $this->replaceEmpty((string)$organisationalUnit->attributes());
                                     $organisationalUnitName_en = (string)$organisationalUnit->name[0];
                                     $organisationalUnitName_sv = (string)$organisationalUnit->name[1];
-                                    $authorOrganisationName[] = $this->languageSelector($syslang, $organisationalUnitName_en, $organisationalUnitName_sv);
+                                    $authorOrganisationName[] = $this->replaceEmpty($this->languageSelector($syslang, $organisationalUnitName_en, $organisationalUnitName_sv));
                                     $organisationalUnitType_en = (string)$organisationalUnit->type[0];
                                     $organisationalUnitType_sv = (string)$organisationalUnit->type[1];
-                                    $authorOrganisationType[] = $this->languageSelector($syslang, $organisationalUnitType_en, $organisationalUnitType_sv);
+                                    $authorOrganisationType[] = $this->replaceEmpty($this->languageSelector($syslang, $organisationalUnitType_en, $organisationalUnitType_sv));
                                 }
                             }
 
@@ -800,30 +800,40 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     if($key === 'supervisors') {
                         foreach($value->supervisor as $supervisor) {
                             if($supervisor->person) {
-                                $supervisorId[] = (string)$supervisor->person->attributes();
+                                $supervisorId[] = $this->replaceEmpty((string)$supervisor->person->attributes());
                             } else if($supervisor->externalPerson) {
-                                $supervisorId[] = (string)$supervisor->externalPerson->attributes();
+                                $supervisorId[] = $this->replaceEmpty((string)$supervisor->externalPerson->attributes());
                             }
                             if($supervisor->name) {
-                                $supervisorName[] = $supervisor->name->firstName . ' ' . $supervisorItem->name->lastName;
+                                $supervisorName[] = (string)$supervisor->name->firstName . ' ' . (string)$supervisor->name->lastName;
                             }
                             if($supervisor->personRole) {
                                 $supervisorPersonRole_en = (string)$supervisor->personRole[0];
                                 $supervisorPersonRole_sv = (string)$supervisor->personRole[1];
                                 $supervisorPersonRole[] = $this->languageSelector($syslang, $supervisorPersonRole_en, $supervisorPersonRole_sv);
+                            } else {
+                                $supervisorPersonRole[] = '####';
                             }
                             if($supervisor->organisationalUnits) {
+                                $i=0;
                                 foreach($supervisor->organisationalUnits->organisationalUnit as $supervisorOrganisation) {
-                                    $supervisorOrganisationId[] = (string)$supervisorOrganisation->attributes();
-                                    if($supervisorOrganisation->name) {
-                                        $supervisorOrganisationName_en = (string)$supervisorOrganisation->name[0];
-                                        $supervisorOrganisationName_sv = (string)$supervisorOrganisation->name[1];
-                                        $supervisorOrganisationName[] = $this->languageSelector($syslang, $supervisorOrganisationName_en, $supervisorOrganisationName_sv);
+                                    if($i===0) {
+                                        $supervisorOrganisationId[] = $this->replaceEmpty((string)$supervisorOrganisation->attributes());
+                                        if($supervisorOrganisation->name) {
+                                            $supervisorOrganisationName_en = (string)$supervisorOrganisation->name[0];
+                                            $supervisorOrganisationName_sv = (string)$supervisorOrganisation->name[1];
+                                            $supervisorOrganisationName[] = $this->languageSelector($syslang, $supervisorOrganisationName_en, $supervisorOrganisationName_sv);
+                                        }
                                     }
+                                    $i++;
                                 }
+                            } else {
+                                $supervisorOrganisationId[] = '####';
+                                $supervisorOrganisationName[] = '####';
                             }
                         }
                     }
+                    
 
                     //visibility
                     if($key === 'visibility') {
@@ -973,6 +983,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'keyword' => $keyword,
                     'keywordType' => $keywordType,
                     'language' => $language,
+                    'languageExact' => $language,
                     'logicalName' => $logicalName,
                     'managingOrganisationId' => $managingOrganisationId,
                     'managingOrganisationName' => $managingOrganisationName,
@@ -1053,6 +1064,15 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         }
         $buffer->commit();
         return TRUE;
+    }
+    
+    
+    function replaceEmpty($input)
+    {
+        if($input==='') {
+            $input = '####';
+        }
+        return $input;
     }
     
     
