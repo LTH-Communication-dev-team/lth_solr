@@ -58,7 +58,8 @@ class tx_lthsolr_pi7 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
             $round = $this->pi_getFFvalue($piFlexForm, "round", "sDEF", $lDef[$index]);
             $scope = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('scope');
-                        
+            if(!$scope) $scope = $this->pi_getFFvalue($piFlexForm, "scope", "sDEF", $lDef[$index]);
+
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
             if(!$syslang) {
                 $syslang = 'en';
@@ -71,8 +72,8 @@ class tx_lthsolr_pi7 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             
             $FrontEndClass->addJsCss('');
             //
-            if($scope && $round) {
-                $scope = urlencode(implode(',',$scope));
+            if($scope) {
+                if(is_array($scope)) $scope = urlencode(implode(',',$scope));
             }
             $content = '';
 

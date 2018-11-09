@@ -50,3 +50,5 @@ solrLucrisApiKey=
 solrLucrisApiVersion=
   # cat=basic/dev/184; type=input; label=News grsp (for Task)
 nrsp=
+# cat=basic/dev/185; type=input; label=Programomgång
+programOmgang=

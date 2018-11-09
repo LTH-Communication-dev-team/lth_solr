@@ -42,7 +42,7 @@ function myInit()
     $sorting = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('sorting');
     $thisGroupOnly = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('thisGroupOnly');
     $primaryRoleOnly = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('primaryRoleOnly');
-$dataSettings = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('dataSettings');
+    $dataSettings = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('dataSettings');
 
     $sid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP("sid");
     date_default_timezone_set('Europe/Stockholm');
@@ -121,6 +121,7 @@ $dataSettings = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('dataSettings');
             $content = $this->listTagCloud($scope, $syslang, $config, $pageid, $term, $tableLength);
             break;
         case 'listCompare':
+            $dataSettings['globalRound'] = $settings['programOmgang'];
             $content = $this->listCompare($dataSettings, $config);
             break;
         case 'showCompare':
@@ -232,6 +233,8 @@ function listCompare($dataSettings, $config)
 {
     $scope = $dataSettings['scope'];
     $syslang = $dataSettings['syslang'];
+    $round = $dataSettings['round'];
+    if(!$round) $round = $dataSettings['globalRound'];
     $term = '';
     
     $fieldArray = array("id","courseCode","courseTitle","courseYear","credit","homepage",
@@ -252,7 +255,7 @@ function listCompare($dataSettings, $config)
         $term = " AND ($term) ";
     }
     
-    $queryToSet = "docType:course$term";
+    $queryToSet = "docType:course AND round:$round$term";
 
     $query->setQuery($queryToSet);
         

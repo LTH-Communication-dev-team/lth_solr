@@ -180,7 +180,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             GROUP BY P.id
             ORDER BY P.id, V.orgid";
         
-        $res = mysqli_query($con, $sql) or die("164; ".mysqli_error());
+        $res = mysqli_query($con, $sql) or die("183; ".mysqli_error());
 
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $primary_uid = $row['primary_uid'];

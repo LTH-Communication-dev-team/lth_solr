@@ -79,8 +79,10 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$startFromHere = $numFound;
         $startFromHere = 0;
         
-        $mode = 'reindex';// 'reindex' // 'files'
-        if($mode==='' && $mode!='files') {
+        $singleId = ''; //'ae845c71-2e0d-42cf-ba16-4e292d8a81d7';
+        
+        $mode = ''; //reindex'; // 'files'
+        if($mode==='' && $mode!='files' && !$singleId) {
             //Novo
             $executionSucceeded = $this->getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion);
         
@@ -89,7 +91,10 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             //$executionSucceeded = $this->getOrgFiles($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang);
             $executionSucceeded = $this->getOrganisations($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $mode);
             return TRUE;
+        } else if($singleId) {
+            $executionSucceeded = $this->getSingle($singleId);
         }
+        
         if($executionSucceeded || $mode==='reindex' || $mode==='restart') {
             //novo
             if($mode==='restart') {
@@ -648,11 +653,14 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     if($key === 'personAssociations') {
                         foreach($value->personAssociation as $personAssociation) {
                             if($personAssociation->person) {
-                                $authorId[] = $this->replaceEmpty((string)$personAssociation->person->attributes());
+                                $authorId[] = (string)$personAssociation->person->attributes();
                                 $authorExternal[] = 0;
                             } else if($personAssociation->externalPerson) {
-                                $authorId[] = $this->replaceEmpty((string)$personAssociation->externalPerson->attributes());
+                                $authorId[] = (string)$personAssociation->externalPerson->attributes();
                                 $authorExternal[] = 1;
+                            } else {
+                                $authorId[] = '####';
+                                $authorExternal[] = 0;
                             }
                             $authorName[] = (string)$personAssociation->name->firstName . ' ' . (string)$personAssociation->name->lastName;
                             $authorFirstName[] = (string)$personAssociation->name->firstName;
@@ -800,9 +808,11 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     if($key === 'supervisors') {
                         foreach($value->supervisor as $supervisor) {
                             if($supervisor->person) {
-                                $supervisorId[] = $this->replaceEmpty((string)$supervisor->person->attributes());
+                                $supervisorId[] = (string)$supervisor->person->attributes();
                             } else if($supervisor->externalPerson) {
-                                $supervisorId[] = $this->replaceEmpty((string)$supervisor->externalPerson->attributes());
+                                $supervisorId[] = (string)$supervisor->externalPerson->attributes();
+                            } else {
+                                $supervisorId[] = '####';
                             }
                             if($supervisor->name) {
                                 $supervisorName[] = (string)$supervisor->name->firstName . ' ' . (string)$supervisor->name->lastName;
@@ -818,7 +828,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 $i=0;
                                 foreach($supervisor->organisationalUnits->organisationalUnit as $supervisorOrganisation) {
                                     if($i===0) {
-                                        $supervisorOrganisationId[] = $this->replaceEmpty((string)$supervisorOrganisation->attributes());
+                                        $supervisorOrganisationId[] = (string)$supervisorOrganisation->attributes();
                                         if($supervisorOrganisation->name) {
                                             $supervisorOrganisationName_en = (string)$supervisorOrganisation->name[0];
                                             $supervisorOrganisationName_sv = (string)$supervisorOrganisation->name[1];
@@ -1069,7 +1079,8 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     function replaceEmpty($input)
     {
-        if($input==='') {
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $input, 'crdate' => time()));
+        if($input==='' || !$input) {
             $input = '####';
         }
         return $input;
@@ -2124,6 +2135,14 @@ $xmlSuffix = '</core:result></publication-template:GetPublicationResponse>';
         return TRUE;                
     }
     
+    
+    function getSingle($singleId)
+    {
+        $directory = '/var/www/html/typo3/lucrisdump';
+        $filename = $singleId . '.xml';
+        rename($directory . '/indexedfilesnovo/' . $filename, $directory . '/filestoindexnovo/' . $filename);
+        return TRUE;
+    }
     
     
     function getXml($solrLucrisApiVersion, $dateOrId, $solrLucrisApiKey, $type)

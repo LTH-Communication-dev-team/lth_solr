@@ -77,7 +77,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             GROUP_CONCAT(REPLACE(KI.Prestationbed,'|','') SEPARATOR '|') AS Prestationbed,
             GROUP_CONCAT(REPLACE(KI.syfte,'|','') SEPARATOR '|') AS syfte,
             GROUP_CONCAT(REPLACE(KI.Urval,'|','') SEPARATOR '|') AS Urval,
-            P.ProgramID, P.ProgramSve, P.ProgramEng, P.ProgramKod, L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, I.InriktningSve, PO.Omgang,
+            P.ProgramID, P.ProgramSve, P.ProgramEng, P.ProgramKod, L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, I.InriktningSve, PO.Omgang, PO.PlanOmgangID,
             LA.Arskurser, LI.FriText_en, LI.FriText_sv,
             GROUP_CONCAT(REPLACE(LI.Forfattare,'|','') SEPARATOR '|') AS Forfattare,
             GROUP_CONCAT(REPLACE(LI.Forlag,'|','') SEPARATOR '|') AS Forlag,
@@ -121,6 +121,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $LasesFran = $row['LasesFran'];
             $Omgang = $row['Omgang'];
             $Ovrigt = $row['Ovrigt'];
+            $PlanOmgangID = $row['PlanOmgangID'];
             $Prestationbed = $this->langChoice(explode('|', $row['Prestationbed']),$syslang);
             $ProgramID = $row['ProgramID'];
             $ProgramKod = $row['ProgramKod'];
@@ -162,6 +163,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'credit' => $Hskpoang,
                 'homepage' => $Webbsida,
                 'optional' => $Valfrihetsgrad,
+                'planOmgangId' => $PlanOmgangID,
                 'programCode' => $ProgramKod,
                 'programDirection' => $this->langChoice(array($InriktningSve, $InriktningEng), $syslang),
                 'programTitle' => $this->langChoice(array($ProgramSve, $ProgramEng), $syslang),

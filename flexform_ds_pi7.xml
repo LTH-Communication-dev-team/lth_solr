@@ -18,6 +18,19 @@
                            </config>
                        </TCEforms>
                     </round>
+                    <scope>
+                        <TCEforms>
+                           <label>Program</label>
+                           <config>
+                            <type>select</type>
+                            <maxitems>100</maxitems>
+                            <size>10</size>
+                            <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getPrograms</itemsProcFunc>
+                            <selectedListStyle>width:250px</selectedListStyle>
+                            <itemListStyle>width:250px</itemListStyle>
+                        </config>
+                       </TCEforms>
+                    </scope>
                 </el>
             </ROOT>
         </sDEF>

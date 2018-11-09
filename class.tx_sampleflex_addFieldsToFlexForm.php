@@ -611,6 +611,64 @@ class user_sampleflex_addFieldsToFlexForm
     }
     
     
+    function getPrograms($config)
+    {
+        $uid = $config['row']['uid'];
+        require(__DIR__.'/service/init.php');
+        
+        $content = "";
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $fieldArray = array("id", "programCode");
+        $queryToSet = '(docType:course)';
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        $sortArray = array(
+            'programCode' => 'asc'
+        );
+        $query->addSorts($sortArray);
+        $query->setStart(0)->setRows(10);
+        $facetSet = $query->getFacetSet();
+        $facetSet->createFacetField('program')->setField('programCode');
+        $response = $client->select($query);
+        
+        if($response) {
+            $i=0;
+            $facetProgram = $response->getFacetSet()->getFacet('program');
+            foreach ($facetProgram as $value => $count) {
+                //$facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+                if($count>0) {
+                    $config['items'][$i] = array(0 => $value, 1 => urlencode($value));
+                    $i++;
+                }
+                
+            }
+            //asort($config);
+        }
+
+        return $config;
+    }
+    
+    
     function getStaff($config)
     {
         $uid = $config['row']['uid'];
