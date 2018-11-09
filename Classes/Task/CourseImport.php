@@ -163,7 +163,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'credit' => $Hskpoang,
                 'homepage' => $Webbsida,
                 'optional' => $Valfrihetsgrad,
-                'planOmgangId' => $PlanOmgangID,
+                'roundId' => $PlanOmgangID,
                 'programCode' => $ProgramKod,
                 'programDirection' => $this->langChoice(array($InriktningSve, $InriktningEng), $syslang),
                 'programTitle' => $this->langChoice(array($ProgramSve, $ProgramEng), $syslang),
