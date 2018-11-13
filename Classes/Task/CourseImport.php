@@ -78,7 +78,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             GROUP_CONCAT(REPLACE(KI.syfte,'|','') SEPARATOR '|') AS syfte,
             GROUP_CONCAT(REPLACE(KI.Urval,'|','') SEPARATOR '|') AS Urval,
             P.ProgramID, P.ProgramSve, P.ProgramEng, P.ProgramKod, L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, I.InriktningSve, PO.Omgang, PO.PlanOmgangID,
-            LA.Arskurser, LI.FriText_en, LI.FriText_sv,
+            LA.Arskurser, LI.FriText_en, LI.FriText_sv, A.AvdelningSve, A.AvdelningEng, A.Id AS AvdelningId, KO.kursOrtSve, KO.kursOrtEng, KT.kursTaktSve, KT.kursTaktEng,
             GROUP_CONCAT(REPLACE(LI.Forfattare,'|','') SEPARATOR '|') AS Forfattare,
             GROUP_CONCAT(REPLACE(LI.Forlag,'|','') SEPARATOR '|') AS Forlag,
             GROUP_CONCAT(REPLACE(LI.ISBN,'|','') SEPARATOR '|') AS ISBN,
@@ -86,7 +86,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             GROUP_CONCAT(REPLACE(LI.Undertitel,'|','') SEPARATOR '|') AS Undertitel,
             GROUP_CONCAT(REPLACE(LI.Utgivningsar,'|','') SEPARATOR '|') AS Utgivningsar
             FROM LubasPP_dbo.Kurs K 
-            JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK AND K.Nedlagd = 0 
+            JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK AND K.Nedlagd = 0
             JOIN LubasPP_dbo.Kurs_Program KP ON K.KursID = KP.KursFK
             LEFT JOIN LubasPP_dbo.Program P ON P.ProgramID = KP.ProgramFK AND P.Nedlagd = 0
             LEFT JOIN LubasPP_dbo.Laroplan L ON L.KursProgramFK = KP.KursProgramID
@@ -94,12 +94,18 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             LEFT JOIN LubasPP_dbo.Inriktning I ON I.InriktningID = L.InriktningFK
             LEFT JOIN LubasPP_dbo.PlanOmgang PO ON K.PlanOmgangFK = PO.PlanOmgangID
             LEFT JOIN LubasPP_dbo.Litteratur LI ON LI.KursFK = K.KursID
+            LEFT JOIN LubasPP_dbo.Avdelning A ON K.AvdelningFK = A.Id
+            LEFT JOIN LubasPP_dbo.KursOrt KO ON K.kusrOrtFK = KO.Id
+            LEFT JOIN LubasPP_dbo.KursTakt KT ON K.kursTaktFK = KT.Id
             WHERE K.Kurskod NOT LIKE '%??%'
             GROUP BY K.KursID, PO.PlanOmgangID
             ORDER BY K.KursKod, P.ProgramId, LA.Arskurser";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
         
         while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+            $AvdelningSve = $row['AvdelningSve'];
+            $AvdelningEng = $row['AvdelningEng'];
+            $AvdelningId = $row['AvdelningId'];
             $Arskurser = $row['Arskurser'];
             $Betygskala = $row['Betygskala'];
             $Forfattare = explode('|', $row['Forfattare']);
@@ -114,7 +120,11 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $KursEng = $row['KursEng'];
             $KursID = $row['KursID'];
             $Kurskod = $row['Kurskod'];
+            $kursOrtSve = $row['kursOrtSve'];
+            $kursOrtEng = $row['kursOrtEng'];
             $KursSve = $row['KursSve'];
+            $kursTaktSve = $row['kursTaktSve'];
+            $kursTaktEng = $row['kursTaktEng'];
             $LarandeMal1 = $this->langChoice(explode('|', $row['LarandeMal1']),$syslang);
             $LarandeMal2 = $this->langChoice(explode('|', $row['LarandeMal2']),$syslang);
             $LarandeMal3 = $this->langChoice(explode('|', $row['LarandeMal3']),$syslang);
@@ -156,14 +166,17 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
             $data = array(
                 'abstract' => $abstract,
+                'department' =>  $this->langChoice(array($AvdelningSve, $AvdelningEng), $syslang),
+                'departmentId' =>  $avdelningId,
                 'id' => 'course_' . $KursID,
                 'courseCode' => $Kurskod,
-                'courseTitle' =>  $this->langChoice(array($KursSve, $KursEng), $syslang),
+                'coursePace' => $this->langChoice(array($kursTaktSve, $kursTaktEng), $syslang),
+                'coursePlace' => $this->langChoice(array($kursOrtSve, $kursOrtEng), $syslang),
+                'courseTitle' => $this->langChoice(array($KursSve, $KursEng), $syslang),
                 'courseYear' =>  $Arskurser,
                 'credit' => $Hskpoang,
                 'homepage' => $Webbsida,
                 'optional' => $Valfrihetsgrad,
-                
                 'programCode' => $ProgramKod,
                 'programDirection' => $this->langChoice(array($InriktningSve, $InriktningEng), $syslang),
                 'programTitle' => $this->langChoice(array($ProgramSve, $ProgramEng), $syslang),
