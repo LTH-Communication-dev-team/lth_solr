@@ -8,6 +8,7 @@
 namespace Lth\Lthsolr\Task;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use PDO;
 
 class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	
@@ -65,16 +66,17 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $lubasUserName = $settings['lubasUserName'];
         $lubasPw = $settings['lubasPw'];
         
-        /*$query = "SELECT CO.offeringcode_intern, CO.course_offering_id, C.course_swe, C.department_id, C.credit, C.coursecode_intern, AR.admissionround_swe, C.course_id";
+        $query = "SELECT CO.offeringcode_intern, CO.course_offering_id, C.course_swe, C.department_id, C.credit, C.coursecode_intern, AR.admissionround_swe, C.course_id";
             $query .= " FROM course_offering CO INNER JOIN course C ON C.coursecode_intern = CO.coursecode_intern INNER JOIN admission_round AR ON AR.admissionround_id = CO.admissionround_id";
             $query .= " LEFT JOIN faculty_department FD ON C.department_id = FD.department_id";
             $query .= " LEFT JOIN faculty F ON F.faculty_id_intern = FD.faculty_id_intern";
             $query .= " WHERE F.faculty_id = 't'";
-            $query .= " ORDER BY C.course_swe";*/
+            $query .= " ORDER BY C.course_swe";
         $query = "SELECT program_swe FROM program";
             try {
-                $pdo = new PDO("odbc:uwdbcluster05", "$sql_username", "$sql_password");
+                $pdo = new PDO("odbc:uwdbcluster05", "$lubasUserName", "$lubasPw");
                 $res = $pdo->query($query);
+                
             } catch(Exception $e) {
                 echo 'Message: ' .$e->getMessage();
             }
