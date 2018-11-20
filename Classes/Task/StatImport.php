@@ -70,7 +70,7 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $query .= " FROM course_offering CO";
             $query .= " INNER JOIN program P ON P.programcode_intern = CO.programcode_intern";
             $query .= " INNER JOIN admission_round AR ON AR.admissionround_id = CO.admissionround_id";
-            $query .= " LEFT JOIN faculty_department FD ON C.department_id = FD.department_id";
+            $query .= " LEFT JOIN faculty_department FD ON P.department_id = FD.department_id";
             $query .= " LEFT JOIN faculty F ON F.faculty_id_intern = FD.faculty_id_intern";
             $query .= " WHERE F.faculty_id = 't'";
             //$query .= " ORDER BY C.course_swe";
