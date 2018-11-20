@@ -68,7 +68,7 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $lubasArray = array();
         
-        $query = "SELECT top 1 P.*";
+        $query = "SELECT top 1 *";
             $query .= " FROM course_offering CO";
             $query .= " INNER JOIN program P ON P.programcode_intern = CO.programcode_intern";
             $query .= " INNER JOIN admission_round AR ON AR.admissionround_id = CO.admissionround_id";
