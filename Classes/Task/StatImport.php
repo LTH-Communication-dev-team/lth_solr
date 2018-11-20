@@ -66,7 +66,9 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $lubasUserName = $settings['lubasUserName'];
         $lubasPw = $settings['lubasPw'];
         
-        $query = "SELECT CO.course_offering_id, P.program_id";
+        $lubasArray = array();
+        
+        $query = "SELECT CO.admissionnumber_selectionround1 AS sr1, CO.admissionnumber_selectionround2 AS sr2, P.program_id";
             $query .= " FROM course_offering CO";
             $query .= " INNER JOIN program P ON P.programcode_intern = CO.programcode_intern";
             $query .= " INNER JOIN admission_round AR ON AR.admissionround_id = CO.admissionround_id";
@@ -90,7 +92,7 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $omgang = urlencode($lt["admissionround_swe"]);
                 $course_id = $lt["course_id"];
                 $offeringcode_intern = $lt["offeringcode_intern"];*/
-                echo $lt['course_offering_id'] . $lt['program_id'] . '<br>';
+                echo $lt['course_offering_id'] . $lt['sr1'] . $lt['sr2'] . '<br>';
                 //$content .= "<p class=\"newIconList3pil\"><a href=\"index.php?id=$single_page&courseid=$offeringcode_intern&application_open=$application_open&no_cache=1\">$course_swe ($course_id), $credit HP</a></p>";
             }
             //echo "<div style=\"margin-left:10px; clear:both;\">$content</div>";
