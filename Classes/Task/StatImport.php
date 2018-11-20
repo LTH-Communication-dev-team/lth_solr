@@ -68,7 +68,7 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $lubasArray = array();
         
-        $query = "SELECT top 1 *";
+        $query = "SELECT CO.educationorg_id";
             $query .= " FROM course_offering CO";
             $query .= " INNER JOIN program P ON P.programcode_intern = CO.programcode_intern";
             $query .= " INNER JOIN admission_round AR ON AR.admissionround_id = CO.admissionround_id";
@@ -85,9 +85,7 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 echo 'Message: ' .$e->getMessage();
             }
             while($lt = $res->fetch( PDO::FETCH_ASSOC )){
-                foreach($lt as $key => $value) {
-                    echo $key . $value . '<br>';
-                }
+                
                 /*$id = $lt["course_offering_id"];
                 $course_swe = $lt["course_swe"];
                 $credit = $lt["credit"];
@@ -95,7 +93,7 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $omgang = urlencode($lt["admissionround_swe"]);
                 $course_id = $lt["course_id"];
                 $offeringcode_intern = $lt["offeringcode_intern"];*/
-                //echo $lt['course_offering_id'] . $lt['admissionround_id'] . '<br>';
+                echo $lt['educationorg_id'] . '<br>';
                 //$content .= "<p class=\"newIconList3pil\"><a href=\"index.php?id=$single_page&courseid=$offeringcode_intern&application_open=$application_open&no_cache=1\">$course_swe ($course_id), $credit HP</a></p>";
             }
             //echo "<div style=\"margin-left:10px; clear:both;\">$content</div>";
