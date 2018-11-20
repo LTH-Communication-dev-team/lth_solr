@@ -170,6 +170,14 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
     'additionalFields' => ''
 );
 
+//StatImport
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\Task\\StatImport'] = array(
+    'extension' => $_EXTKEY,
+    'title' => 'Stat Import',
+    'description' => 'Stat Import',
+    'additionalFields' => ''
+);
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi1/class.tx_lthsolr_pi1.php', '_pi1', 'list_type', 0);
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi2/class.tx_lthsolr_pi2.php', '_pi2', 'list_type', 0);
@@ -186,6 +194,10 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Lth\\Lthsolr\\T
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi8/class.tx_lthsolr_pi8.php', '_pi8', 'list_type', 0);
 
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi9/class.tx_lthsolr_pi9.php', '_pi9', 'list_type', 0);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPItoST43($_EXTKEY, 'pi10/class.tx_lthsolr_pi10.php', '_pi10', 'list_type', 0);
+
 $GLOBALS['TYPO3_CONF_VARS']['FE']['ContentObjects']['IMGTEXT'] = \Lth\Lthsolr\ContentObject\ImageTextContentObject::class;
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript('lth_solr', 'setup', '
@@ -201,6 +213,7 @@ $GLOBALS['TYPO3_CONF_VARS']['FE']['ContentObjects']['IMGTEXT'] = \Lth\Lthsolr\Co
     plugin.tx_lthsolr_pi6 = USER_INT
     plugin.tx_lthsolr_pi7 = USER_INT
     plugin.tx_lthsolr_pi8 = USER_INT
+    plugin.tx_lthsolr_pi9 = USER_INT
     
     rss = PAGE
     rss {

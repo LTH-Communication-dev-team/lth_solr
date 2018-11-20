@@ -121,7 +121,7 @@ function myInit()
             $content = $this->listTagCloud($scope, $syslang, $config, $pageid, $term, $tableLength);
             break;
         case 'listCompare':
-            $dataSettings['globalRound'] = $settings['programOmgang'];
+            $dataSettings['globalRoundId'] = $settings['roundId'];
             $content = $this->listCompare($dataSettings, $config);
             break;
         case 'showCompare':
@@ -133,10 +133,158 @@ function myInit()
         case 'showJob':
             $content = $this->showJob($dataSettings, $config);
             break;
+        case 'listCourses':
+            $content = $this->listCourses($dataSettings, $config);
+            break;
+        case 'showCourse':
+            $content = $this->showCourse($dataSettings, $config);
+            break;
+        case 'listStatistics':
+            $content = $this->listStatistics($dataSettings, $config);
+            break;
     }
 
     print $content;
 
+}
+
+
+function listCourses($dataSettings, $config)
+{
+    $round = $dataSettings['round'];
+    
+    $syslang = $dataSettings['syslang'];
+    
+    $currentDate = gmDate("Y-m-d\TH:i:s\Z");
+    
+    $fieldArray = array("id", "courseCode", "coursePlace", "courseTitle", "credit");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+      
+    $queryToSet = "docType:course AND roundId:$round";
+
+    $query->setQuery($queryToSet);
+        
+    $query->setFields($fieldArray);
+        
+    $query->setStart(0)->setRows(1000);
+    
+    $sortArray = array(
+        'courseTitle' => 'asc'
+    );
+    
+    $query->addSorts($sortArray);
+
+    $response = $client->select($query);
+    
+    $numFound = $response->getNumFound();
+    
+    foreach ($response as $document) {
+        $data[] = array(
+            "courseCode" => $document->courseCode,
+            "coursePlace" => $document->coursePlace,
+            "courseTitle" => $document->courseTitle,
+            "credit" => $document->credit,
+            "id" => $document->id
+        );
+    }
+    
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
+}
+
+
+function showCourse($dataSettings, $config)
+{
+    $scope = $dataSettings['scope'];
+    $round = $dataSettings['round'];
+    
+    $syslang = $dataSettings['syslang'];
+    
+    $fieldArray = array("abstract","department","courseCode","courseTitle","credit","homepage","ratingScale");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+    
+    $queryToSet = "docType:course AND courseCode:$scope AND round:$round";
+
+    $query->setQuery($queryToSet);
+        
+    $query->setFields($fieldArray);
+    
+    $response = $client->select($query);
+        
+    foreach ($response as $document) {
+        $data = array(
+            "abstract" => $document->abstract,
+            "department" => $document->department,
+            "courseCode" => $document->courseCode,
+            "courseTitle" => $document->courseTitle,
+            "credit" => $document->credit,
+            "homepage" => $document->homepage,
+            "ratingScale" => $document->ratingScale
+        );
+    }
+    
+    $resArray = array('data' => $data, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
+}
+
+
+function listStatistics($dataSettings, $config)
+{
+    $round = $dataSettings['round'];
+    
+    $syslang = $dataSettings['syslang'];
+    
+    $currentDate = gmDate("Y-m-d\TH:i:s\Z");
+    
+    $fieldArray = array("id","statTermin","statType","statTitle","statCode","statVal1","statVal2","statApplicants");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+      
+    $queryToSet = "docType:stat AND statType:Program AND statTermin:$round";
+
+    $query->setQuery($queryToSet);
+        
+    $query->setFields($fieldArray);
+        
+    $query->setStart(0)->setRows(1000);
+    
+    $sortArray = array(
+        'endDate' => 'desc',
+        'jobTitle' => 'asc'
+    );
+    
+    $query->addSorts($sortArray);
+
+    $response = $client->select($query);
+    
+    $numFound = $response->getNumFound();
+    
+    foreach ($response as $document) {
+        $data[] = array(
+            "id" => $document->id,
+            "statTermin" => $document->statTermin,
+            "statType" => $document->statType,
+            "statTitle" => $document->statTitle,
+            "statCode" => $document->statCode,
+            "statVal1" => $document->statVal1,
+            "statVal2" => $document->statVal2,
+            "statApplicants" => $document->statApplicants
+        );
+    }
+    
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
 }
 
 
@@ -233,8 +381,8 @@ function listCompare($dataSettings, $config)
 {
     $scope = $dataSettings['scope'];
     $syslang = $dataSettings['syslang'];
-    $round = $dataSettings['round'];
-    if(!$round) $round = $dataSettings['globalRound'];
+    $roundId = $dataSettings['roundId'];
+    if(!$roundId) $roundId = $dataSettings['globalRoundId'];
     $term = '';
     
     $fieldArray = array("id","courseCode","courseTitle","courseYear","credit","homepage",
@@ -255,7 +403,7 @@ function listCompare($dataSettings, $config)
         $term = " AND ($term) ";
     }
     
-    $queryToSet = "docType:course AND round:$round$term";
+    $queryToSet = "docType:course AND roundId:$roundId$term";
 
     $query->setQuery($queryToSet);
         

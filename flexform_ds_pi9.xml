@@ -12,25 +12,17 @@
                 <el> 
                     <round>
                         <TCEforms>
-                           <label>Antagningsomgång ID</label>
-                           <config>
-                               <type>text</type>
-                           </config>
-                       </TCEforms>
-                    </round>
-                    <scope>
-                        <TCEforms>
-                           <label>Program</label>
+                           <label>Round</label>
                            <config>
                             <type>select</type>
-                            <maxitems>100</maxitems>
+                            <maxitems>1</maxitems>
                             <size>10</size>
-                            <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getPrograms</itemsProcFunc>
+                            <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getRoundsCourse</itemsProcFunc>
                             <selectedListStyle>width:250px</selectedListStyle>
                             <itemListStyle>width:250px</itemListStyle>
                         </config>
                        </TCEforms>
-                    </scope>
+                    </round>
                 </el>
             </ROOT>
         </sDEF>

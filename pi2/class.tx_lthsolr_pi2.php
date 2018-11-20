@@ -110,12 +110,12 @@ LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid LEFT JOIN fe_groups f5 ON f5.subg
             
             $heritage = array_filter($heritage);
             $heritage = array_unique($heritage);
-            
-            if(count($scope > 0)) {
+
+            if($scope) {
                 $scope = urlencode(json_encode($scope));
             }
             
-            if(count($heritage > 0)) {
+            if($heritage) {
                 $heritage = urlencode(json_encode($heritage));
             }
             

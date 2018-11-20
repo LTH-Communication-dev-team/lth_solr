@@ -48,6 +48,74 @@ class FrontEndClass
     }
     
     
+    public function listStatistics($syslang, $round)
+    {
+        $content = '';
+       
+        $content .= '<table id="lthsolr_statistics_container" class="table table-striped">
+            <thead class=" thead-dark">
+                <tr>
+                    <th scope="col" class="">Benämning</th>
+                    <th scope="col" class="">Totalt antal sökande</th>
+                    <th scope="col" class="">1:a handssökande</th>
+                </tr>
+            </thead>
+            <tbody class="">
+            </tbody>
+        </table>';
+
+        //$content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/statistics_list.html");
+
+        $content .= '<input type="hidden" id="lth_solr_round" value="' . $round . '" />
+            <input type="hidden" id="lth_solr_action" value="listStatistics" />';
+        
+        return $content;
+    }
+    
+    
+    public function listCourses($syslang,$round)
+    {
+        $courseHeader = 'Fristående kurser';
+        if($syslang==='en') {
+            $courseHeader = 'Courses';
+        }
+        $content = '';
+       
+        //$content .= '<div class="container">';
+        //$content .= '<div class="row"><div class="col"><h1 class=" my-0 pb-2 border-bottom">'.$courseHeader.'</h1></div></div>';
+        $content .= '<div id="lthsolr_course_container" class="row"></div>';
+       // $content .= '</div>';
+
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/course_list.html");
+
+        $content .= '<input type="hidden" id="lth_solr_round" value="' . $round . '" />
+            <input type="hidden" id="lth_solr_action" value="listCourses" />';
+        
+        return $content;
+    }
+    
+    
+    public function showCourse($courseCode, $round, $syslang)
+    {
+        $content = '';
+        //$content .= '<div class="container">';
+        $content .= '<div class="row"><div class="col"><h1 class="my-0 pb-2 border-bottom"></h1></div></div>';
+        $content .= '<div id="lthsolr_course_container" class="row">';
+        $content .= '<div class="col"><table class="table table-condensed quick-info"><tbody></tbody></table></div>';
+        $content .= '</div>';
+        //$content .= '</div>';
+
+        //$content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/job_presentation.html");
+
+        $content .= '
+            <input type="hidden" id="lth_solr_scope" value="' . $courseCode . '" />
+            <input type="hidden" id="lth_solr_round" value="' . $round . '" />
+            <input type="hidden" id="lth_solr_action" value="showCourse" />';
+        
+        return $content;
+    }
+    
+    
     public function listJobs($syslang)
     {
         $jobHeader = 'Lediga anställningar';
@@ -568,11 +636,9 @@ class FrontEndClass
     public function compare($round, $scope)
     {
         $content = '';
-        $content .= '<div class="container">';
         $content .= '<div id="lthsolr_compare_container" class="row"></div>';
-        $content .= '</div>';
 
-        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/compare.html");
+        //$content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/compare.html");
 
         $content .= '
             <input type="hidden" id="lth_solr_round" value="' . $round . '" />

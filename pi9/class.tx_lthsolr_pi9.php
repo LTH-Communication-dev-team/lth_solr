@@ -32,9 +32,9 @@ include __DIR__ . "/../Classes/FrontEnd/FrontEndClass.php";
  * @package	TYPO3
  * @subpackage	tx_lthsolr
  */
-class tx_lthsolr_pi8 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
-	public $prefixId      = 'tx_lthsolr_pi8';		// Same as class name
-	public $scriptRelPath = 'pi8/class.tx_lthsolr_pi8.php';	// Path to this script relative to the extension dir.
+class tx_lthsolr_pi9 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
+	public $prefixId      = 'tx_lthsolr_pi9';		// Same as class name
+	public $scriptRelPath = 'pi9/class.tx_lthsolr_pi9.php';	// Path to this script relative to the extension dir.
 	public $extKey        = 'lth_solr';	// The extension key.
 	public $pi_checkCHash = TRUE;
 	
@@ -49,6 +49,14 @@ class tx_lthsolr_pi8 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $this->conf = $conf;
             $this->pi_setPiVarDefaults();
             $this->pi_loadLL();
+            
+            $this->pi_initPIflexForm();
+            $piFlexForm = $this->cObj->data["pi_flexform"];
+            $index = $GLOBALS["TSFE"]->sys_language_uid;
+            $sDef = current($piFlexForm["data"]);       
+            $lDef = array_keys($sDef);
+
+            $round = $this->pi_getFFvalue($piFlexForm, "round", "sDEF", $lDef[$index]);
                        
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
                         
@@ -68,10 +76,10 @@ class tx_lthsolr_pi8 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $content = '';
 
             if($uuid) {
-                $refNr = rtrim(array_pop(explode('(',$uuid)),")");
-                $content .= $FrontEndClass->showJob($refNr,$syslang);
+                $courseCode = rtrim(array_pop(explode('(',$uuid)),")");
+                $content .= $FrontEndClass->showCourse($courseCode,$round,$syslang);
             } else {
-                $content .= $FrontEndClass->listJobs($syslang);
+                $content .= $FrontEndClass->listCourses($syslang,$round);
             }
             
             return $content;
@@ -80,6 +88,6 @@ class tx_lthsolr_pi8 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 }
 
 
-if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/lth_solr/pi6/class.tx_lthsolr_pi9.php'])) {
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/lth_solr/pi9/class.tx_lthsolr_pi6.php'])) {
 	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/lth_solr/pi6/class.tx_lthsolr_pi9.php']);
 }

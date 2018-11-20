@@ -50,5 +50,13 @@ solrLucrisApiKey=
 solrLucrisApiVersion=
   # cat=basic/dev/184; type=input; label=News grsp (for Task)
 nrsp=
-# cat=basic/dev/185; type=input; label=Programomgång
-programOmgang=
+# cat=basic/dev/185; type=input; label=Programomgång ID
+roundId=
+# cat=basic/dev/186; type=input; label=Lubas host name
+lubasHostName=
+# cat=basic/dev/187; type=input; label=Lubas database
+lubasDatabase=
+# cat=basic/dev/188; type=input; label=Lubas username
+lubasUserName=
+# cat=basic/dev/189; type=input; label=Lubas password
+lubasPw=

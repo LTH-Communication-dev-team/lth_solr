@@ -50,6 +50,16 @@ $(document).ready(function() {
         showJob();
     }
     
+    if($('#lth_solr_action').val() == 'listCourses') {
+        listCourses();
+    } else if($('#lth_solr_action').val() == 'showCourse') {
+        showCourse();
+    }
+    
+    if($('#lth_solr_action').val() == 'listStatistics') {
+        listStatistics();
+    }
+    
     $('#lthsolr_studentpapers_filter').keyup(function() {
         listStudentPapers(0, getFacets(), $(this).val().trim(),'');
     });
@@ -73,6 +83,233 @@ $(document).ready(function() {
     });
    
 });
+
+
+function listCourses()
+{
+    var syslang = $('html').attr('lang');
+    var round = $('#lth_solr_round').val();
+    var courseCode, coursePlace,courseTitle,credit,id,link;
+
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'listCourses',
+            syslang: syslang,
+            dataSettings: {
+                round: round,
+                syslang: syslang,
+                pageid: $('body').attr('id')
+            },
+            sid: Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            $('#lthsolr_course_container').append('<div class="lthPackageLoader"></div>');
+        },
+        success: function(d) {
+            $('.lthPackageLoader').remove();
+            
+            if(d.data) {
+                $.each( d.data, function( key, aData ) {
+                    coursePlace = '';
+                    courseTitle = '';
+                    credit = '';
+                    id = '';
+
+                    if(aData.courseCode) courseCode = aData.courseCode;
+                    if(aData.coursePlace) coursePlace = aData.coursePlace;
+                    if(aData.courseTitle) courseTitle = aData.courseTitle;
+                    if(aData.credit) credit = aData.credit;
+                    if(aData.id) id = aData.id;
+                    
+                    if(syslang==='sv') {
+                        link = 'visa/'+encodeURIComponent(courseTitle+'('+courseCode+')');
+                    } else {
+                        link = 'show/'+encodeURIComponent(courseTitle+'('+courseCode+')');
+                    }
+                    
+                    var template = $('#solrCourseTemplate').html();
+                    template = template.replace('###credit###', credit);
+                    template = template.replace('###courseTitle###', courseTitle);
+                    template = template.replace('###coursePlace###', coursePlace);
+                    template = template.replace('###link###', link);
+                    $('#lthsolr_course_container').append(template);
+                });
+            }
+        }
+    });
+}
+
+
+function showCourse()
+{
+    var syslang = $('html').attr('lang');
+    var scope = $('#lth_solr_scope').val();
+    var round = $('#lth_solr_round').val();
+    var abstract,department,courseCode,courseTitle,credit,homepage,ratingScale;
+
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'showCourse',
+            syslang: syslang,
+            dataSettings: {
+                syslang: syslang,
+                scope: scope,
+                round: round,
+                pageid: $('body').attr('id')
+            },
+            sid: Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            
+        },
+        success: function(d) {
+            
+            
+            //$('.article').html('<div class="lthPackageLoader"></div>');
+            //$('.lthsolr_loader').remove();
+            if(d.data.abstract) {
+                abstract = '';
+                department = '';
+                courseCode = '';
+                courseTitle = '';
+                credit = '';
+                homepage = '';
+                ratingScale = '';
+                if(d.data.abstract) abstract = d.data.abstract;
+                if(d.data.department) department = d.data.department;
+                if(d.data.courseCode) courseCode = d.data.courseCode;
+                if(d.data.courseTitle) courseTitle = d.data.courseTitle;
+                if(d.data.credit) credit = d.data.credit;
+                if(d.data.homepage) homepage = d.data.homepage;
+                if(d.data.ratingScale) ratingScale = d.data.ratingScale;
+                
+                //console.log(d.data.abstract);
+                $('h1').text(jobTitle).attr('style', 'margin-bottom:18px !important;max-width:650px;');
+                $('.lthsolr_job_apply_button').attr('href',loginAndApplyURI).text(lth_solr_messages.applyButtonText).show();
+                $('.breadcrumb li:last').removeClass('active').wrapInner('<a href="/'+lth_solr_messages.job+'/"></a>');
+                $('.breadcrumb').append('<li class="breadcrumb-item active">'+jobTitle+'</li>');
+                                
+                $('#lthsolr_job_container > .col').prepend(abstract);
+                if(jobAnstForm) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobAnstForm+'</th><td>'+jobAnstForm+'</td></tr>');
+                if(jobTilltrade) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobTilltrade+'</th><td>'+jobTilltrade+'</td></tr>');
+                if(jobLoneform) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobLoneform+'</th><td>'+jobLoneform+'</td></tr>');
+                if(jobAntal) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobAntal+'</th><td>'+jobAntal+'</td></tr>');
+                if(jobSysselsattningsgrad) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobSysselsattningsgrad+'</th><td>'+jobSysselsattningsgrad+'</td></tr>');
+                if(jobOrt) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobOrt+'</th><td>'+jobOrt+'</td></tr>');
+                if(jobLan) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobLan+'</th><td>'+jobLan+'</td></tr>');
+                if(jobLand) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobLand+'</th><td>'+jobLand+'</td></tr>');
+                if(jobReferensnummer) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobReferensnummer+'</th><td>'+jobReferensnummer+'</td></tr>');
+                if(jobPositionContact) {
+                    for (var pc = 0; pc < jobPositionContact.length; pc++) {
+                        if(pc===0) {
+                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobKontakt+'</th><td>'+jobPositionContact[pc]+'</td></tr>');
+                        } else {
+                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><td></td><td>'+jobPositionContact[pc]+'</td></tr>');
+                        }
+                    };
+                }
+                if(jobUnionRepresentative) {
+                    for (var ur = 0; ur < jobUnionRepresentative.length; ur++) {
+                        if(ur===0) {
+                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobFack+'</th><td>'+jobUnionRepresentative[ur]+'</td></tr>');
+                        } else {
+                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><td></td><td>'+jobUnionRepresentative[ur]+'</td></tr>');
+                        }
+                    };
+                }
+                if(jobPublicerat) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobPublicerat+'</th><td>'+jobPublicerat+'</td></tr>');
+                if(jobSistaAnsokningsdag) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobSistaAnsokningsdag+'</th><td>'+jobSistaAnsokningsdag+'</td></tr>');
+            }
+        }
+    });
+}
+
+
+function listStatistics()
+{
+    var syslang = $('html').attr('lang');
+    var round = $('#lth_solr_round').val();
+    var id,statTermin,statType,statTitle,statCode,statVal1,statVal2,statApplicants,newRow,statVal2Array;
+
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'listStatistics',
+            syslang: syslang,
+            dataSettings: {
+                syslang: syslang,
+                round: round,
+                pageid: $('body').attr('id')
+            },
+            sid: Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            $('#lthsolr_statistics_container').append('<div class="lthPackageLoader"></div>');
+        },
+        success: function(d) {
+            $('.lthPackageLoader').remove();
+            
+            if(d.data) {
+                $.each( d.data, function( key, aData ) {
+                    id = '';
+                    statApplicants = '';
+                    statCode = '';
+                    statTermin = '';
+                    statTitle = '';
+                    statType = '';
+                    statVal1 = '';
+                    statVal2 = '';
+                    
+                    if(aData.id) id = aData.id;
+                    if(aData.statApplicants) statApplicants = aData.statApplicants;
+                    if(aData.statCode) statCode = aData.statCode;
+                    if(aData.statTermin) statTermin = aData.statTermin;
+                    if(aData.statTitle) statTitle = aData.statTitle;
+                    if(aData.statType) statType = aData.statType;
+                    if(aData.statVal1) statVal1 = aData.statVal1;
+                    if(aData.statVal2) statVal2 = aData.statVal2;
+                                       
+                    newRow = '<tr>';
+                    newRow += '<td>' + statTitle+'</td>';
+                    newRow += '<td>' + statApplicants.split(',')[0] + '</td>';
+                    newRow += '<td>' + statApplicants.split(',')[1] + '</td>';
+
+                    for (var i = 0; i < statVal2.length; i++) {
+                        var tmpArray = statVal2[i].split(',');
+                        for (var ii = 0; ii < tmpArray.length; ii++) {
+                            if(ii!==0) {
+                                newRow += '<td>' + tmpArray[ii] + '</td>';
+                            }
+                        }
+                        
+                    }                    
+                    newRow += '</tr>';
+                    $('#lthsolr_statistics_container tbody').append(newRow);
+                });
+            }
+        }
+    });
+}
 
 
 function listJobs()
@@ -241,7 +478,7 @@ function showJob()
 function listCompare(action)
 {
     var syslang = $('html').attr('lang');
-    var round = $('#lth_solr_round').val();
+    var roundId = $('#lth_solr_round').val();
     var scope = $('#lth_solr_scope').val();
     var courseCode,courseTitle,courseYear,credit,homepage,id,optional,programCode,programDirection,programTitle,ratingScale;
 
@@ -253,7 +490,7 @@ function listCompare(action)
             action: action,
             dataSettings: {
                 syslang: syslang,
-                round: round,
+                roundId: roundId,
                 scope: scope,
                 pageid: $('body').attr('id')
             },
@@ -264,21 +501,32 @@ function listCompare(action)
             alert(st + " : " + err);
         },
         beforeSend: function () {
-            $('#lthsolr_compare_container div').prepend('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
+            $('#lthsolr_compare_container').prepend('<img class="lthsolr_loader" style="height:16px; width:16px;" src="/fileadmin/templates/images/ajax-loader.gif" />');
         },
         success: function(d) {
             $('.lthsolr_loader').remove();
             if(d.data) {
                 $.each( d.data, function( key, aData ) {
-                    $('#lthsolr_compare_container').append('<div id="'+key+'" class="card col-sm">'+key+'</div>');
+                    if(Object.keys(d.data).length > 1) {
+                        $('#lthsolr_compare_container').append('<div id="'+key+'" class="card col-sm">'+key+'</div>');
+                    }
                     $.each( aData, function (pkey, pData) {
-                        if(pData) $('#'+key).append('<div id="'+key+pkey+'" class="card-header">Årskurs'+pkey+'</div>');
+                        if(pData) {
+                            if(Object.keys(d.data).length > 1) {
+                                $("[id='"+key+"']").append('<div id="'+key+pkey+'" class="card-header">Årskurs'+pkey+'</div>');
+                            } else {
+                                $('#lthsolr_compare_container').append('<div id="'+key+pkey+'" class="card col-sm">Årskurs'+pkey+'</div>');
+                            }
+                            
+                            //"[id='content Module']"
+                        }
                         $.each( pData, function (akkey, akData) {
-                            if(akData) $('#'+key+pkey).append('<div id="'+key+pkey+akkey+'">'+akkey+'</div>');
+                            
+                            if(akData) $("[id='"+key+pkey+"']").append('<div id="'+key+pkey+akkey+'">'+akkey+'</div>');
                             $.each( akData, function (ikey, iData) {
-                                if(iData) $('#'+key+pkey+akkey).append('<div id="'+key+pkey+akkey+ikey+'">'+ikey+'</div>');
+                                if(iData) $("[id='"+key+pkey+akkey+"']").append('<div id="'+key+pkey+akkey+ikey+'">'+ikey+'</div>');
                                 $.each( iData, function (okey, oData) {
-                                    if(oData.length>0) $('#'+key+pkey+akkey+ikey).append('<ul id="'+okey+'" class="list-group list-group-flush"></ul>');
+                                    if(oData.length>0) $("[id='"+key+pkey+akkey+ikey+"']").append('<ul id="'+okey+'" class="list-group list-group-flush"></ul>');
                                     courseCode = '';
                                     courseTitle = '';
                                     courseYear = '';
@@ -308,8 +556,8 @@ function listCompare(action)
                                     template = template.replace('###programDirection###',programDirection);
                                     template = template.replace('###ratingScale###',ratingScale);*/
 
-                                    $('#'+key+pkey).append('<li id="'+id+'" class="list-group-item">'+courseCode+' '+courseTitle + '</li>');
-                                    $('#'+id).click(function(){
+                                    $("[id='"+key+pkey+"']").append('<li id="'+id+'" class="list-group-item">'+courseCode+' '+courseTitle + '</li>');
+                                    $("[id='"+id+"']").click(function(){
                                         $('#compareModal').modal('toggle');
                                         showCompare(id);
                                     });

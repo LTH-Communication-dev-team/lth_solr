@@ -4,6 +4,7 @@ var lth_solr_messages = {
     authorLastName: "Efternamn",
     authors: "Författare",
     close: "Stäng",
+    coursePlace: "Location:",
     courses: "Kurser",
     documents: "Dokument",
     doi: "DOI",

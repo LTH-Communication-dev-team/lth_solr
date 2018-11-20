@@ -4,6 +4,7 @@ var lth_solr_messages = {
     authorLastName: "Lastname",
     authors: "Authors",
     close: "Close",
+    coursePlace: "Studieort:",
     courses: "Courses",
     documents: "Documents",
     doi: "DOI",

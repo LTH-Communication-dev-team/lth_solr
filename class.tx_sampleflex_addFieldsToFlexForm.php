@@ -611,6 +611,122 @@ class user_sampleflex_addFieldsToFlexForm
     }
     
     
+    function getRoundsStat($config)
+    {
+        $uid = $config['row']['uid'];
+        require(__DIR__.'/service/init.php');
+        
+        $content = "";
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $fieldArray = array("statTermin");
+        $queryToSet = '(docType:stat)';
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        $sortArray = array(
+            'statTermin' => 'asc'
+        );
+        $query->addSorts($sortArray);
+        $query->setStart(0)->setRows(10);
+        $facetSet = $query->getFacetSet();
+        $facetSet->createFacetField('termin')->setField('statTermin');
+        $response = $client->select($query);
+        
+        if($response) {
+            $i=0;
+            $facetRounds = $response->getFacetSet()->getFacet('termin');
+            foreach ($facetRounds as $value => $count) {
+                //$facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+                if($count>0) {
+                    $config['items'][$i] = array(0 => $value, 1 => $value);
+                    $i++;
+                }
+                
+            }
+            asort($config);
+        }
+
+        return $config;
+    }
+    
+    
+    function getRoundsCourse($config)
+    {
+        $uid = $config['row']['uid'];
+        require(__DIR__.'/service/init.php');
+        
+        $content = "";
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $fieldArray = array("roundId", "round");
+        $queryToSet = '(docType:course)';
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        $sortArray = array(
+            'round' => 'asc'
+        );
+        $query->addSorts($sortArray);
+        $query->setStart(0)->setRows(10);
+        $facetSet = $query->getFacetSet();
+        $facetSet->createFacetField('rounds')->setField('roundAndRoundId');
+        $response = $client->select($query);
+        
+        if($response) {
+            $i=0;
+            $facetRounds = $response->getFacetSet()->getFacet('rounds');
+            foreach ($facetRounds as $value => $count) {
+                //$facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+                if($count>0) {
+                    $config['items'][$i] = array(0 => explode('____',$value)[1], 1 => explode('____',$value)[0]);
+                    $i++;
+                }
+                
+            }
+            //asort($config);
+        }
+
+        return $config;
+    }
+    
+    
     function getPrograms($config)
     {
         $uid = $config['row']['uid'];

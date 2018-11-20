@@ -1,0 +1,93 @@
+<!--<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
+    <thead><tr><th>Name</th></tr></thead>
+    <tbody id="table_data_container">
+        
+    </tbody>
+</table>-->
+
+<script id="solrCourseTemplate" type="text/x-jquery-templ">
+    <div class="sticky-xl-top bg-white">
+        <div class="container">
+          <div class="border-xl-top border-bottom py-xl-3 container-fill mx-xl-0">
+            <nav class="navbar navbar-expand-xl px-0">
+              <div class="collapse navbar-collapse border-bottom border-xl-bottom-0" id="sticky-navbar">
+                <ul class="navbar-nav mr-auto text-center text-xl-left">
+                  <li class="nav-item d-none d-xl-block">
+                    <span class="navbar-text">På denna sida:</span>
+                  </li>
+                    <li class="nav-item">
+                      <a class="nav-link nav-undecorated px-3" href="#navStart">Beskrivning</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link nav-undecorated px-3" href="#navBehorighetUrval">Behörighet och urval</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link nav-undecorated px-3" href="#navAnmalanAntagning">Anmälan och antagning</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link nav-undecorated px-3" href="#navKarriar">Karriär</a>
+                    </li>
+                </ul>
+                  <ul class="navbar-nav d-none d-xl-flex  align-items-center">
+                      <li class="nav-item">
+                        <div class="navbar-text mr-3 text-right line-height-xs">Sista anmälningsdag:<br><strong>15 augusti 2018</strong></div>
+                      </li>
+                      <li class="nav-item">
+                        <a href="#" class="btn btn-primary">Se utbildningstillfällen</a>
+                      </li>
+                  </ul>
+              </div>
+              <a class="navbar-toggler text-center w-100 collapsed rounded-0 my-0 py-3" type="button" data-toggle="collapse" href="#sticky-navbar" aria-controls="sticky-navbar" aria-expanded="false" aria-label="Visa navigation">
+                <span class="collapse-show-inline small">Visa: På denna sida &nbsp;<svg class="svg-inline--fa fa-chevron-circle-down fa-w-16 fa-lg" aria-hidden="true" data-prefix="fal" data-icon="chevron-circle-down" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm216 248c0 118.7-96.1 216-216 216-118.7 0-216-96.1-216-216 0-118.7 96.1-216 216-216 118.7 0 216 96.1 216 216zm-207.5 86.6l115-115.1c4.7-4.7 4.7-12.3 0-17l-7.1-7.1c-4.7-4.7-12.3-4.7-17 0L256 303l-99.5-99.5c-4.7-4.7-12.3-4.7-17 0l-7.1 7.1c-4.7 4.7-4.7 12.3 0 17l115 115.1c4.8 4.6 12.4 4.6 17.1-.1z"></path></svg><!-- <i class="fal fa-lg fa-chevron-circle-down"></i> --></span>
+                <span class="collapse-hide-inline small">Dölj: På denna sida &nbsp;<svg class="svg-inline--fa fa-chevron-circle-up fa-w-16 fa-lg" aria-hidden="true" data-prefix="fal" data-icon="chevron-circle-up" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M256 504c137 0 248-111 248-248S393 8 256 8 8 119 8 256s111 248 248 248zM40 256c0-118.7 96.1-216 216-216 118.7 0 216 96.1 216 216 0 118.7-96.1 216-216 216-118.7 0-216-96.1-216-216zm224.5-86.6l115 115.1c4.7 4.7 4.7 12.3 0 17l-7.1 7.1c-4.7 4.7-12.3 4.7-17 0L256 209l-99.5 99.5c-4.7 4.7-12.3 4.7-17 0l-7.1-7.1c-4.7-4.7-4.7-12.3 0-17l115-115.1c4.8-4.6 12.4-4.6 17.1.1z"></path></svg><!-- <i class="fal fa-lg fa-chevron-circle-up"></i> --></span>
+              </a>
+            </nav>
+          </div>
+        </div>
+    </div>
+    
+    <div class="container">
+    <div class="row mt-3 mt-xl-6 mb-6 mb-xl-10">
+      <div class="col-12 col-lg-6 offset-lg-1">
+        <a class="anchor-xl" id="navStart"></a>
+        ###abstract###
+      </div>
+      <div class="col-12 col-lg-4 col-xl-3  offset-lg-1 offset-xl-2">
+        <div class="infobox bg-copper-50">
+  <h3 class="mt-0">Kontakt</h3>
+  <p><strong>Grundutbildning i fysik inom naturvetenskapliga fakulteten</strong></p>
+    <h6>Besöksadress</h6>
+    <p>Sölvegatan 14 C, 223 62 Lund</p>
+    <h6>Postadress</h6>
+    <p>Box 118, 221 00 Lund<br><a href="tel:+46462227721">+46 46 222 77 21</a><br><a href="http://utbildning.fysik.lu.se">http://utbildning.fysik.lu.se</a>
+    </p><h6>Distributionsansvarig parkeringstillstånd</h6>
+    <p><a href="#">Kristin Lindell</a></p>
+    <h6>Mathieu Gisselbrecht</h6>
+    <p>Studievägledare<br><a href="tel:+46462228275">+46 46 222 82 75</a><br><a href="mailto:mathieu.gisselbrecht@sljus.lu.se">mathieu.gisselbrecht@sljus.lu.se</a></p>
+</div>
+
+        <div class="infobox bg-sky-50">
+  <h3 class="mt-0">Saknar du behörighet?</h3>
+  <p>Vi samarbetar med Folkhögskolan Hvilan som erbjuder naturvetenskapligt basår på 1-2 år. </p>
+  <p class="text-right">
+    <a href="#" class="nav-undecorated" target="_blank">Läs mer hos Hvilan<br>(nytt&nbsp;fönster)&nbsp;<svg class="svg-inline--fa fa-chevron-circle-right fa-w-16 fa-lg" aria-hidden="true" data-prefix="fal" data-icon="chevron-circle-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M8 256c0 137 111 248 248 248s248-111 248-248S393 8 256 8 8 119 8 256zM256 40c118.7 0 216 96.1 216 216 0 118.7-96.1 216-216 216-118.7 0-216-96.1-216-216 0-118.7 96.1-216 216-216zm86.6 224.5l-115.1 115c-4.7 4.7-12.3 4.7-17 0l-7.1-7.1c-4.7-4.7-4.7-12.3 0-17L303 256l-99.5-99.5c-4.7-4.7-4.7-12.3 0-17l7.1-7.1c4.7-4.7 12.3-4.7 17 0l115.1 115c4.6 4.8 4.6 12.4-.1 17.1z"></path></svg><!-- <i class="fal fa-chevron-circle-right  fa-lg"></i> -->
+</a>
+  </p>
+</div>
+
+      </div>
+    </div>
+  </div>
+  
+  
+  
+  
+    <article class="py-4 border-bottom">
+      <h3 class="mt-0">
+          <a href="###link###">###courseTitle###</a>
+      </h3>
+      <div class="font-weight-light">
+          <p class="font-weight-normal">###credit### HP&nbsp;•&nbsp; ###coursePlace###</p>
+      </div>
+    </article>
+</script>
