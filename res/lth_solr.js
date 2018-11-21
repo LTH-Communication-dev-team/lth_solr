@@ -241,8 +241,9 @@ function showCourse()
 
 function listStatistics()
 {
-    var syslang = $('html').attr('lang');
+    var program = $('#lth_solr_program').val();
     var round = $('#lth_solr_round').val();
+    var syslang = $('html').attr('lang');
     var id,statTermin,statType,statTitle,statCode,statVal1,statVal2,statApplicants,newRow,statVal2Array;
 
     $.ajax({
@@ -253,9 +254,10 @@ function listStatistics()
             action: 'listStatistics',
             syslang: syslang,
             dataSettings: {
-                syslang: syslang,
+                pageid: $('body').attr('id'),
+                program: program,
                 round: round,
-                pageid: $('body').attr('id')
+                syslang: syslang
             },
             sid: Math.random(),
         },
@@ -288,23 +290,42 @@ function listStatistics()
                     if(aData.statType) statType = aData.statType;
                     if(aData.statVal1) statVal1 = aData.statVal1;
                     if(aData.statVal2) statVal2 = aData.statVal2;
-                                       
-                    newRow = '<tr>';
-                    newRow += '<td>' + statTitle+'</td>';
-                    newRow += '<td>' + statApplicants.split(',')[0] + '</td>';
-                    newRow += '<td>' + statApplicants.split(',')[1] + '</td>';
+                    
+                    if(program) {
+                        newRow = '<div>';
+                        newRow += '<div>' + statTitle+'</div>';
+                        newRow += '<div>' + statApplicants.split(',')[0] + '</div>';
+                        newRow += '<div>' + statApplicants.split(',')[1] + '</div>';
 
-                    for (var i = 0; i < statVal2.length; i++) {
-                        var tmpArray = statVal2[i].split(',');
-                        for (var ii = 0; ii < tmpArray.length; ii++) {
-                            if(ii!==0) {
-                                newRow += '<td>' + tmpArray[ii] + '</td>';
+                        for (var i = 0; i < statVal2.length; i++) {
+                            var tmpArray = statVal2[i].split(',');
+                            for (var ii = 0; ii < tmpArray.length; ii++) {
+                                if(ii!==0) {
+                                    newRow += '<div>' + tmpArray[ii] + '</div>';
+                                }
                             }
-                        }
-                        
-                    }                    
-                    newRow += '</tr>';
-                    $('#lthsolr_statistics_container tbody').append(newRow);
+
+                        }                    
+                        newRow += '</div>';
+                        $('#lthsolr_statistics_container').append(newRow);
+                    } else {
+                        newRow = '<tr>';
+                        newRow += '<td>' + statTitle+'</td>';
+                        newRow += '<td>' + statApplicants.split(',')[0] + '</td>';
+                        newRow += '<td>' + statApplicants.split(',')[1] + '</td>';
+
+                        for (var i = 0; i < statVal2.length; i++) {
+                            var tmpArray = statVal2[i].split(',');
+                            for (var ii = 0; ii < tmpArray.length; ii++) {
+                                if(ii!==0) {
+                                    newRow += '<td>' + tmpArray[ii] + '</td>';
+                                }
+                            }
+
+                        }                    
+                        newRow += '</tr>';
+                        $('#lthsolr_statistics_container tbody').append(newRow);
+                    }
                 });
             }
         }

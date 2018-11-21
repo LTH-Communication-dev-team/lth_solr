@@ -48,25 +48,31 @@ class FrontEndClass
     }
     
     
-    public function listStatistics($syslang, $round)
+    public function listStatistics($syslang, $round, $program, $insideInfobox, $backgroundcolor)
     {
         $content = '';
-       
-        $content .= '<table id="lthsolr_statistics_container" class="table table-striped">
-            <thead class=" thead-dark">
-                <tr>
-                    <th scope="col" class="">Benämning</th>
-                    <th scope="col" class="">Totalt antal sökande</th>
-                    <th scope="col" class="">1:a handssökande</th>
-                </tr>
-            </thead>
-            <tbody class="">
-            </tbody>
-        </table>';
+        if($program) {
+            $class = "";
+            if($insideInfobox) $class = "infobox bg-$backgroundcolor";
+           $content .= "<div class=\"$class\" id=\"lthsolr_statistics_container\"></div>";
+        } else {
+            $content .= '<table id="lthsolr_statistics_container" class="table table-striped">
+                <thead class=" thead-dark">
+                    <tr>
+                        <th scope="col" class="">Benämning</th>
+                        <th scope="col" class="">Totalt antal sökande</th>
+                        <th scope="col" class="">1:a handssökande</th>
+                    </tr>
+                </thead>
+                <tbody class="">
+                </tbody>
+            </table>';
+        }
 
         //$content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/statistics_list.html");
 
-        $content .= '<input type="hidden" id="lth_solr_round" value="' . $round . '" />
+        $content .= '<input type="hidden" id="lth_solr_program" value="' . $program . '" />
+                <input type="hidden" id="lth_solr_round" value="' . $round . '" />
             <input type="hidden" id="lth_solr_action" value="listStatistics" />';
         
         return $content;

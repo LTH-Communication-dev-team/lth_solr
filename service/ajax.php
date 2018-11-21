@@ -238,20 +238,20 @@ function showCourse($dataSettings, $config)
 
 function listStatistics($dataSettings, $config)
 {
-    $round = $dataSettings['round'];
-    
-    $syslang = $dataSettings['syslang'];
-    
+    $program = addslashes($dataSettings['program']);
+    $round = addslashes($dataSettings['round']);
+    $syslang = addslashes($dataSettings['syslang']);
     $currentDate = gmDate("Y-m-d\TH:i:s\Z");
-    
     $fieldArray = array("id","statTermin","statType","statTitle","statCode","statVal1","statVal2","statApplicants");
     
     $client = new Solarium\Client($config);
 
     $query = $client->createSelect();
       
-    $queryToSet = "docType:stat AND statType:Program AND statTermin:$round";
-
+    $queryToSet = "docType:stat AND statType:Program AND statFaculty:t AND statTermin:$round";
+    if($program) {
+        $queryToSet .= " AND statProgramCode:$program";
+    }
     $query->setQuery($queryToSet);
         
     $query->setFields($fieldArray);

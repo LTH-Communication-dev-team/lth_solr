@@ -53,11 +53,17 @@ class tx_lthsolr_pi10 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $this->pi_initPIflexForm();
             $piFlexForm = $this->cObj->data["pi_flexform"];
             $index = $GLOBALS["TSFE"]->sys_language_uid;
-            $sDef = current($piFlexForm["data"]);       
+            if(is_array($piFlexForm["data"])) $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
 
+            $backgroundcolor = $this->pi_getFFvalue($piFlexForm, "backgroundcolor", "sDEF", $lDef[$index]);
+            $insideInfobox = $this->pi_getFFvalue($piFlexForm, "insideInfobox", "sDEF", $lDef[$index]);
             $round = $this->pi_getFFvalue($piFlexForm, "round", "sDEF", $lDef[$index]);
+            $program = $this->pi_getFFvalue($piFlexForm, "program", "sDEF", $lDef[$index]);
                                                
+            if($partOtherElement) {
+                return false;
+            }
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
             if(!$syslang) {
                 $syslang = 'en';
@@ -73,7 +79,7 @@ class tx_lthsolr_pi10 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
            
             $content = '';
 
-            $content .= $FrontEndClass->listStatistics($syslang,$round);
+            $content .= $FrontEndClass->listStatistics($syslang,$round,$program,$insideInfobox,$backgroundcolor);
             
             return $content;
 	}
