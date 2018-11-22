@@ -57,6 +57,7 @@ class tx_lthsolr_pi7 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $lDef = array_keys($sDef);
 
             $round = $this->pi_getFFvalue($piFlexForm, "round", "sDEF", $lDef[$index]);
+            $wrapper = $this->pi_getFFvalue($piFlexForm, "wrapper", "sDEF", $lDef[$index]);
             $scope = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('scope');
             if(!$scope) $scope = $this->pi_getFFvalue($piFlexForm, "scope", "sDEF", $lDef[$index]);
 
@@ -78,7 +79,7 @@ class tx_lthsolr_pi7 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $content = '';
 
             if($scope) {
-                $content .= $FrontEndClass->compare($round, $scope);
+                $content .= $FrontEndClass->compare($round, $scope, $wrapper);
             } 
             
             return $content;

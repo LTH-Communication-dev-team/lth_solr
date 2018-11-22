@@ -57,6 +57,7 @@ class tx_lthsolr_pi10 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $lDef = array_keys($sDef);
 
             $backgroundcolor = $this->pi_getFFvalue($piFlexForm, "backgroundcolor", "sDEF", $lDef[$index]);
+            if($backgroundcolor) $backgroundcolor = str_replace('.gif', '', $backgroundcolor);
             $insideInfobox = $this->pi_getFFvalue($piFlexForm, "insideInfobox", "sDEF", $lDef[$index]);
             $round = $this->pi_getFFvalue($piFlexForm, "round", "sDEF", $lDef[$index]);
             $program = $this->pi_getFFvalue($piFlexForm, "program", "sDEF", $lDef[$index]);

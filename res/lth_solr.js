@@ -293,15 +293,16 @@ function listStatistics()
                     
                     if(program) {
                         newRow = '<div>';
-                        newRow += '<div>' + statTitle+'</div>';
-                        newRow += '<div>' + statApplicants.split(',')[0] + '</div>';
-                        newRow += '<div>' + statApplicants.split(',')[1] + '</div>';
+                        newRow += 'Antal sökande: ' + statApplicants.split(',')[0] + ', ';
+                        newRow += '<br/>Antal 1a handssökande: ' + statApplicants.split(',')[1] + ', ';
 
                         for (var i = 0; i < statVal2.length; i++) {
                             var tmpArray = statVal2[i].split(',');
                             for (var ii = 0; ii < tmpArray.length; ii++) {
-                                if(ii!==0) {
-                                    newRow += '<div>' + tmpArray[ii] + '</div>';
+                                if(ii===0) {
+                                    newRow += '<br/>' + tmpArray[ii] + ': ';
+                                } else {
+                                    newRow += tmpArray[ii] + ', ';
                                 }
                             }
 

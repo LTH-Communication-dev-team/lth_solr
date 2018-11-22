@@ -54,7 +54,7 @@ class FrontEndClass
         if($program) {
             $class = "";
             if($insideInfobox) $class = "infobox bg-$backgroundcolor";
-           $content .= "<div class=\"$class\" id=\"lthsolr_statistics_container\"></div>";
+           $content .= "<div class=\"$class\" id=\"lthsolr_statistics_container\"><h3 class=\"h3 mt-0 mb-3\">Antagningsstatistik</h3></div>";
         } else {
             $content .= '<table id="lthsolr_statistics_container" class="table table-striped">
                 <thead class=" thead-dark">
@@ -639,7 +639,7 @@ class FrontEndClass
     }
     
     
-    public function compare($round, $scope)
+    public function compare($round, $scope, $wrapper)
     {
         $content = '';
         $content .= '<div id="lthsolr_compare_container" class="row"></div>';
@@ -650,6 +650,11 @@ class FrontEndClass
             <input type="hidden" id="lth_solr_round" value="' . $round . '" />
             <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
             <input type="hidden" id="lth_solr_action" value="listCompare" />';
+        
+        if($wrapper) {
+            $wrapperArray = explode('split', $wrapper);
+            $content = $wrapperArray[0] . $content . $wrapperArray[1];
+        }
         
         $content .= '<!-- exportModal -->
             <div id="compareModal" class="modal fade" role="dialog">

@@ -31,6 +31,16 @@
                         </config>
                        </TCEforms>
                     </scope>
+                    <wrapper>
+                        <TCEforms>
+                            <label>Textarea field</label>
+                            <config>
+                            <type>text</type>
+                            <cols>24</cols>
+                            <rows>3</rows>
+                            </config>
+                        </TCEforms>
+                    </wrapper>
                 </el>
             </ROOT>
         </sDEF>
