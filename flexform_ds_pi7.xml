@@ -12,10 +12,15 @@
                 <el> 
                     <round>
                         <TCEforms>
-                           <label>Antagningsomgång ID</label>
+                           <label>Antagningsomgång</label>
                            <config>
-                               <type>text</type>
-                           </config>
+                            <type>select</type>
+                            <maxitems>1</maxitems>
+                            <size>10</size>
+                            <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getRoundsCourse</itemsProcFunc>
+                            <selectedListStyle>width:250px</selectedListStyle>
+                            <itemListStyle>width:250px</itemListStyle>
+                        </config>
                        </TCEforms>
                     </round>
                     <scope>
