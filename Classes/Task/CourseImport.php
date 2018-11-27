@@ -99,9 +99,9 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             LEFT JOIN LubasPP_dbo.KursTakt KT ON K.kursTaktFK = KT.Id
             WHERE K.Kurskod NOT LIKE '%??%'
             GROUP BY K.KursID, PO.PlanOmgangID
-            ORDER BY K.KursKod, P.ProgramId, LA.Arskurser";
+            ORDER BY P.ProgramKod, PO.PlanOmgangID, K.KursId";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
-        
+        //$ProgramKod . '_' . $PlanOmgangID . '_' . $KursID
         while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
             $AvdelningSve = $row['AvdelningSve'];
             $AvdelningEng = $row['AvdelningEng'];
