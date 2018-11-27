@@ -168,7 +168,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'abstract' => $abstract,
                 'department' =>  $this->langChoice(array($AvdelningSve, $AvdelningEng), $syslang),
                 'departmentId' =>  $avdelningId,
-                'id' => 'course_' . $KursID,
+                'id' => 'course_' . $ProgramKod . '_' . $KursID,
                 'courseCode' => $Kurskod,
                 'coursePace' => $this->langChoice(array($kursTaktSve, $kursTaktEng), $syslang),
                 'coursePlace' => $this->langChoice(array($kursOrtSve, $kursOrtEng), $syslang),
