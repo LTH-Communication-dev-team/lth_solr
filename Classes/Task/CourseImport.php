@@ -23,7 +23,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
-        //$executionSucceeded = $this->clearIndex($settings);
+        $executionSucceeded = $this->clearIndex($settings);
         
         $syslang = "sv";
         
@@ -67,7 +67,24 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(250);
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
-        $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, KI.Webbsida, 
+        $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, 
+            KI.Webbsida,
+            P.ProgramID, P.ProgramSve, P.ProgramEng, P.ProgramKod, 
+            L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, 
+            I.InriktningSve, I.InriktningID,
+            PO.Omgang, PO.PlanOmgangID, 
+            LA.Arskurser,
+            LI.FriText_en, LI.FriText_sv,
+            GROUP_CONCAT(REPLACE(LI.Forfattare,'|','') SEPARATOR '|') AS Forfattare,
+            GROUP_CONCAT(REPLACE(LI.Forlag,'|','') SEPARATOR '|') AS Forlag,
+            GROUP_CONCAT(REPLACE(LI.ISBN,'|','') SEPARATOR '|') AS ISBN,
+            GROUP_CONCAT(REPLACE(LI.Titel,'|','') SEPARATOR '|') AS Titel,
+            GROUP_CONCAT(REPLACE(LI.Undertitel,'|','') SEPARATOR '|') AS Undertitel,
+            GROUP_CONCAT(REPLACE(LI.Utgivningsar,'|','') SEPARATOR '|') AS Utgivningsar,
+            A.AvdelningSve, 
+            A.AvdelningEng, A.Id AS AvdelningId, 
+            KO.kursOrtSve, KO.kursOrtEng, 
+            KT.kursTaktSve, KT.kursTaktEng,
             GROUP_CONCAT(REPLACE(KI.ForkunKrav,'|','') SEPARATOR '|') AS ForkunKrav,
             GROUP_CONCAT(REPLACE(KI.Innehall,'|','') SEPARATOR '|') AS Innehall,
             GROUP_CONCAT(REPLACE(KI.LarandeMal1,'|','') SEPARATOR '|') AS LarandeMal1,
@@ -76,30 +93,21 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             GROUP_CONCAT(REPLACE(KI.Ovrigt,'|','') SEPARATOR '|') AS Ovrigt,
             GROUP_CONCAT(REPLACE(KI.Prestationbed,'|','') SEPARATOR '|') AS Prestationbed,
             GROUP_CONCAT(REPLACE(KI.syfte,'|','') SEPARATOR '|') AS syfte,
-            GROUP_CONCAT(REPLACE(KI.Urval,'|','') SEPARATOR '|') AS Urval,
-            P.ProgramID, P.ProgramSve, P.ProgramEng, P.ProgramKod, L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, I.InriktningSve, PO.Omgang, PO.PlanOmgangID,
-            LA.Arskurser, LI.FriText_en, LI.FriText_sv, A.AvdelningSve, A.AvdelningEng, A.Id AS AvdelningId, KO.kursOrtSve, KO.kursOrtEng, KT.kursTaktSve, KT.kursTaktEng,
-            GROUP_CONCAT(REPLACE(LI.Forfattare,'|','') SEPARATOR '|') AS Forfattare,
-            GROUP_CONCAT(REPLACE(LI.Forlag,'|','') SEPARATOR '|') AS Forlag,
-            GROUP_CONCAT(REPLACE(LI.ISBN,'|','') SEPARATOR '|') AS ISBN,
-            GROUP_CONCAT(REPLACE(LI.Titel,'|','') SEPARATOR '|') AS Titel,
-            GROUP_CONCAT(REPLACE(LI.Undertitel,'|','') SEPARATOR '|') AS Undertitel,
-            GROUP_CONCAT(REPLACE(LI.Utgivningsar,'|','') SEPARATOR '|') AS Utgivningsar
+            GROUP_CONCAT(REPLACE(KI.Urval,'|','') SEPARATOR '|') AS Urval
             FROM LubasPP_dbo.Kurs K 
             JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK AND K.Nedlagd = 0
             JOIN LubasPP_dbo.Kurs_Program KP ON K.KursID = KP.KursFK
-            LEFT JOIN LubasPP_dbo.Program P ON P.ProgramID = KP.ProgramFK AND P.Nedlagd = 0
-            LEFT JOIN LubasPP_dbo.Laroplan L ON L.KursProgramFK = KP.KursProgramID
-            LEFT JOIN LubasPP_dbo.Laroplan_Arskurser LA ON L.LaroplanID = LA.LaroplanFK
-            LEFT JOIN LubasPP_dbo.Inriktning I ON I.InriktningID = L.InriktningFK
-            LEFT JOIN LubasPP_dbo.PlanOmgang PO ON K.PlanOmgangFK = PO.PlanOmgangID
+            JOIN LubasPP_dbo.Program P ON P.ProgramID = KP.ProgramFK AND P.Nedlagd = 0
+            JOIN LubasPP_dbo.Laroplan L ON L.KursProgramFK = KP.KursProgramID
+            JOIN LubasPP_dbo.Laroplan_Arskurser LA ON L.LaroplanID = LA.LaroplanFK
+            JOIN LubasPP_dbo.Inriktning I ON I.InriktningID = L.InriktningFK
+            JOIN LubasPP_dbo.PlanOmgang PO ON K.PlanOmgangFK = PO.PlanOmgangID
             LEFT JOIN LubasPP_dbo.Litteratur LI ON LI.KursFK = K.KursID
             LEFT JOIN LubasPP_dbo.Avdelning A ON K.AvdelningFK = A.Id
             LEFT JOIN LubasPP_dbo.KursOrt KO ON K.kusrOrtFK = KO.Id
             LEFT JOIN LubasPP_dbo.KursTakt KT ON K.kursTaktFK = KT.Id
-            WHERE K.Kurskod NOT LIKE '%??%'
-            GROUP BY P.ProgramKod, K.KursID, PO.PlanOmgangID
-            HAVING PO.PlanOmgangID=29 AND P.`ProgramKod`='F'
+            WHERE K.Kurskod NOT LIKE '%??%' 
+            GROUP BY LA.Arskurser, I.InriktningID, L.Valfrihetsgrad, K.KursID
             ORDER BY P.ProgramKod, PO.PlanOmgangID, K.KursId";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
         //$ProgramKod . '_' . $PlanOmgangID . '_' . $KursID
