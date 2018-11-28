@@ -503,6 +503,7 @@ function listCompare(action)
     var roundId = $('#lth_solr_round').val();
     var scope = $('#lth_solr_scope').val();
     var courseCode,courseTitle,courseYear,credit,homepage,id,optional,programCode,programDirection,programTitle,ratingScale;
+    var i = 0;
 
     $.ajax({
         type : 'POST',
@@ -528,27 +529,48 @@ function listCompare(action)
         success: function(d) {
             $('.lthsolr_loader').remove();
             if(d.data) {
-                $.each( d.data, function( key, aData ) {
+                $.each( d.data, function( programKey, programData ) {
                     if(Object.keys(d.data).length > 1) {
-                        $('#lthsolr_compare_container').append('<div id="'+key+'" class="card col-sm">'+key+'</div>');
+                        $('#lthsolr_compare_container').append('<div id="'+programKey+'" class="colcard col-sm">'+programKey+'</div>');
+                    } else {
+                        $('#lthsolr_compare_container').append('<div class="col"><table class="table table striped" id="'+programKey+'"><thead class="thead-dark"><tr></tr></thead><tbody><tr></tr></tbody></table></div>');
                     }
-                    $.each( aData, function (pkey, pData) {
-                        if(pData) {
+                    //console.log(Object.keys(d.data).length);
+                    $.each( programData, function (arskursKey, arskursData) {
+                        if(arskursData) {
                             if(Object.keys(d.data).length > 1) {
-                                $("[id='"+key+"']").append('<div id="'+key+pkey+'" class="card-header">Årskurs'+pkey+'</div>');
+                                $("[id='"+programKey+"']").append('<div id="'+programKey+arskursKey+'" class="card-header">Årskurs'+arskursKey+'</div>');
                             } else {
-                                $('#lthsolr_compare_container').append('<div id="'+key+pkey+'" class="card col-sm">Årskurs'+pkey+'</div>');
+                                $("[id='"+programKey+"'] > thead > tr").append('<th>Årskurs'+arskursKey+'</th>');
+                                $("[id='"+programKey+"'] > tbody > tr").append('<td><div id="'+programKey+arskursKey+'"></div></td>');
                             }
-                            
-                            //"[id='content Module']"
                         }
-                        $.each( pData, function (akkey, akData) {
-                            
-                            if(akData) $("[id='"+key+pkey+"']").append('<div id="'+key+pkey+akkey+'">'+akkey+'</div>');
-                            $.each( akData, function (ikey, iData) {
-                                if(iData) $("[id='"+key+pkey+akkey+"']").append('<div id="'+key+pkey+akkey+ikey+'">'+ikey+'</div>');
-                                $.each( iData, function (okey, oData) {
-                                    if(oData.length>0) $("[id='"+key+pkey+akkey+ikey+"']").append('<ul id="'+okey+'" class="list-group list-group-flush"></ul>');
+                        $.each( arskursData, function (inriktningKey, inriktningData) {
+                            if(inriktningData) {
+                                $("[id='"+programKey+arskursKey+"']").append('<div id="'+programKey+arskursKey+inriktningKey+'">'+inriktningKey+'</div>');
+                            }
+                            $.each( inriktningData, function (optionalKey, optionalData) {
+                                if(optionalKey === 'obligatorisk') {
+                                    
+                                }
+                                if(optionalData) {
+                                    if(optionalKey === 'obligatorisk') {
+                                        $("[id='"+programKey+arskursKey+inriktningKey+"']").append('<div>' + titleCase(optionalKey.replace('_','')) + '</div><ul id="'+programKey+arskursKey+inriktningKey+optionalKey+'" class="list-group list-group-flush"></ul>');
+                                    } else {
+                                        $("[id='"+programKey+arskursKey+inriktningKey+"']").append('<div class="accordion" id="accordion'+i+'"><div class="card">'+
+        '<div class="card-header" id="heading'+i.toString()+'"><h5><button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse'+i.toString()+
+        '" aria-expanded="true" aria-controls="collapse'+i.toString()+'">'+
+            '<div class="float-right"><span class="collapse-hide"><i class="fal fa-chevron-up"></i></span><span class="collapse-show"><i class="fal fa-chevron-down"></i></span></div>'+
+            titleCase(optionalKey.replace('_','')) +
+          '</button></h5></div><div id="collapse'+i.toString()+'" class="collapse" aria-labelledby="heading'+i.toString()+'" data-parent="#accordion'+i.toString()+'"><div class="card-body">'+
+            '<ul id="'+programKey+arskursKey+inriktningKey+optionalKey+'" class="list-group list-group-flush"></ul></div></div></div></div>');
+                                        i++;
+                                    }
+                                }
+                                     //collapse_6
+                                     //collapse_6
+                                $.each( optionalData, function (courseKey, courseData) {
+                                    //console.log(optionalData);
                                     courseCode = '';
                                     courseTitle = '';
                                     courseYear = '';
@@ -561,14 +583,14 @@ function listCompare(action)
                                     programTitle = '';
                                     ratingScale = '';
 
-                                    if(oData.courseCode) courseCode = oData.courseCode.toUpperCase();
-                                    if(oData.courseTitle) courseTitle = oData.courseTitle;
-                                    if(oData.courseYear) courseYear = oData.courseYear;
-                                    if(oData.credit) credit = oData.credit;
-                                    if(oData.id) id = oData.id;
-                                    if(oData.optional) optional = oData.optional;
-                                    if(oData.programDirection) programDirection = oData.programDirection;
-                                    if(oData.ratingScale) ratingScale = oData.ratingScale;
+                                    if(courseData.courseCode) courseCode = courseData.courseCode.toUpperCase();
+                                    if(courseData.courseTitle) courseTitle = courseData.courseTitle;
+                                    if(courseData.courseYear) courseYear = courseData.courseYear;
+                                    if(courseData.credit) credit = courseData.credit;
+                                    if(courseData.id) id = courseData.id;
+                                    if(courseData.optional) optional = courseData.optional;
+                                    if(courseData.programDirection) programDirection = courseData.programDirection;
+                                    if(courseData.ratingScale) ratingScale = courseData.ratingScale;
 
                                     /*template = template.replace('###id###', id);
                                     template = template.replace('###courseTitle###', courseTitle);
@@ -578,7 +600,7 @@ function listCompare(action)
                                     template = template.replace('###programDirection###',programDirection);
                                     template = template.replace('###ratingScale###',ratingScale);*/
 
-                                    $("[id='"+key+pkey+"']").append('<li id="'+id+'" class="list-group-item">'+courseCode+' '+courseTitle + '</li>');
+                                    $("[id='"+programKey+arskursKey+inriktningKey+optionalKey+"']").append('<li id="'+id+'" class="list-group-item">'+courseCode+' '+courseTitle + '</li>');
                                     $("[id='"+id+"']").click(function(){
                                         $('#compareModal').modal('toggle');
                                         showCompare(id);
@@ -1765,9 +1787,9 @@ function searchLong(term, startPeople, startPages, startCourses, more, webSearch
             $('#lthsolr_courses_container tbody tr:first').remove();
             var courseCode, credit, homepage;
 
-            if(d.courseData.length > 0) {
+            if(d.optionalData.length > 0) {
                 $('.lth_solr_res').append('<li>Courses</li>');
-                $.each( d.courseData, function( key, aData ) {
+                $.each( d.optionalData, function( key, aData ) {
                     template = $('#solrCoursesTemplate').html();
                     id = '';
                     title = '';

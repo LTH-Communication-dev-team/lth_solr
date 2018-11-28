@@ -403,7 +403,7 @@ function listCompare($dataSettings, $config)
         $term = " AND ($term) ";
     }
     
-    $queryToSet = "docType:course AND roundId:$roundId$term";
+    $queryToSet = "docType:course AND courseYear:* AND roundId:$roundId$term";
 
     $query->setQuery($queryToSet);
         
@@ -415,7 +415,7 @@ function listCompare($dataSettings, $config)
         'programTitle' => 'asc',
         'courseYear' => 'asc',
         'programDirection' => 'asc',
-        'optional' => 'asc',
+        'optionalSort' => 'asc',
         'courseTitle' => 'asc'
     );
     
