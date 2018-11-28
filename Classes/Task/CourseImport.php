@@ -191,22 +191,19 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'type' => 'course'
             );
             //try {
-                $buffer->createDocument($data);
-                $buffer->commit();
-        $update->addCommit();
-        $client->update($update);
+            $buffer->createDocument($data);
             //} catch(Exception $e) {
             //    echo 'Message: ' .$e->getMessage();
             //}
-            echo '<pre>';
+            /*echo '<pre>';
             print_r($data);
             echo '</pre>';
-            die();
+            die();*/
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
-        //$buffer->commit();
-        //$update->addCommit();
-        //$client->update($update);
+        $buffer->commit();
+        $update->addCommit();
+        $client->update($update);
         return TRUE;
     }
     
