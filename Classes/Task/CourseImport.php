@@ -107,8 +107,9 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             LEFT JOIN LubasPP_dbo.KursOrt KO ON K.kusrOrtFK = KO.Id
             LEFT JOIN LubasPP_dbo.KursTakt KT ON K.kursTaktFK = KT.Id
             WHERE K.Kurskod NOT LIKE '%??%' 
-            GROUP BY LA.Arskurser, I.InriktningID, L.Valfrihetsgrad, K.KursID
-            ORDER BY P.ProgramKod, PO.PlanOmgangID, K.KursId";
+            GROUP BY P.ProgramKod, PO.PlanOmgangID, LA.Arskurser, I.InriktningID, L.Valfrihetsgrad, K.KursID
+            ORDER BY P.ProgramKod, PO.PlanOmgangID, LA.Arskurser, I.InriktningID, L.Valfrihetsgrad, K.KursID";
+        
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
         //$ProgramKod . '_' . $PlanOmgangID . '_' . $KursID
         while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
@@ -123,6 +124,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $Hskpoang = $row['Hskpoang'];
             $Innehall = $this->langChoice(explode('|', $row['Innehall']),$syslang);
             $InriktningEng = $row['InriktningEng'];
+            $InriktningID = $row['InriktningID'];
             $InriktningSve = $row['InriktningSve'];
             $ISBN = explode('|', $row['ISBN']);
             $KursID = $row['KursID'];
@@ -177,7 +179,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'abstract' => $abstract,
                 'department' =>  $this->langChoice(array($AvdelningSve, $AvdelningEng), $syslang),
                 'departmentId' =>  $avdelningId,
-                'id' => 'course_' . $ProgramKod . '_' . $PlanOmgangID . '_' . $KursID,
+                'id' => 'course_' . $ProgramKod  . '_' . $PlanOmgangID . '_' .$Arskurser . '_' . $InriktningID . '_' . $Valfrihetsgrad . '_' . $KursID,
                 'courseCode' => $Kurskod,
                 'coursePace' => $this->langChoice(array($kursTaktSve, $kursTaktEng), $syslang),
                 'coursePlace' => $this->langChoice(array($kursOrtSve, $kursOrtEng), $syslang),
