@@ -62,6 +62,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     public function getCourses($config, $syslang)
     {
+        $valfrihetsgradsArray = array('obligatorisk' => 0,'alternativ_obligatorisk' => 1,'valfri' => 2,'externt_valfri' => 3);
         $client = new \Solarium\Client($config);
         $update = $client->createUpdate();
         $buffer = $client->getPlugin('bufferedadd');
@@ -200,6 +201,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'boost' => '1.0',
                 'type' => 'course'
             );
+            if($Valfrihetsgrad) $data['optionalSort'] = $valfrihetsgradsArray[$Valfrihetsgrad];
             //try {
             $buffer->createDocument($data);
             //} catch(Exception $e) {
