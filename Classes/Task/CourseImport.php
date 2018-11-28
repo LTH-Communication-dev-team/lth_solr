@@ -23,7 +23,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
-        $executionSucceeded = $this->clearIndex($settings);
+        //$executionSucceeded = $this->clearIndex($settings);
         
         $syslang = "sv";
         
@@ -98,7 +98,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             LEFT JOIN LubasPP_dbo.KursOrt KO ON K.kusrOrtFK = KO.Id
             LEFT JOIN LubasPP_dbo.KursTakt KT ON K.kursTaktFK = KT.Id
             WHERE K.Kurskod NOT LIKE '%??%'
-            GROUP BY K.KursID, PO.PlanOmgangID
+            GROUP BY P.ProgramKod, K.KursID, PO.PlanOmgangID
             ORDER BY P.ProgramKod, PO.PlanOmgangID, K.KursId";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
         //$ProgramKod . '_' . $PlanOmgangID . '_' . $KursID
@@ -189,16 +189,20 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'boost' => '1.0',
                 'type' => 'course'
             );
-            try {
-                $buffer->createDocument($data);
-            } catch(Exception $e) {
-                echo 'Message: ' .$e->getMessage();
-            }
+            //try {
+                //$buffer->createDocument($data);
+            //} catch(Exception $e) {
+            //    echo 'Message: ' .$e->getMessage();
+            //}
+            echo '<pre>';
+            print_r($data);
+            echo '</pre>';
+            die();
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
-        $buffer->commit();
-        $update->addCommit();
-        $client->update($update);
+        //$buffer->commit();
+        //$update->addCommit();
+        //$client->update($update);
         return TRUE;
     }
     
