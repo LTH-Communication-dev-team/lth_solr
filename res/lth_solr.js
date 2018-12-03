@@ -457,7 +457,7 @@ function showJob()
                 
                 //console.log(d.data.abstract);
                 $('.article h1').text(jobTitle).attr('style', 'margin-bottom:18px !important;max-width:650px;');
-                $('.lthsolr_job_apply_button').attr('href',loginAndApplyURI).text(lth_solr_messages.applyButtonText).show();
+                $('.lthsolr_job_apply_button').wrap('<a href="'+loginAndApplyURI+'"></a>').text(lth_solr_messages.applyButtonText).show();
                 $('.breadcrumb li:last').removeClass('active').wrapInner('<a href="/'+lth_solr_messages.job+'/"></a>');
                 $('.breadcrumb').append('<li class="breadcrumb-item active">'+jobTitle+'</li>');
                                 
