@@ -664,7 +664,7 @@ class FrontEndClass
         }
         
         $content .= '<!-- compareModal -->
-                    <div id="compareModal" class="modal" tabindex="-1" role="dialog" style="max-width:25%;background-color:red;">
+                    <div id="compareModal" class="modal" tabindex="-1" role="dialog" style="max-width:50%;background-color:blue;">
                         <div class="modal-dialog" role="document">
                           <div class="modal-content">
                             <div class="modal-header">
