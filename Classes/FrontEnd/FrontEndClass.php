@@ -664,9 +664,7 @@ class FrontEndClass
         }
         
         $content .= '<!-- compareModal -->
-            <div class="row" style="max-width:25%;">25
-                <div class="col-12 col-lg-8 mb-6 mb-lg-0">
-                    <div id="compareModal" class="modal" tabindex="-1" role="dialog">
+                    <div id="compareModal" class="modal" tabindex="-1" role="dialog" style="max-width:25%;background-color:red;">
                         <div class="modal-dialog" role="document">
                           <div class="modal-content">
                             <div class="modal-header">
@@ -683,8 +681,6 @@ class FrontEndClass
                             </div>
                           </div>
                         </div>
-                    </div>
-                </div>
             </div>';
 
         return $content;
