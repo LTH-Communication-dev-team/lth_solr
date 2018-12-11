@@ -244,7 +244,8 @@ function listStatistics()
     var program = $('#lth_solr_program').val();
     var round = $('#lth_solr_round').val();
     var syslang = $('html').attr('lang');
-    var id,statTermin,statType,statTitle,statCode,statVal1,statVal2,statApplicants,newRow,statVal2Array;
+    var id,statTermin,statType,statTitle,statCode,statVal1,statVal2,statApplicants,newRow,first;
+    var antagna = 0;
 
     $.ajax({
         type : 'POST',
@@ -282,6 +283,7 @@ function listStatistics()
                     statVal1 = '';
                     statVal2 = '';
                     
+                    
                     if(aData.id) id = aData.id;
                     if(aData.statApplicants) statApplicants = aData.statApplicants;
                     if(aData.statCode) statCode = aData.statCode;
@@ -290,47 +292,98 @@ function listStatistics()
                     if(aData.statType) statType = aData.statType;
                     if(aData.statVal1) statVal1 = aData.statVal1;
                     if(aData.statVal2) statVal2 = aData.statVal2;
-                    
+                    if(statVal2) {
+                        first = statVal2.shift();
+                        statVal2.push(first);
+                    }
                     if(program) {
+                        
                         newRow = '<div>';
-                        newRow += 'Antal sökande: ' + statApplicants.split(',')[0] + ', ';
-                        newRow += '<br/>Antal 1a handssökande: ' + statApplicants.split(',')[1] + ', ';
-
+                        newRow += '<p>Antal sökande: ' + statApplicants.split(',')[0];
+                        newRow += '<br/>Antal 1a handssökande: ' + statApplicants.split(',')[1];
+                        newRow += '</p><table class="table lth_solr_stat_program_table"><thead class=""><tr></tr></thead><tbody><tr></tr></tbody></table>';
+                        newRow += '</div>';
+                        $('#lthsolr_statistics_container').append(newRow);
+                        
                         for (var i = 0; i < statVal2.length; i++) {
                             var tmpArray = statVal2[i].split(',');
-                            for (var ii = 0; ii < tmpArray.length; ii++) {
+                           
+                            /*for (var ii = 0; ii < tmpArray.length; ii++) {
                                 if(ii===0) {
                                     newRow += '<br/>' + tmpArray[ii] + ': ';
                                 } else {
                                     newRow += tmpArray[ii] + ', ';
                                 }
+                            }*/
+
+                            if(tmpArray[0] === 'BI' || tmpArray[0] === 'BII' || tmpArray[0] === 'HP' || tmpArray[0] === 'BF') {
+                                $('.lth_solr_stat_program_table thead tr').append('<th>'+tmpArray[0]+'</th>');
+                                $('.lth_solr_stat_program_table tbody tr').append('<td>'+lthSolrRound(tmpArray[1])+'</td>');
+                                antagna = antagna + parseInt(tmpArray[2]);
                             }
-
-                        }                    
-                        newRow += '</div>';
-                        $('#lthsolr_statistics_container').append(newRow);
+                            
+                        }
+                        $('.lth_solr_stat_program_table thead tr').prepend('<th>Antagna</th>');
+                        $('.lth_solr_stat_program_table tbody tr').prepend('<td>'+antagna.toString()+'</td>');
+                        $('#lthsolr_statistics_container').append('<p><i class="fas fa-info-circle" onclick="lthSolrExplainStat();"></i></p>');
+                        $('#lthsolr_statistics_container').append('<p><a href="../antagning-och-behoerighet/">Läs mer om antagning</a></p>');
+                        /*$('#lthsolr_statistics_container .fa-info-circle').click(function(){
+                            alert('BI=Gymnasiebetyg\nBII=Gymnasiebetyg med komplettering\nHP=Högskoleprov\nBF=Folkhögskola');
+                        });*/
                     } else {
-                        newRow = '<tr>';
-                        newRow += '<td>' + statTitle+'</td>';
-                        newRow += '<td>' + statApplicants.split(',')[0] + '</td>';
-                        newRow += '<td>' + statApplicants.split(',')[1] + '</td>';
+                        $('#lthsolr_statistics_container tbody').append('<tr></tr>');
+                        $('#lthsolr_statistics_container tbody tr:last').append('<td>' + statTitle+'</td>');
+                        $('#lthsolr_statistics_container tbody tr:last').append('<td>' + statApplicants.split(',')[0] + '</td>');
+                        $('#lthsolr_statistics_container tbody tr:last').append('<td>' + statApplicants.split(',')[1] + '</td>');
 
+                        var ii = 0;
                         for (var i = 0; i < statVal2.length; i++) {
                             var tmpArray = statVal2[i].split(',');
-                            for (var ii = 0; ii < tmpArray.length; ii++) {
+                            /*for (var ii = 0; ii < tmpArray.length; ii++) {
                                 if(ii!==0) {
                                     newRow += '<td>' + tmpArray[ii] + '</td>';
                                 }
+                            }*/
+                            if(tmpArray[0] === 'BI' || tmpArray[0] === 'BII' || tmpArray[0] === 'HP' || tmpArray[0] === 'BF') {
+                                //$('#lthsolr_statistics_container thead tr').append('<th>'+tmpArray[0]+'</th>');
+                                $('#lthsolr_statistics_container tbody tr:last').append('<td>'+lthSolrRound(tmpArray[1])+'</td>');
+                                antagna = antagna + parseInt(tmpArray[2]);
+                                ii++;
                             }
-
-                        }                    
-                        newRow += '</tr>';
-                        $('#lthsolr_statistics_container tbody').append(newRow);
+                            
+                        }
+                        var rest = 4 - ii;
+                        
+                        for (var ii = 0; ii < rest; ii++) {
+                            $('#lthsolr_statistics_container tbody tr:last').append('<td></td>');
+                        }
+                        /*{
+                            $('#lthsolr_statistics_container tbody tr:last').append('<td></td>');
+                        }*/
+                        //console.log(rest+';'+ii);
+                        $('#lthsolr_statistics_container tbody tr:last td:eq(2)').after('<td>'+antagna+'</td>');
+                        //newRow += '</tr>';
+                        //$('#lthsolr_statistics_container tbody').append(newRow);
                     }
                 });
             }
         }
     });
+}
+
+
+function lthSolrExplainStat()
+{
+    alert('BI=Gymnasiebetyg\nBII=Gymnasiebetyg med komplettering\nHP=Högskoleprov\nBF=Folkhögskola\n*=Samtliga behöriga sökanden antogs');
+}
+
+
+function lthSolrRound(input)
+{
+    if(parseFloat(input)) {
+        input = Math.round(input * 100) / 100;
+    }
+    return input;
 }
 
 

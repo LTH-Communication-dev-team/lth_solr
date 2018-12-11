@@ -60,8 +60,13 @@ class FrontEndClass
                 <thead class=" thead-dark">
                     <tr>
                         <th scope="col" class="">Benämning</th>
-                        <th scope="col" class="">Totalt antal sökande</th>
-                        <th scope="col" class="">1:a handssökande</th>
+                        <th scope="col" class="">Totalt antal<br />sökande</th>
+                        <th scope="col" class="">1:a hands-<br />sökande</th>
+                        <th scope="col" class="">Antagna</th>
+                        <th scope="col" class="">BI</th>
+                        <th scope="col" class="">BII</th>
+                        <th scope="col" class="">HP</th>
+                        <th scope="col" class="">BF</th>
                     </tr>
                 </thead>
                 <tbody class="">

@@ -582,6 +582,18 @@ h2 {
     display:none;
 }
 
+.lth_solr_stat_program_table td, .lth_solr_stat_program_table th, #lthsolr_statistics_container th {
+    white-space: nowrap;
+    vertical-align: top;
+}
+
+#lthsolr_statistics_container .fa-info-circle {
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+
+
 /* Styling LU widget start */
 .autocomplete-output {
 display:none;
@@ -774,7 +786,7 @@ color:#ffffff;
   table caption {
     font-size: 1.3em;
   }
-  table thead {
+  #lthsolr_statistics_container table thead {
     border: none;
     clip: rect(0 0 0 0);
     height: 1px;
