@@ -664,7 +664,7 @@ class FrontEndClass
         }
         
         $content .= '<!-- compareModal -->
-            <div class="row">
+            <div class="row" style="max-width:25%;">25
                 <div class="col-12 col-lg-8 mb-6 mb-lg-0">
                     <div id="compareModal" class="modal" tabindex="-1" role="dialog">
                         <div class="modal-dialog" role="document">
