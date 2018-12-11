@@ -56,6 +56,7 @@ class FrontEndClass
             if($insideInfobox) $class = "infobox bg-$backgroundcolor";
            $content .= "<div class=\"$class\" id=\"lthsolr_statistics_container\"><h3 class=\"h3 mt-0 mb-3\">Antagningsstatistik</h3></div>";
         } else {
+            $content .= '<div class="table-responsive-sm">';
             $content .= '<table id="lthsolr_statistics_container" class="table table-striped">
                 <thead class=" thead-dark">
                     <tr>
@@ -72,6 +73,7 @@ class FrontEndClass
                 <tbody class="">
                 </tbody>
             </table>';
+            $content .= '</div>';
         }
 
         //$content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/statistics_list.html");
@@ -661,28 +663,29 @@ class FrontEndClass
             $content = $wrapperArray[0] . $content . $wrapperArray[1];
         }
         
-        $content .= '<!-- exportModal -->
-            <div id="compareModal" class="modal fade" role="dialog">
-              <div class="modal-dialog">
-
-                <!-- Modal content-->
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h1 class="modal-title"></h1>
-                  </div>
-                  <div class="modal-body" style="position:relative;">
+        $content .= '<!-- compareModal -->
+            <div id="compareModal" class="modal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Modal title</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
                     </div>
-                  <div style="clear:both;" class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <div class="modal-body">
+                      <p>Modal body text goes here.</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
                   </div>
                 </div>
-
-              </div>
-            </div>';
+              </div>';
 
         return $content;
     }
+    
     
     public function rssFeeder($scope, $noItemsToShow, $categories, $keyword, $pageTitle, $publicationCategories, $publicationCategoriesSwitch)
     {
