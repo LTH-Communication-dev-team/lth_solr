@@ -659,7 +659,7 @@ function listCompare(action)
 
                                     $("[id='"+programKey+arskursKey+inriktningKey+optionalKey+"']").append('<li id="'+id+'" class="list-group-item">'+courseCode+' '+courseTitle + '</li>');
                                     $("[id='"+id+"']").click(function(){
-                                        $('#compareModal').modal();
+                                        $('#compareModal').modal('toggle');
                                         showCompare(id);
                                     });
                                 });
