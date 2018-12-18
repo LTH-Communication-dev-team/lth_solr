@@ -2,7 +2,9 @@
 # Table structure for table 'lth_solr'
 #
 #
-
+#
+# Table structure for table 'tt_news'
+#
 CREATE TABLE fe_groups (
     title varchar(255) DEFAULT '' NOT NULL
 );
@@ -14,6 +16,9 @@ CREATE TABLE tt_news (
     sorting int(11) DEFAULT '0' NOT NULL,
 );
 
+#
+# Table structure for table 'tt_news'
+#
 CREATE TABLE fe_users (
     lth_solr_cat text NOT NULL,
     lth_solr_sort text NOT NULL,
@@ -32,11 +37,16 @@ CREATE TABLE fe_users (
     title varchar(255) DEFAULT '' NOT NULL
 );
 
+#
+# Table structure for table 'tt_news'
+#
 CREATE TABLE sys_file (
     lth_solr_index tinyint(1) NOT NULL DEFAULT '0'
 );
 
-
+#
+# Table structure for table 'tt_news'
+#
 CREATE TABLE tx_lthsolr_categories (
   id int(11) NOT NULL auto_increment,
   parentId int(11) NOT NULL,
@@ -52,7 +62,9 @@ CREATE TABLE tx_lthsolr_categories (
   PRIMARY KEY (id)
 );
 
-
+#
+# Table structure for table 'tt_news'
+#
 CREATE TABLE tx_lthsolr_titles (
     id int(11) NOT NULL auto_increment,
     title_sv varchar(64) CHARACTER SET utf8 COLLATE utf8_swedish_ci NOT NULL,
@@ -67,7 +79,9 @@ CREATE TABLE tx_lthsolr_titles (
     PRIMARY KEY (id)
 );
 
-
+#
+# Table structure for table 'tt_news'
+#
 CREATE TABLE tx_lthsolr_lucrisdata (
     id int(11) NOT NULL auto_increment,
     typo3_id varchar(255) NOT NULL,
@@ -80,7 +94,9 @@ CREATE TABLE tx_lthsolr_lucrisdata (
     PRIMARY KEY (id)
 );
 
-
+#
+# Table structure for table 'tt_news'
+#
 CREATE TABLE tx_lthsolr_uniquetitle (
     uid int(11) NOT NULL auto_increment,
     title varchar(255) NOT NULL,
@@ -88,7 +104,9 @@ CREATE TABLE tx_lthsolr_uniquetitle (
     PRIMARY KEY (uid)
 );
 
-
+#
+# Table structure for table 'tt_news'
+#
 CREATE TABLE tx_lthsolr_cleanup (
     uid int(11) NOT NULL auto_increment,
     lucris_id varchar(255) NOT NULL,
