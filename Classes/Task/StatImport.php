@@ -38,11 +38,11 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         );
         
         $lubasArray = $this->getLubas($settings, $syslang);
-		
-		$lubasArray = $this->getLubasPP($config, $syslang, $lubasArray);
-		echo '<pre>';
+	echo '<pre>';
 		print_r($lubasArray);
-		echo '</pre>';
+		echo '</pre>';	
+		$lubasArray = $this->getLubasPP($config, $syslang, $lubasArray);
+		
 
         die();
 		
@@ -66,9 +66,9 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 		return $executionSucceeded;
     }
     
-	public function getLubasPP($config, $syslang, $lubasArray)
+    public function getLubasPP($config, $syslang, $lubasArray)
     {
-		$lubasPPArray = array();
+	$lubasPPArray = array();
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $sql = "SELECT lubasppprogr, progr FROM LubasPP_dbo.LadokOverf_Prog";
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
@@ -76,11 +76,12 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
             $lubasppprogr = $row['lubasppprogr'];
             $progr = $row['progr'];
-			$lubasCode = $lubasArray[$progr];
+            $lubasCode = $lubasArray[$progr];
             $lubasPPArray[$lubasCode][0] = $lubasppprogr;
-			$lubasPPArray[$lubasCode][1] = 't';
+            $lubasPPArray[$lubasCode][1] = 't';
         }
-		$GLOBALS['TYPO3_DB']->sql_free_result($res);
+	
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
         return $lubasPPArray;
     }
     
