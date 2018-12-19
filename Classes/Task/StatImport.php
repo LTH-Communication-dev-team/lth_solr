@@ -42,11 +42,11 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 		print_r($lubasArray);
 		echo '</pre>';*/
 	$lubasArray = $this->getLubasPP($config, $syslang, $lubasArray);
-		echo '<pre>';
+		/*echo '<pre>';
 		print_r($lubasArray);
-		echo '</pre>';
+		echo '</pre>';*/
 
-        die();
+        //die();
 		
 		
 	$executionSucceeded = $this->getStat($config, $syslang, $lubasArray);
@@ -80,9 +80,10 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $progr = $row['progr'];
             $lubasCode = $lubasArray[$progr];
             //if(is_array($lubasCode)) $lubasCode = $lubasCode[0];
-            echo $lubasCode;
-            $lubasPPArray[$lubasCode][0] = $lubasppprogr;
-            $lubasPPArray[$lubasCode][1] = 't';
+            if($lubasppprogr !== 'TM') {
+                $lubasPPArray[$lubasCode][0] = $lubasppprogr;
+                $lubasPPArray[$lubasCode][1] = 't';
+            }
         }
 	
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
