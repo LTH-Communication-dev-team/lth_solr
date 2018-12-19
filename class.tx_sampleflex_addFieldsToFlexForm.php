@@ -772,10 +772,10 @@ class user_sampleflex_addFieldsToFlexForm
             $facetRounds = $response->getFacetSet()->getFacet('rounds');
             foreach ($facetRounds as $value => $count) {
                 //$facetResult["standardCategory"][] = array($value, $count, $facetHeader);
-                if($count>0) {
+                //if($count>0) {
                     $config['items'][$i] = array(0 => explode('____',$value)[1], 1 => explode('____',$value)[0]);
                     $i++;
-                }
+                //}
                 
             }
             //asort($config);
