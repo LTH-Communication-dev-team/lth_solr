@@ -301,10 +301,12 @@ function listStatistics()
                         newRow = '<div>';
                         newRow += '<p>Antal sökande: ' + statApplicants.split(',')[0];
                         newRow += '<br/>Antal 1a handssökande: ' + statApplicants.split(',')[1];
-                        newRow += '</p><table class="table lth_solr_stat_program_table"><thead class=""><tr></tr></thead><tbody><tr></tr></tbody></table>';
+                        newRow += '</p><table class="table table-sm lth_solr_stat_program_table"><thead class=""><tr></tr></thead><tbody><tr></tr></tbody></table>';
                         newRow += '</div>';
                         $('#lthsolr_statistics_container').append(newRow);
                         
+                        var titleObj = { "BI" : "Gymnasiebetyg", "BII" : "Gymnasiebetyg med komplettering", "HP" : "Högskoleprov", "BF" : "Folkhögskola" };
+
                         for (var i = 0; i < statVal2.length; i++) {
                             var tmpArray = statVal2[i].split(',');
                            
@@ -317,13 +319,13 @@ function listStatistics()
                             }*/
 
                             if(tmpArray[0] === 'BI' || tmpArray[0] === 'BII' || tmpArray[0] === 'HP' || tmpArray[0] === 'BF') {
-                                $('.lth_solr_stat_program_table thead tr').append('<th>'+tmpArray[0]+'</th>');
+                                $('.lth_solr_stat_program_table thead tr').append('<th title="' + titleObj[tmpArray[0]] + '">'+tmpArray[0]+'</th>');
                                 $('.lth_solr_stat_program_table tbody tr').append('<td>'+lthSolrRound(tmpArray[1])+'</td>');
                                 antagna = antagna + parseInt(tmpArray[2]);
                             }
                             
                         }
-                        $('.lth_solr_stat_program_table thead tr').prepend('<th>Antagna</th>');
+                        $('.lth_solr_stat_program_table thead tr').prepend('<th title="Antagna">Ant.</th>');
                         $('.lth_solr_stat_program_table tbody tr').prepend('<td>'+antagna.toString()+'</td>');
                         $('#lthsolr_statistics_container').append('<p><i class="fas fa-info-circle" onclick="lthSolrExplainStat();"></i></p>');
                         $('#lthsolr_statistics_container').append('<p><a href="../antagning-och-behoerighet/">Läs mer om antagning</a></p>');
