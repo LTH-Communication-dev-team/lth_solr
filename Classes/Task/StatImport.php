@@ -43,11 +43,11 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 		echo '</pre>';
                 die();*/
 	$lubasArray = $this->getLubasPP($config, $syslang, $lubasArray);
-		echo '<pre>';
+		/*echo '<pre>';
 		print_r($lubasArray);
-		echo '</pre>';
+		echo '</pre>';*/
 
-        die();
+        //die();
 		
 		
 	$executionSucceeded = $this->getStat($config, $syslang, $lubasArray);
