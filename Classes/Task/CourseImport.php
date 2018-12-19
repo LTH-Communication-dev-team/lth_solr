@@ -98,10 +98,10 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             FROM LubasPP_dbo.Kurs K 
             JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK AND K.Nedlagd = 0
             JOIN LubasPP_dbo.Kurs_Program KP ON K.KursID = KP.KursFK
-            JOIN LubasPP_dbo.Program P ON P.ProgramID = KP.ProgramFK AND P.Nedlagd = 0
-            JOIN LubasPP_dbo.Laroplan L ON L.KursProgramFK = KP.KursProgramID
-            JOIN LubasPP_dbo.Laroplan_Arskurser LA ON L.LaroplanID = LA.LaroplanFK
-            JOIN LubasPP_dbo.Inriktning I ON I.InriktningID = L.InriktningFK
+            LEFT JOIN LubasPP_dbo.Program P ON P.ProgramID = KP.ProgramFK AND P.Nedlagd = 0
+            LEFT JOIN LubasPP_dbo.Laroplan L ON L.KursProgramFK = KP.KursProgramID
+            LEFT JOIN LubasPP_dbo.Laroplan_Arskurser LA ON L.LaroplanID = LA.LaroplanFK
+            LEFT JOIN LubasPP_dbo.Inriktning I ON I.InriktningID = L.InriktningFK
             JOIN LubasPP_dbo.PlanOmgang PO ON K.PlanOmgangFK = PO.PlanOmgangID
             LEFT JOIN LubasPP_dbo.Litteratur LI ON LI.KursFK = K.KursID
             LEFT JOIN LubasPP_dbo.Avdelning A ON K.AvdelningFK = A.Id
