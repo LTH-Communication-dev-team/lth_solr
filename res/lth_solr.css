@@ -87,6 +87,8 @@ div.jqcloud span.vertical {
 
 #lth_solr_container .tab-content {
     padding-top:0px;
+    font-size:1.4rem;
+    line-height:1.82rem;
 }
 
 .lthsolr_email, .lthsolr_home {
@@ -366,11 +368,6 @@ tr.details td.details-control {
 .lthsolr_publication_simple_row {
     padding:0px 0px 7px 0px;
     position:relative;
-}
-
-.tab-content {
-    font-size:1.4rem;
-    line-height:1.82rem;
 }
 
 .nav-tabs > li {
