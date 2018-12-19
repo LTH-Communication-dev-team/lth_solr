@@ -64,10 +64,10 @@ class FrontEndClass
                         <th scope="col" class="">Totalt antal<br />sökande</th>
                         <th scope="col" class="">1:a hands-<br />sökande</th>
                         <th scope="col" class="">Antagna</th>
-                        <th scope="col" class="">BI</th>
-                        <th scope="col" class="">BII</th>
-                        <th scope="col" class="">HP</th>
-                        <th scope="col" class="">BF</th>
+                        <th scope="col" class="" title="Gymnasiebetyg">BI</th>
+                        <th scope="col" class="" title="Gymnasiebetyg med komplettering">BII</th>
+                        <th scope="col" class="" title="Högskoleprov">HP</th>
+                        <th scope="col" class="" title="Folkhögskola">BF</th>
                     </tr>
                 </thead>
                 <tbody class="">
