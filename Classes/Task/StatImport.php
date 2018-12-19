@@ -38,10 +38,10 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         );
         
         $lubasArray = $this->getLubas($settings, $syslang);
-		echo '<pre>';
+		/*echo '<pre>';
 		print_r($lubasArray);
 		echo '</pre>';
-                die();
+                die();*/
 	$lubasArray = $this->getLubasPP($config, $syslang, $lubasArray);
 		/*echo '<pre>';
 		print_r($lubasArray);
@@ -88,6 +88,11 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         }
 	
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        
+        //Tekniskt basår
+        $lubasPPArray['ZBATS'][0] = 'TB';
+        $lubasPPArray['ZBATS'][1] = 't';
+        
         return $lubasPPArray;
     }
     
