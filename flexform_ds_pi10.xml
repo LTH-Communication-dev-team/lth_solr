@@ -12,7 +12,7 @@
                 <el>
                     <program>
                         <TCEforms>
-                           <label>Round</label>
+                           <label>Program</label>
                            <config>
                             <type>select</type>
                             <maxitems>1</maxitems>
@@ -25,7 +25,7 @@
                     </program>
                     <round>
                         <TCEforms>
-                           <label>Program</label>
+                           <label>Antagningsomgång</label>
                            <config>
                             <type>select</type>
                             <maxitems>1</maxitems>
