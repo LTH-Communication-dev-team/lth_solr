@@ -22,7 +22,7 @@ class StatImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
-        $executionSucceeded = $this->clearIndex($settings);
+        //$executionSucceeded = $this->clearIndex($settings);
                
         $syslang = "sv";
         
