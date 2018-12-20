@@ -23,7 +23,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
-        $executionSucceeded = $this->clearIndex($settings);
+        //$executionSucceeded = $this->clearIndex($settings);
         
         $syslang = "sv";
         
@@ -68,7 +68,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(250);
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
-        $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, 
+        $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, K.startDatum, K.slutDatum,
             KI.Webbsida,
             P.ProgramID, P.ProgramSve, P.ProgramEng, P.ProgramKod, 
             L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, 
@@ -149,7 +149,9 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $ProgramKod = $row['ProgramKod'];
             $ProgramEng = $row['ProgramEng'];
             $ProgramSve = $row['ProgramSve'];
+            $slutDatum = $row['slutDatum'];
             $Sprak = $row['Sprak'];
+            $startDatum = $row['startDatum'];
             $syfte = $this->langChoice(explode('|', $row['syfte']),$syslang);
             $Titel = explode('|', $row['Titel']);
             $Undertitel = explode('|', $row['Undertitel']);
@@ -182,9 +184,13 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'departmentId' =>  $avdelningId,
                 'id' => 'course_' . $ProgramKod  . '_' . $PlanOmgangID . '_' .$Arskurser . '_' . $InriktningID . '_' . $Valfrihetsgrad . '_' . $KursID,
                 'courseCode' => $Kurskod,
+                'courseForkunKrav' => $ForkunKrav,
                 'coursePace' => $this->langChoice(array($kursTaktSve, $kursTaktEng), $syslang),
                 'coursePlace' => $this->langChoice(array($kursOrtSve, $kursOrtEng), $syslang),
+                'courseSlutDatum' => date('Y-m-d\TH:i:s\Z', strtotime($slutDatum)),
+                'courseStartDatum' => date('Y-m-d\TH:i:s\Z', strtotime($startDatum)),
                 'courseTitle' => $this->langChoice(array($KursSve, $KursEng), $syslang),
+                'courseUrval' => $Urval,
                 'courseYear' =>  $Arskurser,
                 'credit' => $Hskpoang,
                 'homepage' => $Webbsida,
