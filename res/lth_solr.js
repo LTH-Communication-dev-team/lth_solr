@@ -306,7 +306,7 @@ function listStatistics()
                         $('.lth_solr_stat_program_table thead tr').prepend('<th title="Antagna">Ant.</th>');
                         $('.lth_solr_stat_program_table tbody tr').prepend('<td>'+antagna.toString()+'</td>');
                         $('#lthsolr_statistics_container').append('<p><i class="fas fa-info-circle" onclick="lthSolrExplainStat();"></i></p>');
-                        $('#lthsolr_statistics_container').append('<p><a href="../antagning-och-behoerighet/">Läs mer om antagning</a></p>');
+                        $('#lthsolr_statistics_container').append('<p><a href="/utbildning/antagning-och-behoerighet/">Läs mer om antagning</a></p>');
                         /*$('#lthsolr_statistics_container .fa-info-circle').click(function(){
                             alert('BI=Gymnasiebetyg\nBII=Gymnasiebetyg med komplettering\nHP=Högskoleprov\nBF=Folkhögskola');
                         });*/
