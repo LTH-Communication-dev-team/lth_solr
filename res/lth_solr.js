@@ -129,9 +129,9 @@ function listCourses()
                     if(aData.id) id = aData.id;
                     
                     if(syslang==='sv') {
-                        link = 'visa/'+encodeURIComponent(courseTitle+'('+courseCode+')');
+                        link = 'visa/' + encodeURIComponent(courseTitle) + '('+courseCode+')';
                     } else {
-                        link = 'show/'+encodeURIComponent(courseTitle+'('+courseCode+')');
+                        link = 'show/' + encodeURIComponent(courseTitle) + '('+courseCode+')';
                     }
                     
                     var template = $('#solrCourseTemplate').html();
@@ -151,7 +151,7 @@ function showCourse()
 {
     var syslang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
-    var round = $('#lth_solr_round').val();
+    var roundId = $('#lth_solr_round').val();
     var abstract,department,courseCode,courseTitle,credit,homepage,ratingScale;
 
     $.ajax({
@@ -164,7 +164,7 @@ function showCourse()
             dataSettings: {
                 syslang: syslang,
                 scope: scope,
-                round: round,
+                roundId: roundId,
                 pageid: $('body').attr('id')
             },
             sid: Math.random(),
@@ -198,41 +198,19 @@ function showCourse()
                 if(d.data.ratingScale) ratingScale = d.data.ratingScale;
                 
                 //console.log(d.data.abstract);
-                $('h1').text(jobTitle).attr('style', 'margin-bottom:18px !important;max-width:650px;');
-                $('.lthsolr_job_apply_button').attr('href',loginAndApplyURI).text(lth_solr_messages.applyButtonText).show();
-                $('.breadcrumb li:last').removeClass('active').wrapInner('<a href="/'+lth_solr_messages.job+'/"></a>');
-                $('.breadcrumb').append('<li class="breadcrumb-item active">'+jobTitle+'</li>');
+                $('h1').text(courseTitle).attr('style', 'margin-bottom:18px !important;max-width:650px;');
+                //$('.lthsolr_job_apply_button').attr('href',loginAndApplyURI).text(lth_solr_messages.applyButtonText).show();
+                //$('.breadcrumb li:last').removeClass('active').wrapInner('<a href="/'+lth_solr_messages.job+'/"></a>');
+                $('.breadcrumb').append('<li class="breadcrumb-item active">'+courseTitle+'</li>');
                                 
-                $('#lthsolr_job_container > .col').prepend(abstract);
-                if(jobAnstForm) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobAnstForm+'</th><td>'+jobAnstForm+'</td></tr>');
-                if(jobTilltrade) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobTilltrade+'</th><td>'+jobTilltrade+'</td></tr>');
-                if(jobLoneform) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobLoneform+'</th><td>'+jobLoneform+'</td></tr>');
-                if(jobAntal) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobAntal+'</th><td>'+jobAntal+'</td></tr>');
-                if(jobSysselsattningsgrad) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobSysselsattningsgrad+'</th><td>'+jobSysselsattningsgrad+'</td></tr>');
-                if(jobOrt) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobOrt+'</th><td>'+jobOrt+'</td></tr>');
-                if(jobLan) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobLan+'</th><td>'+jobLan+'</td></tr>');
-                if(jobLand) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobLand+'</th><td>'+jobLand+'</td></tr>');
-                if(jobReferensnummer) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobReferensnummer+'</th><td>'+jobReferensnummer+'</td></tr>');
-                if(jobPositionContact) {
-                    for (var pc = 0; pc < jobPositionContact.length; pc++) {
-                        if(pc===0) {
-                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobKontakt+'</th><td>'+jobPositionContact[pc]+'</td></tr>');
-                        } else {
-                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><td></td><td>'+jobPositionContact[pc]+'</td></tr>');
-                        }
-                    };
-                }
-                if(jobUnionRepresentative) {
-                    for (var ur = 0; ur < jobUnionRepresentative.length; ur++) {
-                        if(ur===0) {
-                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobFack+'</th><td>'+jobUnionRepresentative[ur]+'</td></tr>');
-                        } else {
-                            $('#lthsolr_job_container > .col > table > tbody').append('<tr><td></td><td>'+jobUnionRepresentative[ur]+'</td></tr>');
-                        }
-                    };
-                }
-                if(jobPublicerat) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobPublicerat+'</th><td>'+jobPublicerat+'</td></tr>');
-                if(jobSistaAnsokningsdag) $('#lthsolr_job_container > .col > table > tbody').append('<tr><th scope="row" class="xx">'+lth_solr_messages.jobSistaAnsokningsdag+'</th><td>'+jobSistaAnsokningsdag+'</td></tr>');
+                if(abstract) $('#lthsolr_course_container').append(abstract);
+                if(department) $('#lthsolr_course_container').append(department);
+                if(courseCode) $('#lthsolr_course_container').append(courseCode);
+                if(courseTitle) $('#lthsolr_course_container').append(courseTitle);
+                if(credit) $('#lthsolr_course_container').append(credit);
+                if(homepage) $('#lthsolr_course_container').append(homepage);
+                if(ratingScale) $('#lthsolr_course_container').append(ratingScale);
+                
             }
         }
     });
@@ -380,12 +358,13 @@ function lthSolrExplainStat()
 }
 
 
-function lthSolrRound(input)
+function lthSolrRound(x)
 {
-    if(parseFloat(input)) {
-        input = Math.round(input * 100) / 100;
+    if(parseFloat(x)) {
+        //input = Math.round(input * 100) / 100;
+        x = Number.parseFloat(x).toFixed(2);
     }
-    return input;
+    return x;
 }
 
 
