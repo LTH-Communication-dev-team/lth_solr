@@ -96,7 +96,7 @@ class FrontEndClass
        
         //$content .= '<div class="container">';
         //$content .= '<div class="row"><div class="col"><h1 class=" my-0 pb-2 border-bottom">'.$courseHeader.'</h1></div></div>';
-        $content .= '<div id="lthsolr_course_container" class="row"></div>';
+        $content .= '<div id="lthsolr_course_container" class=""></div>';
        // $content .= '</div>';
 
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/course_list.html");
@@ -112,10 +112,7 @@ class FrontEndClass
     {
         $content = '';
         //$content .= '<div class="container">';
-        $content .= '<div class="row"><div class="col"><h1 class="my-0 pb-2 border-bottom"></h1></div></div>';
-        $content .= '<div id="lthsolr_course_container" class="row">';
-        $content .= '<div class="col"><table class="table table-condensed quick-info"><tbody></tbody></table></div>';
-        $content .= '</div>';
+        $content .= '<div id="lthsolr_course_container" class=""></div>';
         //$content .= '</div>';
 
         //$content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/job_presentation.html");

@@ -152,7 +152,8 @@ function showCourse()
     var syslang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
     var roundId = $('#lth_solr_round').val();
-    var abstract,department,courseCode,courseTitle,credit,homepage,ratingScale;
+    var department,courseCode,courseTitle,credit,homepage,ratingScale;
+    var courseForkunKrav, courseSlutDatum, courseSlutDatum, coursePace;
 
     $.ajax({
         type : 'POST',
@@ -181,36 +182,43 @@ function showCourse()
             
             //$('.article').html('<div class="lthPackageLoader"></div>');
             //$('.lthsolr_loader').remove();
-            if(d.data.abstract) {
-                abstract = '';
+            if(d.data) {
                 department = '';
                 courseCode = '';
                 courseTitle = '';
                 credit = '';
                 homepage = '';
                 ratingScale = '';
-                if(d.data.abstract) abstract = d.data.abstract;
+                courseForkunKrav = '';
+                courseSlutDatum = '';
+                courseSlutDatum = '';
+                coursePace = '';
                 if(d.data.department) department = d.data.department;
                 if(d.data.courseCode) courseCode = d.data.courseCode;
                 if(d.data.courseTitle) courseTitle = d.data.courseTitle;
                 if(d.data.credit) credit = d.data.credit;
                 if(d.data.homepage) homepage = d.data.homepage;
                 if(d.data.ratingScale) ratingScale = d.data.ratingScale;
-                
+                if(d.data.courseForkunKrav) courseForkunKrav = d.data.courseForkunKrav;
+                if(d.data.courseSlutDatum) courseSlutDatum = d.data.courseSlutDatum;
+                if(d.data.courseSlutDatum) courseSlutDatum = d.data.courseSlutDatum;
+                if(d.data.coursePace) coursePace = d.data.coursePace;
                 //console.log(d.data.abstract);
                 $('h1').text(courseTitle).attr('style', 'margin-bottom:18px !important;max-width:650px;');
                 //$('.lthsolr_job_apply_button').attr('href',loginAndApplyURI).text(lth_solr_messages.applyButtonText).show();
                 //$('.breadcrumb li:last').removeClass('active').wrapInner('<a href="/'+lth_solr_messages.job+'/"></a>');
                 $('.breadcrumb').append('<li class="breadcrumb-item active">'+courseTitle+'</li>');
-                                
-                if(abstract) $('#lthsolr_course_container').append(abstract);
-                if(department) $('#lthsolr_course_container').append(department);
-                if(courseCode) $('#lthsolr_course_container').append(courseCode);
-                if(courseTitle) $('#lthsolr_course_container').append(courseTitle);
-                if(credit) $('#lthsolr_course_container').append(credit);
-                if(homepage) $('#lthsolr_course_container').append(homepage);
-                if(ratingScale) $('#lthsolr_course_container').append(ratingScale);
-                
+                $('#lthsolr_course_container').append('<p><b>Kursplan</b><br/><a href="https://kurser.lth.se/kursplaner/fk_2019_vt/'+courseCode.toUpperCase()+'.pdf">Kursplan i PDF-format</a></p>');
+                if(courseForkunKrav) $('#lthsolr_course_container').append('<p><b>Förkunskapskrav</b><br/>'+courseForkunKrav.split('|').pop()+'</p>');
+                //if(department) $('#lthsolr_course_container').append(department);
+                //if(courseCode) $('#lthsolr_course_container').append(courseCode);
+                //if(courseTitle) $('#lthsolr_course_container').append(courseTitle);
+                //if(credit) $('#lthsolr_course_container').append(credit);
+                //if(homepage) $('#lthsolr_course_container').append(homepage);
+                //if(ratingScale) $('#lthsolr_course_container').append(ratingScale);
+                if(coursePace) $('#lthsolr_course_container').append('<p><b>Kurstakt</b><br/>'+coursePace+'</p>');
+                if(courseSlutDatum) $('#lthsolr_course_container').append(courseSlutDatum);
+                if(courseSlutDatum) $('#lthsolr_course_container').append(courseSlutDatum);
             }
         }
     });

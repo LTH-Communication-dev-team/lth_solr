@@ -200,17 +200,17 @@ function listCourses($dataSettings, $config)
 function showCourse($dataSettings, $config)
 {
     $scope = $dataSettings['scope'];
-    $round = $dataSettings['round'];
+    $roundId = $dataSettings['roundId'];
     
     $syslang = $dataSettings['syslang'];
     
-    $fieldArray = array("abstract","department","courseCode","courseTitle","credit","homepage","ratingScale");
+    $fieldArray = array("department","courseCode","courseTitle","credit","homepage","ratingScale","courseForkunKrav","courseSlutDatum","courseSlutDatum","coursePace");
     
     $client = new Solarium\Client($config);
 
     $query = $client->createSelect();
     
-    $queryToSet = "docType:course AND courseCode:$scope AND round:$round";
+    $queryToSet = "docType:course AND courseCode:$scope AND roundId:$roundId";
 
     $query->setQuery($queryToSet);
         
@@ -220,13 +220,16 @@ function showCourse($dataSettings, $config)
         
     foreach ($response as $document) {
         $data = array(
-            "abstract" => $document->abstract,
             "department" => $document->department,
             "courseCode" => $document->courseCode,
             "courseTitle" => $document->courseTitle,
             "credit" => $document->credit,
             "homepage" => $document->homepage,
-            "ratingScale" => $document->ratingScale
+            "ratingScale" => $document->ratingScale,
+            "courseForkunKrav" => $document->courseForkunKrav,
+            "courseSlutDatum" => $document->courseSlutDatum,
+            "courseSlutDatum" => $document->courseSlutDatum,
+            "coursePace" => $document->coursePace
         );
     }
     
