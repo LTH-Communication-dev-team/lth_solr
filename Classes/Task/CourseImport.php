@@ -68,7 +68,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(250);
         //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
-        $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, K.startDatum, K.slutDatum,
+        $sql = "SELECT K.KursID, K.KursSve, K.KursEng, LCASE(K.Kurskod) AS Kurskod, K.Hskpoang, K.Betygskala, K.startDatum, K.slutDatum, K.kurstypTyp,
             KI.Webbsida,
             P.ProgramID, P.ProgramSve, P.ProgramEng, P.ProgramKod, 
             L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, 
@@ -138,6 +138,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $KursSve = $row['KursSve'];
             $kursTaktSve = $row['kursTaktSve'];
             $kursTaktEng = $row['kursTaktEng'];
+            $kurstypTyp = $row['kurstypTyp'];
             $LarandeMal1 = $this->langChoice(explode('|', $row['LarandeMal1']),$syslang);
             $LarandeMal2 = $this->langChoice(explode('|', $row['LarandeMal2']),$syslang);
             $LarandeMal3 = $this->langChoice(explode('|', $row['LarandeMal3']),$syslang);
@@ -191,6 +192,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'courseSlutDatum' => date('Y-m-d\TH:i:s\Z', strtotime($slutDatum)),
                 'courseStartDatum' => date('Y-m-d\TH:i:s\Z', strtotime($startDatum)),
                 'courseTitle' => $this->langChoice(array($KursSve, $KursEng), $syslang),
+                'courseType' => $kurstypTyp,
                 'courseUrval' => $Urval,
                 'courseYear' =>  $Arskurser,
                 'credit' => $Hskpoang,
