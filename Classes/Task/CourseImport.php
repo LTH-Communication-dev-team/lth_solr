@@ -72,7 +72,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             KI.Webbsida,
             P.ProgramID, P.ProgramSve, P.ProgramEng, P.ProgramKod, 
             L.LasesFran, LCASE(L.Valfrihetsgrad) AS Valfrihetsgrad, 
-            I.InriktningSve, I.InriktningID,
+            I.InriktningSve, I.InriktningID, I.Allman AS InriktningAllman,
             PO.Omgang, PO.PlanOmgangID, 
             LA.Arskurser,
             LI.FriText_en, LI.FriText_sv,
@@ -124,6 +124,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $Forlag = explode('|', $row['Forlag']);
             $Hskpoang = $row['Hskpoang'];
             $Innehall = $this->langChoice(explode('|', $row['Innehall']),$syslang);
+            $InriktningAllman = $row['InriktningAllman'];
             $InriktningEng = $row['InriktningEng'];
             $InriktningID = $row['InriktningID'];
             $InriktningSve = $row['InriktningSve'];
@@ -197,6 +198,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'optional' => $Valfrihetsgrad,
                 'programCode' => $ProgramKod,
                 'programDirection' => $this->langChoice(array($InriktningSve, $InriktningEng), $syslang),
+                'programDirectionGeneral' => $InriktningAllman,
                 'programTitle' => $this->langChoice(array($ProgramSve, $ProgramEng), $syslang),
                 'ratingScale' => $Betygskala,
                 'round' => $Omgang,
