@@ -179,6 +179,10 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 }
                 $abstract .= '</ul>';
             }
+            
+            $courseSelectionTemp = $this->getCourseType($kurstypTyp,$Valfrihetsgrad,$this->langChoice(array($InriktningSve, $InriktningEng), $syslang),$InriktningAllman);
+            $courseSelection = $courseSelectionTemp[0];
+            $courseSelectionSort = $courseSelectionTemp[1];
 
             $data = array(
                 'abstract' => $abstract,
@@ -189,6 +193,8 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'courseForkunKrav' => $ForkunKrav,
                 'coursePace' => $this->langChoice(array($kursTaktSve, $kursTaktEng), $syslang),
                 'coursePlace' => $this->langChoice(array($kursOrtSve, $kursOrtEng), $syslang),
+                'courseSelection' => $courseSelection,
+                'courseSelectionSort' => $courseSelectionSort,
                 'courseSlutDatum' => date('Y-m-d\TH:i:s\Z', strtotime($slutDatum)),
                 'courseStartDatum' => date('Y-m-d\TH:i:s\Z', strtotime($startDatum)),
                 'courseTitle' => $this->langChoice(array($KursSve, $KursEng), $syslang),
@@ -228,6 +234,35 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $client->update($update);
         return TRUE;
     }
+    
+    
+    public function getCourseType($courseType,$optional,$programDirection,$programDirectionGeneral)
+    {
+        $output='';
+        $outputSort = 0;
+        if($optional==='obligatorisk') {
+            $output = 'Obligatoriska kurser';
+            $outputSort = 0;
+        } else if($optional==='alternativ_obligatorisk') {
+            $output = 'Alternativobligatoriska kurser';
+            $outputSort = 1;
+        } else if($programDirectionGeneral==0) {
+            $output = 'Specialisering - ' . $programDirection;
+            $outputSort = 2;
+        } else if($courseType==='EXAMENSARBETE') {
+            $output = 'Examensarbeten';
+            $outputSort = 5;
+        } else if($optional === 'externt_valfri') {
+            $output = 'Externt valfria kurser';
+            $outputSort = 4;
+        } else if($optional === 'valfri') {
+            $output = 'Valfria kurser';
+            $outputSort = 3;
+        }
+        return array($output,$outputSort);
+        //$output = Examensarbeten / Externt valfria kurser / Valfria kurser / Specialisering p - Processdesign / Obligatoriska kurser / Alternativobligatoriska kurser
+    }
+
     
     public function addComma($input)
     {
