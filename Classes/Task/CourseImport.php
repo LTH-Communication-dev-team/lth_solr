@@ -86,15 +86,15 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             A.AvdelningEng, A.Id AS AvdelningId, 
             KO.kursOrtSve, KO.kursOrtEng, 
             KT.kursTaktSve, KT.kursTaktEng,
-            GROUP_CONCAT(REPLACE(KI.ForkunKrav,'|','') SEPARATOR '|') AS ForkunKrav,
-            GROUP_CONCAT(REPLACE(KI.Innehall,'|','') SEPARATOR '|') AS Innehall,
-            GROUP_CONCAT(REPLACE(KI.LarandeMal1,'|','') SEPARATOR '|') AS LarandeMal1,
-            GROUP_CONCAT(REPLACE(KI.LarandeMal2,'|','') SEPARATOR '|') AS LarandeMal2,
-            GROUP_CONCAT(REPLACE(KI.LarandeMal3,'|','') SEPARATOR '|') AS LarandeMal3,
-            GROUP_CONCAT(REPLACE(KI.Ovrigt,'|','') SEPARATOR '|') AS Ovrigt,
-            GROUP_CONCAT(REPLACE(KI.Prestationbed,'|','') SEPARATOR '|') AS Prestationbed,
-            GROUP_CONCAT(REPLACE(KI.syfte,'|','') SEPARATOR '|') AS syfte,
-            GROUP_CONCAT(REPLACE(KI.Urval,'|','') SEPARATOR '|') AS Urval
+            KI.ForkunKrav,
+            KI.Innehall,
+            KI.LarandeMal1,
+            KI.LarandeMal2,
+            KI.LarandeMal3,
+            KI.Ovrigt,
+            KI.Prestationbed,
+            KI.syfte,
+            KI.Urval,
             FROM LubasPP_dbo.Kurs K 
             JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK AND K.Nedlagd = 0
             JOIN LubasPP_dbo.Kurs_Program KP ON K.KursID = KP.KursFK AND KP.UtbStatusProg != 'NERLAGD' 
@@ -107,7 +107,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             LEFT JOIN LubasPP_dbo.Avdelning A ON K.AvdelningFK = A.Id
             LEFT JOIN LubasPP_dbo.KursOrt KO ON K.kusrOrtFK = KO.Id
             LEFT JOIN LubasPP_dbo.KursTakt KT ON K.kursTaktFK = KT.Id
-            WHERE K.Kurskod NOT LIKE '%??%' 
+            WHERE KI.Sprak = '$syslang' AND K.Kurskod NOT LIKE '%??%' 
             GROUP BY P.ProgramKod, PO.PlanOmgangID, LA.Arskurser, I.InriktningID, L.Valfrihetsgrad, K.KursID
             ORDER BY P.ProgramKod, PO.PlanOmgangID, LA.Arskurser, I.InriktningID, L.Valfrihetsgrad, K.KursID";
         
@@ -164,14 +164,18 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             //Build abstract
             $abstract = '';
             $i=0;
+            $abstract .= $this->langChoice("<h2>Syfte</h2>","<h2>Aim</h2>",$syslang);
             $abstract .= $syfte;
-            $abstract .= $LarandeMal1;
+            $abstract .= $this->langChoice("<h2>Mål</h2>", "<h2>Learning outcomes</h2>", $syslang);
+            $abstract .= "<h2>Mål</h2>$LarandeMal1";
             $abstract .= $LarandeMal2;
             $abstract .= $LarandeMal3;
-            $abstract .= $Innehall;
+            $abstract .= $this->langChoice("<h2>Kursinnehåll</h2>", "<h2>Contents</h2>", $syslang);
+            $abstract .= "$Innehall";
             $abstract .= $Betygskala;
             $abstract .= $Prestationbed;
             if(is_array($Titel)) {
+                $abstract .= $this->langChoice("<h2>Litteratur</h2>","<h2>Reading list</h2>", $syslang);
                 $abstract .= '<ul>';
                 foreach($Titel as $value) {
                    $abstract .= '<li>' . $Forfattare[$i] . ': ' . $Titel[$i] . $this->addComma($Forlag[$i]) . $this->addComma($Utgivningsar[$i]) . $this->addComma($ISBN[$i]) . '</li>';
