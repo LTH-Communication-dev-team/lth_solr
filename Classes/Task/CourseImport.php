@@ -96,8 +96,8 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             KI.Urval
             FROM LubasPP_dbo.Kurs K 
             JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK AND KI.Sprak = '$syslang'
-            JOIN LubasPP_dbo.Kurs_Program KP ON K.KursID = KP.KursFK
-            LEFT JOIN LubasPP_dbo.Program P ON P.ProgramID = KP.ProgramFK
+            JOIN LubasPP_dbo.Kurs_Program KP ON K.KursID = KP.KursFK AND KP.UtbStatusProg != 'NERLAGD' 
+            LEFT JOIN LubasPP_dbo.Program P ON P.ProgramID = KP.ProgramFK AND P.Nedlagd = 0
             LEFT JOIN LubasPP_dbo.Laroplan L ON L.KursProgramFK = KP.KursProgramID
             LEFT JOIN LubasPP_dbo.Laroplan_Arskurser LA ON L.LaroplanID = LA.LaroplanFK
             LEFT JOIN LubasPP_dbo.Inriktning I ON I.InriktningID = L.InriktningFK
@@ -106,8 +106,8 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             LEFT JOIN LubasPP_dbo.Avdelning A ON K.AvdelningFK = A.Id
             LEFT JOIN LubasPP_dbo.KursOrt KO ON K.kusrOrtFK = KO.Id
             LEFT JOIN LubasPP_dbo.KursTakt KT ON K.kursTaktFK = KT.Id
-            WHERE K.Nedlagd = 0 AND K.Kurskod NOT LIKE '%??%' AND KP.UtbStatusProg != 'NERLAGD' AND P.Nedlagd = 0
-            GROUP BY K.KursID
+            WHERE K.Nedlagd = 0 AND K.Kurskod NOT LIKE '%??%' 
+            GROUP BY P.ProgramKod, K.KursID
             ORDER BY P.ProgramKod, PO.PlanOmgangID, LA.Arskurser, I.InriktningID, L.Valfrihetsgrad, K.KursID";
         
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
