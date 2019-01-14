@@ -94,7 +94,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             KI.Ovrigt,
             KI.Prestationbed,
             KI.syfte,
-            KI.Urval,
+            KI.Urval
             FROM LubasPP_dbo.Kurs K 
             JOIN LubasPP_dbo.KursInfo KI ON K.KursID = KI.KursFK AND K.Nedlagd = 0
             JOIN LubasPP_dbo.Kurs_Program KP ON K.KursID = KP.KursFK AND KP.UtbStatusProg != 'NERLAGD' 
