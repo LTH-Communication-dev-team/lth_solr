@@ -164,18 +164,18 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             //Build abstract
             $abstract = '';
             $i=0;
-            $abstract .= $this->langChoice("<h2>Syfte</h2>","<h2>Aim</h2>",$syslang);
+            $abstract .= $this->langChoice(array("<h3>Syfte</h3>","<h3>Aim</h3>"),$syslang);
             $abstract .= $syfte;
-            $abstract .= $this->langChoice("<h2>Mål</h2>", "<h2>Learning outcomes</h2>", $syslang);
-            $abstract .= "<h2>Mål</h2>$LarandeMal1";
+            $abstract .= $this->langChoice(array("<h3>Mål</h3>", "<h3>Learning outcomes</h3>"), $syslang);
+            $abstract .= $LarandeMal1;
             $abstract .= $LarandeMal2;
             $abstract .= $LarandeMal3;
-            $abstract .= $this->langChoice("<h2>Kursinnehåll</h2>", "<h2>Contents</h2>", $syslang);
-            $abstract .= "$Innehall";
+            $abstract .= $this->langChoice(array("<h3>Kursinnehåll</h3>", "<h3>Contents</h3>"), $syslang);
+            $abstract .= $Innehall;
             $abstract .= $Betygskala;
             $abstract .= $Prestationbed;
             if(is_array($Titel)) {
-                $abstract .= $this->langChoice("<h2>Litteratur</h2>","<h2>Reading list</h2>", $syslang);
+                $abstract .= $this->langChoice(array("<h3>Litteratur</h3>","<h3>Reading list</h3>"), $syslang);
                 $abstract .= '<ul>';
                 foreach($Titel as $value) {
                    $abstract .= '<li>' . $Forfattare[$i] . ': ' . $Titel[$i] . $this->addComma($Forlag[$i]) . $this->addComma($Utgivningsar[$i]) . $this->addComma($ISBN[$i]) . '</li>';
