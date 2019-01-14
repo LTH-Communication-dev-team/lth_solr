@@ -75,13 +75,12 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             I.InriktningSve, I.InriktningID, I.Allman AS InriktningAllman,
             PO.Omgang, PO.PlanOmgangID, 
             LA.Arskurser,
-            LI.FriText_en, LI.FriText_sv,
-            GROUP_CONCAT(REPLACE(LI.Forfattare,'|','') SEPARATOR '|') AS Forfattare,
-            GROUP_CONCAT(REPLACE(LI.Forlag,'|','') SEPARATOR '|') AS Forlag,
-            GROUP_CONCAT(REPLACE(LI.ISBN,'|','') SEPARATOR '|') AS ISBN,
-            GROUP_CONCAT(REPLACE(LI.Titel,'|','') SEPARATOR '|') AS Titel,
-            GROUP_CONCAT(REPLACE(LI.Undertitel,'|','') SEPARATOR '|') AS Undertitel,
-            GROUP_CONCAT(REPLACE(LI.Utgivningsar,'|','') SEPARATOR '|') AS Utgivningsar,
+            GROUP_CONCAT(DISTINCT REPLACE(LI.Forfattare,'|','') SEPARATOR '|') AS Forfattare,
+            GROUP_CONCAT(DISTINCT REPLACE(LI.Forlag,'|','') SEPARATOR '|') AS Forlag,
+            GROUP_CONCAT(DISTINCT REPLACE(LI.ISBN,'|','') SEPARATOR '|') AS ISBN,
+            GROUP_CONCAT(DISTINCT REPLACE(LI.Titel,'|','') SEPARATOR '|') AS Titel,
+            GROUP_CONCAT(DISTINCT REPLACE(LI.Undertitel,'|','') SEPARATOR '|') AS Undertitel,
+            GROUP_CONCAT(DISTINCT REPLACE(LI.Utgivningsar,'|','') SEPARATOR '|') AS Utgivningsar,
             A.AvdelningSve, 
             A.AvdelningEng, A.Id AS AvdelningId, 
             KO.kursOrtSve, KO.kursOrtEng, 
@@ -172,8 +171,9 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $abstract .= $LarandeMal3;
             $abstract .= $this->langChoice(array("<h3>Kursinnehåll</h3>", "<h3>Contents</h3>"), $syslang);
             $abstract .= $Innehall;
-            $abstract .= $Betygskala;
-            $abstract .= $Prestationbed;
+            $abstract .= $this->langChoice(array("<h3>Kursens examination</h3>", "<h3>Examination details</h3>"), $syslang);
+            $abstract .= "<p><b>Betygsskala:</b> $Betygskala<p>";
+            $abstract .= "<p><b>Prestationsbedömning:</b> $Prestationbed<p>";
             if(is_array($Titel)) {
                 $abstract .= $this->langChoice(array("<h3>Litteratur</h3>","<h3>Reading list</h3>"), $syslang);
                 $abstract .= '<ul>';
