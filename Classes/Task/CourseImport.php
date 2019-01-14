@@ -271,7 +271,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     public function addComma($input)
     {
         if($input) {
-            $input .= ", " + $input;
+            $input = ", " . $input;
         }
         return $input;
     }
