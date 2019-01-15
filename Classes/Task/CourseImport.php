@@ -128,7 +128,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $InriktningEng = $row['InriktningEng'];
             $InriktningID = $row['InriktningID'];
             $InriktningSve = $row['InriktningSve'];
-            $ISBN = explode('|', $row['ISBN']);
+            $ISBN = preg_split('/|/', $row['ISBN'], null, PREG_SPLIT_NO_EMPTY);
             $KursID = $row['KursID'];
             $KursEng = $row['KursEng'];
             $KursID = $row['KursID'];
@@ -155,10 +155,10 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $Sprak = $row['Sprak'];
             $startDatum = $row['startDatum'];
             $syfte = $this->langChoice(explode('|', $row['syfte']),$syslang);
-            $Titel = explode('|', $row['Titel']);
-            $Undertitel = explode('|', $row['Undertitel']);
+            $Titel = preg_split('/|/', $row['Titel'], null, PREG_SPLIT_NO_EMPTY);
+            $Undertitel = preg_split('/|/', $row['Undertitel'], null, PREG_SPLIT_NO_EMPTY);
             $Urval = $row['Urval'];
-            $Utgivningsar = explode('|', $row['Utgivningsar']);
+            $Utgivningsar = preg_split('/|/', $row['Utgivningsar'], null, PREG_SPLIT_NO_EMPTY);
             $Valfrihetsgrad = $row['Valfrihetsgrad'];
             $Webbsida = $row['Webbsida'];
             //Build abstract
