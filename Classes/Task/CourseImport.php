@@ -108,7 +108,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             LEFT JOIN LubasPP_dbo.KursOrt KO ON K.kusrOrtFK = KO.Id
             LEFT JOIN LubasPP_dbo.KursTakt KT ON K.kursTaktFK = KT.Id
             WHERE K.Nedlagd = 0 AND K.Kurskod NOT LIKE '%??%' 
-            GROUP BY P.ProgramKod, K.KursID
+            GROUP BY P.ProgramKod, I.InriktningID, K.KursID
             ORDER BY P.ProgramKod, PO.PlanOmgangID, LA.Arskurser, I.InriktningID, L.Valfrihetsgrad, K.KursID";
         
         $res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
