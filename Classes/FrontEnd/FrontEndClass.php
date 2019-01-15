@@ -677,11 +677,11 @@ class FrontEndClass
                               </button>
                             </div>
                             <div style="margin-left:15px;"><span class="fa fa-info-circle"></span> Denna kurslistning är bara till för att ge en överblick över programmens kurser. För LTHs officiella information om kurser se: https://kurser.lth.se</div>
-                            <div style="margin:10px 10px 0px 10px;width:95%;clear:both;"><a class="lth_solr_prev_course" style="float:left;"><span class="fa fa-chevron-left"></span> Föregående kurs</a><a class="lth_solr_next_course" style="float:right;">Nästa kurs <span class="fa fa-chevron-right"></span></a></div>
+                            <div style="margin:10px 10px 0px 10px;clear:both;"><a class="lth_solr_prev_course" style="float:left;"><span class="fa fa-chevron-left"></span> Föregående kurs</a><a class="lth_solr_next_course" style="float:right;">Nästa kurs <span class="fa fa-chevron-right"></span></a></div>
                             <div class="modal-body">
                               <p>Modal body text goes here.</p>
                             </div>
-                            <div style="margin:10px 10px 0px 10px;width:95%;clear:both;"><a class="lth_solr_prev_course" style="float:left;"><span class="fa fa-chevron-left"></span> Föregående kurs</a><a class="lth_solr_next_course" style="float:right;">Nästa kurs <span class="fa fa-chevron-right"></span></a></div>
+                            <div style="margin:10px 10px 0px 10px;clear:both;"><a class="lth_solr_prev_course" style="float:left;"><span class="fa fa-chevron-left"></span> Föregående kurs</a><a class="lth_solr_next_course" style="float:right;">Nästa kurs <span class="fa fa-chevron-right"></span></a></div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                             </div>
