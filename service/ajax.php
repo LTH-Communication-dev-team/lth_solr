@@ -220,16 +220,16 @@ function showCourse($dataSettings, $config)
         
     foreach ($response as $document) {
         $data = array(
-            "department" => $document->department,
             "courseCode" => $document->courseCode,
+            "courseForkunKrav" => $document->courseForkunKrav,
+            "coursePace" => $document->coursePace,
+            "courseSlutDatum" => $document->courseSlutDatum,
+            "courseSlutDatum" => $document->courseSlutDatum,
             "courseTitle" => $document->courseTitle,
             "credit" => $document->credit,
+            "department" => $document->department,
             "homepage" => $document->homepage,
-            "ratingScale" => $document->ratingScale,
-            "courseForkunKrav" => $document->courseForkunKrav,
-            "courseSlutDatum" => $document->courseSlutDatum,
-            "courseSlutDatum" => $document->courseSlutDatum,
-            "coursePace" => $document->coursePace
+            "ratingScale" => $document->ratingScale
         );
     }
     
@@ -387,9 +387,11 @@ function listCompare($dataSettings, $config)
     $roundId = $dataSettings['roundId'];
     if(!$roundId) $roundId = $dataSettings['globalRoundId'];
     $term = '';
+    $prevId = '';
+    $i=0;
     
-    $fieldArray = array("id","courseCode","courseTitle","courseYear","credit","homepage",
-        "optional","programCode","programDirection","programTitle","ratingScale");
+    $fieldArray = array("id","courseCode","courseSelection","courseSelectionSort","courseType","courseTitle","courseYear","credit","homepage",
+        "optional","programCode","programDirection","programDirectionGeneral","programTitle","ratingScale");
     
     $client = new Solarium\Client($config);
 
@@ -406,7 +408,7 @@ function listCompare($dataSettings, $config)
         $term = " AND ($term) ";
     }
     
-    $queryToSet = "docType:course AND courseYear:* AND roundId:$roundId$term";
+    $queryToSet = "docType:course AND courseYear:* AND roundId:$roundId  AND -courseTitle:Kandidatarbete*$term";
 
     $query->setQuery($queryToSet);
         
@@ -417,8 +419,7 @@ function listCompare($dataSettings, $config)
     $sortArray = array(
         'programTitle' => 'asc',
         'courseYear' => 'asc',
-        'programDirection' => 'asc',
-        'optionalSort' => 'asc',
+        'courseSelectionSort' => 'asc',
         'courseTitle' => 'asc'
     );
     
@@ -428,19 +429,60 @@ function listCompare($dataSettings, $config)
     
     $numFound = $response->getNumFound();
     
+    /*
+     * "courseCode":"vtvm01",
+        "courseTitle":"Examensarbete i trafikteknik",
+        "courseType":"EXAMENSARBETE",
+        "optional":"valfri",
+        "programDirection":"Allmän inriktning V",
+        "programDirectionGeneral":1},
+     */
+    
     foreach ($response as $document) {
-        $data[$document->programTitle][$document->courseYear][$document->programDirection][$document->optional][] = array(
+        
+        $data[$document->programTitle][$document->courseYear][$document->courseSelectionSort.$document->courseSelection][$document->courseCode] = array(
             "courseCode" => $document->courseCode,
+            "courseType" => $document->courseType,
             "courseTitle" => $document->courseTitle,
             "credit" => $document->credit,
             "id" => $document->id,
+            "prevId" => $prevId,
+            "optional" => $document->optional,
+            "programDirectionGeneral" => $document->programDirectionGeneral,
             "ratingScale" => $document->ratingScale
         );
+        if($prevKey) {
+            $pArray = explode(',', $prevKey);
+            $data[$pArray[0]][$pArray[1]][$pArray[2]][$pArray[3]]["nextId"] = $document->id;
+        }
+        $prevKey = implode(',', array($document->programTitle,$document->courseYear,$document->courseSelectionSort.$document->courseSelection,$document->courseCode));
+        $prevId = $document->id;
+        $i++;
     }
     
     $resArray = array('data' => $data, 'numFound' => $numFound, 'query' => $queryToSet);
     
     return json_encode($resArray);
+}
+
+
+function getCourseType($courseType,$optional,$programDirection,$programDirectionGeneral)
+{
+    if($optional==='obligatorisk') {
+        $output = 'Obligatoriska kurser';
+    } else if($optional==='alternativ_obligatorisk') {
+        $output = 'Alternativobligatoriska kurser';
+    } else if($programDirectionGeneral==0) {
+        $output = 'Specialisering - ' . $programDirection;
+    } else if($courseType==='EXAMENSARBETE') {
+        $output = 'Examensarbeten';
+    } else if($optional === 'externt_valfri') {
+        $output = 'Externt valfria kurser';
+    } else if($optional === 'valfri') {
+        $output = 'Valfria kurser';
+    }
+    return $output;
+    //$output = Examensarbeten / Externt valfria kurser / Valfria kurser / Specialisering p - Processdesign / Obligatoriska kurser / Alternativobligatoriska kurser
 }
 
 
@@ -469,8 +511,10 @@ function showCompare($dataSettings, $config)
             "abstract" => $document->abstract,
             "courseCode" => $document->courseCode,
             "courseTitle" => $document->courseTitle,
+            "courseYear" => $document->courseYear,
             "credit" => $document->credit,
             "id" => $document->id,
+            "programTitle" => $document->programTitle,
             "ratingScale" => $document->ratingScale
         );
     }

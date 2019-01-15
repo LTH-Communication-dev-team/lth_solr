@@ -645,8 +645,14 @@ class FrontEndClass
     
     public function compare($round, $scope, $wrapper)
     {
-        $content = '';
-        $content .= '<div id="lthsolr_compare_container" class="row"></div>';
+        $content = '<style>#lthsolr_compare_container .list-group-item {padding-left:5px;}'
+                . '.lth_solr_next_course, .lth_solr_prev_course {cursor:pointer;}'
+                . '@media (min-width: 776px){.modal-dialog {max-width: 700px;}}'
+                . 'a.disabled { opacity: 0.5; pointer-events: none; cursor: default;}</style>';
+        
+        $content .= '<div style="margin-left:15px;"><span class="fa fa-info-circle"></span> Denna kurslistning är bara till för att ge en överblick över programmens kurser. För LTHs officiella information om kurser se: https://kurser.lth.se</div>';
+        
+        $content .= '<div id="lthsolr_compare_container" class=""></div>';
 
         //$content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/compare.html");
 
@@ -661,20 +667,23 @@ class FrontEndClass
         }
         
         $content .= '<!-- compareModal -->
-                    <div id="compareModal" class="modal" tabindex="-1" role="dialog" style="max-width:25%;">
+                    <div id="compareModal" class="modal" tabindex="-1" role="dialog" style="">
                         <div class="modal-dialog" role="document">
                           <div class="modal-content">
-                            <div class="modal-header">
-                              <h5 class="modal-title">Modal title</h5>
+                            <div class="modal-header" style="">
+                              <h2 class="modal-title" style="font-size:24px;">Modal title</h2>
                               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                               </button>
                             </div>
+                            <div style="margin-left:15px;"><span class="fa fa-info-circle"></span> Denna kurslistning är bara till för att ge en överblick över programmens kurser. För LTHs officiella information om kurser se: https://kurser.lth.se</div>
+                            <div style="margin:10px 10px 0px 10px;width:95%;clear:both;"><a class="lth_solr_prev_course" style="float:left;"><span class="fa fa-chevron-left"></span> Föregående kurs</a><a class="lth_solr_next_course" style="float:right;">Nästa kurs <span class="fa fa-chevron-right"></span></a></div>
                             <div class="modal-body">
                               <p>Modal body text goes here.</p>
                             </div>
+                            <div style="margin:10px 10px 0px 10px;width:95%;clear:both;"><a class="lth_solr_prev_course" style="float:left;"><span class="fa fa-chevron-left"></span> Föregående kurs</a><a class="lth_solr_next_course" style="float:right;">Nästa kurs <span class="fa fa-chevron-right"></span></a></div>
                             <div class="modal-footer">
-                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                             </div>
                           </div>
                         </div>

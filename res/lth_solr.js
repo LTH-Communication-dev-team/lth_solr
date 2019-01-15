@@ -468,10 +468,6 @@ function showJob()
             
         },
         success: function(d) {
-            
-            
-            //$('.article').html('<div class="lthPackageLoader"></div>');
-            //$('.lthsolr_loader').remove();
             if(d.data.abstract) {
                 //$('main > div > div:eq(0)').empty();
                 abstract = '';
@@ -548,8 +544,10 @@ function listCompare(action)
     var syslang = $('html').attr('lang');
     var roundId = $('#lth_solr_round').val();
     var scope = $('#lth_solr_scope').val();
-    var courseCode,courseTitle,courseYear,credit,homepage,id,optional,programCode,programDirection,programTitle,ratingScale;
-    var i = 0;
+    var courseCode,courseTitle,courseType,courseYear,credit,
+        homepage,id,nextId,optional,prevId,programCode,programDirection,
+        programDirectionGeneral,programTitle,ratingScale;
+    var i=0, ii=0;
 
     $.ajax({
         type : 'POST',
@@ -581,79 +579,95 @@ function listCompare(action)
                     } else {
                         $('#lthsolr_compare_container').append('<div class="col"><table class="table table striped" id="'+programKey+'"><thead class="thead-dark"><tr></tr></thead><tbody><tr></tr></tbody></table></div>');
                     }
-                    //console.log(Object.keys(d.data).length);
                     $.each( programData, function (arskursKey, arskursData) {
+                        i=0;
                         if(arskursData) {
                             if(Object.keys(d.data).length > 1) {
-                                $("[id='"+programKey+"']").append('<div id="'+programKey+arskursKey+'" class="card-header">Årskurs'+arskursKey+'</div>');
+                                $("[id='"+programKey+"']").append('<div id="'+programKey+arskursKey+'" class="card-header">Årskurs '+arskursKey+'</div>');
                             } else {
-                                $("[id='"+programKey+"'] > thead > tr").append('<th>Årskurs'+arskursKey+'</th>');
+                                $("[id='"+programKey+"'] > thead > tr").append('<th>Årskurs '+arskursKey+'</th>');
                                 $("[id='"+programKey+"'] > tbody > tr").append('<td><div id="'+programKey+arskursKey+'"></div></td>');
                             }
-                        }
-                        $.each( arskursData, function (inriktningKey, inriktningData) {
-                            if(inriktningData) {
-                                $("[id='"+programKey+arskursKey+"']").append('<div id="'+programKey+arskursKey+inriktningKey+'">'+inriktningKey+'</div>');
-                            }
-                            $.each( inriktningData, function (optionalKey, optionalData) {
-                                if(optionalKey === 'obligatorisk') {
-                                    
+                        }                           
+                        $.each( arskursData, function (kurstypKey, kurstypData) {
+                            kurstypKey = kurstypKey.substr(1,kurstypKey.length);
+                            if(kurstypKey.substr(0,14) === 'Specialisering' || kurstypKey.substr(0,14) === 'Examensarbeten') {
+                                if(i===0) {
+                                    $("[id='"+programKey+arskursKey+"']").append('<div><b>Specialiseringar</b></div>');
                                 }
-                                if(optionalData) {
-                                    if(optionalKey === 'obligatorisk') {
-                                        $("[id='"+programKey+arskursKey+inriktningKey+"']").append('<div>' + titleCase(optionalKey.replace('_','')) + '</div><ul id="'+programKey+arskursKey+inriktningKey+optionalKey+'" class="list-group list-group-flush"></ul>');
+                                if(kurstypKey.substr(0,14) === 'Examensarbeten' && ii === 0) {
+                                    $("[id='"+programKey+arskursKey+"']").append('<div><b>Examensarbeten</b></div>');
+                                    ii++;
+                                }
+                                $("[id='"+programKey+arskursKey+"']").append('<div class="accordion" id="accordion'+i+'"><div class="card">'+
+                                '<div class="card-header" id="heading'+i.toString()+'"><h5><button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse'+i.toString()+
+                                '" aria-expanded="true" aria-controls="collapse'+i.toString()+'">'+
+                                    '<div class="float-right"><span class="collapse-hide"><i class="fal fa-chevron-up"></i></span><span class="collapse-show">'+
+                                    '<i class="fal fa-chevron-down"></i></span></div>'+
+                                    titleCase(kurstypKey.replace('Specialisering - ','')) +
+                                  '</button></h5></div><div id="collapse'+i.toString()+'" class="collapse" aria-labelledby="heading'+i.toString()+'" data-parent="#accordion'+i.toString()+'"><div class="card-body">'+
+                                    '<ul id="'+programKey+arskursKey+kurstypKey+'" class="list-group list-group-flush"></ul></div></div></div></div>');
+                                i++;
+                            } else {
+                                $("[id='"+programKey+arskursKey+"']").append('<div><b>' + kurstypKey + '</b></div><ul id="'+programKey+arskursKey+kurstypKey+'" class="list-group list-group-flush"></ul>');
+                            }
+                            $.each( kurstypData, function (kursKey, kursData) {
+                                /*if(optionalData) {
+                                    if(arskursKey < 4) {
+                                        $("[id='"+programKey+arskursKey+"']").append('<div><b>' + titleCase(optionalKey.replace('_','-').replace('valfri','Valfria kurser').replace('obligatorisk','Obligatoriska kurser')) + '</b></div><ul id="'+programKey+arskursKey+inriktningKey+optionalKey+'" class="list-group list-group-flush"></ul>');
                                     } else {
-                                        $("[id='"+programKey+arskursKey+inriktningKey+"']").append('<div class="accordion" id="accordion'+i+'"><div class="card">'+
-        '<div class="card-header" id="heading'+i.toString()+'"><h5><button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse'+i.toString()+
-        '" aria-expanded="true" aria-controls="collapse'+i.toString()+'">'+
-            '<div class="float-right"><span class="collapse-hide"><i class="fal fa-chevron-up"></i></span><span class="collapse-show"><i class="fal fa-chevron-down"></i></span></div>'+
-            titleCase(optionalKey.replace('_','')) +
-          '</button></h5></div><div id="collapse'+i.toString()+'" class="collapse" aria-labelledby="heading'+i.toString()+'" data-parent="#accordion'+i.toString()+'"><div class="card-body">'+
-            '<ul id="'+programKey+arskursKey+inriktningKey+optionalKey+'" class="list-group list-group-flush"></ul></div></div></div></div>');
+                                        $("[id='"+programKey+arskursKey+"']").append('<div class="accordion" id="accordion'+i+'"><div class="card">'+
+                                        '<div class="card-header" id="heading'+i.toString()+'"><h5><button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse'+i.toString()+
+                                        '" aria-expanded="true" aria-controls="collapse'+i.toString()+'">'+
+                                            '<div class="float-right"><span class="collapse-hide"><i class="fal fa-chevron-up"></i></span><span class="collapse-show">'+
+                                            '<i class="fal fa-chevron-down"></i></span></div>'+
+                                            inriktningKey.replace('Allmän inriktning','Valfria kurser') +
+                                          '</button></h5></div><div id="collapse'+i.toString()+'" class="collapse" aria-labelledby="heading'+i.toString()+'" data-parent="#accordion'+i.toString()+'"><div class="card-body">'+
+                                            '<ul id="'+programKey+arskursKey+inriktningKey+optionalKey+'" class="list-group list-group-flush"></ul></div></div></div></div>');
                                         i++;
                                     }
                                 }
-                                     //collapse_6
-                                     //collapse_6
-                                $.each( optionalData, function (courseKey, courseData) {
-                                    //console.log(optionalData);
+                                $.each( optionalData, function (courseKey, kursData) {*/
                                     courseCode = '';
                                     courseTitle = '';
+                                    courseType = '';
                                     courseYear = '';
                                     credit = '';
                                     homepage = '';
                                     id = '';
+                                    nextId = '';
                                     optional = '';
+                                    prevId = '';
                                     programCode = '';
                                     programDirection = '';
+                                    programDirectionGeneral = '';
                                     programTitle = '';
                                     ratingScale = '';
 
-                                    if(courseData.courseCode) courseCode = courseData.courseCode.toUpperCase();
-                                    if(courseData.courseTitle) courseTitle = courseData.courseTitle;
-                                    if(courseData.courseYear) courseYear = courseData.courseYear;
-                                    if(courseData.credit) credit = courseData.credit;
-                                    if(courseData.id) id = courseData.id;
-                                    if(courseData.optional) optional = courseData.optional;
-                                    if(courseData.programDirection) programDirection = courseData.programDirection;
-                                    if(courseData.ratingScale) ratingScale = courseData.ratingScale;
+                                    if(kursData.courseCode) courseCode = kursData.courseCode.toUpperCase();
+                                    if(kursData.courseTitle) courseTitle = kursData.courseTitle;
+                                    if(kursData.courseType) courseType = kursData.courseType;
+                                    if(kursData.courseYear) courseYear = kursData.courseYear;
+                                    if(kursData.credit) credit = kursData.credit;
+                                    if(kursData.id) id = kursData.id;
+                                    if(kursData.nextId) nextId = kursData.nextId;
+                                    if(kursData.optional) optional = kursData.optional;
+                                    if(kursData.prevId) prevId = kursData.prevId;
+                                    if(kursData.programDirection) programDirection = kursData.programDirection;
+                                    if(kursData.programDirectionGeneral) programDirectionGeneral = kursData.programDirectionGeneral;
+                                    if(kursData.ratingScale) ratingScale = kursData.ratingScale;
 
-                                    /*template = template.replace('###id###', id);
-                                    template = template.replace('###courseTitle###', courseTitle);
-                                    template = template.replace('###courseYear###', courseYear);
-                                    template = template.replace('###credit###', credit);
-                                    template = template.replace('###optional###', optional);
-                                    template = template.replace('###programDirection###',programDirection);
-                                    template = template.replace('###ratingScale###',ratingScale);*/
-
-                                    $("[id='"+programKey+arskursKey+inriktningKey+optionalKey+"']").append('<li id="'+id+'" class="list-group-item">'+courseCode+' '+courseTitle + '</li>');
+                                    /*if(courseType === 'EXAMENSARBETE') {
+                                        $("[id='"+programKey+arskursKey+kurstypKey+"']").parent().parent().prev().find('h5 button').text('Examensarbete');
+                                    }*/
+                                    
+                                    $("[id='"+programKey+arskursKey+kurstypKey+"']").append('<li id="'+id+'" data-prevId="'+prevId+'" data-nextId="'+nextId+'" class="list-group-item">'+courseCode+', '+courseTitle+', '+credit.replace('.0','')+'hp</li>');
                                     $("[id='"+id+"']").click(function(){
                                         $('#compareModal').modal('toggle');
-                                        showCompare(id);
+                                        showCompare(this.id);
                                     });
-                                });
+                                //});
                             });
-                            //var template = $('#solrCompareTemplate').html();
                         });
                     }); 
                 });
@@ -663,11 +677,23 @@ function listCompare(action)
 }
 
 
-function showCompare(scope)
+function showCompare(kursId)
 {
     var syslang = $('html').attr('lang');
     var abstract,courseCode,courseTitle,courseYear,credit,homepage,id,optional,programCode,programDirection,programTitle,ratingScale;
 
+    /*if($(scope).next().attr('id')) {
+        console.log('Next: ' + $(scope).next().attr('id'));
+    } else if($(scope).parent().next().next().attr('id')) {
+        console.log('Next: ' + $(scope).parent().next().next('').find('li').attr('id'));
+    } else if($(scope).parent().parent().parent().next().find('li').attr('id')) {
+        console.log('Next: ' + $(scope).parent().parent().parent().next().find('li').attr('id'));
+    } else if($(scope).parent().parent().parent().parent().parent().next().next().find('li').attr('id')) {
+        console.log('Next: ' + $(scope).parent().parent().parent().parent().parent().next().next().find('li').attr('id'));
+    } else if($(scope).parent().parent().parent().parent().parent().parent().parent().next().find('li').attr('id')) {
+        console.log('Next: ' + $(scope).parent().parent().parent().parent().parent().parent().parent().next().find('li').attr('id'));
+    }*/
+    
     $.ajax({
         type : 'POST',
         url : 'index.php',
@@ -676,7 +702,7 @@ function showCompare(scope)
             action: 'showCompare',
             dataSettings: {
                 syslang: syslang,
-                scope: scope,
+                scope: kursId,
                 pageid: $('body').attr('id')
             },
             sid: Math.random(),
@@ -698,7 +724,7 @@ function showCompare(scope)
                     courseYear = '';
                     credit = '';
                     homepage = '';
-                    id = '';
+                    
                     optional = '';
                     programCode = '';
                     programDirection = '';
@@ -706,9 +732,30 @@ function showCompare(scope)
                     ratingScale = '';
                     if(aData.abstract) abstract = aData.abstract;
                     if(aData.courseCode) courseCode = aData.courseCode.toUpperCase();
+                    if(aData.courseYear) courseYear = aData.courseYear;
                     if(aData.courseTitle) courseTitle = aData.courseTitle;
-                    $('#compareModal .modal-title').html(courseCode + ' ' + courseTitle);
+                    if(aData.credit) credit = aData.credit;
+                    if(aData.programTitle) programTitle = aData.programTitle;
+                    
+                    $('#compareModal .modal-title').html(courseTitle);
+                    $('#compareModal .modal-title').attr('title',courseTitle);
+                    $('#compareModal .modal-title').append('<br/><span style="font-size:14px;font-weight:bold;">' +  courseCode + ', ' + credit + 'hp, ' + programTitle + ' årskurs ' + courseYear + '</span>');
                     $('#compareModal .modal-body').html(abstract);
+
+                    if($('#'+kursId).attr('data-prevId').length>0) {
+                        $(".lth_solr_prev_course").off().removeClass('disabled').click(function(){
+                            showCompare($('#'+kursId).attr('data-prevId'));
+                        });
+                    } else {
+                        $(".lth_solr_prev_course").addClass('disabled');
+                    }
+                    if($('#'+kursId).attr('data-nextId').length>0) {
+                        $(".lth_solr_next_course").off().removeClass('disabled').click(function(){
+                            showCompare($('#'+kursId).attr('data-nextId'));
+                        });
+                    } else {
+                        $(".lth_solr_next_course").addClass('disabled');
+                    }
                 });
             }
         }
