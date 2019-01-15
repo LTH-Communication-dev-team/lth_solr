@@ -176,13 +176,15 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $abstract .= "<p><b>Betygsskala:</b> " . $betygskalaArray["$Betygskala"] . "<p>";
             $abstract .= "<p><b>Prestationsbedömning:</b> $Prestationbed<p>";
             if(is_array($Titel)) {
-                $abstract .= $this->langChoice(array("<h3>Litteratur</h3>","<h3>Reading list</h3>"), $syslang);
-                $abstract .= '<ul>';
-                foreach($Titel as $value) {
-                   if($Forfattare[$i]) $abstract .= '<li>' . $Forfattare[$i] . ': ' . $Titel[$i] . $this->addComma($Forlag[$i]) . $this->addComma($Utgivningsar[$i]) . $this->addComma($ISBN[$i]) . '</li>';
-                   $i++;
+                if(count($Titel) > 0) {
+                    $abstract .= $this->langChoice(array("<h3>Litteratur</h3>","<h3>Reading list</h3>"), $syslang);
+                    $abstract .= '<ul>';
+                    foreach($Titel as $value) {
+                       if($Forfattare[$i]) $abstract .= '<li>' . $Forfattare[$i] . ': ' . $Titel[$i] . $this->addComma($Forlag[$i]) . $this->addComma($Utgivningsar[$i]) . $this->addComma($ISBN[$i]) . '</li>';
+                       $i++;
+                    }
+                    $abstract .= '</ul>';
                 }
-                $abstract .= '</ul>';
             }
             
             $courseSelectionTemp = $this->getCourseType($kurstypTyp,$Valfrihetsgrad,$this->langChoice(array($InriktningSve, $InriktningEng), $syslang),$InriktningAllman);
