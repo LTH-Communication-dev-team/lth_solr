@@ -179,7 +179,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $abstract .= $this->langChoice(array("<h3>Litteratur</h3>","<h3>Reading list</h3>"), $syslang);
                 $abstract .= '<ul>';
                 foreach($Titel as $value) {
-                   $abstract .= '<li>' . $Forfattare[$i] . ': ' . $Titel[$i] . $this->addComma($Forlag[$i]) . $this->addComma($Utgivningsar[$i]) . $this->addComma($ISBN[$i]) . '</li>';
+                   if($Forfattare[$i]) $abstract .= '<li>' . $Forfattare[$i] . ': ' . $Titel[$i] . $this->addComma($Forlag[$i]) . $this->addComma($Utgivningsar[$i]) . $this->addComma($ISBN[$i]) . '</li>';
                    $i++;
                 }
                 $abstract .= '</ul>';
