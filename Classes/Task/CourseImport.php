@@ -63,6 +63,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     public function getCourses($config, $syslang)
     {
         $valfrihetsgradsArray = array('obligatorisk' => 0,'alternativ_obligatorisk' => 1,'valfri' => 2,'externt_valfri' => 3);
+        $betygskalaArray = array('TH' => 'TH - (U,3,4,5) - (Underkänd, Tre, Fyra, Fem)', 'UG' => 'UG - (U,G) - (Underkänd, Godkänd)', 'UV' => 'UV - (U,G,VG) - (Underkänd, Godkänd, Väl godkänd)');
         $client = new \Solarium\Client($config);
         $update = $client->createUpdate();
         $buffer = $client->getPlugin('bufferedadd');
@@ -172,7 +173,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $abstract .= $this->langChoice(array("<h3>Kursinnehåll</h3>", "<h3>Contents</h3>"), $syslang);
             $abstract .= $Innehall;
             $abstract .= $this->langChoice(array("<h3>Kursens examination</h3>", "<h3>Examination details</h3>"), $syslang);
-            $abstract .= "<p><b>Betygsskala:</b> $Betygskala<p>";
+            $abstract .= "<p><b>Betygsskala:</b> " . $betygskalaArray["$Betygskala"] . "<p>";
             $abstract .= "<p><b>Prestationsbedömning:</b> $Prestationbed<p>";
             if(is_array($Titel)) {
                 $abstract .= $this->langChoice(array("<h3>Litteratur</h3>","<h3>Reading list</h3>"), $syslang);
