@@ -645,11 +645,11 @@ class FrontEndClass
     
     public function compare($round, $scope, $wrapper)
     {
-        $content = '<style>#lthsolr_compare_container .list-group-item {padding-left:5px;}'
+        /*$content = '<style>#lthsolr_compare_container .list-group-item {padding-left:5px;}'
                 . '.lth_solr_next_course, .lth_solr_prev_course {cursor:pointer;}'
                 . '@media (min-width: 776px){.modal-dialog {max-width: 700px;}}'
                 . 'a.disabled { opacity: 0.5; pointer-events: none; cursor: default;}</style>';
-        
+        */
         $content .= '<div style="margin-left:15px;"><span class="fa fa-info-circle"></span> Denna kurslistning är bara till för att ge en överblick över programmens kurser. För LTHs officiella information om kurser se: https://kurser.lth.se</div>';
         
         $content .= '<div id="lthsolr_compare_container" class=""></div>';
