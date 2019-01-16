@@ -1029,7 +1029,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
     if($action==='listComingDissertations') {
         $listComingDissertations = ' AND awardedDate:[' . $currentDate . ' TO *]';
     }
-    $queryToSet = 'docType:publication' . $listComingDissertations . ' AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . ']' . $term . $keyword . $publicationSelection . $filterQuery;
+    $queryToSet = 'docType:publication AND (workflow:Granskad OR workflow:Validated)' . $listComingDissertations . ' AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . ']' . $term . $keyword . $publicationSelection . $filterQuery;
 
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
@@ -1563,7 +1563,7 @@ function listTagCloud($scope, $syslang, $config, $pageid, $path, $tableLength)
         }
     }
 
-    $queryToSet = 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND ('.$term.')';
+    $queryToSet = 'docType:publication AND (workflow:Granskad OR workflow:Validated) AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND ('.$term.')';
     $query->setQuery($queryToSet);
     //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => 'docType:publication AND -' . $hideVal . ':1 AND publicationDateYear:[* TO ' . date("Y") . '] AND ('.$term.')', 'crdate' => time()));
     //$query->addParam('rows', 1500);
