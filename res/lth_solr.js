@@ -737,7 +737,7 @@ function showCompare(kursId)
                     if(aData.credit) credit = aData.credit;
                     if(aData.programTitle) programTitle = aData.programTitle;
                     
-                    /*$('#compareModal .modal-title').html(courseTitle);
+                    $('#compareModal .modal-title').html(courseTitle);
                     $('#compareModal .modal-title').attr('title',courseTitle);
                     $('#compareModal .modal-title').append('<br/><span style="font-size:14px;font-weight:bold;">' +  courseCode + ', ' + credit + 'hp, ' + programTitle + ' årskurs ' + courseYear + '</span>');
                     $('#compareModal .modal-body').html(abstract);
@@ -755,7 +755,7 @@ function showCompare(kursId)
                         });
                     } else {
                         $(".lth_solr_next_course").addClass('disabled');
-                    }*/
+                    }
                 });
             }
         }
