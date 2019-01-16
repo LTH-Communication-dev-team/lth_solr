@@ -1220,7 +1220,7 @@ function showPublication($response, $term, $syslang, $config)
 
         $query = $client->createSelect();
 
-        $query->setQuery('id:'.$term);
+        $query->setQuery('id:'.$term.' AND (workflow:Granskad OR workflow:Validated)');
         
         $query->setFields($fieldArray);
 
