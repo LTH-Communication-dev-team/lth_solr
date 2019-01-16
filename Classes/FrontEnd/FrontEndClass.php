@@ -651,7 +651,7 @@ class FrontEndClass
                 .lth_solr_next_course, .lth_solr_prev_course {cursor:pointer;}
                 a.disabled { opacity: 0.5; pointer-events: none; cursor: default;}
                 @media (min-width:776px) {.modal-dialog {max-width:700px;}}
-                @media (max-width:576px) {.modal-dialog {max-width:350px;}}
+                @media (max-width:576px) {.modal-dialog {max-width:360px;}}
                 </style>';
         
         $content .= '<div style="margin-left:15px;"><span class="fa fa-info-circle"></span> Denna kurslistning är bara till för att ge en överblick över programmens kurser. För LTHs officiella information om kurser se: https://kurser.lth.se</div>';
