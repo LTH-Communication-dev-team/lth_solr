@@ -647,9 +647,9 @@ class FrontEndClass
     {
         $content = '<style>#lthsolr_compare_container .list-group-item {padding-left:5px;}'
                 . '.lth_solr_next_course, .lth_solr_prev_course {cursor:pointer;}'
-                . '@media (min-width: 776px){.modal-dialog {max-width: 700px;}}'
+                . '@medias (min-width: 776px){.modal-dialog {max-width: 700px;}}'
                 . 'a.disabled { opacity: 0.5; pointer-events: none; cursor: default;}'
-                . '@media (min-width:576px) {.modal-dialog {max-width:400px;}}</style>';
+                . '@medias (min-width:576px) {.modal-dialog {max-width:400px;}}</style>';
         
         $content .= '<div style="margin-left:15px;"><span class="fa fa-info-circle"></span> Denna kurslistning är bara till för att ge en överblick över programmens kurser. För LTHs officiella information om kurser se: https://kurser.lth.se</div>';
         
@@ -669,7 +669,7 @@ class FrontEndClass
         
         $content .= '<!-- compareModal -->
                     <div id="compareModal" class="modal" tabindex="-1" role="dialog" style="">
-                        <div class="modal-dialog" role="document">
+                        <div class="modal-dialog modal-sm">
                           <div class="modal-content">
                             <div class="modal-header" style="">
                               <h2 class="modal-title" style="font-size:24px;">Modal title</h2>
