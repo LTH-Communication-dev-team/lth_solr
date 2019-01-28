@@ -409,7 +409,7 @@ tr.details td.details-control {
     display:block;
 }
 
-.expand {
+#lthsolr_publications_container .expand {
     max-width:450px;
     padding-left:10px;
 }
@@ -451,7 +451,7 @@ tr.details td.details-control {
     height: 16px;
 }
 
-h2 a, h3 a, h4 a {
+/*h2 a, h3 a, h4 a {
     text-decoration:none !important;
 }
 h4 a, h4 {
@@ -462,7 +462,7 @@ h4 {
     font-size: 1em;
     line-height:1.6em;
     font-weight:bold;
-}
+}*/
 
 h2 {
 }

@@ -213,9 +213,33 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
             $FrontEndClass = new FrontEndClass();
             $FrontEndClass->addJsCss($display);
-            
+
+            $lth_solr_uuid = array();
+
+            if($fe_users) {
+                $fe_usersArray = explode(',', $fe_users);
+                foreach ($fe_usersArray as $fkey => $fvalue) {
+                    $lth_solr_uuid['fe_users'][] = $fvalue;
+                }
+                $scope = urlencode(json_encode($lth_solr_uuid));
+            }
+            if($fe_groups) {
+                $tmpArray = explode(',',$fe_groups);
+                foreach($tmpArray as $tmpValue) {
+                    $lth_solr_uuid['fe_groups'][] = $tmpValue;
+                }
+                $scope = urlencode(json_encode($lth_solr_uuid));
+            }
+            if($projects) {
+                $tmpArray = explode(',',$projects);
+                foreach($tmpArray as $tmpValue) {
+                    $lth_solr_uuid['projects'][] = $tmpValue;
+                }
+                $scope = urlencode(json_encode($lth_solr_uuid));
+            }
+                
             if($showType === 'publication') {
-                $content .= $FrontEndClass->showPublication($uuid);
+                $content .= $FrontEndClass->showPublication($scope, $uuid);
             } else if($showType==='department') {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_groups'][] = $uuid;
@@ -228,29 +252,6 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $scope = urlencode(json_encode($lth_solr_uuid));
                 $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
             } else {
-                $lth_solr_uuid = array();
-
-                if($fe_users) {
-                    $fe_usersArray = explode(',', $fe_users);
-                    foreach ($fe_usersArray as $fkey => $fvalue) {
-                        $lth_solr_uuid['fe_users'][] = $fvalue;
-                    }
-                    $scope = urlencode(json_encode($lth_solr_uuid));
-                }
-                if($fe_groups) {
-                    $tmpArray = explode(',',$fe_groups);
-                    foreach($tmpArray as $tmpValue) {
-                        $lth_solr_uuid['fe_groups'][] = $tmpValue;
-                    }
-                    $scope = urlencode(json_encode($lth_solr_uuid));
-                }
-                if($projects) {
-                    $tmpArray = explode(',',$projects);
-                    foreach($tmpArray as $tmpValue) {
-                        $lth_solr_uuid['projects'][] = $tmpValue;
-                    }
-                    $scope = urlencode(json_encode($lth_solr_uuid));
-                }
                 if($display === "tagcloud" && !$keyword) {
                     $content .= $FrontEndClass->listTagCloud($scope, $noItemsToShow, $categories);
                 } else {

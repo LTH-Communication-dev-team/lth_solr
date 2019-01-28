@@ -18,7 +18,7 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	$executionSucceeded = FALSE;
 
 	$executionSucceeded = $this->getPersonUuid();
-        $executionSucceeded = $this->getImageData();
+        //$executionSucceeded = $this->getImageData();
         
 	return $executionSucceeded;
     }
@@ -46,14 +46,16 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     function getPersonUuid()
     {
         $current = array();
+        
+        $current = array();
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("typo3_id,lucris_id", "tx_lthsolr_lucrisdata", "lucris_type='staff'");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $current[] = $row['typo3_id'];
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
-        
+       
         require(__DIR__.'/init.php');
-        $maximumrecords = 20;
+        $maximumrecords = 100;
         $numberofloops = 1;
         $current_date = gmDate("Y-m-d\TH:i:s\Z");
         
@@ -63,17 +65,8 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $db = $settings['db'];
         $user = $settings['user'];
         $pw = $settings['pw'];
-        
-        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("48; ".mysqli_error());
-     
-        $i=0;
-        $startrecord = 0;
-             
-        $lucrisId = $settings['solrLucrisId'];
-        $lucrisPw = $settings['solrLucrisPw'];
-        
-        //$sql = 'TRUNCATE TABLE tx_lthsolr_lucrisdata';
-        //$res = $GLOBALS['TYPO3_DB'] -> sql_query($sql);
+        $solrLucrisApiKey = $settings['solrLucrisApiKey'];
+        $solrLucrisApiVersion = $settings['solrLucrisApiVersion'];
         
         $startfromhere = 0;
 
@@ -82,47 +75,37 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $startrecord = $startfromhere + ($i * $maximumrecords);
             if($startrecord > 0) $startrecord++;
 
-            $xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/person?window.size=$maximumrecords&window.offset=$startrecord&orderBy.property=id&rendering=xml_long";
-            //$xmlpath = "https://$lucrisId:$lucrisPw@lucris.lub.lu.se/ws/rest/person?uuids.uuid=a432d89f-3d61-427c-ac2d-604f8ba57441&rendering=xml_long";
+            $xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/persons/?apiKey=$solrLucrisApiKey&size=$maximumrecords&offset=$startrecord";
 
             $xml = file_get_contents($xmlpath);
 
             $xml = simplexml_load_string($xml);	
 
-            $numberofloops = ceil($xml->children('core', true)->count / 20);
+            $numberofloops = ceil($xml->count / $maximumrecords);
 
             $ii = 0;
             $docArray = array();
-            //$idarray = array();
             
-            foreach($xml->xpath('//core:result//core:content') as $content) {
+            foreach($xml->xpath('//result//person') as $content) {
                 $ii++;
-                $sourceId = (string)$content->children('stab1',true)->external->children('extensions-core',true)->sourceId;
+                $sourceId = (string)$content->externalableInfo->sourceId;
                 $uuid = (string)$content->attributes();
                 $photo = '';
                 $profileInformation = '';
-
-                if($content->children('stab1',true)->photos) {
-                    $photo = (string)$content->children('stab1',true)->photos->children('core',true)->file->children('core',true)->url;
-                }
                 
                 //profileInformation
                 $profileInformationArray = array();
-                if($content->children('stab1',true)->profileInformation) {
-                    foreach($content->children('stab1', true)->profileInformation->children('extensions-core', true)->customField->children('extensions-core',true)->value->children('core',true)->localizedString as $localizedString) {
-                        //echo '126';
-                        if($localizedString->attributes()->locale == 'en_GB') {
-                            $profileInformationArray['en'] = (string)$localizedString;
-                        }
-                        if($localizedString->attributes()->locale == 'sv_SE') {
-                            $profileInformationArray['sv'] = (string)$localizedString;
-                        }
+                if($content->profileInformations) {
+                    foreach($content->profileInformations->profileInformation as $profileInformation) {
+                        $profileInformationArray[(string)$profileInformation->attributes()->type][(string)$profileInformation->attributes()->locale] = (string)$profileInformation;
                     }
-                    if(count($profileInformationArray) > 0) {
-                        $profileInformation = json_encode($profileInformationArray);
-                    }
+                    $profileInformation = json_encode($profileInformationArray);
                 }
 
+                if($content->profilePhotos->profilePhoto) {
+                    $photo = (string)$content->profilePhotos->profilePhoto->attributes()->url;
+                }
+                
                 if($sourceId && $uuid) {
                     $sourceIdArray = explode('@', $sourceId);
                     $sourceId = $sourceIdArray[0];

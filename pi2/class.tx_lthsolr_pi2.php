@@ -163,7 +163,7 @@ LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid LEFT JOIN fe_groups f5 ON f5.subg
                 if($showType==='staff' || $showType==='author') {
                     $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
                 } else if($showType==='publication') {
-                    $content = $FrontEndClass->showPublication($uuid);
+                    $content = $FrontEndClass->showPublication($scope, $uuid);
                 } else if($showType==='department') {
                     $lth_solr_uuid = array();
                     $lth_solr_uuid['fe_groups'][] = $uuid;

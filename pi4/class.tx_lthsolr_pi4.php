@@ -109,7 +109,7 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $scope = urlencode(json_encode($lth_solr_uuid));
                 $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
             } else if($showType === 'publication') {
-                $content = $FrontEndClass->showPublication($uuid);
+                $content = $FrontEndClass->showPublication($scope, $uuid);
             } else {
                 $content = $this->listProjects($scope, $detailUrl, $syslang, $noItemsToShow);
             }

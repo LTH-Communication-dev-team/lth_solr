@@ -32,6 +32,9 @@ $TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi9']='pi_fle
 $TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi10']='pi_flexform'; //New
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPiFlexFormValue($_EXTKEY.'_pi10', 'FILE:EXT:lth_solr/flexform_ds_pi10.xml'); //New
 
+$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi11']='pi_flexform'; //New
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPiFlexFormValue($_EXTKEY.'_pi11', 'FILE:EXT:lth_solr/flexform_ds_pi11.xml'); //New
+
 //\TYPO3\CMS\Core\Utility\GeneralUtility::loadTCA('tt_content');
 
 $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi1'] = 'layout,select_key,pages';
@@ -95,6 +98,12 @@ $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi2'] = '
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPlugin(array(
 	'LLL:EXT:lth_solr/locallang_db.xml:tt_content.list_type_pi10',
 	$_EXTKEY . '_pi10',
+	\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath($_EXTKEY) . 'ext_icon.gif'
+),'list_type');
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPlugin(array(
+	'LLL:EXT:lth_solr/locallang_db.xml:tt_content.list_type_pi11',
+	$_EXTKEY . '_pi11',
 	\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath($_EXTKEY) . 'ext_icon.gif'
 ),'list_type');
 

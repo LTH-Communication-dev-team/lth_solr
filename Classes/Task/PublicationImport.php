@@ -79,7 +79,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$startFromHere = $numFound;
         $startFromHere = 0;
         
-        $singleId = ''; //'ae845c71-2e0d-42cf-ba16-4e292d8a81d7';
+        $singleId = '';//'a575156e-f1ab-4d63-90e9-d197e8216888'; //'ae845c71-2e0d-42cf-ba16-4e292d8a81d7';
         
         $mode = ''; //'restart'; //'reindex'; // 'files';
         if($mode==='' && $mode!='files' && !$singleId) {
@@ -670,17 +670,26 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 $authorRole[] = $this->languageSelector($syslang, $personRole_en, $personRole_sv);
                             }
                             if($personAssociation->organisationalUnits) {
+                                $authorOrganisationIdTmp = array();
+                                $authorOrganisationNameTmp = array();
+                                $authorOrganisationTypeTmp = array();
                                 foreach($personAssociation->organisationalUnits->organisationalUnit as $organisationalUnit) {
-                                    $authorOrganisationId[] = $this->replaceEmpty((string)$organisationalUnit->attributes());
+                                    $authorOrganisationIdTmp[] = $this->replaceEmpty((string)$organisationalUnit->attributes());
                                     $organisationalUnitName_en = (string)$organisationalUnit->name[0];
                                     $organisationalUnitName_sv = (string)$organisationalUnit->name[1];
-                                    $authorOrganisationName[] = $this->replaceEmpty($this->languageSelector($syslang, $organisationalUnitName_en, $organisationalUnitName_sv));
+                                    $authorOrganisationNameTmp[] = $this->replaceEmpty($this->languageSelector($syslang, $organisationalUnitName_en, $organisationalUnitName_sv));
                                     $organisationalUnitType_en = (string)$organisationalUnit->type[0];
                                     $organisationalUnitType_sv = (string)$organisationalUnit->type[1];
-                                    $authorOrganisationType[] = $this->replaceEmpty($this->languageSelector($syslang, $organisationalUnitType_en, $organisationalUnitType_sv));
+                                    $authorOrganisationTypeTmp[] = $this->replaceEmpty($this->languageSelector($syslang, $organisationalUnitType_en, $organisationalUnitType_sv));
                                 }
+                                $authorOrganisationId[] = implode('|', $authorOrganisationIdTmp);
+                                $authorOrganisationName[] = implode('|', $authorOrganisationNameTmp);
+                                $authorOrganisationType[] = implode('|', $authorOrganisationTypeTmp);
+                            } else {
+                                $authorOrganisationId[] = '####';
+                                $authorOrganisationName[] = '####';
+                                $authorOrganisationType[] = '####';
                             }
-
                         }
                     }
 

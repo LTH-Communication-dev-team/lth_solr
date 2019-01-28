@@ -60,6 +60,16 @@ $(document).ready(function() {
         listStatistics();
     }
     
+    if($('#lth_solr_action').val() == 'listOrganisation') {
+        listOrganisation('');
+    } else if($('#lth_solr_action').val() == 'listOrganisationStaff') {
+        listOrganisationStaff('', '');
+    } else if($('#lth_solr_action').val() == 'listOrganisationRoles') {
+        listOrganisationRoles('');
+    } else if($('#lth_solr_action').val() == 'showStaffNovo') {
+        showStaffNovo();
+    }
+    
     $('#lthsolr_studentpapers_filter').keyup(function() {
         listStudentPapers(0, getFacets(), $(this).val().trim(),'');
     });
@@ -220,6 +230,542 @@ function showCourse()
                 if(courseSlutDatum) $('#lthsolr_course_container').append(courseSlutDatum);
                 if(courseSlutDatum) $('#lthsolr_course_container').append(courseSlutDatum);
             }
+        }
+    });
+}
+
+
+function listOrganisation(query)
+{
+    var scope = $('#lth_solr_scope').val();
+    var sysLang = $('html').attr('lang');
+    var homepage, id, mailDelivery, organisationCity, organisationParent, organisationPhone, organisationPostalAddress;
+    var organisationSourceId, organisationStreet, organisationTitle;
+    
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'listOrganisation',
+            dataSettings: {
+                pageid: $('body').attr('id'),
+                query: query,
+                scope: scope,
+                syslang: sysLang
+            },
+            sid: Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            $('#lthsolr_organisation_container > div > section').empty();
+            $('#lthsolr_organisation_container > div > section').append(getSpinner(sysLang));
+        },
+        success: function(d) {
+            $('.spinner').remove();
+            if(d.data) {
+                if($('#lthsolr_organisation_filter .lth_solr_keyup').length===0)  {
+                    $('#lthsolr_organisation_filter').addClass('lth_solr_keyup').keyup(function() {
+                        listOrganisation($(this).val().trim());
+                    });
+                }
+                
+                $.each( d.data, function( key, aData ) {
+                    homepage = '';
+                    id = '';
+                    mailDelivery = '';
+                    organisationCity = '';
+                    organisationParent = '';
+                    organisationPhone = '';
+                    organisationPostalAddress = '';
+                    organisationSourceId = '';
+                    organisationStreet = '';
+                    organisationTitle = '';
+                    
+                    if(aData.id) id = aData.id;
+                    if(aData.homepage && sysLang==='sv') homepage = '<a href="'+aData.homepage+'">Besök webbplats</a>';
+                    if(aData.homepage && sysLang==='en') homepage = '<a href="'+aData.homepage+'">Visit website</a>';
+                    if(aData.mailDelivery) mailDelivery = aData.mailDelivery; 
+                    if(aData.organisationCity) organisationCity = aData.organisationCity; 
+                    if(aData.organisationParent) organisationParent = aData.organisationParent; 
+                    if(aData.organisationPhone[0] && aData.organisationPhone[0] !== ' NULL') organisationPhone = 'Tel: <a href="tel:'+aData.organisationPhone[0]+'">'+formatPhone(aData.organisationPhone[0])+'</a><br/>'; 
+                    if(aData.organisationPostalAddress) organisationPostalAddress = aData.organisationPostalAddress; 
+                    if(aData.organisationSourceId) organisationSourceId = aData.organisationSourceId; 
+                    if(aData.organisationStreet) organisationStreet = aData.organisationStreet;
+                    if(aData.organisationTitle) organisationTitle = aData.organisationTitle;
+                    
+                    var template = $('#solrOrganisationTemplate').html();
+                    
+                    template = template.replace('###id###', id);
+                    template = template.replace('###organisationTitle###', organisationTitle);
+                    template = template.replace(/###phone###/g, organisationPhone);
+                    template = template.replace(/###homepage###/g, homepage);
+                    template = template.replace(/###address###/g, organisationStreet);
+                    
+                    /*if(syslang==='sv') {
+                        link = 'visa/'+encodeURI(organisationTitle+'('+id+')');
+                    } else {
+                        link = 'show/'+encodeURI(organisationTitle+'('+id+')');
+                    }*/
+                    
+                    template = template.replace('###link###', encodeURI(organisationTitle)+'/');
+                    
+                    $('#lthsolr_organisation_container > div > section').append(template);
+                });
+            }
+        }
+    });
+}
+
+
+function listOrganisationStaff(facet, query)
+{
+    var sysLang = $('html').attr('lang');
+    var scope = $('#lth_solr_scope').val();
+    var vroles = $('#lth_solr_vroles').val();
+    var facetVal, count;
+    if(!facet) facet = '';
+    var totalCount = 0;
+    //var exportArray = ["firstName","lastName","title","phone","email","organisationName","homepage","roomNumber","mobile"];
+
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'listOrganisationStaff',
+            dataSettings: {
+                pageid: $('body').attr('id').replace('p',''),
+                scope: scope,
+                vroles: vroles,
+                syslang: sysLang,
+                query: query,
+                facet: facet,
+            },
+            sid : Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            $('#lthsolr_organisation_container > div > section').empty();
+            $('#lthsolr_organisation_container > div > section').append(getSpinner(sysLang));
+        },
+        success: function(d) {
+            $('.spinner').remove();
+            
+            //var staffDetailPage = 'visa';
+            var allText = 'Alla';
+            //var restText = 'Övriga';
+            if(sysLang=='en') {
+                //staffDetailPage = 'show';
+                allText = 'All';
+                //var restText = 'Other';
+            }
+                
+            if(d.data) {
+                if(d.mailDelivery && $('.lth_solr_husmap').length > 0) {
+                    $('.lth_solr_husmap').show(200);
+                    //$('.lth_solr_husmap #'+d.mailDelivery).attr('src','/typo3conf/ext/lth_solr/res/hus/' + d.mailDelivery+'g.png');
+                    $('.lth_solr_husmap #'+d.mailDelivery).attr('src','/typo3conf/ext/lth_solr/res/reddot.png').show(200);
+                }
+                
+                if($('#facet_container').length === 0) {
+                    
+                    $('#lthsolr_organisation_filter').keyup(function() {
+                        listOrganisationStaff($('#facet_container > li > .active').attr('data-val'), $(this).val().trim());
+                    });
+                }
+                                
+                if(d.facet) {
+                    if($('#facet_container').length === 0) {
+                        $('#lthsolr_organisation_container').before('<div class="row"><div class="col-12 border-lg-bottom"><ul id="facet_container" class="nav nav-pills"></ul></div></div>');
+                    
+                        //$('#facet_container').empty();
+                    
+                        $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link active" data-val="" href="#">' + allText + ' (' + d.numFound + ')</a></li>');
+
+                        $.each( d.facet, function( key, value ) {
+                            $.each( value, function( key1, value1 ) {
+                                facetVal = value1[0].toString();
+                                count = value1[1];
+                                $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link" data-val="' + facetVal + '" href="javascript:">' + facetVal.replace(/_/g, ' ') + ' (' + count + ')</a></li>');
+                                totalCount = totalCount + count;
+                            });
+                            //if((d.numFound-totalCount)>0) $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link" data-val="' + restText + '" href="#">' + restText + ' (' + (count) + ')</a></li>');
+
+                            $('.lth_solr_facet a').each(function() {
+                                $(this).click(function() {
+                                    $('#facet_container .nav-link').removeClass('active');
+                                    $(this).addClass('active');
+                                    listOrganisationStaff($(this).attr('data-val'), $('#lthsolr_organisation_filter').val());
+                                });
+                            });
+                        });
+                    }
+                }
+                $('#lthsolr_organisation_container > div > section').append('<h2 class="m-0 pb-2 border-bottom">' + titleCase(decodeURIComponent(scope)) + ' (' + d.numFound + ')' + '</h2>');
+                $.each( d.data, function( key, aData ) {
+                    var template = $('#solrStaffTemplate').html();
+
+                    var phone = '', email = '', image = '', guid = '', uuid = '', title = '', displayName = '', link = '', organisationName = '';
+                    if(aData.guid) guid = aData.guid[0];
+                   
+                    if(aData.uuid) uuid = aData.uuid;
+                    if(!uuid && guid) {
+                        uuid = guid;
+                    }
+                    
+                    template = template.replace('###id###', uuid);
+
+                    if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;
+                    if(aData.email) email = aData.email[0];
+                    if(aData.title) title = titleCase(aData.title[0]);
+                    if(aData.phone[0] && aData.phone[0] !== 'NULL') phone = formatPhone(aData.phone[0]);
+                    if(aData.organisationName) organisationName = '<strong>' + aData.organisationName + '</strong> - ';
+                    template = template.replace(/###email###/g, email);
+                    template = template.replace('###organisationName###', organisationName);
+                    template = template.replace(/###phone###/g, phone);
+                    template = template.replace(/###title###/g, title);
+                    
+                    //template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
+                    template = template.replace(/###displayName###/g, displayName);
+                    
+                    if(aData.homepage) {
+                        link = aData.homepage;
+                    } else {
+                        link = displayName.replace(' ','-') + '(' + uuid + ')/';
+                    }
+                    template = template.replace('###link###', link);
+
+                    //if(showPictures==='yes') {
+                        image = '/typo3conf/ext/lth_solr/res/noimage.gif';
+                        //image = "/typo3conf/ext/lth_solr/res/dummy/" + (Math.floor(Math.random() * 10) + 1) + ".jpg";
+                        if(aData.image) {
+                            //image = '<img id="'+ii+'" src="' + aData.image + '" />';
+                            image = aData.image;
+                        }
+                    //}
+                    template = template.replace('###image###', image);
+                    
+                    /*
+                    template = template.replace('###roomNumber###', roomNumber);*/
+                    $('#lthsolr_organisation_container  > div > section').append(template);
+                    //console.log(lastHeight+';'+lastId);
+                });
+            }
+            
+            toggleFacets();
+        }
+    });
+}
+
+
+function listOrganisationRoles(query)
+{
+    var sysLang = $('html').attr('lang');
+    var scope = $('#lth_solr_scope').val();
+    var vroles = $('#lth_solr_vroles').val();
+    var totalCount = 0;
+    //var exportArray = ["firstName","lastName","title","phone","email","organisationName","homepage","roomNumber","mobile"];
+
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'listOrganisationRoles',
+            dataSettings: {
+                pageid: $('body').attr('id').replace('p',''),
+                scope: scope,
+                vroles: vroles,
+                syslang: sysLang,
+                query: query,
+            },
+            sid : Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            $('#lthsolr_organisation_container > div > section').empty();
+            $('#lthsolr_organisation_container > div > section').append(getSpinner(sysLang));
+        },
+        success: function(d) {
+            $('.spinner').remove();
+                
+            if(d.data) {
+                $('#lthsolr_organisation_filter').keyup(function() {
+                    listOrganisationRoles($(this).val().trim());
+                });
+                    
+                $('#lthsolr_organisation_container > div > section').append('<h2 class="m-0 pb-2 border-bottom">' + titleCase(decodeURIComponent(vroles)) + ' (' + d.numFound + ')' + '</h2>');
+                $.each( d.data, function( key, aData ) {
+                    var template = $('#solrStaffTemplate').html();
+
+                    var phone = '', email = '', image = '', guid = '', uuid = '', title = '', displayName = '', link = '', organisationName = '';
+                    if(aData.guid) guid = aData.guid[0];
+                   
+                    if(aData.uuid) uuid = aData.uuid;
+                    if(!uuid && guid) {
+                        uuid = guid;
+                    }
+                    
+                    template = template.replace('###id###', uuid);
+
+                    if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;
+
+                    if(aData.email) email = aData.email;
+                    if(aData.organisationName) organisationName = '<strong>' + aData.organisationName + '</strong> - ';
+                    if(aData.phone && aData.phone !== 'NULL') phone = formatPhone(aData.phone);
+                    if(aData.title) title = titleCase(aData.title);
+                    
+                    template = template.replace(/###email###/g, email);
+                    template = template.replace('###organisationName###', organisationName);
+                    template = template.replace(/###phone###/g, phone);
+                    template = template.replace(/###title###/g, title);
+                    
+
+                    //template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
+                    template = template.replace(/###displayName###/g, displayName);
+                    
+                    if(aData.homepage) {
+                        link = aData.homepage;
+                    } else {
+                        link = displayName.replace(' ','-') + '(' + uuid + ')/';
+                    }
+                    template = template.replace('###link###', link);
+
+                    //if(showPictures==='yes') {
+                        image = '/typo3conf/ext/lth_solr/res/noimage.gif';
+                        //image = "/typo3conf/ext/lth_solr/res/dummy/" + (Math.floor(Math.random() * 10) + 1) + ".jpg";
+                        if(aData.image) {
+                            //image = '<img id="'+ii+'" src="' + aData.image + '" />';
+                            image = aData.image;
+                        }
+                    //}
+                    template = template.replace('###image###', image);
+                    
+                    /*
+                    template = template.replace('###roomNumber###', roomNumber);*/
+                    $('#lthsolr_organisation_container > div > section').append(template);
+                    //console.log(lastHeight+';'+lastId);
+                });
+            }
+            
+            toggleFacets();
+        }
+    });
+}
+
+
+function showStaffNovo()
+{
+    var authorName, displayName, documentId, documentTitle, email, image, journalTitle, mailDelivery, organisationName, organisationPostalAddress, 
+            organisationStreet, pages, phone, profileInformationJson, profileInformation, publicationDateYear, publicationType, publisher, roomNumber, title;
+    var sysLang = $('html').attr('lang');
+    
+    $.ajax({
+        type : "POST",
+        url : 'index.php',
+        data: {
+            eID : 'lth_solr',
+            action : 'showStaffNovo',
+            dataSettings: {
+                pageid : $('body').attr('id'),
+                scope : $('#lth_solr_scope').val(),
+                sysLang : sysLang,
+            },
+            sid : Math.random(),
+        },
+        //contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        beforeSend: function () {
+            $('#lthsolr_show_staff_container').append(getSpinner(sysLang));
+        },
+        success: function(d) {
+            $('.spinner').remove();
+            //Staff
+            if(d.staffData) {                       
+                $.each( d.staffData, function( key, aData ) {
+                    var template = $('#solrStaffTemplate').html();
+
+                    if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;                  
+                    
+                    for (var i=0; i<aData.organisationId.length; i++) {
+                        if(aData.email) {
+                            if(aData.email[i]) email = '<strong>E-post:</strong> <a href="mailto: ' + aData.email[i] + '">' + aData.email[i] + '</a>';
+                        }
+                        if(aData.mailDelivery) {
+                            if(aData.mailDelivery[i]) {
+                                mailDelivery = '<strong>Hämtställe:</strong> ' + aData.mailDelivery[i];
+                                if($('.lth_solr_husmap').length > 0) {
+                                    $('.lth_solr_husmap').show(200);
+                                    $('.lth_solr_husmap #'+aData.mailDelivery[i]).attr('src','/typo3conf/ext/lth_solr/res/hus/' + aData.mailDelivery[i] +'g.png').show(200);
+                                }
+                            }
+                        }
+                        if(aData.organisationName) {
+                            if(aData.organisationName[i]) organisationName = aData.organisationName[i];
+                        }
+                        if(aData.roomNumber) {
+                            if(aData.roomNumber[i]) roomNumber = '<strong>Rumsnummer:</strong> ' + aData.roomNumber[i];
+                        }
+                        if(aData.phone) {
+                            if(aData.phone[i] && aData.phone[i] !== 'NULL') {
+                                phone = aData.phone[i];
+                                phone = '<strong>Telefon:</strong><a href="tel:'+phone+'">' + phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1')+ '</a>';
+                            }
+                        }
+                        if(aData.mobile) {
+                            if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
+                                if(phone) phone += ', ';
+                                phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
+                            }
+                        }
+                        
+                        if(aData.organisationStreet) {
+                            if(aData.organisationStreet[i]) organisationStreet = aData.organisationStreet[i];
+                        }
+                        if(aData.organisationPostalAddress) {
+                            if(aData.organisationPostalAddress[i]) organisationPostalAddress += aData.organisationPostalAddress[i].toString().split('$').join(', ');
+                        }
+                        if(aData.title) {
+                            if(aData.title) title = aData.title.join(', ');
+                        }
+                        //template = template.replace('###visitingAddress###', ostreet + ' ' + ocity + addBreak(ophone));
+                        //template = template.replace('###postalAddress###', addBreak(organisationPostalAddress));
+                    }
+
+                    image = '/typo3conf/ext/lth_solr/res/noimage.gif';
+                    //image = "/typo3conf/ext/lth_solr/res/dummy/" + (Math.floor(Math.random() * 10) + 1) + ".jpg";
+                    if(aData.image) {
+                        image = aData.image;
+                    }
+                    profileInformation = '';
+                    if(aData.profileInformation) {
+                        profileInformationJson = JSON.parse(aData.profileInformation);
+                        Object.keys(profileInformationJson).forEach(function(key) {
+                            profileInformation += '<h2>' + key + '</h2>' + profileInformationJson[key];
+                        });
+                        
+                    } 
+                    
+                    template = template.replace(/###displayName###/g, displayName);
+                    template = template.replace('###email###', email);
+                    template = template.replace('###image###', image);
+                    template = template.replace('###mailDelivery###', mailDelivery);
+                    template = template.replace('###organisationName###', titleCase(organisationName));
+                    template = template.replace('###phone###', phone);
+                    template = template.replace('###roomNumber###', roomNumber);
+                    template = template.replace('###title###', titleCase(title));
+                    template = template.replace('###profileInformation###', profileInformation);
+                    //Change page main header
+                    //$('#page_title h1, article h1').remove();//text(displayName).append('<h2>'+title+'</h2>');           
+                    
+                    
+                    /*else {
+                        profileInformation = '<p class="lead">Nicolette Buddingh har en magister i genus, utveckling och globalisering från London School of Economics and Political Science; och en kandidat i socialantropologi från Islands universitet.</p> \
+                        <h2>Forskningsområden</h2> \
+                        <ul class="list"> \
+                            <li>Jämställdhet och social förändring</li> \
+                            <li>Sexuellt våld och strävan efter rättvisa</li> \
+                            <li>Rättsliga mekanismer, inklusive det straffrättsliga systemet, skadeståndsrätt och reparativ rättvisa \
+                            </li> \
+                        </ul> \
+                        <h2>Pågående forskning</h2> \
+                        <p>Syftet med forskningen är att analysera den potentiella användningen av alternativa metoder för rättslig prövning, inklusive skadeståndsanspråk och rutiner för reparativ rättvisa när det gäller skador orsakade av våldtäkt och sexuella \
+                            övergrepp i Sverige och på Island.</p> \
+                        <p>Forskningen kommer att använda ett offercentrerat förhållningssätt som<br> (1) utforskar offer-överlevandes förståelse för hur rättvisa skulle se ut i en perfekt värld;<br> (2) undersöker offer-överlevandes erfarenheter och upplevelser \
+                            av rättsväsendet; och<br> (3) utforskar potentialen för alternativa metoder för rättslig prövning i fall av våldtäkt och sexuella övergrepp enligt viktiga intressenter, bland feministiska aktivister, advokater och politiska \
+                            beslutsfattare. \
+                        </p>';
+                    }*/
+                    
+                    $('#lthsolr_show_staff_container').append(template);
+                });
+            } 
+
+            //Publications
+            var i = 0;
+            if(d.publicationsData.length > 0) {
+                $.each( d.publicationsData, function( key, aData ) {
+                    authorName = '';
+                    documentTitle = '';
+                    documentId = '';
+                    pages = '';
+                    publicationDateYear = '';
+                    publicationType = '';
+                    journalTitle = '';
+                    publisher = '';
+                    
+                    documentId = aData.id;
+                    
+                    if(aData.authorName) {
+                        authorName = aData.authorName;
+                    }
+                    if(aData.documentTitle) {
+                        documentTitle = aData.documentTitle;//'<h4 class="h6"><a href="' + encodeURIComponent(title.replace(/ /g,'-')) + '(' + id + ')">' + title + '</a>';
+                    } else {
+                        documentTitle = 'untitled';
+                    }
+                    if(aData.journalTitle) {
+                        if(sysLang=='en') {
+                            journalTitle = 'In: ' + aData.journalTitle;
+                        } else {
+                            journalTitle = 'I: ' + aData.journalTitle;
+                        }
+                    }
+                    if(aData.journalTitle && aData.journalNumber) journalTitle += ' ' + aData.journalNumber;                    
+                    if(aData.pages) {
+                        if(sysLang=='en') {
+                            pages = 'p. ' + aData.pages;
+                        } else {
+                            pages = 's. ' + aData.pages;
+                        }
+                    }
+                    if(aData.publicationDateYear) {
+                        publicationDateYear = aData.publicationDateYear;
+                    }
+                    if(aData.publicationType) {
+                        publicationType = aData.publicationType;
+                    }
+                    if(aData.publisher) {
+                        publisher = aData.publisher;
+                    }
+
+                    
+                    if(i < 3) {
+                        $('#lthSolrLatestPublications').append('<h4 class="h6">' + publicationDateYear + '</h4>');
+                        $('#lthSolrLatestPublications').append('<p><a href="#">' + documentTitle + '</a><p>');
+                    } else {
+                        $('#lthSolrAllPublications').append('<p><h4 class="h6">'+publicationType+'</h4>');
+                        $('#lthSolrAllPublications').append('<a href="#">' + documentTitle + '</a><br/>' + authorName);
+                        $('#lthSolrAllPublications').append('<br/>(' + publicationDateYear + ') ' + publisher + '</p>');
+                    }
+
+                    i++;
+                });
+                
+                $('.expand-closed').click(function() {
+                    $('.expand-content-body, .expand-open').show(200);
+                    $(this).toggle();
+                });
+                $('.expand-open').click(function() {
+                    $('.expand-content-body').hide(200);
+                    $('.expand-closed').toggle();
+                    $(this).toggle();
+                });
+                //$('#my-accordion').collapse({ parent: true, toggle: true }); 
+            }
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
         }
     });
 }
@@ -592,7 +1138,7 @@ function listCompare(action)
                         $.each( arskursData, function (kurstypKey, kurstypData) {
                             kurstypKey = kurstypKey.substr(1,kurstypKey.length);
                             if(kurstypKey.substr(0,14) === 'Specialisering' || kurstypKey.substr(0,14) === 'Examensarbeten') {
-                                if(i===0) {
+                                if(i===0 && kurstypKey.substr(0,14) === 'Specialisering') {
                                     $("[id='"+programKey+arskursKey+"']").append('<div><b>Specialiseringar</b></div>');
                                 }
                                 if(kurstypKey.substr(0,14) === 'Examensarbeten' && ii === 0) {
@@ -2744,7 +3290,7 @@ function showPublication()
     //var lth_solr_staffdetailpage = $('#lth_solr_staffdetailpage').val();
     //var lth_solr_projectdetailpage = $('#lth_solr_projectdetailpage').val();
     var syslang = $('html').attr('lang');
-    var abstract='',additionalLink = '',authorId='',authorExternal='',authorName='',authorOrganisation,authorReverseName,authorReverseNameShort,bibtex,cite,doi,edition,electronicIsbns;
+    var abstract='',additionalLink = '',authorId='',authorExternal='',authorName='',authorOrganisationId,authorReverseName,authorReverseNameShort,bibtex,cite,doi,edition,electronicIsbns;
     var electronicVersionAccessType, electronicVersionDoi, electronicVersionFileName, electronicVersionFileURL, electronicVersionLicenseType;
     var electronicVersion, electronicVersionLink, electronicVersionMimeType, electronicVersionSize, electronicVersionTitle, electronicVersionVersionType, endDate;
     var externalOrganisations,event,eventName,eventLink,eventType,eventCity,eventCountry,hostPublicationTitle,id,issn,journalNumber,journalTitle,keywords_uka,keywords_user;
@@ -2752,6 +3298,8 @@ function showPublication()
     var organisationName,organisationSourceId,organisationId,peerReview,placeOfPublication;
     var printIsbns,publicationStatus,publicationDateYear,publicationDateMonth,publicationDateDay,publicationType,publicationTypeUri,publisher,startDate,supervisors;
     var title,volume;
+    var scope = $('#lth_solr_scope').val();
+    scope = decodeURIComponent(scope);
     
     $.ajax({
         type : 'POST',
@@ -2826,7 +3374,7 @@ function showPublication()
                 authorId = d.data.authorId;
                 authorExternal = d.data.authorExternal;
                 authorName = d.data.authorName;
-                authorOrganisation = d.data.authorOrganisation;
+                authorOrganisationId = d.data.authorOrganisationId;
                 authorReverseName = d.data.authorReverseName;
                 authorReverseNameShort = d.data.authorReverseNameShort;
                 bibtex = d.data.bibtex;
@@ -3514,13 +4062,9 @@ function showStaff()
     //corner: 55.716008, 13.206647
     //mypos: 55.7046601,13.191007299999999
     /*if (navigator.geolocation) { 
-
         navigator.geolocation.getCurrentPosition(showLocation); 
-
     } else { 
-
         $('#location').html('Geolocation is not supported by this browser.'); 
-
     }*/
     var syslang = $('html').attr('lang');
     var tableLength = $('#lth_solr_no_items').val();
@@ -3722,7 +4266,6 @@ function showStaff()
                 loopPublications(d, '', '', '', '0', '20');
                 $.each( d.publicationData, function( key, aData ) {
                     var template = $('#solrPublicationTemplate').html();
-
                     pages = '';
                     publicationDate = '';
                     journalTitle = '';
@@ -3759,7 +4302,6 @@ function showStaff()
                         }
                     }
                     if(aData.journalTitle && aData.journalNumber) journalTitle += ' ' + aData.journalNumber;
-
                     template = template.replace('###id###', id);
                     template = template.replace('###title###', title);
                     template = template.replace('###authorName###', aData.authorName);
@@ -3774,7 +4316,6 @@ function showStaff()
                 });
                 
                 $('#lthsolr_loader_publication').remove();
-
                 $('#lthsolr_publications_header h3').append(' (1-' + maxLength(parseInt(tableStartPublications),parseInt(tableLength),parseInt(d.publicationNumFound)) + ' of ' + d.publicationNumFound + ')');
                 
                 if((parseInt(tableStartPublications) + parseInt(tableLength)) < d.publicationNumFound) {
@@ -3795,7 +4336,6 @@ function showStaff()
                 $('#lthsolr_projects_header').append('<h3>Projects</h3>');
                 $.each( d.projectData, function( key, aData ) {
                     var template = $('#solrProjectTemplate').html();
-
                     template = template.replace('###id###', aData[0]);
                     template = template.replace('###title###', aData[1]);
                     template = template.replace('###participants###', aData[2]);
@@ -3807,7 +4347,6 @@ function showStaff()
                 });
                 
                 $('#lthsolr_loader_project').remove();
-
                 $('#lthsolr_projects_header').append('1-' + maxLength(parseInt(tableStartProjects) + parseInt(tableLength),parseInt(d.projectNumFound)) + ' of ' + d.projectNumFound);
                 if((parseInt(tableStartProjects) + parseInt(tableLength)) < d.projectNumFound) {
                     $('#lthsolr_projects_container').append('<div style="margin-top:20px;" class="lthsolr_more"><a href="javascript:" onclick="listProjects(' + (parseInt(tableStartProjects) + parseInt(tableLength)) + ');">NEXT ' + tableLength + ' of ' + d.projectNumFound + '</a> | <a href="javascript:" onclick="$(\'#lth_solr_no_items\').val(' + d.numFound + '); listProjects(' + (parseInt(tableStartProjects) + parseInt(tableLength)) + ');">Show all ' + d.projectNumFound + '</a></div>');
@@ -3876,8 +4415,37 @@ function createFacetClick(listType, sorting, action)
             listPublications(0, getFacets(), $('#lthsolr_publications_filter').val().trim(),sorting,false,'',action);
         } else if(listType==='listStudentPapers') {
             listStudentPapers(0, getFacets(), $('#lthsolr_publications_filter').val().trim(),false);
+        } else if(listType==='listOrganisationStaff') {
+            listOrganisationStaff(getFacets(), $('#lthsolr_organisation_filter').val().trim());
         }
     });
+}
+
+
+function getSpinner(sysLang)
+{
+    var loadText;
+    if(sysLang==='sv') {
+        loadText = 'Laddar...';
+    } else {
+        loadText = 'Loading...';
+    }
+    
+    var content = '<div class="spinner text-center">';
+    content += '<p class="text-primary"><i class="fal fa-circle-notch fa-3x fa-spin"></i></p>';
+    content += '<p class="font-weight-bold">' + loadText + '</p>';
+    content += '</div>';
+    
+    return content;
+}
+
+
+function formatPhone(phone)
+{
+    var phoneTmp = phone;
+    //console.log(phone.substr(8,2)+phone.substr(-2));
+    if(phoneTmp.indexOf('4646222')>0) phoneTmp = '+46 46 222 ' + phone.substr(8,2) + ' ' + phone.substr(-2);
+    return phoneTmp;
 }
 
 
@@ -3889,6 +4457,7 @@ function getFacets()
             facet.push($(this).val());
         };
     });
+    
     if(facet.length > 0) {
         return JSON.stringify(facet);
     } else {

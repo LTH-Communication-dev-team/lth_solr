@@ -142,10 +142,478 @@ function myInit()
         case 'listStatistics':
             $content = $this->listStatistics($dataSettings, $config);
             break;
+        case 'listOrganisation':
+            $content = $this->listOrganisation($dataSettings, $config);
+            break;
+        case 'listOrganisationStaff':
+            $content = $this->listOrganisationStaff($dataSettings, $config);
+            break;
+        case 'listOrganisationRoles':
+            $content = $this->listOrganisationRoles($dataSettings, $config);
+            break;
+        case 'showStaffNovo':
+            $content = $this->showStaffNovo($syslang, $scope, $dataSettings, $config);
+            break;
     }
 
     print $content;
 
+}
+
+
+function listOrganisation($dataSettings, $config)
+{
+    $scope = $dataSettings['scope'];
+    
+    $syslang = $dataSettings['syslang'];
+    
+    $filterQuery = $dataSettings['query'];
+    
+    $fieldArray = array("id", "homepage", "mailDelivery", "organisationCity", "organisationParent", 
+        "organisationPhone", "organisationPostalAddress", "organisationSourceId", "organisationStreet", "organisationTitle");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+    
+    if($filterQuery) {
+        $filterQuery = str_replace(' ','\\ ',$filterQuery);
+        $filterQuery = ' AND (mailDelivery:*' . $filterQuery . '* OR organisationCity:*' . $filterQuery . '* OR organisationPhone:*' . $filterQuery . '* OR organisationTitleExact:*' . $filterQuery . '* OR organisationStreet:*' . $filterQuery . '*)';
+    }
+      /*
+       * "mailDelivery":["25"],
+        "organisationCity":["Lund"],
+        "organisationParent":["fcf07d05-9faa-4629-a7ad-efcdbdf13327"],
+        "organisationPhone":["+46462227300"],
+        "organisationPostalAddress":["Box 43$221 00$Lund"],
+        "organisationSourceId":["v1000643"],
+        "organisationStreet":["Sölvegatan 27"],
+        "organisationTitle":"Astronomi",
+       */
+    $queryToSet = 'docType:organisation AND organisationParentName:' . str_replace('$',',',str_replace(' ', '\ ', $scope)) . $filterQuery;
+
+    $query->setQuery($queryToSet);
+        
+    $query->setFields($fieldArray);
+        
+    $query->setStart(0)->setRows(1000);
+    
+    $sortArray = array(
+        'organisationTitle' => 'asc'
+    );
+    
+    $query->addSorts($sortArray);
+
+    $response = $client->select($query);
+    
+    $numFound = $response->getNumFound();
+    
+    foreach ($response as $document) {
+        $data[] = array(
+            "id" => $document->id,
+            "homepage" => $document->homepage, 
+            "mailDelivery" => $document->mailDelivery, 
+            "organisationCity" => $document->organisationCity, 
+            "organisationParent" => $document->organisationParent, 
+            "organisationPhone" => $document->organisationPhone, 
+            "organisationPostalAddress" => $document->organisationPostalAddress, 
+            "organisationSourceId" => $document->organisationSourceId, 
+            "organisationStreet" => $document->organisationStreet,
+            "organisationTitle" => $document->organisationTitle,
+        );
+    }
+    
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
+}
+
+
+function listOrganisationStaff($dataSettings, $config)
+{
+    $filterQuery = $dataSettings['query'];
+    $facet = $dataSettings['facet'];
+    $syslang = $dataSettings['syslang'];
+    $scope = $dataSettings['scope'];
+    $vroles = $dataSettings['vroles'];
+    
+    $client = new Solarium\Client($config);
+    
+    $query = $client->createSelect();
+    
+    $fieldArray = array("mailDelivery");
+    $queryToSet = 'docType:organisation AND organisationTitleExact:' . str_replace(' ', '\ ', $scope);
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    $response = $client->select($query);  
+    foreach ($response as $document) {
+        $mailDelivery = $document->mailDelivery[0];
+    }
+    
+    $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName",
+        "primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile",
+        "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","guid","uuid","heritage","heritageName",
+        "primaryVroleOu","primaryVroleTitle","primaryVroleOrgid","primaryVrolePhone");
+    
+    if($filterQuery) {
+        $filterQuery = str_replace(' ','\\ ',$filterQuery);
+        $filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '* OR title:*' . $filterQuery . '* OR organisationName:*' . $filterQuery . '*)';
+    }
+    
+    if($scope) {
+        $scope = urldecode($scope);
+        $term = 'heritageName:' . str_replace('$',',',str_replace(' ', '\ ', strtolower($scope)));
+        $term = ' AND (' . $term . ')';
+    }
+    
+    $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member)' . $term . $filterQuery;
+
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    $query->setStart(0)->setRows(10000);
+    
+    $facetSet = $query->getFacetSet();
+    $facetSet->createFacetField('standard')->setField('standardCategory');
+    
+    if($facet) {
+        $query->addFilterQuery(array('key' => 0, 'query' => 'standardCategory:'.$facet, 'tag'=>'inner'));
+    }
+    
+    $sortArray = array(
+        'primaryVroleOu' => 'asc',
+        'lastNameExact' => 'asc',
+        'firstNameExact' => 'asc'
+    );
+
+    $query->addSorts($sortArray);
+
+    $response = $client->select($query);
+
+    $numFound = $response->getNumFound();
+    
+    $facetStandard = $response->getFacetSet()->getFacet('standard');
+    foreach ($facetStandard as $value => $count) {
+        if($count > 0) $facetResult['standardCategory'][] = array($value, $count);
+    }
+    
+    foreach ($response as $document) {
+        $image = '';
+
+        if($document->image) {
+            $image = '/fileadmin' . $document->image;
+        } else if($document->lucrisPhoto) {
+            $image = $document->lucrisPhoto;
+        }
+        
+        $data[] = array(           
+            "firstName" => mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8"),
+            "lastName" => mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
+            "title" => $document->title,
+            "phone" => $document->phone,
+            "id" => $document->guid,
+            "email" => $document->email,
+            "organisationName" => $document->organisationName,
+            "organisationHideOnWeb" => $document->organisationHideOnWeb,
+            "organisationLeaveOfAbsence" => $document->organisationLeaveOfAbsence,
+            "primaryAffiliation" => $document->primaryAffiliation,
+            "primaryVroleOu" => $document->primaryVroleOu,
+            "primaryVroleTitle" => $document->primaryVroleTitle,
+            "primaryVroleOrgid" => $document->primaryVroleOrgid,
+            "primaryVrolePhone" => $document->primaryVrolePhone,
+            "homepage" => $document->homepage,
+            "image" => $image,
+            "intro" => $intro,
+            "roomNumber" => $this->fixRoomNumber($document->roomNumber),
+            "mobile" => $document->mobile,
+            "organisationId" => $document->organisationId,
+            "guid" => $document->guid,
+            "uuid" => $document->uuid,
+            "imgtest" => $document->image,
+            "heritage" => $document->heritage,
+            "heritageName" => $document->heritageName
+        );
+
+    }
+
+    $resArray = array('data' => $data, 'facet' => $facetResult, 'mailDelivery' => $mailDelivery, 'numFound' => $numFound, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
+}
+
+
+function listOrganisationRoles($dataSettings, $config)
+{
+    $filterQuery = $dataSettings['query'];
+    $facet = $dataSettings['facet'];
+    $syslang = $dataSettings['syslang'];
+    $scope = $dataSettings['scope'];
+    $vroles = $dataSettings['vroles'];
+    
+    $client = new Solarium\Client($config);
+    
+    $query = $client->createSelect();
+    
+    $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName",
+        "primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile",
+        "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","guid","uuid","heritage","heritageName",
+        "primaryVroleOu","primaryVroleTitle","primaryVroleOrgid","primaryVrolePhone");
+    
+    if($filterQuery) {
+        $filterQuery = str_replace(' ','\\ ',$filterQuery);
+        $filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '* OR title:*' . $filterQuery . '* OR organisationName:*' . $filterQuery . '*)';
+    }
+    
+    if($scope) {
+        $scope = urldecode($scope);
+        $i = 0;
+        $term .= ' AND (';
+        $scopeArray = explode(',', $scope);
+        foreach($scopeArray as $key => $value) {
+            if($i>0) $term .= ' OR ';
+            $term .= 'heritageName:' . str_replace('$',',',str_replace(' ', '\ ', strtolower($value)));
+            $i++;
+        }
+        $term .= ')';
+    }
+
+    if($vroles) {
+        $i = 0;
+        $term .= ' AND (';
+        $vrolesArray = explode(',', str_replace('$',',',$vroles));
+        foreach($vrolesArray as $key => $value) {
+            if($i>0) $term .= ' OR ';
+            $term .= 'title:' . str_replace(' ', '\ ', strtolower($value));
+            $i++;
+        }
+        $term .= ')';
+    }
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($vrolesArray,true), 'crdate' => time()));
+    $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member)' . $term . $filterQuery;
+
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    $query->setStart(0)->setRows(10000);
+    
+    $facetSet = $query->getFacetSet();
+    $facetSet->createFacetField('standard')->setField('standardCategory');
+    
+    if($facet) {
+        $query->addFilterQuery(array('key' => 0, 'query' => 'standardCategory:'.$facet, 'tag'=>'inner'));
+    }
+    
+    $sortArray = array(
+        'lastNameExact' => 'asc',
+        'firstNameExact' => 'asc'
+    );
+    
+    $query->addSorts($sortArray);
+
+    $response = $client->select($query);
+
+    $numFound = $response->getNumFound();
+    
+    $facetStandard = $response->getFacetSet()->getFacet('standard');
+    foreach ($facetStandard as $value => $count) {
+        if($count > 0) $facetResult['standardCategory'][] = array($value, $count);
+    }
+    $ii=0;
+    foreach ($response as $document) {
+        $image = '';
+
+        if($document->image) {
+            $image = '/fileadmin' . $document->image;
+        } else if($document->lucrisPhoto) {
+            $image = $document->lucrisPhoto;
+        }
+        
+        $title = $document->title;
+        /*
+         * title =
+         * $vrolesArray = array('0' => bitr', 1 => pref
+         */
+        $mainKey=0;
+        
+        foreach($vrolesArray as $key => $value) {
+            $tmpKey = array_search($value, $title);
+            if($tmpKey) $mainKey = $tmpKey;
+        }
+        
+        $data[$document->organisationName[$mainKey].array_search($document->title[$mainKey],$vrolesArray)] = array(           
+            "firstName" => mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8"),
+            "lastName" => mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
+            "title" => $this->getFromMainKey($document->title, $mainKey),
+            "phone" => $this->getFromMainKey($document->phone, $mainKey),
+            "id" => $document->guid,
+            "email" => $this->getFromMainKey($document->email, $mainKey),
+            "organisationName" => $this->getFromMainKey($document->organisationName, $mainKey),
+            "organisationHideOnWeb" => $document->organisationHideOnWeb,
+            "organisationLeaveOfAbsence" => $document->organisationLeaveOfAbsence,
+            "primaryAffiliation" => $document->primaryAffiliation,
+            "primaryVroleOu" => $document->primaryVroleOu,
+            "primaryVroleTitle" => $document->primaryVroleTitle,
+            "primaryVroleOrgid" => $document->primaryVroleOrgid,
+            "primaryVrolePhone" => $document->primaryVrolePhone,
+            "homepage" => $document->homepage,
+            "image" => $image,
+            "intro" => $intro,
+            "roomNumber" => $this->fixRoomNumber($document->roomNumber),
+            "mobile" => $document->mobile,
+            "organisationId" => $document->organisationId,
+            "guid" => $document->guid,
+            "uuid" => $document->uuid,
+            "imgtest" => $document->image,
+            "heritage" => $document->heritage,
+            "heritageName" => $document->heritageName
+        );
+        $ii++;
+    }
+    if($data) uksort($data, "strnatcasecmp");
+    
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
+}
+
+
+function getFromMainKey($value, $key)
+{
+    if($value[$key]) {
+        return $value[$key];
+    } else {
+        return $value[0];
+    }
+}
+
+
+function showStaffNovo($syslang, $scope, $dataSettings, $config)
+{
+    $fieldArray = array("docType","firstName","lastName","title","phone","id","email","mailDelivery","organisationName","primaryAffiliation","homepage","image","intro","roomNumber",
+        "mobile","uuid","guid","organisationId","organisationPhone","organisationStreet","organisationCity","organisationPostalAddress",
+        "profileInformationNovo","coordinates","lucrisPhoto");
+    
+    $scope = $dataSettings['scope'];
+    $sysLang = $dataSettings['sysLang'];
+    $content = '';
+    $staffData = array();
+    $publicationsData = array();
+    //$projectData = array();
+       
+    $client = new Solarium\Client($config);
+    $query = $client->createSelect();
+    $query->setStart(0)->setRows(10000);
+    
+    //Staff
+    $queryToSet = 'docType:staff AND (guid:' . $scope . ' OR uuid:' . $scope . ')';
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    $staffResponse = $client->select($query);
+    
+    //Publications
+    $fieldArray = array("articleNumber","authorName","bibliographicalNote","documentTitle",
+            "electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
+            "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
+            "electronicVersionVersionType","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","openAccessPermission","pages","publicationType",
+            "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
+    
+    $queryToSet = 'docType:publication AND authorId:' . $scope;
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    $sortArray = array(
+        'publicationDateYear' => 'desc',
+        'publicationDateMonth' => 'desc',
+        'publicationDateDay' => 'desc',
+        'documentTitle' => 'asc',
+        'lastNameExact' => 'asc',
+        'firstNameExact' => 'asc'
+    );
+    $query->addSorts($sortArray);
+    $publicationsResponse = $client->select($query);
+
+    foreach ($staffResponse as $document) {    
+        $id = $document->id;
+        $docType = $document->docType;
+
+        $intro = '';
+        if($document->$introVar) {
+            $intro = '<p class="lthsolr_intro">' . $document->staff_custom_text_s . '</p>';
+        }
+
+        if($document->image) {
+            $image = '/fileadmin' . $document->image;
+        } else if($document->lucrisPhoto) {
+            $image = $document->lucrisPhoto;
+        }
+        
+        /*if($document->profileInformationNovo) {
+            $piArray = json_decode($document->profileInformationNovo, true);
+            foreach($piArray as $key => $value) {
+                
+            }
+        }*/
+
+        $staffData[] = array(
+            "email" => $document->email,
+            "firstName" => $document->firstName,
+            "lastName" => $document->lastName,
+            "mailDelivery" => $document->mailDelivery,
+            "title" => array_values(array_unique($document->title)),
+            "phone" => $document->phone,
+            "organisationName" => $document->organisationName,
+            "primaryAffiliation" => $document->primaryAffiliation,
+            "homepage" => $document->homepage,
+            "image" => $image,
+            "intro" => $intro,
+            "roomNumber" => $document->roomNumber,
+            "mobile" => $document->mobile,
+            "uuid" => $document->uuid,
+            "guid" => $document->guid,
+            "organisationId" => $document->organisationId,
+            "organisationPhone" => $document->organisationPhone,
+            "organisationStreet" => $document->organisationStreet,
+            "organisationCity" => $document->organisationCity,
+            "organisationPostalAddress" => $document->organisationPostalAddress,
+            "profileInformation" => $document->profileInformationNovo,
+            "coordinates" => $this->fixArray($document->coordinates)
+        );
+    }
+    
+    foreach ($publicationsResponse as $document) {
+        $publicationsData[] = array(
+            "articleNumber" => $document->$articleNumber,
+            "authorName" => ucwords(strtolower($this->fixArray($document->authorName))),
+            "bibliographicalNote" => "",//$document->bibliographicalNote,
+            "documentTitle" => $document->documentTitle,
+            "electronicIsbn" => $document->electronicIsbn,
+            "electronicVersionAccessType" => $document->electronicVersionAccessType,
+            "electronicVersionDoi" => $document->electronicVersionDoi,
+            "electronicVersionFileName" => $document->electronicVersionFileName,
+            "electronicVersionFileURL" => $document->electronicVersionFileURL,
+            "electronicVersionLicenseType" => $document->electronicVersionLicenseType,
+            "electronicVersionLink" => $document->electronicVersionLink,
+            "electronicVersionMimeType" => $document->electronicVersionMimeType,
+            "electronicVersionSize" => $document->electronicVersionSize,
+            "electronicVersionTitle" => $document->electronicVersionTitle,
+            "electronicVersionVersionType" => $document->electronicVersionVersionType,
+            "hostPublicationTitle" => $document->hostPublicationTitle,
+            "id" => $document->id,
+            "journalTitle" => $document->journalTitle,
+            "journalNumber" => $document->journalNumber,
+            "numberOfPages" => $document->numberOfPages,
+            "openAccessPermission" => $document->openAccessPermission,
+            "pages" => $document->pages,
+            "publicationType" => $this->fixArray($document->publicationType),
+            "publicationDateYear" => $document->publicationDateYear,
+            "publicationDateMonth" => $document->publicationDateMonth,
+            "publicationDateDay" => $document->publicationDateDay,
+            "placeOfPublication" => $document->placeOfPublication,
+            "publisher" => $document->publisher,
+            "volume" => $document->volume,
+        );
+    }
+    
+    $resArray = array('staffData' => $staffData, 'publicationsData' => $publicationsData, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
 }
 
 
@@ -439,7 +907,6 @@ function listCompare($dataSettings, $config)
      */
     
     foreach ($response as $document) {
-        
         $data[$document->programTitle][$document->courseYear][$document->courseSelectionSort.$document->courseSelection][$document->courseCode] = array(
             "courseCode" => $document->courseCode,
             "courseType" => $document->courseType,
@@ -452,14 +919,14 @@ function listCompare($dataSettings, $config)
             "ratingScale" => $document->ratingScale
         );
         if($prevKey) {
-            $pArray = explode(',', $prevKey);
+            $pArray = explode('|', $prevKey);
             $data[$pArray[0]][$pArray[1]][$pArray[2]][$pArray[3]]["nextId"] = $document->id;
         }
-        $prevKey = implode(',', array($document->programTitle,$document->courseYear,$document->courseSelectionSort.$document->courseSelection,$document->courseCode));
+        $prevKey = implode('|', array($document->programTitle,$document->courseYear,$document->courseSelectionSort.$document->courseSelection,$document->courseCode));
         $prevId = $document->id;
         $i++;
     }
-    
+
     $resArray = array('data' => $data, 'numFound' => $numFound, 'query' => $queryToSet);
     
     return json_encode($resArray);
@@ -1206,7 +1673,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
 
 function showPublication($response, $term, $syslang, $config)
 {
-    $fieldArray = array("abstract","additionalLink","authorExternal","authorId","authorName","authorOrganisation","authorReverseName","authorReverseNameShort",
+    $fieldArray = array("abstract","additionalLink","authorExternal","authorId","authorName","authorOrganisationId","authorReverseName","authorReverseNameShort",
         "bibtex","cite","documentTitle","doi","edition","electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
         "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
         "electronicVersionVersionType","electronicIsbns","endDate","externalOrganisations","eventCity","eventCountry","eventName","eventLink","eventType",
@@ -1245,7 +1712,7 @@ function showPublication($response, $term, $syslang, $config)
         $authorFirstNameArray = $document->authorFirstName;
         $authorLastNameArray = $document->authorLastName;
         $authorExternalArray = $document->authorExternal;
-        $authorOrganisationArray = $document->authorOrganisation;
+        $authorOrganisationId = $document->authorOrganisationId;
         $authorIdArray = $document->authorId;
         $i=0;
         foreach ($authorNameArray as $key => $name) {
@@ -1261,7 +1728,6 @@ function showPublication($response, $term, $syslang, $config)
             $authorId .= $authorIdArray[$i];
             $authorExternal .= $authorExternalArray[$i];
             $authorExternal = (string)$authorExternal;
-            $authorOrganisation = $authorOrganisationArray[$i];
             $i++;
         }
         if($document->organisationName) {
@@ -1347,7 +1813,7 @@ function showPublication($response, $term, $syslang, $config)
             'authorExternal' => $authorExternal,
             'authorId' => $document->authorId,
             'authorName' => $document->authorName,
-            'authorOrganisation' => $authorOrganisation,
+            'authorOrganisationId' => $authorOrganisationId,
             'authorReverseName' => rawurlencode($authorReverseName),
             'authorReverseNameShort' => rawurlencode(str_replace("$", ", ", $this->str_lreplace("$", " and ", $authorReverseNameShort))),
             'bibtex' => $bibtex,
@@ -2025,7 +2491,6 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
             }
         }
     }
-
     $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member) AND (' . $term . ')'. ' AND disable_intS:0 AND -' . $hideVal . ':[* TO *]' . $filterQuery;
     //docType:staff AND primaryAffiliation:employee AND (name:*'.$term . '* OR phone:*' . $term . '* OR email:*' . $term . '*)'
     $query->setQuery($queryToSet);
@@ -2078,11 +2543,8 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
         'firstNameExact' => 'asc'
     );
     $query->addSorts($sortArray);
-
     $response = $client->select($query);
-
     $numFound = $response->getNumFound();
-
     // display facet query count
     $facetHeader = "";
     if($syslang==="en") {
@@ -2090,7 +2552,6 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
     } else {
         $facetHeader = "Personalkategori";
     }
-
     if($categories === 'standard_category' && !$limitToStandardCategories) {
         $facetStandard = $response->getFacetSet()->getFacet('standard');
         foreach ($facetStandard as $value => $count) {
@@ -2113,7 +2574,6 @@ function listStaff($facet, $pageid, $pid, $syslang, $scope, $tableLength, $table
         if($document->$introVar) {
             $intro = '<p class="lthsolr_intro">' . $document->$introVar . '</p>';
         }
-
         if($document->image) {
             $image = '/fileadmin' . $document->image;
         } else if($document->lucrisPhoto) {
@@ -2190,7 +2650,7 @@ function fixRoomNumber($input)
 
 function showStaff($scope, $config, $syslang)
 {
-    $fieldArray = array("docType","firstName","lastName","title","phone","id","email","organisationName","primaryAffiliation","homepage","image","intro","roomNumber",
+    $fieldArray = array("docType","firstName","lastName","title","phone","id","email","mailDelivery","organisationName","primaryAffiliation","homepage","image","intro","roomNumber",
         "mobile","uuid","guid","organisationId","organisationPhone","organisationStreet","organisationCity","organisationPostalAddress",
         "profileInformation","coordinates","lucrisPhoto");
     
@@ -2228,11 +2688,12 @@ function showStaff($scope, $config, $syslang)
             }
 
             $data[] = array(
+                "email" => $document->email,
                 "firstName" => $document->firstName,
                 "lastName" => $document->lastName,
+                "mailDelivery" => $document->mailDelivery,
                 "title" => $document->title,
                 "phone" => $document->phone,
-                "email" => $document->email,
                 "organisationName" => $document->organisationName,
                 "primaryAffiliation" => $document->primaryAffiliation,
                 "homepage" => $document->homepage,

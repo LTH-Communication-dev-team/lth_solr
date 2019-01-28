@@ -298,23 +298,19 @@ class FrontEndClass
                 . '</div>';
         $content .= '</div>';
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_large.html");
-
         //Publications
         //$content .= '<div id="lthsolr_publications_container"><div id="lthsolr_publications_header"></div></div>';
         $content .= $this->listPublications($scope, '', '', '', '', '', '', 'showStaff','fullList','','','');
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_list.html");
-
         //Projects
         //$content .= '<div id="lthsolr_projects_container"><div id="lthsolr_projects_header"></div></div>';
         //$content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_simple.html");        
  
         
-
         //mapModal
         $content .= '<!-- mapModal -->
             <div id="mapModal" class="modal fade" role="dialog">
               <div class="modal-dialog">
-
                 <!-- Modal content-->
                 <div class="modal-content">
                   <div class="modal-header">
@@ -329,17 +325,67 @@ class FrontEndClass
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                   </div>
                 </div>
-
               </div>
             </div>';
-
         //hidden fields
         $content .= '
             <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
             <input type="hidden" id="lth_solr_action" value="showStaff" />
             <input type="hidden" id="lth_solr_staff_pos" value="' . $showStaffPos . '" />
             <input type="hidden" id="lth_solr_no_items" value="' . $noItemsToShow . '" />';
+        return $content;
+    }
+    
+    
+    public function showStaffNovo($syslang, $scope)
+    {
+        //Staff 
+        $content .= '<div id="lthsolr_show_staff_container"></div>';
+        
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_novo.html");
 
+        //hidden fields
+        $content .= '
+            <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+            <input type="hidden" id="lth_solr_action" value="showStaffNovo" />';
+
+        return $content;
+    }
+    
+    
+    public function listOrganisation($syslang, $scope, $vroles, $action)
+    {
+        $syslang = $GLOBALS['TSFE']->config['config']['language'];
+        
+        $content .= '';
+        
+        $content .= '<div class="form-group">
+            <label class=" w-100">
+               Skriv för att filtrera
+               <div class="input-group rounded-0">
+               <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="">
+                 <div class="input-group-append">
+                   <button class="btn btn-outline-primary rounded-0" type="submit">Filtrera</button>
+                 </div>
+               </div>
+             </label>
+           </div>';
+        
+        $content .= '<div id="lthsolr_organisation_container">'; 
+        
+        if($action==='listOrganisation') {
+            $content .= '<div class="search-result"><section></section></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/organisation_list.html");
+        } else if($action==='listOrganisationStaff' || $action==='listOrganisationRoles') {
+            $content .= '<div class="search-result"><section></section></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_new.html");
+        }
+        
+        $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />';
+        $content .= '<input type="hidden" id="lth_solr_vroles" value="' . $vroles . '" />';
+        $content .= '<input type="hidden" id="lth_solr_heritage" value="' . $heritage . '" />';
+        $content .= '<input type="hidden" id="lth_solr_action" value="' . $action . '" />';
+        
         return $content;
     }
     
@@ -355,7 +401,6 @@ class FrontEndClass
             $placeholderText = 'Fritextsökning';
         }
         $clientIp = $_SERVER['REMOTE_ADDR'];
-
         /*$content .= '<p class="lth_solr_filter_container">';
             $faSearchClass = '';
             if($categories !== 'no_categories' && !$limitToStandardCategories) {
@@ -364,7 +409,6 @@ class FrontEndClass
             }
             $content .= '<i class="fa fa-search ' . $faSearchClass . 'fa-lg slsGray50"></i>';
             $content .= '<input style="border:0px;box-shadow:none;" type="text" id="lthsolr_staff_filter" class="lthsolr_filter" placeholder="'.$placeholderText.'" name="lthsolr_filter" value="" />';
-
         $content .= '</p>';
         
         $content .= '<div id="lth_solr_facet_container"></div>';
@@ -373,20 +417,16 @@ class FrontEndClass
         
         
             $content .= '<div id="lthsolr_staff_container">';
-
         $content .= '</div>'; */
         
         $content .= '<div style="clear:both;width:100%;height:20px;margin:15px 0px 15px 0px;">'
                     . '<div style="" id="lthsolr_staff_header"></div>'
                     . '</div>';
-
             $content .= '<div style="width:100%;clear:both;">';
                 //$content .= '<div id="lth_solr_facet_container"></div>';
                 $content .= '<div id="lthsolr_staff_container"></div><div style="clear:both;width:100%;"></div>';
             $content .= '</div>';
-
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact.html");
-
         $content .= '
             <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
             <input type="hidden" id="lth_solr_heritage" value="' . $heritage . '" />
@@ -405,7 +445,6 @@ class FrontEndClass
                 $content .= '<!-- exportModal -->
                     <div id="exportModal" class="modal fade" role="dialog">
                       <div class="modal-dialog">
-
                         <!-- Modal content-->
                         <div class="modal-content">
                           <div class="modal-header">
@@ -418,11 +457,9 @@ class FrontEndClass
                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                           </div>
                         </div>
-
                       </div>
                     </div>';
             }  
-
         return $content;
     }
     
@@ -538,7 +575,7 @@ class FrontEndClass
     }
 
 
-    public function showPublication($uuid)
+    public function showPublication($scope, $uuid)
     {
         
         $content = '<div id="lth_solr_container" ></div>';
@@ -548,6 +585,7 @@ class FrontEndClass
         $content = str_replace('###more###', "more", $content);
 
         $content .= '
+            <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
             <input type="hidden" id="lth_solr_uuid" value="' . $uuid . '" />
             <input type="hidden" id="lth_solr_action" value="showPublication" />';
 

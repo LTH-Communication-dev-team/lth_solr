@@ -1,0 +1,40 @@
+<script id="solrStaffTemplate" type="text/x-jquery-templ">
+    <div class="d-flex mb-6 flex-column flex-lg-row">
+        <div class="mb-3 mb-lg-0 mr-lg-5">
+            <img src="###image###" alt="###displayName###" class=" img-staff-detail">
+        </div>
+        <div>
+            <h1>###displayName###</h1>
+            <p><strong>###title###</strong><br/>###organisationName###</p>
+            <p>
+                ###email###<br/>
+                ###phone###<br/>
+                ###roomNumber###<br/>
+                ###mailDelivery###
+            </p>
+        </div>
+    </div>
+    ###profileInformation###
+    <div class="container-fill mx-sm-0">
+        <div id="my-accordion" class="expand bg-copper-50 mb-3 mt-6">
+            <div class="expand-content">
+                <div id="lthSolrLatestPublications" class="expand-content-lead">
+                    <h3 class="mt-0">Senaste Publikationer</h3>
+                    <p>Hämtat ur Lunds universitets publikationsdatabas 2017-04-26</p>
+                </div>
+                <div id="lthSolrAllPublications" class="expand-content-body">
+                    <h3 class="mt-0">Alla Publikationer</h3>
+                    <p>Hämtat ur Lunds universitets publikationsdatabas</p>
+                </div>
+            </div>
+            <div class="expand-control">
+                <div class="expand-closed">
+                    Visa alla publikationer&nbsp;<span class="ml-1"><i class="fal fa-chevron-down"></i></span>
+                </div>
+                <div class="expand-open">
+                    Visa senaste publikationer&nbsp;<span class="ml-1"><i class="fal fa-chevron-up"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>

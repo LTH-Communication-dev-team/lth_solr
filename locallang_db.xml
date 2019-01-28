@@ -16,6 +16,7 @@
             <label index="tt_content.list_type_pi8">Job List</label>
             <label index="tt_content.list_type_pi9">Lista fristående kurser</label>
             <label index="tt_content.list_type_pi10">Lista antagningsstatistik</label>
+            <label index="tt_content.list_type_pi11">Lista organisationer</label>
         </languageKey>
     </data>
 </T3locallang>

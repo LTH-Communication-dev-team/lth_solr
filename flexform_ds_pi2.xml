@@ -194,6 +194,20 @@
                         </config>
                        </TCEforms>
                     </limitToStandardCategories>
+                    
+                    <!--<vrole>
+                        <TCEforms>
+                            <label>Visa dessa roller</label>
+                           <config>
+                            <type>select</type>
+                            <maxitems>100</maxitems>
+                            <size>10</size>
+                            <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getVroles</itemsProcFunc>
+                            <selectedListStyle>width:250px</selectedListStyle>
+                            <itemListStyle>width:250px</itemListStyle>
+                        </config>
+                       </TCEforms>
+                    </vrole>-->
         
                     <noItemsToShow>
                         <TCEforms>

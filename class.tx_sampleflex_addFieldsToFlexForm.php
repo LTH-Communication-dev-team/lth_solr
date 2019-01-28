@@ -611,6 +611,118 @@ class user_sampleflex_addFieldsToFlexForm
     }
     
     
+    function getVroles($config)
+    {
+        $uid = $config['row']['uid'];
+        require(__DIR__.'/service/init.php');
+        
+        $content = "";
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $fieldArray = array("id", "primaryVroleTitle");
+        $queryToSet = '(docType:staff)';
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        $sortArray = array(
+            'primaryVroleTitle' => 'asc'
+        );
+        $query->addSorts($sortArray);
+        $query->setStart(0)->setRows(10);
+        $facetSet = $query->getFacetSet();
+        $facetSet->setLimit(1000);
+        $facetSet->createFacetField('title')->setField('primaryVroleTitle');
+        $response = $client->select($query);
+        
+        if($response) {
+            $facetTitles = $response->getFacetSet()->getFacet('title');
+            $tmpArray = array();
+            foreach ($facetTitles as $value => $count) {
+                $tmpArray[] = strtolower($value); 
+            }
+            asort($tmpArray);
+            foreach ($tmpArray as $key => $value) {
+                $config['items'][$i] = array(0 => $value, 1 => str_replace(',','$', $value));
+                $i++;
+            }
+        }
+
+        return $config;
+    }
+    
+    
+    function getOrganisation($config)
+    {
+        $uid = $config['row']['uid'];
+        require(__DIR__.'/service/init.php');
+        
+        $content = "";
+
+        $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_sv/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+	if (!$settings['solrHost'] || !$settings['solrPort'] || !$settings['solrPath'] || !$settings['solrTimeout']) {
+	    die('Please make all settings in extension manager');
+	}
+        
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $fieldArray = array("id", "organisationSourceId", "organisationTitle");
+        $queryToSet = '(docType:organisation)';
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        $sortArray = array(
+            'organisationTitle' => 'asc'
+        );
+        $query->addSorts($sortArray);
+        $query->setStart(0)->setRows(10000);
+        $response = $client->select($query);
+        
+        if($response) {
+            $i=0;
+            foreach ($response as $document) {
+                $id = $document->id;
+                $organisationSourceId = (string)$document->organisationSourceId[0];
+                $organisationTitle = (string)$document->organisationTitle;
+                
+                if($organisationTitle) $config['items'][$i] = array(0 => $organisationTitle . '[' . $organisationSourceId . ']', 1 => str_replace(',','$',$organisationTitle));
+                $i++;
+            }
+        }
+
+        return $config;
+    }
+    
+    
     function getProgramsStat($config)
     {
         $uid = $config['row']['uid'];

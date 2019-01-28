@@ -1,0 +1,70 @@
+<T3DataStructure>
+    <meta>
+        <langDisable>1</langDisable>
+    </meta>
+    <sheets>
+        <sDEF>
+            <ROOT>
+                <TCEforms>
+                    <sheetTitle>General</sheetTitle>
+                </TCEforms>
+                <type>array</type>
+                <el>
+                    <display>
+                        <TCEforms>
+                            <label>What to display</label>
+                            <onChange>reload</onChange>
+                            <config>
+                                <type>radio</type>
+                                <default>staff</default>
+                                <items type="array">
+                                    <numIndex index="0" type="array">
+                                        <numIndex index="0">Staff</numIndex>
+                                        <numIndex index="1">staff</numIndex>
+                                    </numIndex>
+                                    <numIndex index="1" type="array">
+                                        <numIndex index="0">Organisation</numIndex>
+                                        <numIndex index="1">organisation</numIndex>
+                                    </numIndex>
+                                    <numIndex index="2" type="array">
+                                        <numIndex index="0">Roles</numIndex>
+                                        <numIndex index="1">roles</numIndex>
+                                    </numIndex>
+                                </items>
+                            </config>
+                        </TCEforms>
+                    </display>
+                    <organisation>
+                        <TCEforms>
+                            <label>Organisation</label>
+                            <config>
+                                <type>select</type>
+                                <maxitems>10</maxitems>
+                                <size>10</size>
+                                <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getOrganisation</itemsProcFunc>
+                                <selectedListStyle>width:250px</selectedListStyle>
+                                <itemListStyle>width:250px</itemListStyle>
+                                <enableMultiSelectFilterTextfield>true</enableMultiSelectFilterTextfield>
+                            </config>
+                       </TCEforms>
+                    </organisation>
+                    <vroles>
+                        <TCEforms>
+                            <label>Roles</label>
+                            <displayCond>FIELD:display:=:roles</displayCond>
+                            <config>
+                                <type>select</type>
+                                <maxitems>10</maxitems>
+                                <size>10</size>
+                                <itemsProcFunc>user_sampleflex_addFieldsToFlexForm->getVroles</itemsProcFunc>
+                                <selectedListStyle>width:250px</selectedListStyle>
+                                <itemListStyle>width:250px</itemListStyle>
+                                <enableMultiSelectFilterTextfield>true</enableMultiSelectFilterTextfield>
+                            </config>
+                       </TCEforms>
+                    </vroles>
+                </el>
+            </ROOT>
+        </sDEF>
+    </sheets>
+</T3DataStructure>
