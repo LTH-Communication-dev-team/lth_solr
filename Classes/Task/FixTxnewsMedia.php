@@ -46,9 +46,13 @@ class FixTxnewsMedia extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $suid = $row['suid'];
 
             $sql1 = "INSERT INTO sys_file_reference (pid, tstamp, crdate, cruser_id, sorting, deleted, hidden, t3ver_oid, t3ver_id, t3ver_wsid, t3ver_label,
-                t3ver_state, t3ver_stage, t3ver_count, t3ver_tstamp, t3ver_move_id, t3_origuid, sys_language_uid, l10n_parent, l10n_diffsource)
+                t3ver_state, t3ver_stage, t3ver_count, t3ver_tstamp, t3ver_move_id, t3_origuid, sys_language_uid, l10n_parent, l10n_diffsource,
+                uid_local, uid_foreign, tablenames, fieldname, sorting_foreign, table_local, title, description, alternative, link, downloadname,
+                imagewidth, imageheight, crop, autoplay, showinpreview)
                 SELECT pid, tstamp, crdate, cruser_id, sorting, deleted, hidden, t3ver_oid, t3ver_id, t3ver_wsid, t3ver_label,
-                t3ver_state, t3ver_stage, t3ver_count, t3ver_tstamp, t3ver_move_id, t3_origuid, sys_language_uid, l10n_parent, l10n_diffsource 
+                t3ver_state, t3ver_stage, t3ver_count, t3ver_tstamp, t3ver_move_id, t3_origuid, sys_language_uid, l10n_parent, l10n_diffsource,
+                uid_local, uid_foreign, tablenames, fieldname, sorting_foreign, table_local, title, description, alternative, link, downloadname,
+                imagewidth, imageheight, crop, autoplay, showinpreview 
                 FROM sys_file_reference
                 WHERE uid = $suid";
             $res1 = $GLOBALS['TYPO3_DB'] -> sql_query($sql1);
