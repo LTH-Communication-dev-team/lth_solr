@@ -72,9 +72,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         $orgArray = $this->getOrg($con);
                 
-        $heritageTempArray = $this->getHeritage($con);
-        $heritageArray = $heritageTempArray[0];
-        $heritageLegacyArray = $heritageTempArray[1];
+        $heritageArray = $this->getHeritage($con);
 
         $categoriesArray = $this->getCategories();
 
@@ -88,7 +86,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp, $studentMainGroup);
 
-        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang, $orgArray);
+        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $categoriesArray, $config, $syslang, $orgArray);
         
         $syslang = "en";
         
@@ -102,7 +100,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 )
             )
         );
-        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang, $orgArray);
+        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $categoriesArray, $config, $syslang, $orgArray);
         //$executionSucceeded = TRUE;
         
         //mysqli_free_result($res);
@@ -300,7 +298,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     private function getHeritage($con)
     {
         $heritageArray = array();
-        $heritageLegacyArray = array();
         
         $sql = "SELECT orgid, parent, legacy_orgid, legacy_parent FROM lucache_vorg";
         
@@ -308,10 +305,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $heritageArray[$row['orgid']] = $row['parent'];
-            $heritageLegacyArray[$row['legacy_orgid']] = $row['legacy_parent'];
         }
-        //$this->debug($heritageLegacyArray);
-        return array($heritageArray, $heritageLegacyArray);
+
+        return $heritageArray;
     }
     
     
@@ -560,7 +556,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function updateSolr($employeeArray, $heritageArray, $heritageLegacyArray, $categoriesArray, $config, $syslang, $orgArray)
+    private function updateSolr($employeeArray, $heritageArray, $categoriesArray, $config, $syslang, $orgArray)
     {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($employeeArray['ju1665ca'],true), 'crdate' => time()));
         $coordinatesArray = $this->getCoordinates();
@@ -590,6 +586,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     } else if($value['id'] && ($value['primary_affiliation']==='employee' || $value['primary_affiliation']==='member')) {
                         $heritage = array();
                         $heritageName = array();
+                        $heritage2 = array();
+                        $heritageName2 = array();
 
                         //$orgidArray = explode('###', $value['orgid']);
                         $orgidArray = $value['orgid'];
@@ -600,50 +598,60 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 $value['coordinates'][] = "";
                             }
                             $heritage[] = $value1;
+                            
                             $heritageName[] = strtolower(utf8_decode($orgArray[$value1][$nameTmp]));
                             $parent = $heritageArray[$value1];
                             if($parent) { 
                                 $heritage[] = $parent;
+                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
+                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
+                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
+                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
+                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
+                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
+                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
+                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
                             }
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
+                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
                             }
                         }
@@ -728,6 +736,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                         $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username='".$key."'", array('lth_solr_heritage' => implode(',', $heritage)));
 
+                        if($heritage2) {
+                            $data['heritage2'] = json_encode($heritage2);
+                        }
+                        
                         if(is_array($value['lth_solr_cat'])) {
                             foreach($value['lth_solr_cat'] as $key1 => $value1) {
                                 $data[$key1] = $value1;

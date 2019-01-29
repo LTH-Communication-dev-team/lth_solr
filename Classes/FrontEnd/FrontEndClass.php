@@ -371,7 +371,7 @@ class FrontEndClass
              </label>
            </div>';
         
-        $content .= '<div id="lthsolr_organisation_container">'; 
+        $content .= '<div id="lthsolr_organisation_container" class="col-12 col-lg-8 mt-3 mt-xl-6">'; 
         
         if($action==='listOrganisation') {
             $content .= '<div class="search-result"><section></section></div></div>';

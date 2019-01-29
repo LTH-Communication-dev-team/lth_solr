@@ -44,8 +44,17 @@ class FixTxnewsMedia extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             //die($sql);
             $nuid = $row['nuid'];
             $suid = $row['suid'];
-            //UPDATE sys_file_reference SET tablenames = ‘tx_news_domain_model_news’, fieldname = ‘fal_media’, uid_foreign =	6528 (N.uid)	WHERE uid = 	145393(s.uid)
-            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'uid='.$suid, array('tablenames' => 'tx_news_domain_model_news',
+
+            $sql1 = "INSERT INTO sys_file_reference (pid, tstamp, crdate, cruser_id, sorting, deleted, hidden, t3ver_oid, t3ver_id, t3ver_wsid, t3ver_label,
+                t3ver_state, t3ver_stage, t3ver_count, t3ver_tstamp, t3ver_move_id, t3_origuid, sys_language_uid, l10n_parent, l10n_diffsource)
+                SELECT pid, tstamp, crdate, cruser_id, sorting, deleted, hidden, t3ver_oid, t3ver_id, t3ver_wsid, t3ver_label,
+                t3ver_state, t3ver_stage, t3ver_count, t3ver_tstamp, t3ver_move_id, t3_origuid, sys_language_uid, l10n_parent, l10n_diffsource 
+                FROM sys_file_reference
+                WHERE uid = $suid";
+            $res1 = $GLOBALS['TYPO3_DB'] -> sql_query($sql1);
+            $suid_novo = $GLOBALS['TYPO3_DB']->sql_insert_id();
+            
+            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'uid='.$suid_novo, array('tablenames' => 'tx_news_domain_model_news',
                 'fieldname' => 'fal_media',
                 'uid_foreign' => $nuid));
             //UPDATE tx_news_domain_model_news SET fal_media = 1 WHERE uid = 6528 (N.uid);
