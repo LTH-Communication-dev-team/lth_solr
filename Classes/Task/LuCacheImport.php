@@ -73,6 +73,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $orgArray = $this->getOrg($con);
                 
         $heritageArray = $this->getHeritage($con);
+        
+        $heritage2Array = $this->getHeritage2($config);
 
         $categoriesArray = $this->getCategories();
 
@@ -86,7 +88,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp, $studentMainGroup);
 
-        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $categoriesArray, $config, $syslang, $orgArray);
+        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritage2Array, $categoriesArray, $config, $syslang, $orgArray);
         
         $syslang = "en";
         
@@ -100,7 +102,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 )
             )
         );
-        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $categoriesArray, $config, $syslang, $orgArray);
+        $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritage2Array, $categoriesArray, $config, $syslang, $orgArray);
         //$executionSucceeded = TRUE;
         
         //mysqli_free_result($res);
@@ -159,7 +161,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             GROUP_CONCAT(V.hide_on_web SEPARATOR '|') AS hide_on_web,
             GROUP_CONCAT(V.leave_of_absence SEPARATOR '|') AS leave_of_absence,
             GROUP_CONCAT(V.orgid SEPARATOR '|') AS orgid,
-            GROUP_CONCAT(V.room_number SEPARATOR '|') AS room_number,
+            GROUP_CONCAT(COALESCE(V.room_number,'NULL') SEPARATOR '|') AS room_number,
             GROUP_CONCAT(V.title SEPARATOR '|') AS title,
             GROUP_CONCAT(V.title_en SEPARATOR '|') AS title_en,
             GROUP_CONCAT(COALESCE(V.phone,'NULL') SEPARATOR '|') AS phone,
@@ -299,7 +301,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     {
         $heritageArray = array();
         
-        $sql = "SELECT orgid, parent, legacy_orgid, legacy_parent FROM lucache_vorg";
+        $sql = "SELECT orgid, parent FROM lucache_vorg";
         
         $res = mysqli_query($con, $sql);
         
@@ -307,6 +309,37 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $heritageArray[$row['orgid']] = $row['parent'];
         }
 
+        return $heritageArray;
+    }
+    
+    
+    private function getHeritage2($config)
+    {
+        $heritageArray = array();
+        $organisationArray = array();
+        
+        $client = new \Solarium\Client($config);
+        $query = $client->createSelect();
+        $query->setQuery('docType:organisation');
+        $query->setFields(array("id", "organisationSourceId", "organisationParent"));
+        $query->setStart(0)->setRows(10000);
+        $response = $client->select($query);
+        foreach ($response as $document) {
+            if($document->organisationSourceId && substr($document->organisationSourceId[0],0,1)==='v') {
+                $organisationArray[$document->id] = array('parent' => $document->organisationParent, 'organisationSourceId' => $document->organisationSourceId[0]);
+            }
+        }
+
+        if($organisationArray) {
+            foreach ($organisationArray as $key => $value) {
+                if($value['organisationSourceId'] && $value['parent']) {
+                    foreach($value['parent'] as $key2 => $value2) {
+                        if($organisationArray[$value2]['organisationSourceId']) $heritageArray[$value['organisationSourceId']][] = $organisationArray[$value2]['organisationSourceId'];
+                    }
+                }
+            }
+        }
+        
         return $heritageArray;
     }
     
@@ -556,7 +589,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function updateSolr($employeeArray, $heritageArray, $categoriesArray, $config, $syslang, $orgArray)
+    private function updateSolr($employeeArray, $heritageArray, $heritage2Array, $categoriesArray, $config, $syslang, $orgArray)
     {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($employeeArray['ju1665ca'],true), 'crdate' => time()));
         $coordinatesArray = $this->getCoordinates();
@@ -591,7 +624,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                         //$orgidArray = explode('###', $value['orgid']);
                         $orgidArray = $value['orgid'];
+
                         foreach($orgidArray as $key1 => $value1) {
+
                             if(key_exists($value1,$coordinatesArray)) {
                                 $value['coordinates'][] = $coordinatesArray[$value1];
                             } else {
@@ -601,58 +636,112 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             
                             $heritageName[] = strtolower(utf8_decode($orgArray[$value1][$nameTmp]));
                             $parent = $heritageArray[$value1];
-                            if($parent) { 
+                            $parent2 = $heritage2Array[$value1];
+                            if($parent) {
                                 $heritage[] = $parent;
-                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1][] = $value2;
+                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                    }
+                                }
                             }
+                            $parent2 = $heritage2Array[$parent];
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
-                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1][] = $value2;
+                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                    }
+                                }
                             }
+                            $parent2 = $heritage2Array[$parent];
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
-                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1][] = $value2;
+                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                    }
+                                }
                             }
+                            $parent2 = $heritage2Array[$parent];
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
-                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1][] = $value2;
+                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                    }
+                                }
                             }
+                            $parent2 = $heritage2Array[$parent];
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
-                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1][] = $value2;
+                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                    }
+                                }
                             }
+                            $parent2 = $heritage2Array[$parent];
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
-                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1][] = $value2;
+                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                    }
+                                }
                             }
+                            $parent2 = $heritage2Array[$parent];
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
-                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1][] = $value2;
+                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                    }
+                                }
                             }
+                            $parent2 = $heritage2Array[$parent];
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
-                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1][] = $value2;
+                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                    }
+                                }
                             }
+                            $parent2 = $heritage2Array[$parent];
                             $parent = $heritageArray[$parent];
                             if($parent) {
                                 $heritage[] = $parent;
-                                $heritage2[$value1][] = $parent;
                                 $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1][] = $value2;
+                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                    }
+                                }
                             }
                         }
 
@@ -740,6 +829,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $data['heritage2'] = json_encode($heritage2);
                         }
                         
+                        if($heritageName2) {
+                            $data['heritageName2'] = json_encode($heritageName2);
+                        }
+                        
                         if(is_array($value['lth_solr_cat'])) {
                             foreach($value['lth_solr_cat'] as $key1 => $value1) {
                                 $data[$key1] = $value1;
@@ -766,7 +859,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         }
                         
                         $data['disable_intS'] = 0;
-
                         $buffer->createDocument($data);
                     }
                 } 
