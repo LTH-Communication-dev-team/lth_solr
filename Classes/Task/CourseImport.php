@@ -247,16 +247,16 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     {
         $output='';
         $outputSort = 0;
-        if($optional==='obligatorisk') {
+        if($programDirectionGeneral==0) {
+            $output = 'Specialisering - ' . $programDirection;
+            $outputSort = 2;
+        } else if($optional==='obligatorisk') {
             $output = 'Obligatoriska kurser';
             $outputSort = 0;
         } else if($optional==='alternativ_obligatorisk') {
             $output = 'Alternativobligatoriska kurser';
             $outputSort = 1;
-        } else if($programDirectionGeneral==0) {
-            $output = 'Specialisering - ' . $programDirection;
-            $outputSort = 2;
-        } else if($courseType==='EXAMENSARBETE') {
+        } else  if($courseType==='EXAMENSARBETE') {
             $output = 'Examensarbeten';
             $outputSort = 5;
         } else if($optional === 'externt_valfri') {
