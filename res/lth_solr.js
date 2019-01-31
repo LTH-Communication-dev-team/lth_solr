@@ -326,6 +326,7 @@ function listOrganisationStaff(facet, query)
     var sysLang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
     var vroles = $('#lth_solr_vroles').val();
+    var facetChoice = $('#lth_solr_facetchoice').val();
     var facetVal, count;
     if(!facet) facet = '';
     var totalCount = 0;
@@ -343,6 +344,7 @@ function listOrganisationStaff(facet, query)
                 vroles: vroles,
                 syslang: sysLang,
                 query: query,
+                facetChoice: facetChoice,
                 facet: facet,
             },
             sid : Math.random(),
@@ -375,7 +377,6 @@ function listOrganisationStaff(facet, query)
                 }
                 
                 if($('#facet_container').length === 0) {
-                    
                     $('#lthsolr_organisation_filter').keyup(function() {
                         listOrganisationStaff($('#facet_container > li > .active').attr('data-val'), $(this).val().trim());
                     });
@@ -423,9 +424,9 @@ function listOrganisationStaff(facet, query)
                     template = template.replace('###id###', uuid);
 
                     if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;
-                    if(aData.email) email = aData.email[0];
-                    if(aData.title) title = titleCase(aData.title[0]);
-                    if(aData.phone[0] && aData.phone[0] !== 'NULL') phone = formatPhone(aData.phone[0]);
+                    if(aData.email) email = aData.email;
+                    if(aData.title) title = titleCase(aData.title);
+                    if(aData.phone && aData.phone !== 'NULL') phone = formatPhone(aData.phone);
                     if(aData.organisationName) organisationName = '<strong>' + aData.organisationName + '</strong> - ';
                     template = template.replace(/###email###/g, email);
                     template = template.replace('###organisationName###', organisationName);
@@ -500,10 +501,13 @@ function listOrganisationRoles(query)
             $('.spinner').remove();
                 
             if(d.data) {
-                $('#lthsolr_organisation_filter').keyup(function() {
-                    listOrganisationRoles($(this).val().trim());
-                });
-                    
+                if($('.lth_solr_coldesac').length === 0) {
+                    $('#lthsolr_organisation_filter').keyup(function() {
+                        $('#lthsolr_organisation_filter').addClass('lth_solr_coldesac');
+                        listOrganisationRoles($(this).val().trim());
+                    });
+                }
+            
                 $('#lthsolr_organisation_container > div > section').append('<h2 class="m-0 pb-2 border-bottom">' + titleCase(decodeURIComponent(vroles)) + ' (' + d.numFound + ')' + '</h2>');
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
@@ -566,8 +570,8 @@ function listOrganisationRoles(query)
 
 function showStaffNovo()
 {
-    var authorName, displayName, documentId, documentTitle, email, image, journalTitle, mailDelivery, organisationName, organisationPostalAddress, 
-            organisationStreet, pages, phone, profileInformationJson, profileInformation, publicationDateYear, publicationType, publisher, roomNumber, title;
+    var authorName, displayName, documentId, documentTitle, email, image, journalTitle, mailDelivery, organisationName, organisationPostalAddress, organisation='',
+            organisationStreet, mobile, pages, phone, profileInformationJson, profileInformation, publicationDateYear, publicationType, publisher, roomNumber, title;
     var sysLang = $('html').attr('lang');
     
     $.ajax({
@@ -578,6 +582,7 @@ function showStaffNovo()
             action : 'showStaffNovo',
             dataSettings: {
                 pageid : $('body').attr('id'),
+                organisation : $('#lth_solr_organisation').val(),
                 scope : $('#lth_solr_scope').val(),
                 sysLang : sysLang,
             },
@@ -595,49 +600,59 @@ function showStaffNovo()
                 $.each( d.staffData, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
 
-                    if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;                  
+                    if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;
                     
+                    if(aData.email) {
+                        if(aData.email) email = '<strong>E-post:</strong> <a href="mailto: ' + aData.email + '">' + aData.email + '</a>';
+                    }
+                        
                     for (var i=0; i<aData.organisationId.length; i++) {
-                        if(aData.email) {
-                            if(aData.email[i]) email = '<strong>E-post:</strong> <a href="mailto: ' + aData.email[i] + '">' + aData.email[i] + '</a>';
+                        if(aData.title) {
+                            if(aData.title[i]) organisation += '<strong>' + titleCase(aData.title[i]) + ' vid</strong> ';
                         }
-                        if(aData.mailDelivery) {
-                            if(aData.mailDelivery[i]) {
-                                mailDelivery = '<strong>Hämtställe:</strong> ' + aData.mailDelivery[i];
-                                if($('.lth_solr_husmap').length > 0) {
-                                    $('.lth_solr_husmap').show(200);
-                                    $('.lth_solr_husmap #'+aData.mailDelivery[i]).attr('src','/typo3conf/ext/lth_solr/res/hus/' + aData.mailDelivery[i] +'g.png').show(200);
-                                }
-                            }
-                        }
+                        
                         if(aData.organisationName) {
-                            if(aData.organisationName[i]) organisationName = aData.organisationName[i];
+                            if(aData.organisationName[i]) organisation += titleCase(aData.organisationName[i]);
                         }
-                        if(aData.roomNumber) {
-                            if(aData.roomNumber[i]) roomNumber = '<strong>Rumsnummer:</strong> ' + aData.roomNumber[i];
-                        }
+                        
                         if(aData.phone) {
                             if(aData.phone[i] && aData.phone[i] !== 'NULL') {
                                 phone = aData.phone[i];
-                                phone = '<strong>Telefon:</strong><a href="tel:'+phone+'">' + phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1')+ '</a>';
-                            }
-                        }
-                        if(aData.mobile) {
-                            if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
-                                if(phone) phone += ', ';
-                                phone += addBreak('+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"));
+                                organisation += '<br/><strong>Telefon:</strong><a href="tel:'+phone+'">' + phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1')+ '</a>';
                             }
                         }
                         
+                        if(aData.mobile) {
+                            if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
+                                mobile = '+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");
+                                organisation += '<br/><strong>Mobiltelefon:</strong><a href="tel:'+mobile+'">' + mobile + '</a>';
+                            }
+                        }
+                        
+                        if(aData.roomNumber) {
+                            if(aData.roomNumber[i]) organisation += '<br/><strong>Rumsnummer:</strong> ' + aData.roomNumber[i];
+                        }
+                                                
+                        if(aData.mailDelivery) {
+                            if(aData.mailDelivery[i]) {
+                                organisation += '<br/><strong>Hämtställe:</strong> ' + aData.mailDelivery[i];
+                                if($('.lth_solr_husmap').length > 0) {
+                                    $('.lth_solr_husmap').show(200);
+                                    $('.lth_solr_husmap #'+aData.mailDelivery[i]).attr('src','/typo3conf/ext/lth_solr/res/reddot.png').show(200);
+                                }
+                            }
+                        }
+                                               
                         if(aData.organisationStreet) {
-                            if(aData.organisationStreet[i]) organisationStreet = aData.organisationStreet[i];
+                            if(aData.organisationStreet[i]) organisation += '<br/><strong>Postadress:</strong> ' + aData.organisationStreet[i];
                         }
+                                                
                         if(aData.organisationPostalAddress) {
-                            if(aData.organisationPostalAddress[i]) organisationPostalAddress += aData.organisationPostalAddress[i].toString().split('$').join(', ');
+                            if(aData.organisationPostalAddress[i]) organisation += '<br/><strong>Postadress:</strong> ' + aData.organisationPostalAddress[i].toString().split('$').join(', ');
                         }
-                        if(aData.title) {
-                            if(aData.title) title = aData.title.join(', ');
-                        }
+                        
+                        organisation = '<p>' + organisation + '</p>';
+                        
                         //template = template.replace('###visitingAddress###', ostreet + ' ' + ocity + addBreak(ophone));
                         //template = template.replace('###postalAddress###', addBreak(organisationPostalAddress));
                     }
@@ -659,11 +674,7 @@ function showStaffNovo()
                     template = template.replace(/###displayName###/g, displayName);
                     template = template.replace('###email###', email);
                     template = template.replace('###image###', image);
-                    template = template.replace('###mailDelivery###', mailDelivery);
-                    template = template.replace('###organisationName###', titleCase(organisationName));
-                    template = template.replace('###phone###', phone);
-                    template = template.replace('###roomNumber###', roomNumber);
-                    template = template.replace('###title###', titleCase(title));
+                    template = template.replace('###organisation###', organisation);
                     template = template.replace('###profileInformation###', profileInformation);
                     //Change page main header
                     //$('#page_title h1, article h1').remove();//text(displayName).append('<h2>'+title+'</h2>');           

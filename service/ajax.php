@@ -236,6 +236,8 @@ function listOrganisationStaff($dataSettings, $config)
     $syslang = $dataSettings['syslang'];
     $scope = $dataSettings['scope'];
     $vroles = $dataSettings['vroles'];
+    $facetChoice = $dataSettings['facetChoice'];
+    if(!$facetChoice) $facetChoice = 'standardCategory';
     
     $client = new Solarium\Client($config);
     
@@ -252,7 +254,8 @@ function listOrganisationStaff($dataSettings, $config)
     
     $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName",
         "primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile",
-        "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","guid","uuid","heritage","heritageName",
+        "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","guid","uuid","heritage",
+        "heritageName","heritageName2",
         "primaryVroleOu","primaryVroleTitle","primaryVroleOrgid","primaryVrolePhone");
     
     if($filterQuery) {
@@ -273,10 +276,10 @@ function listOrganisationStaff($dataSettings, $config)
     $query->setStart(0)->setRows(10000);
     
     $facetSet = $query->getFacetSet();
-    $facetSet->createFacetField('standard')->setField('standardCategory');
+    $facetSet->createFacetField('standard')->setField('primaryVroleOu');
     
     if($facet) {
-        $query->addFilterQuery(array('key' => 0, 'query' => 'standardCategory:'.$facet, 'tag'=>'inner'));
+        $query->addFilterQuery(array('key' => 0, 'query' => 'primaryVroleOu:'.str_replace(' ', '\ ', $facet), 'tag'=>'inner'));
     }
     
     $sortArray = array(
@@ -291,9 +294,15 @@ function listOrganisationStaff($dataSettings, $config)
 
     $numFound = $response->getNumFound();
     
+    /*
+     * $facetStandard = $response->getFacetSet()->getFacet('standard');
+        foreach ($facetStandard as $value => $count) {
+            if($count > 0) $facetResult[$catVal][] = array($value, $count, $facetHeader);
+        }
+     */
     $facetStandard = $response->getFacetSet()->getFacet('standard');
     foreach ($facetStandard as $value => $count) {
-        if($count > 0) $facetResult['standardCategory'][] = array($value, $count);
+        if($count > 0) $facetResult[$facetChoice][] = array($value, $count);
     }
     
     foreach ($response as $document) {
@@ -304,15 +313,26 @@ function listOrganisationStaff($dataSettings, $config)
         } else if($document->lucrisPhoto) {
             $image = $document->lucrisPhoto;
         }
+
+        $mainKey=0;
+        $i=0;
+        if($document->heritageName2) {
+            $heritageName2Array = json_decode($document->heritageName2, true);
+            //
+            foreach($heritageName2Array as $key => $value) {
+                if(array_search($scope, $value)!==false) $mainKey = $i;
+                $i++;
+            }
+        }
         
         $data[] = array(           
             "firstName" => mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8"),
             "lastName" => mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
-            "title" => $document->title,
-            "phone" => $document->phone,
+            "title" => $this->getFromMainKey($document->title, $mainKey),
+            "phone" => $this->getFromMainKey($document->phone, $mainKey),
             "id" => $document->guid,
-            "email" => $document->email,
-            "organisationName" => $document->organisationName,
+            "email" => $this->getFromMainKey($document->email, $mainKey),
+            "organisationName" => $this->getFromMainKey($document->organisationName, $mainKey),
             "organisationHideOnWeb" => $document->organisationHideOnWeb,
             "organisationLeaveOfAbsence" => $document->organisationLeaveOfAbsence,
             "primaryAffiliation" => $document->primaryAffiliation,
@@ -370,7 +390,7 @@ function listOrganisationRoles($dataSettings, $config)
         $scopeArray = explode(',', $scope);
         foreach($scopeArray as $key => $value) {
             if($i>0) $term .= ' OR ';
-            $term .= 'heritageName:' . str_replace('$',',',str_replace(' ', '\ ', strtolower($value)));
+            $term .= 'heritageName2:*' . str_replace('$',',',str_replace(' ', '\ ', strtolower($value))) . '*';
             $i++;
         }
         $term .= ')';
@@ -457,7 +477,7 @@ function listOrganisationRoles($dataSettings, $config)
             "image" => $image,
             "intro" => $intro,
             "roomNumber" => $this->fixRoomNumber($document->roomNumber),
-            "mobile" => $document->mobile,
+            "mobile" => $this->getFromMainKey($document->mobile, $mainKey),
             "organisationId" => $document->organisationId,
             "guid" => $document->guid,
             "uuid" => $document->uuid,
@@ -487,10 +507,12 @@ function getFromMainKey($value, $key)
 
 function showStaffNovo($syslang, $scope, $dataSettings, $config)
 {
-    $fieldArray = array("docType","firstName","lastName","title","phone","id","email","mailDelivery","organisationName","primaryAffiliation","homepage","image","intro","roomNumber",
+    $fieldArray = array("docType","firstName","lastName","title","phone","id","email","mailDelivery","organisationName","primaryAffiliation",
+        "homepage","image","intro","roomNumber","heritageName2",
         "mobile","uuid","guid","organisationId","organisationPhone","organisationStreet","organisationCity","organisationPostalAddress",
         "profileInformationNovo","coordinates","lucrisPhoto");
     
+    $organisation = strtolower($dataSettings['organisation']);
     $scope = $dataSettings['scope'];
     $sysLang = $dataSettings['sysLang'];
     $content = '';
@@ -503,8 +525,8 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
     $query->setStart(0)->setRows(10000);
     
     //Staff
-    $queryToSet = 'docType:staff AND (guid:' . $scope . ' OR uuid:' . $scope . ')';
-    $query->setQuery($queryToSet);
+    $queryToSet1 = 'docType:staff AND (guid:' . $scope . ' OR uuid:' . $scope . ')';
+    $query->setQuery($queryToSet1);
     $query->setFields($fieldArray);
     $staffResponse = $client->select($query);
     
@@ -515,8 +537,8 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
             "electronicVersionVersionType","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","openAccessPermission","pages","publicationType",
             "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
     
-    $queryToSet = 'docType:publication AND authorId:' . $scope;
-    $query->setQuery($queryToSet);
+    $queryToSet2 = 'docType:publication AND authorId:' . $scope;
+    $query->setQuery($queryToSet2);
     $query->setFields($fieldArray);
     $sortArray = array(
         'publicationDateYear' => 'desc',
@@ -533,41 +555,56 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         $id = $document->id;
         $docType = $document->docType;
 
-        $intro = '';
-        if($document->$introVar) {
-            $intro = '<p class="lthsolr_intro">' . $document->staff_custom_text_s . '</p>';
-        }
-
         if($document->image) {
             $image = '/fileadmin' . $document->image;
         } else if($document->lucrisPhoto) {
             $image = $document->lucrisPhoto;
         }
         
-        /*if($document->profileInformationNovo) {
-            $piArray = json_decode($document->profileInformationNovo, true);
-            foreach($piArray as $key => $value) {
+        $mainKey=0;
+        $i=0;
+        $mailDelivery = array();
+        $mobile = array();
+        $organisationId = array();
+        $organisationName = array();
+        $phone = array();
+        $roomNumber = array();
+        $title = array();
                 
+        if($document->heritageName2) {
+            $heritageName2Array = json_decode($document->heritageName2, true);
+            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($heritageName2Array,true), 'crdate' => time()));
+            foreach($heritageName2Array as $key => $value) {
+                if(array_search($organisation, $value)!==false) {
+                    $mailDelivery[] = $document->mailDelivery[$i];
+                    $mobile[] = $document->mobile[$i];
+                    $organisationId[] = $document->organisationId[$i];
+                    $organisationName[] = $document->organisationName[$i];
+                    $phone[] = $document->phone[$i];
+                    $roomNumber[] = $document->roomNumber[$i];
+                    $title[] = $document->title[$i];
+                }
+                $i++;
             }
-        }*/
+        }
 
         $staffData[] = array(
-            "email" => $document->email,
+            "email" => $document->email[0],
             "firstName" => $document->firstName,
             "lastName" => $document->lastName,
-            "mailDelivery" => $document->mailDelivery,
-            "title" => array_values(array_unique($document->title)),
-            "phone" => $document->phone,
-            "organisationName" => $document->organisationName,
+            "mailDelivery" => $mailDelivery,
+            "title" => $title,
+            "phone" => $phone,
+            "organisationName" => $organisationName,
             "primaryAffiliation" => $document->primaryAffiliation,
             "homepage" => $document->homepage,
             "image" => $image,
             "intro" => $intro,
-            "roomNumber" => $document->roomNumber,
-            "mobile" => $document->mobile,
+            "roomNumber" => $roomNumber,
+            "mobile" => $mobile,
             "uuid" => $document->uuid,
             "guid" => $document->guid,
-            "organisationId" => $document->organisationId,
+            "organisationId" => $organisationId,
             "organisationPhone" => $document->organisationPhone,
             "organisationStreet" => $document->organisationStreet,
             "organisationCity" => $document->organisationCity,
@@ -611,7 +648,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         );
     }
     
-    $resArray = array('staffData' => $staffData, 'publicationsData' => $publicationsData, 'query' => $queryToSet);
+    $resArray = array('staffData' => $staffData, 'publicationsData' => $publicationsData, 'query' => $queryToSet1 . ';' . $queryToSet2);
     
     return json_encode($resArray);
 }

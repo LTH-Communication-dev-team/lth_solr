@@ -337,7 +337,7 @@ class FrontEndClass
     }
     
     
-    public function showStaffNovo($syslang, $scope)
+    public function showStaffNovo($syslang, $scope, $organisation)
     {
         //Staff 
         $content .= '<div id="lthsolr_show_staff_container"></div>';
@@ -346,14 +346,16 @@ class FrontEndClass
 
         //hidden fields
         $content .= '
+            <input type="hidden" id="lth_solr_action" value="showStaffNovo" />
+            <input type="hidden" id="lth_solr_organisation" value="' . $organisation . '" />
             <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
-            <input type="hidden" id="lth_solr_action" value="showStaffNovo" />';
+            ';
 
         return $content;
     }
     
     
-    public function listOrganisation($syslang, $scope, $vroles, $action)
+    public function listOrganisation($syslang, $scope, $vroles, $facetChoice, $action)
     {
         $syslang = $GLOBALS['TSFE']->config['config']['language'];
         
@@ -371,7 +373,7 @@ class FrontEndClass
              </label>
            </div>';
         
-        $content .= '<div id="lthsolr_organisation_container" class="col-12 col-lg-8 mt-3 mt-xl-6">'; 
+        $content .= '<div id="lthsolr_organisation_container" class="col-12 mt-3 mt-xl-6">'; 
         
         if($action==='listOrganisation') {
             $content .= '<div class="search-result"><section></section></div></div>';
@@ -384,6 +386,7 @@ class FrontEndClass
         $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />';
         $content .= '<input type="hidden" id="lth_solr_vroles" value="' . $vroles . '" />';
         $content .= '<input type="hidden" id="lth_solr_heritage" value="' . $heritage . '" />';
+        $content .= '<input type="hidden" id="lth_solr_facetchoice" value="' . $facetChoice . '" />';
         $content .= '<input type="hidden" id="lth_solr_action" value="' . $action . '" />';
         
         return $content;

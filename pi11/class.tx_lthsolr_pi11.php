@@ -59,6 +59,7 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $display = $this->pi_getFFvalue($piFlexForm, "display", "sDEF", $lDef[$index]);
             $organisation = $this->pi_getFFvalue($piFlexForm, "organisation", "sDEF", $lDef[$index]);
             $vroles = $this->pi_getFFvalue($piFlexForm, "vroles", "sDEF", $lDef[$index]);
+            $facetChoice = $this->pi_getFFvalue($piFlexForm, "facetChoice", "sDEF", $lDef[$index]);
                
             $syslang = $GLOBALS['TSFE']->config['config']['language'];
             if(!$syslang) {
@@ -82,13 +83,13 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $scopeArray = explode('(', $scope);
 		//array_pop($scopeArray);
 		$scope = str_replace(')/', '', array_pop($scopeArray));
-                $content .= $FrontEndClass->showStaffNovo($syslang, $scope);
+                $content .= $FrontEndClass->showStaffNovo($syslang, $scope, $organisation);
             } else if($display === 'organisation') {
                 if($uuid) {
                     $scope = $uuid;
-                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, 'listOrganisationStaff');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, 'listOrganisationStaff');
                 } else {
-                    $content .= $FrontEndClass->listOrganisation($syslang, $organisation, $vroles, 'listOrganisation');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $organisation, $vroles, $facetChoice, 'listOrganisation');
                 }
             } else if($display === 'staff') {
                 if($uuid) {
@@ -96,10 +97,10 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 } else {
                     $scope = $organisation;
                 }
-                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, 'listOrganisationStaff');
+                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, 'listOrganisationStaff');
             } else if($display === 'roles') {
                 $scope = $organisation;
-                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, 'listOrganisationRoles');
+                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, 'listOrganisationRoles');
             }
             
             return $content;

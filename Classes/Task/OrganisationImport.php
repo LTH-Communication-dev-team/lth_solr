@@ -158,9 +158,9 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $organisationPostalAddress = '';
                 $organisationStreet = '';
                 $homepage = '';
-                $parentName = '';
-                $parentName_sv = '';
-                $parentName_en = '';
+                $parentName = array();
+                $parentName_sv = array();
+                $parentName_en = array();
                 
                 //id
                 $id = (string)$content->attributes();
@@ -197,10 +197,10 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     foreach($content->organisations->organisation as $organisation) {
                         $parents[] = (string)$organisation->attributes();
                         if($organisation->name->localizedString->attributes()->locale == 'en_GB') {
-                            $parentName_en = (string)$organisation->name->localizedString;
+                            $parentName_en[] = (string)$organisation->name->localizedString;
                         }
                         if($organisation->name->localizedString->attributes()->locale == 'sv_SE') {
-                            $parentName_sv = (string)$organisation->name->localizedString;
+                            $parentName_sv[] = (string)$organisation->name->localizedString;
                         }
                     }
                 }

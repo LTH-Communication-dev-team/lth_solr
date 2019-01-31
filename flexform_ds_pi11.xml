@@ -63,6 +63,29 @@
                             </config>
                        </TCEforms>
                     </vroles>
+                    <facetChoice>
+                        <TCEforms>
+                            <label>Facets</label>
+                            <config>
+                                <type>radio</type>
+                                <default>standardCategory</default>
+                                <items type="array">
+                                    <numIndex index="0" type="array">
+                                        <numIndex index="0">Standard</numIndex>
+                                        <numIndex index="1">standardCategory</numIndex>
+                                    </numIndex>
+                                    <numIndex index="1" type="array">
+                                        <numIndex index="0">Organisation</numIndex>
+                                        <numIndex index="1">primaryVroleOu</numIndex>
+                                    </numIndex>
+                                    <numIndex index="2" type="array">
+                                        <numIndex index="0">Inga</numIndex>
+                                        <numIndex index="1">none</numIndex>
+                                    </numIndex>
+                                </items>
+                            </config>
+                        </TCEforms>
+                    </facetChoice>
                 </el>
             </ROOT>
         </sDEF>
