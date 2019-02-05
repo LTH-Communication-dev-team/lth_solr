@@ -79,8 +79,12 @@
                                         <numIndex index="1">primaryVroleOu</numIndex>
                                     </numIndex>
                                     <numIndex index="2" type="array">
+                                        <numIndex index="0">First Letter</numIndex>
+                                        <numIndex index="1">firstLetter</numIndex>
+                                    </numIndex>
+                                    <numIndex index="3" type="array">
                                         <numIndex index="0">Inga</numIndex>
-                                        <numIndex index="1">none</numIndex>
+                                        <numIndex index="1"></numIndex>
                                     </numIndex>
                                 </items>
                             </config>

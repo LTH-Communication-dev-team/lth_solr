@@ -74,8 +74,7 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $FrontEndClass->addJsCss('');
             $scope = $_SERVER[REQUEST_URI];
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
-            //$scope = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
-            //kontakt/institutioner/fysiska%20institutionen/giuseppe-abbondanza/
+            $query = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('query');
 
             $scope = trim($scope);
             $scope = rtrim($scope, '/') . '/';
@@ -87,9 +86,9 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             } else if($display === 'organisation') {
                 if($uuid) {
                     $scope = $uuid;
-                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, 'listOrganisationStaff');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, 'listOrganisationStaff');
                 } else {
-                    $content .= $FrontEndClass->listOrganisation($syslang, $organisation, $vroles, $facetChoice, 'listOrganisation');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $organisation, $vroles, $facetChoice, $query, 'listOrganisation');
                 }
             } else if($display === 'staff') {
                 if($uuid) {
@@ -97,10 +96,10 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 } else {
                     $scope = $organisation;
                 }
-                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, 'listOrganisationStaff');
+                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, 'listOrganisationStaff');
             } else if($display === 'roles') {
                 $scope = $organisation;
-                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, 'listOrganisationRoles');
+                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, 'listOrganisationRoles');
             }
             
             return $content;

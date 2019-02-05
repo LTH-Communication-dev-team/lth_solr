@@ -355,7 +355,7 @@ class FrontEndClass
     }
     
     
-    public function listOrganisation($syslang, $scope, $vroles, $facetChoice, $action)
+    public function listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $action)
     {
         $syslang = $GLOBALS['TSFE']->config['config']['language'];
         
@@ -386,6 +386,7 @@ class FrontEndClass
         $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />';
         $content .= '<input type="hidden" id="lth_solr_vroles" value="' . $vroles . '" />';
         $content .= '<input type="hidden" id="lth_solr_heritage" value="' . $heritage . '" />';
+        $content .= '<input type="hidden" id="lth_solr_query" value="' . $query . '" />';
         $content .= '<input type="hidden" id="lth_solr_facetchoice" value="' . $facetChoice . '" />';
         $content .= '<input type="hidden" id="lth_solr_action" value="' . $action . '" />';
         

@@ -241,6 +241,8 @@ function listOrganisation(query)
     var sysLang = $('html').attr('lang');
     var homepage, id, mailDelivery, organisationCity, organisationParent, organisationPhone, organisationPostalAddress;
     var organisationSourceId, organisationStreet, organisationTitle;
+    var listPage = 'lista';
+    if(sysLang==='en') listPage = 'list';
     
     $.ajax({
         type : 'POST',
@@ -267,8 +269,8 @@ function listOrganisation(query)
         success: function(d) {
             $('.spinner').remove();
             if(d.data) {
-                if($('#lthsolr_organisation_filter .lth_solr_keyup').length===0)  {
-                    $('#lthsolr_organisation_filter').addClass('lth_solr_keyup').keyup(function() {
+                if($('.lth_solr_culdesac').length===0)  {
+                    $('#lthsolr_organisation_filter').addClass('lth_solr_culdesac').keyup(function() {
                         listOrganisation($(this).val().trim());
                     });
                 }
@@ -311,7 +313,7 @@ function listOrganisation(query)
                         link = 'show/'+encodeURI(organisationTitle+'('+id+')');
                     }*/
                     
-                    template = template.replace('###link###', encodeURI(organisationTitle)+'/');
+                    template = template.replace('###link###', listPage + '/' + encodeURI(organisationTitle)+'/');
                     
                     $('#lthsolr_organisation_container > div > section').append(template);
                 });
@@ -326,12 +328,38 @@ function listOrganisationStaff(facet, query)
     var sysLang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
     var vroles = $('#lth_solr_vroles').val();
+    if($('#lth_solr_query').val().trim().length > 2) {
+        query = $('#lth_solr_query').val().trim();
+        $('#lthsolr_organisation_filter').val(query);
+        $('#lth_solr_query').val('');
+    } /*else if($('#lthsolr_organisation_filter').val().trim().length > 2) {
+        query = $('#lth_solr_query').val();        
+    } else {
+        query = '';
+    }*/
     var facetChoice = $('#lth_solr_facetchoice').val();
     var facetVal, count;
     if(!facet) facet = '';
-    var totalCount = 0;
+    var detailPage = 'visa';
+    if(sysLang==='en') detailPage = 'show';
     //var exportArray = ["firstName","lastName","title","phone","email","organisationName","homepage","roomNumber","mobile"];
-
+     
+    if($('.lth_solr_culdesac').length === 0) {
+        $('#lthsolr_organisation_filter').addClass('lth_solr_culdesac').keyup(function() {
+            if($('#lthsolr_organisation_filter').val().trim().length > 2) {
+                /*if(facetChoice==='firstLetter')*/ $('#facet_container .nav-link').removeClass('active');
+                listOrganisationStaff($('#facet_container > li > .active').attr('data-val'), $(this).val().trim());
+            } else if(facetChoice==='firstLetter') {
+                $('#facet_container .nav-link:eq(0)').addClass('active');
+                listOrganisationStaff('a','');
+            } else {
+                $('#facet_container .nav-link:eq(0)').addClass('active');
+                listOrganisationStaff('','');
+            }
+            
+        });
+    }
+                    
     $.ajax({
         type : 'POST',
         url : 'index.php',
@@ -370,16 +398,11 @@ function listOrganisationStaff(facet, query)
             }
                 
             if(d.data) {
-                if(d.mailDelivery && $('.lth_solr_husmap').length > 0) {
+                //
+                if(d.mailDelivery && $('.lth_solr_husmap').length > 0 && facetChoice!=='firstLetter') {
                     $('.lth_solr_husmap').show(200);
                     //$('.lth_solr_husmap #'+d.mailDelivery).attr('src','/typo3conf/ext/lth_solr/res/hus/' + d.mailDelivery+'g.png');
                     $('.lth_solr_husmap #'+d.mailDelivery).attr('src','/typo3conf/ext/lth_solr/res/reddot.png').show(200);
-                }
-                
-                if($('#facet_container').length === 0) {
-                    $('#lthsolr_organisation_filter').keyup(function() {
-                        listOrganisationStaff($('#facet_container > li > .active').attr('data-val'), $(this).val().trim());
-                    });
                 }
                                 
                 if(d.facet) {
@@ -388,28 +411,45 @@ function listOrganisationStaff(facet, query)
                     
                         //$('#facet_container').empty();
                     
-                        $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link active" data-val="" href="#">' + allText + ' (' + d.numFound + ')</a></li>');
+                        if(facetChoice!=='firstLetter') {
+                            $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link active" data-val="" href="#">' + allText + ' (' + d.numFound + ')</a></li>');
+                        }
 
+                        var facetNavActiveClass = '';
+                        var i = 0;
                         $.each( d.facet, function( key, value ) {
                             $.each( value, function( key1, value1 ) {
+                                facetNavActiveClass = '';
                                 facetVal = value1[0].toString();
                                 count = value1[1];
-                                $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link" data-val="' + facetVal + '" href="javascript:">' + facetVal.replace(/_/g, ' ') + ' (' + count + ')</a></li>');
-                                totalCount = totalCount + count;
+                                if(facetChoice==='firstLetter') {
+                                    if(i===0 && !query) facetNavActiveClass = ' active';
+                                    $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link' + facetNavActiveClass + '" data-val="' + facetVal + '" href="javascript:">' + facetVal.toUpperCase() + '</a></li>');
+                                    i++;
+                                } else {
+                                    $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link" data-val="' + facetVal + '" href="javascript:">' + facetVal.replace(/_/g, ' ') + ' (' + count + ')</a></li>');
+                                }
                             });
-                            //if((d.numFound-totalCount)>0) $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link" data-val="' + restText + '" href="#">' + restText + ' (' + (count) + ')</a></li>');
 
                             $('.lth_solr_facet a').each(function() {
                                 $(this).click(function() {
                                     $('#facet_container .nav-link').removeClass('active');
                                     $(this).addClass('active');
+                                    if(facetChoice==='firstLetter') $('#lthsolr_organisation_filter').val('');
                                     listOrganisationStaff($(this).attr('data-val'), $('#lthsolr_organisation_filter').val());
                                 });
                             });
                         });
                     }
+                } else {
+                    $('#facet_container').empty();
                 }
-                $('#lthsolr_organisation_container > div > section').append('<h2 class="m-0 pb-2 border-bottom">' + titleCase(decodeURIComponent(scope)) + ' (' + d.numFound + ')' + '</h2>');
+                if(query || facetChoice==='firstLetter') {
+                    if(facetChoice==='firstLetter' && !query && !facet) query = 'A';
+                    $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + query + facet.toUpperCase() + ' (' + d.numFound + ')' + '</h2>');
+                } else {
+                    $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + titleCase(decodeURIComponent(scope)) + ' (' + d.numFound + ')' + '</h2>');
+                }
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
 
@@ -439,7 +479,7 @@ function listOrganisationStaff(facet, query)
                     if(aData.homepage) {
                         link = aData.homepage;
                     } else {
-                        link = displayName.replace(' ','-') + '(' + uuid + ')/';
+                        link = detailPage + '/' + displayName.replace(' ','-') + '(' + uuid + ')/';
                     }
                     template = template.replace('###link###', link);
 
@@ -471,7 +511,8 @@ function listOrganisationRoles(query)
     var sysLang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
     var vroles = $('#lth_solr_vroles').val();
-    var totalCount = 0;
+    var detailPage = 'visa';
+    if(sysLang==='en') detailPage = 'show';
     //var exportArray = ["firstName","lastName","title","phone","email","organisationName","homepage","roomNumber","mobile"];
 
     $.ajax({
@@ -501,14 +542,13 @@ function listOrganisationRoles(query)
             $('.spinner').remove();
                 
             if(d.data) {
-                if($('.lth_solr_coldesac').length === 0) {
-                    $('#lthsolr_organisation_filter').keyup(function() {
-                        $('#lthsolr_organisation_filter').addClass('lth_solr_coldesac');
+                if($('.lth_solr_culdesac').length === 0) {
+                    $('#lthsolr_organisation_filter').addClass('lth_solr_culdesac').keyup(function() {
                         listOrganisationRoles($(this).val().trim());
                     });
                 }
             
-                $('#lthsolr_organisation_container > div > section').append('<h2 class="m-0 pb-2 border-bottom">' + titleCase(decodeURIComponent(vroles)) + ' (' + d.numFound + ')' + '</h2>');
+                $('#lthsolr_organisation_container > div > section').append('<h2 class="m-0 pb-2 border-bottom">' + d.numFound + ' träffar</h2>');
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
 
@@ -541,7 +581,7 @@ function listOrganisationRoles(query)
                     if(aData.homepage) {
                         link = aData.homepage;
                     } else {
-                        link = displayName.replace(' ','-') + '(' + uuid + ')/';
+                        link = detailPage + '/' + displayName.replace(' ','-') + '(' + uuid + ')/';
                     }
                     template = template.replace('###link###', link);
 

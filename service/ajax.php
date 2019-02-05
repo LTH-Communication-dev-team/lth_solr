@@ -146,7 +146,8 @@ function myInit()
             $content = $this->listOrganisation($dataSettings, $config);
             break;
         case 'listOrganisationStaff':
-            $content = $this->listOrganisationStaff($dataSettings, $config);
+        case 'listOrganisationStaffFirstLetter':
+            $content = $this->listOrganisationStaff($dataSettings, $config, $action);
             break;
         case 'listOrganisationRoles':
             $content = $this->listOrganisationRoles($dataSettings, $config);
@@ -229,7 +230,7 @@ function listOrganisation($dataSettings, $config)
 }
 
 
-function listOrganisationStaff($dataSettings, $config)
+function listOrganisationStaff($dataSettings, $config, $action)
 {
     $filterQuery = $dataSettings['query'];
     $facet = $dataSettings['facet'];
@@ -237,7 +238,6 @@ function listOrganisationStaff($dataSettings, $config)
     $scope = $dataSettings['scope'];
     $vroles = $dataSettings['vroles'];
     $facetChoice = $dataSettings['facetChoice'];
-    if(!$facetChoice) $facetChoice = 'standardCategory';
     
     $client = new Solarium\Client($config);
     
@@ -260,26 +260,38 @@ function listOrganisationStaff($dataSettings, $config)
     
     if($filterQuery) {
         $filterQuery = str_replace(' ','\\ ',$filterQuery);
-        $filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '* OR title:*' . $filterQuery . '* OR organisationName:*' . $filterQuery . '*)';
+        //$filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '* OR title:*' . $filterQuery . '* OR organisationName:*' . $filterQuery . '*)';
+        $query->addFilterQuery(array('key' => $facetChoice, 'query' => 'name:*'. $filterQuery . '*', 'tag'=>'dt'));
     }
     
     if($scope) {
         $scope = urldecode($scope);
-        $term = 'heritageName:' . str_replace('$',',',str_replace(' ', '\ ', strtolower($scope)));
+        $term = 'heritageName2:*' . str_replace('$',',',str_replace(' ', '\ ', strtolower($scope))) . '*';
+      //$term .= 'heritageName2:*' . str_replace('$',',',str_replace(' ', '\ ', strtolower($value))) . '*';
         $term = ' AND (' . $term . ')';
     }
     
-    $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member)' . $term . $filterQuery;
+    $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member)' . $term;// . $filterQuery;
 
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
-    $query->setStart(0)->setRows(10000);
-    
-    $facetSet = $query->getFacetSet();
-    $facetSet->createFacetField('standard')->setField('primaryVroleOu');
-    
-    if($facet) {
-        $query->addFilterQuery(array('key' => 0, 'query' => 'primaryVroleOu:'.str_replace(' ', '\ ', $facet), 'tag'=>'inner'));
+    $query->setStart(0)->setRows(1000);
+       
+    if($facetChoice === 'firstLetter') {
+        $facetSet = $query->getFacetSet();
+        if(!$facet) $facet = 'a';
+        $exclude = array('dt');
+        $facetChoice = 'firstLetterExact';
+        if(!$filterQuery) {
+            $query->addFilterQuery(array('key' => $facetChoice, 'query' => 'firstLetterExact:' . $facet, 'tag' => 'dt'));
+        }
+        $facetSet->createFacetField('standard')->setField('firstLetterExact')->setExcludes($exclude);
+        $facetSet->setLimit(1000);
+        $facetSet->setSort(SORT_INDEX);
+    } else if($facetChoice) {
+        $facetSet = $query->getFacetSet();
+        $facetSet->createFacetField('standard')->setField($facetChoice);
+        if($facet && !$filterQuery) $query->addFilterQuery(array('key' => $facetChoice, 'query' => $facetChoice . ':' . $facet, 'tag' => 'dt'));
     }
     
     $sortArray = array(
@@ -287,22 +299,26 @@ function listOrganisationStaff($dataSettings, $config)
         'lastNameExact' => 'asc',
         'firstNameExact' => 'asc'
     );
-
+    
+    if($facetChoice === 'firstLetterExact') {
+        $sortArray = array(
+            'lastNameExact' => 'asc',
+            'firstNameExact' => 'asc'
+        );
+    }
+    
     $query->addSorts($sortArray);
 
     $response = $client->select($query);
 
     $numFound = $response->getNumFound();
     
-    /*
-     * $facetStandard = $response->getFacetSet()->getFacet('standard');
+    if($facetChoice) {
+        $facetStandard = $response->getFacetSet()->getFacet('standard');
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($facetStandard, true), 'crdate' => time()));
         foreach ($facetStandard as $value => $count) {
-            if($count > 0) $facetResult[$catVal][] = array($value, $count, $facetHeader);
+            if($count > 0) $facetResult[$facetChoice][] = array($value, $count);
         }
-     */
-    $facetStandard = $response->getFacetSet()->getFacet('standard');
-    foreach ($facetStandard as $value => $count) {
-        if($count > 0) $facetResult[$facetChoice][] = array($value, $count);
     }
     
     foreach ($response as $document) {
@@ -412,7 +428,7 @@ function listOrganisationRoles($dataSettings, $config)
 
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
-    $query->setStart(0)->setRows(10000);
+    $query->setStart(0)->setRows(1000);
     
     $facetSet = $query->getFacetSet();
     $facetSet->createFacetField('standard')->setField('standardCategory');

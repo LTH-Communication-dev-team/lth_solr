@@ -386,7 +386,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     private function getFeUsers($employeeArray, $grsp)
     {
-        //$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = 1;
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT F.username,F.usergroup,F.image,F.image_id,F.lth_solr_cat,F.lucache_id,F.lth_solr_sort,F.lth_solr_intro,F.lth_solr_show',
                 'fe_users F JOIN pages P ON P.uid=F.pid',
                 'F.lth_solr_index=1 AND F.deleted=0 AND F.disable=0 AND P.pid='.intval($grsp));
@@ -399,6 +398,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $lucache_id = $row['lucache_id'];
             
             if(array_key_exists($username, $employeeArray)) {
+                        
                 if($lth_solr_cat && $lth_solr_cat !== '') {
                     $lth_solr_cat = json_decode($lth_solr_cat, true);
                     if($lth_solr_cat) {
@@ -425,7 +425,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         }
                     }
                 }
-                
+        
                 $employeeArray[$username]['lth_solr_show'] = $lth_solr_show;
                 $employeeArray[$username]['usergroup'] = $row['usergroup'];
                 $employeeArray[$username]['image'] = $row['image'];
@@ -781,6 +781,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'docType' => 'staff',
                             'type' => 'staff',
                             'name' => $value['first_name'] . ' ' . $value['last_name'],
+                            'firstLetter' => mb_substr($value['last_name'],0,1),
                             'firstName' => $value['first_name'],
                             'lastName' => $value['last_name'],
                             'email' => $value['email'],
