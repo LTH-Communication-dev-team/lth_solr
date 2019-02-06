@@ -191,7 +191,7 @@ function listOrganisation($dataSettings, $config)
         "organisationStreet":["Sölvegatan 27"],
         "organisationTitle":"Astronomi",
        */
-    $queryToSet = 'docType:organisation AND organisationParentName:' . str_replace('$',',',str_replace(' ', '\ ', $scope)) . $filterQuery;
+    $queryToSet = 'docType:organisation AND organisationParentSourceId:' . $scope . $filterQuery;
 
     $query->setQuery($queryToSet);
         
@@ -243,13 +243,15 @@ function listOrganisationStaff($dataSettings, $config, $action)
     
     $query = $client->createSelect();
     
-    $fieldArray = array("mailDelivery");
-    $queryToSet = 'docType:organisation AND organisationTitleExact:' . str_replace(' ', '\ ', $scope);
+    $fieldArray = array("mailDelivery", "organisationSourceId","organisationTitle");
+    $queryToSet = 'docType:organisation AND (organisationSourceId:' . $scope . ' OR organisationTitleExact:"' . str_replace(' ', '\ ', $scope) . '")';
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
     $response = $client->select($query);  
     foreach ($response as $document) {
         $mailDelivery = $document->mailDelivery[0];
+        $scope = $document->organisationSourceId[0];
+        $organisationTitle = $document->organisationTitle;
     }
     
     $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName",
@@ -266,8 +268,8 @@ function listOrganisationStaff($dataSettings, $config, $action)
     
     if($scope) {
         $scope = urldecode($scope);
-        $term = 'heritageName2:*' . str_replace('$',',',str_replace(' ', '\ ', strtolower($scope))) . '*';
-      //$term .= 'heritageName2:*' . str_replace('$',',',str_replace(' ', '\ ', strtolower($value))) . '*';
+        $term = 'heritage2:*' . $scope . '*';
+        //$term .= ' OR heritageName2:*' . str_replace('$',',',str_replace(' ', '\ ', strtolower($scope))) . '*';
         $term = ' AND (' . $term . ')';
     }
     
@@ -291,21 +293,13 @@ function listOrganisationStaff($dataSettings, $config, $action)
     } else if($facetChoice) {
         $facetSet = $query->getFacetSet();
         $facetSet->createFacetField('standard')->setField($facetChoice);
-        if($facet && !$filterQuery) $query->addFilterQuery(array('key' => $facetChoice, 'query' => $facetChoice . ':' . $facet, 'tag' => 'dt'));
+        if($facet && !$filterQuery) $query->addFilterQuery(array('key' => $facetChoice, 'query' => $facetChoice . ':' . str_replace(' ', '\ ', $facet), 'tag' => 'dt'));
     }
     
     $sortArray = array(
-        'primaryVroleOu' => 'asc',
         'lastNameExact' => 'asc',
         'firstNameExact' => 'asc'
     );
-    
-    if($facetChoice === 'firstLetterExact') {
-        $sortArray = array(
-            'lastNameExact' => 'asc',
-            'firstNameExact' => 'asc'
-        );
-    }
     
     $query->addSorts($sortArray);
 
@@ -371,7 +365,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
 
     }
 
-    $resArray = array('data' => $data, 'facet' => $facetResult, 'mailDelivery' => $mailDelivery, 'numFound' => $numFound, 'query' => $queryToSet);
+    $resArray = array('data' => $data, 'facet' => $facetResult, 'mailDelivery' => $mailDelivery, 'organisationTitle' => $organisationTitle, 'numFound' => $numFound, 'query' => $queryToSet);
     
     return json_encode($resArray);
 }
@@ -406,7 +400,7 @@ function listOrganisationRoles($dataSettings, $config)
         $scopeArray = explode(',', $scope);
         foreach($scopeArray as $key => $value) {
             if($i>0) $term .= ' OR ';
-            $term .= 'heritageName2:*' . str_replace('$',',',str_replace(' ', '\ ', strtolower($value))) . '*';
+            $term .= 'heritage2:*' . $value . '*';
             $i++;
         }
         $term .= ')';
@@ -523,10 +517,10 @@ function getFromMainKey($value, $key)
 
 function showStaffNovo($syslang, $scope, $dataSettings, $config)
 {
-    $fieldArray = array("docType","firstName","lastName","title","phone","id","email","mailDelivery","organisationName","primaryAffiliation",
-        "homepage","image","intro","roomNumber","heritageName2",
-        "mobile","uuid","guid","organisationId","organisationPhone","organisationStreet","organisationCity","organisationPostalAddress",
-        "profileInformationNovo","coordinates","lucrisPhoto");
+    $fieldArray = array("coordinates","docType","email","firstName","guid","heritageName2","heritage2","homepage","id",
+        "image","intro","lastName","lucrisPhoto","mailDelivery","mobile","organisationName","phone","primaryAffiliation",
+        "organisationId","organisationPhone","organisationStreet",
+        "organisationCity","organisationPostalAddress","profileInformationNovo","roomNumber","title","uuid");
     
     $organisation = strtolower($dataSettings['organisation']);
     $scope = $dataSettings['scope'];
@@ -587,10 +581,10 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         $roomNumber = array();
         $title = array();
                 
-        if($document->heritageName2) {
-            $heritageName2Array = json_decode($document->heritageName2, true);
+        if($document->heritage2) {
+            $heritage2Array = json_decode($document->heritage2, true);
             //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($heritageName2Array,true), 'crdate' => time()));
-            foreach($heritageName2Array as $key => $value) {
+            foreach($heritage2Array as $key => $value) {
                 if(array_search($organisation, $value)!==false) {
                     $mailDelivery[] = $document->mailDelivery[$i];
                     $mobile[] = $document->mobile[$i];

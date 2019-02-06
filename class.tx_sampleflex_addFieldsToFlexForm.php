@@ -714,7 +714,7 @@ class user_sampleflex_addFieldsToFlexForm
                 $organisationSourceId = (string)$document->organisationSourceId[0];
                 $organisationTitle = (string)$document->organisationTitle;
                 
-                if($organisationTitle) $config['items'][$i] = array(0 => $organisationTitle . '[' . $organisationSourceId . ']', 1 => str_replace(',','$',$organisationTitle));
+                if($organisationTitle) $config['items'][$i] = array(0 => $organisationTitle . '[' . $organisationSourceId . ']', 1 => $organisationSourceId);
                 $i++;
             }
         }

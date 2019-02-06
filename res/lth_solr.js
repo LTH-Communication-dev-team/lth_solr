@@ -448,7 +448,7 @@ function listOrganisationStaff(facet, query)
                     if(facetChoice==='firstLetter' && !query && !facet) query = 'A';
                     $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + query + facet.toUpperCase() + ' (' + d.numFound + ')' + '</h2>');
                 } else {
-                    $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + titleCase(decodeURIComponent(scope)) + ' (' + d.numFound + ')' + '</h2>');
+                    $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + d.organisationTitle + ' (' + d.numFound + ')' + '</h2>');
                 }
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
@@ -708,7 +708,6 @@ function showStaffNovo()
                         Object.keys(profileInformationJson).forEach(function(key) {
                             profileInformation += '<h2>' + key + '</h2>' + profileInformationJson[key];
                         });
-                        
                     } 
                     
                     template = template.replace(/###displayName###/g, displayName);

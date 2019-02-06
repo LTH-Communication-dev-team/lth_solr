@@ -94,18 +94,19 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     {
         $organisationArray = array();
         
-        $sql = "SELECT orgid, homepage, phone, street, city, postal_address, maildelivery FROM lucache_vorg";
+        $sql = "SELECT city, homepage, maildelivery, orgid, parent, phone, postal_address, street FROM lucache_vorg";
         
         $res = mysqli_query($con, $sql) or die("99; ".mysqli_error());
 
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $orgid = $row['orgid'];
-            $organisationArray[$orgid]['homepage'] = $row['homepage'];
-            $organisationArray[$orgid]['phone'] = $row['phone'];
-            $organisationArray[$orgid]['street'] = $row['street'];
             $organisationArray[$orgid]['city'] = $row['city'];
-            $organisationArray[$orgid]['postal_address'] = $row['postal_address'];
+            $organisationArray[$orgid]['homepage'] = $row['homepage'];
             $organisationArray[$orgid]['maildelivery'] = $row['maildelivery'];
+            $organisationArray[$orgid]['parent'] = $row['parent'];
+            $organisationArray[$orgid]['phone'] = $row['phone'];
+            $organisationArray[$orgid]['postal_address'] = $row['postal_address'];
+            $organisationArray[$orgid]['street'] = $row['street'];
         }
 
         return $organisationArray;
@@ -154,6 +155,7 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 
                 $mailDelivery = '';
                 $organisationCity = '';
+                $organisationParentSourceId = '';
                 $organisationPhone = '';
                 $organisationPostalAddress = '';
                 $organisationStreet = '';
@@ -223,12 +225,14 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 }
                 
                 //Extradata from lucache
+                $homepage = $organisationArray[$orgid]['homepage'];
                 $mailDelivery = (string)$organisationArray[$orgid]['maildelivery'];
                 $organisationCity = $organisationArray[$orgid]['city'];
+                $organisationParentSourceId = $organisationArray[$orgid]['parent'];
                 $organisationPhone = $organisationArray[$orgid]['phone'];
                 $organisationPostalAddress = $organisationArray[$orgid]['postal_address'];
                 $organisationStreet = $organisationArray[$orgid]['street'];
-                $homepage = $organisationArray[$orgid]['homepage'];
+                
                 
                 $data = array(
                     'appKey' => 'lthsolr',
@@ -239,6 +243,7 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'organisationCity' => $organisationCity,
                     'organisationParent' => $parents,
                     'organisationParentName' => $parentName,
+                    'organisationParentSourceId' => $organisationParentSourceId,
                     'organisationPhone' => $organisationPhone,
                     'organisationPostalAddress' => $organisationPostalAddress,
                     'organisationSourceId' => $organisationSourceId,
