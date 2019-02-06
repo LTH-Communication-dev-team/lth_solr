@@ -643,7 +643,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 if($parent2) {
                                     foreach($parent2 as $key2 => $value2) {
                                         $heritage2[$value1][] = $value2;
-                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                        $heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
                                     }
                                 }
                             }
@@ -655,7 +655,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 if($parent2) {
                                     foreach($parent2 as $key2 => $value2) {
                                         $heritage2[$value1][] = $value2;
-                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                        $heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
                                     }
                                 }
                             }
@@ -667,7 +667,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 if($parent2) {
                                     foreach($parent2 as $key2 => $value2) {
                                         $heritage2[$value1][] = $value2;
-                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                        $heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
                                     }
                                 }
                             }
@@ -679,7 +679,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 if($parent2) {
                                     foreach($parent2 as $key2 => $value2) {
                                         $heritage2[$value1][] = $value2;
-                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                        $heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
                                     }
                                 }
                             }
@@ -691,7 +691,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 if($parent2) {
                                     foreach($parent2 as $key2 => $value2) {
                                         $heritage2[$value1][] = $value2;
-                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                        $heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
                                     }
                                 }
                             }
@@ -703,7 +703,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 if($parent2) {
                                     foreach($parent2 as $key2 => $value2) {
                                         $heritage2[$value1][] = $value2;
-                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                        $heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
                                     }
                                 }
                             }
@@ -715,7 +715,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 if($parent2) {
                                     foreach($parent2 as $key2 => $value2) {
                                         $heritage2[$value1][] = $value2;
-                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                        $heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
                                     }
                                 }
                             }
@@ -727,7 +727,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 if($parent2) {
                                     foreach($parent2 as $key2 => $value2) {
                                         $heritage2[$value1][] = $value2;
-                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                        $heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
                                     }
                                 }
                             }
@@ -739,7 +739,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                                 if($parent2) {
                                     foreach($parent2 as $key2 => $value2) {
                                         $heritage2[$value1][] = $value2;
-                                        $heritageName2[strtolower(utf8_decode($orgArray[$value1][$nameTmp]))][] = strtolower(utf8_decode($orgArray[$value2][$nameTmp]));
+                                        $heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
                                     }
                                 }
                             }
