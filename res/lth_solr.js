@@ -417,6 +417,7 @@ function listOrganisationStaff(facet, query)
 
                         var facetNavActiveClass = '';
                         var i = 0;
+                        var totalCount = 0;
                         $.each( d.facet, function( key, value ) {
                             $.each( value, function( key1, value1 ) {
                                 facetNavActiveClass = '';
@@ -425,6 +426,7 @@ function listOrganisationStaff(facet, query)
                                 if(facetChoice==='firstLetter') {
                                     if(i===0 && !query) facetNavActiveClass = ' active';
                                     $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link' + facetNavActiveClass + '" data-val="' + facetVal + '" href="javascript:">' + facetVal.toUpperCase() + '</a></li>');
+                                    totalCount = totalCount + count;
                                     i++;
                                 } else {
                                     $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link" data-val="' + facetVal + '" href="javascript:">' + facetVal.replace(/_/g, ' ') + ' (' + count + ')</a></li>');
@@ -440,13 +442,14 @@ function listOrganisationStaff(facet, query)
                                 });
                             });
                         });
+                        $('#lth_solr_totalcount').val(totalCount);
                     }
                 } else {
                     $('#facet_container').empty();
                 }
                 if(query || facetChoice==='firstLetter') {
                     if(facetChoice==='firstLetter' && !query && !facet) query = 'A';
-                    $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + query + facet.toUpperCase() + ' (' + d.numFound + ')' + '</h2>');
+                    $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + query + facet.toUpperCase() + ' (' + d.numFound + ' av ' + $('#lth_solr_totalcount').val() + ')' + '</h2>');
                 } else {
                     $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + d.organisationTitle + ' (' + d.numFound + ')' + '</h2>');
                 }

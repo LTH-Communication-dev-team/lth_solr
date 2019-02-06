@@ -388,6 +388,7 @@ class FrontEndClass
         $content .= '<input type="hidden" id="lth_solr_heritage" value="' . $heritage . '" />';
         $content .= '<input type="hidden" id="lth_solr_query" value="' . $query . '" />';
         $content .= '<input type="hidden" id="lth_solr_facetchoice" value="' . $facetChoice . '" />';
+        $content .= '<input type="hidden" id="lth_solr_totalcount" value="" />';
         $content .= '<input type="hidden" id="lth_solr_action" value="' . $action . '" />';
         
         return $content;
