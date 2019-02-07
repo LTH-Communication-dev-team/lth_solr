@@ -279,12 +279,12 @@ class FrontEndClass
     }
     
     
-    public function showStaff($uuid, $html_template, $noItemsToShow)
+    public function showStaff($scope, $html_template, $noItemsToShow)
     {      
-        $lth_solr_uuid['fe_users'][] = $uuid;
+        /*$lth_solr_uuid['fe_users'][] = $uuid;
         if(count($lth_solr_uuid > 0)) {
             $scope = urlencode(json_encode($lth_solr_uuid));
-        }
+        }*/
         
         //Staff 
         $content .= '<div id="lthsolr_show_staff_container" style="min-height:350px;">';

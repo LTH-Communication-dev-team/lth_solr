@@ -247,10 +247,10 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle, $publicationCategories, 
                         $publicationCategoriesSwitch, $display, $displayLayout, '', $backgroundcolor, '');
             } else if($showType==='author') {
-                $lth_solr_uuid = array();
+                //$lth_solr_uuid = array();
                 $lth_solr_uuid['fe_users'][] = $uuid;
                 $scope = urlencode(json_encode($lth_solr_uuid));
-                $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
+                $content = $FrontEndClass->showStaff($scope, $html_template, $noItemsToShow, $selection);
             } else {
                 if($display === "tagcloud" && !$keyword) {
                     $content .= $FrontEndClass->listTagCloud($scope, $noItemsToShow, $categories);

@@ -1524,20 +1524,22 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
         //$debugQuery = urldecode($scope);
         $scope = json_decode(urldecode($scope),true);
         //var_dump($scope);
+
         foreach($scope as $key => $value) {
-            if($term) {
+            /*if($term) {
                 $term .= " OR ";
-            }
+            }*/
             if($key === "fe_groups") {
-                $term .= "organisationSourceId:" . implode(' OR organisationSourceId:', $value);
+                $term .= " AND (organisationSourceId:" . implode(' OR organisationSourceId:', $value) . ')';
             } else if($key === "fe_users") {
-                $term .= "authorId:" . implode(' OR authorId:', $value);
+                $term .= " AND (authorId:" . implode(' OR authorId:', $value) . ')';
             } else if($key === "projects") {
-                $term .= "relatedProjectId:" . implode(' OR relatedProjectId:', $value);
+                $term .= " AND (relatedProjectId:" . implode(' OR relatedProjectId:', $value) . ')';
             }
         }
-        $term = " AND ($term) ";
+        //$term = " AND ($term) ";
     }
+//query: "docType:publication AND (workflow:Granskad OR workflow:Validated) AND -lth_solr_hide_p73484_i:1 AND publicationDateYear:[* TO 2020] AND (authorId:abb52c25-085c-4656-b97b-cadd7f262168) "
 
     $listComingDissertations = '';
     if($action==='listComingDissertations') {
@@ -2705,15 +2707,26 @@ function showStaff($scope, $config, $syslang)
     $personData = array();
     $publicationData = array();
     $projectData = array();
-        
     if($scope) {
         $scope = json_decode(urldecode($scope),true);
-        $scope = $scope['fe_users'][0];
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $scope['fe_groups'][0], 'crdate' => time()));
+        $uuid = $scope['fe_users'][0];
+        $organisation = $scope['fe_groups'][0];
     }
     
     $client = new Solarium\Client($config);
     $query = $client->createSelect();
-    $queryToSet = 'docType:staff AND (guid:' . $scope . ' OR uuid:' . $scope . ')';
+    $queryToSet = 'docType:organisation AND id:' . $organisation;
+    $query->setQuery($queryToSet);
+    $query->setFields(array("organisationSourceId"));
+    $response = $client->select($query);
+    if($response) {
+        foreach ($response as $document) {
+            $organisationSourceId = $document->organisationSourceId;
+        }
+    }
+    
+    $queryToSet = 'docType:staff AND heritage:' . $organisationSourceId[0] . ' AND (guid:' . $uuid . ' OR uuid:' . $uuid . ')';
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
     $response = $client->select($query);

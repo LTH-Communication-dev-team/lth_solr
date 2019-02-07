@@ -88,7 +88,10 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
             if($uuid) {
                 if($showType==='staff' || $showType==='author') {
-                    $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
+                    $lth_solr_uuid = array();
+                    $lth_solr_uuid['fe_users'][] = $uuid;
+                    $scope = urlencode(json_encode($lth_solr_uuid));
+                    $content = $FrontEndClass->showStaff($scope, $html_template, $noItemsToShow, $selection);
                 } else if($showType==='publication') {
                     $content = $FrontEndClass->showPublication($uuid);
                 } else if($showType==='department') {

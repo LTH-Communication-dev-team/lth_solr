@@ -27,8 +27,7 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //return $executionSucceeded;
         
         //$executionSucceeded = $this->clearIndex($settings);
-        //return TRUE;
-        
+        //return true;       
         $syslang = "sv";
         
         $config = array(
@@ -46,22 +45,23 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $query = $client->createSelect();
         $query->setQuery('docType:calendar');
-        $query->addSort('changed', $query::SORT_DESC);
+        $query->addSort('changed', 'desc');
         $query->setStart(0)->setRows(1);
         $response = $client->select($query);
         $idArray = array();
         $numFound = $response->getNumFound();
         foreach ($response as $document) {
-            $lastModified = $document->changed;
+            $lastModified = $document->calendarChanged;
         }
+        
+        $lastModified = '1416720632';
+        
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(200);
 
-        $allCalendars = $executionSucceeded = $this->getCalendars();
-        
-        $executionSucceeded = $this->getEvents($buffer);
-        
-        $executionSucceeded = $this->createOrder($client);
+        //$allCalendars = $executionSucceeded = $this->getCalendars();
+        //$executionSucceeded = $this->getEvents($lastModified, $buffer);
+        //$executionSucceeded = $this->createOrder($client);
 
         $syslang = "en";
         $config = array(
@@ -75,19 +75,32 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             )
         );
         $client = new \Solarium\Client($config);
-        
-        $client = new \Solarium\Client($config);
-            
+                   
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(200);
-        
-        $executionSucceeded = $this->getEvents($client);
+        //$lastModified = '1416720632';
+        //$executionSucceeded = $this->getEvents($lastModified, $buffer);
         $executionSucceeded = $this->createOrder($client);
         return $executionSucceeded;
     }
+    
+    
+    /*function getLatest($lastModified, $buffer)
+    {
+        $currentDateTime = time();
+	$urlToDecode = "http://lb3v2.net.lu.se/lucal/event?biggereq=changed:$lastModified";
+        $timeout = 10;	
+        $ctx = stream_context_create(array('http' => array('timeout' => $timeout)));
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $urlToDecode, 'crdate' => time()));
+        $tmpEvents = @file_get_contents($urlToDecode, 0, $ctx);
+        if($tmpEvents !== false) {
+           $tmpEvents = json_decode($tmpEvents, true);
+           $this->debug($tmpEvents);
+        }
+    }*/
      
     
-    function getCalendars()
+    /*function getCalendars()
     {
         $offset=0;
         $allCalendars = array();
@@ -110,19 +123,22 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
 	return $allCalendars;
     }
+     * 
+     */
     
     
-    function getEvents($buffer)
+    function getEvents($lastModified, $buffer)
     {
         $offset=0;
         $allEvents = array();
         $tmpEvents = array();
         $run = TRUE;
         do {
-            $urlToDecode = "http://lb3v2.net.lu.se/lucal/event?limit=100&offset=$offset";
+            //$urlToDecode = "http://lb3v2.net.lu.se/lucal/event?limit=100&offset=$offset";
+            $urlToDecode = "http://lb3v2.net.lu.se/lucal/event?biggereq=changed:$lastModified&limit=100&offset=$offset";
             $timeout = 10;	
             $ctx = stream_context_create(array('http' => array('timeout' => $timeout)));
-            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $urlToDecode, 'crdate' => time()));
+            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $urlToDecode, 'crdate' => time()));
             $tmpEvents = @file_get_contents($urlToDecode, 0, $ctx);
             if($tmpEvents !== false) {
                $tmpEvents = json_decode($tmpEvents, true);
@@ -141,6 +157,7 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'categoryId' => $value['field_ns_calendar_category']['und'][0]['tid'],
                             'categoryName' => $value['field_ns_calendar_category']['und'][0]['name'],
                             'calendar_ids' => $value['calendar_ids'],
+                            'calendarChanged' => $value['changed'],
                             'pathalias' => $value['pathalias'],
                             'startTime' => date('Y-m-d\TH:i:s\Z', $value['field_ns_calendar_date']['und'][0]['value']),
                             'endTime' => date('Y-m-d\TH:i:s\Z', $value['field_ns_calendar_date']['und'][0]['value2']),
@@ -174,18 +191,18 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $fieldArray = array("id");
         $update = $client->createUpdate();
         $query = $client->createSelect();
-        
         $ii = 0;
-        $docArray = array();
+        
         for($i = 0; $i < $numberofloops; $i++) {
-            $startrecord = $i * 1000;
+            $docArray = array();
+            $startrecord = $i * 100;
             $query->setQuery('docType:calendar');
-            $query->setStart($startrecord)->setRows(1000);
+            $query->setStart($startrecord)->setRows(100);
             $query->addSorts(array("startTime" => "asc","id" => "asc"));        
             $query->setFields($fieldArray);
             $response = $client->select($query);
             $numFound = $response->getNumFound();
-            $numberofloops = ceil($numFound / 1000);
+            $numberofloops = ceil($numFound / 100);
             $iii = 0;
             foreach ($response as $document) {
                 $id = $document->id;
@@ -201,6 +218,47 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $update->addCommit();
             $result = $client->update($update);
         }
+        return TRUE;
+    }
+    
+    
+    function clearIndex($settings)
+    {
+        $syslang = "sv";
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+
+        $client = new \Solarium\Client($config);
+        $update = $client->createUpdate();
+        $update->addDeleteQuery('docType:calendar');
+        $update->addCommit();
+        $result = $client->update($update);
+        
+        $syslang = "en";
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_$syslang/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+        $client = new \Solarium\Client($config);
+        $update = $client->createUpdate();
+        $update->addDeleteQuery('docType:calendar');
+        $update->addCommit();
+        $result = $client->update($update);
+        
         return TRUE;
     }
     
