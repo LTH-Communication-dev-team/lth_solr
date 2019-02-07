@@ -582,7 +582,6 @@ class FrontEndClass
 
     public function showPublication($scope, $uuid)
     {
-        
         $content = '<div id="lth_solr_container" ></div>';
 
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_presentation.html");

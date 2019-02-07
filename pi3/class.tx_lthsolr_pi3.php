@@ -239,6 +239,9 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             }
                 
             if($showType === 'publication') {
+                $lth_solr_uuid = array();
+                $lth_solr_uuid['publication'][] = $uuid;
+                $scope = urlencode(json_encode($lth_solr_uuid));
                 $content .= $FrontEndClass->showPublication($scope, $uuid);
             } else if($showType==='department') {
                 $lth_solr_uuid = array();

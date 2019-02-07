@@ -95,7 +95,7 @@ function myInit()
             $content = $this->listStudentpapers($facet, $scope, $syslang, $config, $tableLength, $tableStart, $pageid, $categories, $query, $papertype, $tableFields, $action, $publicationCategories);
             break;
         case 'showPublication':
-            $content = $this->showPublication('', $term, $syslang, $config);
+            $content = $this->showPublication('', $scope, $syslang, $config);
             break;
         case 'showStudentPaper':
             $content = $this->showStudentPaper($term, $syslang, $config);
@@ -1530,7 +1530,7 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
                 $term .= " OR ";
             }*/
             if($key === "fe_groups") {
-                $term .= " AND (organisationSourceId:" . implode(' OR organisationSourceId:', $value) . ')';
+                $term .= " AND (organisationSourceId:" . $this->getLucrisId($value[0], $config) . ')';
             } else if($key === "fe_users") {
                 $term .= " AND (authorId:" . implode(' OR authorId:', $value) . ')';
             } else if($key === "projects") {
@@ -1720,7 +1720,24 @@ function listPublications($facet, $scope, $syslang, $config, $tableLength, $tabl
 }
 
 
-function showPublication($response, $term, $syslang, $config)
+function getLucrisId($orgId, $config)
+{
+    if(strlen($orgId) < 20) {
+        $client = new Solarium\Client($config);
+        $query = $client->createSelect();
+        $queryToSet = "docType:organisation AND organisationSourceId:" . $orgId;
+        $query->setQuery($queryToSet);   
+        $query->setFields(array("id"));
+        $response = $client->select($query);    
+        foreach ($response as $document) {
+            $orgId = $document->id;
+        }
+    }
+    return $orgId;
+}
+
+
+function showPublication($response, $scope, $syslang, $config)
 {
     $fieldArray = array("abstract","additionalLink","authorExternal","authorId","authorName","authorOrganisationId","authorReverseName","authorReverseNameShort",
         "bibtex","cite","documentTitle","doi","edition","electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
@@ -1731,12 +1748,21 @@ function showPublication($response, $term, $syslang, $config)
         "publicationDateDay","publicationType","publicationTypeUri","publisher","publicationStatus","standard_category_en","startDate","supervisorId","supervisorName",
         "supervisorOrganisationId","supervisorOrganisationName","supervisorPersonRole","title","volume");
     
+    if($scope) {
+        $scope = json_decode(urldecode($scope),true);
+        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($scope, true), 'crdate' => time()));
+        $uuid = $scope['publication'][0];
+        $organisation = $this->getLucrisId($scope['fe_groups'][0],$config);
+    }
+    
     if(!$response) {
         $client = new Solarium\Client($config);
 
         $query = $client->createSelect();
+        
+        $queryToSet = 'id:'.$uuid.' AND organisationSourceId:' . $organisation . ' AND (workflow:Granskad OR workflow:Validated)';
 
-        $query->setQuery('id:'.$term.' AND (workflow:Granskad OR workflow:Validated)');
+        $query->setQuery($queryToSet);
         
         $query->setFields($fieldArray);
 
@@ -1926,7 +1952,7 @@ function showPublication($response, $term, $syslang, $config)
 
     }
     
-    $resArray = array('data' => $data, 'title' => $title);
+    $resArray = array('data' => $data, 'title' => $title, 'query' => $queryToSet);
     
     return json_encode($resArray);
 }
@@ -2711,7 +2737,7 @@ function showStaff($scope, $config, $syslang)
         $scope = json_decode(urldecode($scope),true);
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $scope['fe_groups'][0], 'crdate' => time()));
         $uuid = $scope['fe_users'][0];
-        $organisation = $scope['fe_groups'][0];
+        $organisation = $this->getLucrisId($scope['fe_groups'][0],$config);
     }
     
     $client = new Solarium\Client($config);

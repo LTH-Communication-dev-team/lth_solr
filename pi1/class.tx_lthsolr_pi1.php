@@ -93,7 +93,10 @@ class tx_lthsolr_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                     $scope = urlencode(json_encode($lth_solr_uuid));
                     $content = $FrontEndClass->showStaff($scope, $html_template, $noItemsToShow, $selection);
                 } else if($showType==='publication') {
-                    $content = $FrontEndClass->showPublication($uuid);
+                    $lth_solr_uuid = array();
+                    $lth_solr_uuid['publication'][] = $uuid;
+                    $scope = urlencode(json_encode($lth_solr_uuid));
+                    $content = $FrontEndClass->showPublication($uuid, $scope);
                 } else if($showType==='department') {
                     $lth_solr_uuid = array();
                     $lth_solr_uuid['fe_groups'][] = $uuid;

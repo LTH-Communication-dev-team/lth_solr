@@ -3361,6 +3361,7 @@ function showPublication()
             eID : 'lth_solr',
             action : 'showPublication',
             term : $('#lth_solr_uuid').val(),
+            scope : $('#lth_solr_scope').val(),
             syslang : syslang,
             sid : Math.random(),
         },

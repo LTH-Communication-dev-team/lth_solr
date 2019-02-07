@@ -83,7 +83,7 @@ LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid LEFT JOIN fe_groups f5 ON f5.subg
                         'f1.uid in(' . explode('|',$fe_groups)[0] . ')');
                 while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
                     $title1 = explode('__', $row['title1'])[0];
-                    if($oldTitle1 !== $title1) $scope['fe_groups'][] = $title1;
+                    if($oldTitle1 !== $title1) $lth_solr_uuid['fe_groups'][] = $title1;
                     $title2 = explode('__', $row['title2'])[0];
                     $title3 = explode('__', $row['title3'])[0];
                     $title4 = explode('__', $row['title4'])[0];
@@ -161,8 +161,12 @@ LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid LEFT JOIN fe_groups f5 ON f5.subg
             if($uuid) {
                 
                 if($showType==='staff' || $showType==='author') {
-                    $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow, $selection);
+                    $lth_solr_uuid['fe_users'][] = $uuid;
+                    $scope = urlencode(json_encode($lth_solr_uuid));
+                    $content = $FrontEndClass->showStaff($scope, $html_template, $noItemsToShow, $selection);
                 } else if($showType==='publication') {
+                    $lth_solr_uuid['publication'][] = $uuid;
+                    $scope = urlencode(json_encode($lth_solr_uuid));
                     $content = $FrontEndClass->showPublication($scope, $uuid);
                 } else if($showType==='department') {
                     $lth_solr_uuid = array();
