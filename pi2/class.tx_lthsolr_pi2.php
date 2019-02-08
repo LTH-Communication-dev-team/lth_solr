@@ -103,7 +103,7 @@ LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid LEFT JOIN fe_groups f5 ON f5.subg
             if($fe_users) {
                 $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('username','fe_users',"uid in(" . explode('|',$fe_users)[0].")");
                 while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-                    $scope['fe_users'][] = $row['username'];
+                    $lth_solr_uuid['fe_users'][] = $row['username'];
                 }
                 $GLOBALS['TYPO3_DB']->sql_free_result($res);
             }
@@ -111,9 +111,9 @@ LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid LEFT JOIN fe_groups f5 ON f5.subg
             $heritage = array_filter($heritage);
             $heritage = array_unique($heritage);
 
-            if($scope) {
+            /*if($scope) {
                 $scope = urlencode(json_encode($scope));
-            }
+            }*/
             
             if($heritage) {
                 $heritage = urlencode(json_encode($heritage));
@@ -176,6 +176,7 @@ LEFT JOIN fe_groups f4 ON f4.subgroup = f3.uid LEFT JOIN fe_groups f5 ON f5.subg
                 }
             //   $content = $FrontEndClass->showStaff($uuid, $html_template, $noItemsToShow);
             } else {
+                $scope = urlencode(json_encode($lth_solr_uuid));
                 $content = $FrontEndClass->listStaff($scope, $html_template, $noItemsToShow, $categories, 
                         $limitToStandardCategories, $heritage, $showPictures, $thisGroupOnly, $primaryRoleOnly);
             }
