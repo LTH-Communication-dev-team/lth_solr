@@ -54,13 +54,14 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $lastModified = $document->calendarChanged;
         }
         
-        $lastModified = '1416720632';
+        //$lastModified = '1416720632';
         
+        $client = new \Solarium\Client($config);
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(200);
 
         //$allCalendars = $executionSucceeded = $this->getCalendars();
-        //$executionSucceeded = $this->getEvents($lastModified, $buffer);
+        $executionSucceeded = $this->getEvents($lastModified, $buffer);
         //$executionSucceeded = $this->createOrder($client);
 
         $syslang = "en";
@@ -79,8 +80,8 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(200);
         //$lastModified = '1416720632';
-        //$executionSucceeded = $this->getEvents($lastModified, $buffer);
-        $executionSucceeded = $this->createOrder($client);
+        $executionSucceeded = $this->getEvents($lastModified, $buffer);
+        //$executionSucceeded = $this->createOrder($client);
         return $executionSucceeded;
     }
     
@@ -156,7 +157,7 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'abstract' => $value['field_ns_calendar_body']['und'][0]['safe_value'],
                             'categoryId' => $value['field_ns_calendar_category']['und'][0]['tid'],
                             'categoryName' => $value['field_ns_calendar_category']['und'][0]['name'],
-                            'calendar_ids' => $value['calendar_ids'],
+                            'calendarIds' => $value['calendar_ids'],
                             'calendarChanged' => $value['changed'],
                             'pathalias' => $value['pathalias'],
                             'startTime' => date('Y-m-d\TH:i:s\Z', $value['field_ns_calendar_date']['und'][0]['value']),
@@ -169,8 +170,12 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'docType' => 'calendar',
                             'type' => 'calendar'
                         );
-                        //$this->debug($data);
-                        //die();
+                        foreach($value['file_usage'] as $fkey => $fvalue) {
+                            if($fvalue['field_ns_media_caption']) {
+                                $data['imageCaption'] = $fvalue['field_ns_media_caption']['und'][0]['safe_value'];
+                            }
+                        }
+                        
                         $buffer->createDocument($data);
                         
                     }

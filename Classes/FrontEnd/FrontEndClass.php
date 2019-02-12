@@ -365,9 +365,9 @@ class FrontEndClass
             <label class=" w-100">
                Skriv för att filtrera
                <div class="input-group rounded-0">
-               <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="">
+               <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="Skriv minst 3 tecken" />
                  <div class="input-group-append">
-                   <button class="btn btn-outline-primary rounded-0" type="submit">Filtrera</button>
+                <button class="btn btn-outline-primary rounded-0" type="button">Filtrera</button>
                  </div>
                </div>
              </label>

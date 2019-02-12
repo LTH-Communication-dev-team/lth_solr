@@ -268,12 +268,13 @@ function listOrganisationStaff($dataSettings, $config, $action)
     }
     
     if($scope) {
-        $scope = urldecode(explode(',', $scope));
-        foreach($scope as $key =>$value) {
+        $scope = explode(',', urldecode($scope));
+        foreach($scope as $key => $value) {
             if($term) {
                 $term .= ' OR ';
-                $term .= 'heritage2:*' . $scope . '*';
+                
             }
+            $term .= 'heritage2:*' . $value . '*';
         }
         
         //$term .= ' OR heritageName2:*' . str_replace('$',',',str_replace(' ', '\ ', strtolower($scope))) . '*';

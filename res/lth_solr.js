@@ -345,13 +345,14 @@ function listOrganisationStaff(facet, query)
     //var exportArray = ["firstName","lastName","title","phone","email","organisationName","homepage","roomNumber","mobile"];
      
     if($('.lth_solr_culdesac').length === 0) {
-        $('#lthsolr_organisation_filter').addClass('lth_solr_culdesac').keyup(function() {
+        $('#lthsolr_organisation_filter').parent().find('button').addClass('lth_solr_culdesac').click(function() {
             if($('#lthsolr_organisation_filter').val().trim().length > 2) {
                 /*if(facetChoice==='firstLetter')*/ $('#facet_container .nav-link').removeClass('active');
-                listOrganisationStaff($('#facet_container > li > .active').attr('data-val'), $(this).val().trim());
+                listOrganisationStaff($('#facet_container > li > .active').attr('data-val'), $('#lthsolr_organisation_filter').val().trim());
             } else if(facetChoice==='firstLetter') {
                 $('#facet_container .nav-link:eq(0)').addClass('active');
                 listOrganisationStaff('a','');
+                $('#lthsolr_organisation_filter').val('');
             } else {
                 $('#facet_container .nav-link:eq(0)').addClass('active');
                 listOrganisationStaff('','');
@@ -437,7 +438,8 @@ function listOrganisationStaff(facet, query)
                                 $(this).click(function() {
                                     $('#facet_container .nav-link').removeClass('active');
                                     $(this).addClass('active');
-                                    if(facetChoice==='firstLetter') $('#lthsolr_organisation_filter').val('');
+                                    //if(facetChoice==='firstLetter') $('#lthsolr_organisation_filter').val('');
+                                    $('#lthsolr_organisation_filter').val('');
                                     listOrganisationStaff($(this).attr('data-val'), $('#lthsolr_organisation_filter').val());
                                 });
                             });
