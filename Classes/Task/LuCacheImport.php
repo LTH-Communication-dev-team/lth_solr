@@ -449,8 +449,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
                 $employeeArray[$username]['lth_solr_show'] = $lth_solr_show;
                 $employeeArray[$username]['usergroup'] = $row['usergroup'];
-                $employeeArray[$username]['image'] = $row['image'];
-                $employeeArray[$username]['image_id'] = $row['image_id'];
+                if($row['image']) $employeeArray[$username]['image'] = $row['image'];
+                if($row['image_id']) $employeeArray[$username]['image_id'] = $row['image_id'];
                 $employeeArray[$username]['exist'] = TRUE;
             } else if($username) {
                 $employeeArray[$username]['id'] = $lucache_id;
