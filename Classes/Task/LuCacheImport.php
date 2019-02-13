@@ -57,10 +57,13 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $db = $settings['db'];
         $user = $settings['user'];
         $pw = $settings['pw'];
+        $solrImageImportFolder = $settings['solrImageImportFolder'];
 
         $con = mysqli_connect($dbhost, $user, $pw, $db) or die("60; ".mysqli_error());
-       
-        $employeeArray = $this->getEmployee($con);
+
+        $imageArray = $this->getImageArray($solrImageImportFolder);
+
+        $employeeArray = $this->getEmployee($con, $imageArray);
 
         $employeeArray = $this->getLucrisData($employeeArray);
 
@@ -118,7 +121,21 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function getEmployee($con)
+    private function getImageArray($solrImageImportFolder)
+    {
+        $email = '';
+        $fileArray = scandir($solrImageImportFolder);
+        foreach ($fileArray as $filekey => $filename) {
+            $tmpArray = explode('.', $filename);
+            array_pop($tmpArray);
+            $email = implode('.', $tmpArray);
+            $imageArray[$email] = $filename;
+        }
+        return array_slice($imageArray, 2);
+    }
+    
+    
+    private function getEmployee($con, $imageArray)
     {
         /*
          * uid                 VARCHAR(30),    -- uid
@@ -184,11 +201,12 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $primary_uid = $row['primary_uid'];
+            $email = $row['primary_lu_email'];
             $employeeArray[$primary_uid]['id'] = $row['id'];
             $employeeArray[$primary_uid]['primary_uid'] = $primary_uid;
             $employeeArray[$primary_uid]['first_name'] = $this->toUC($row['first_name']);
             $employeeArray[$primary_uid]['last_name'] = $this->toUC($row['last_name']);
-            $employeeArray[$primary_uid]['email'] = $row['primary_lu_email'];
+            $employeeArray[$primary_uid]['email'] = $email;
             $employeeArray[$primary_uid]['primary_affiliation'] = $row['primary_affiliation'];
             $employeeArray[$primary_uid]['primary_vrole_ou'] = $row['primary_vrole_ou'];
             $employeeArray[$primary_uid]['primary_vrole_title'] = $row['primary_vrole_title'];
@@ -216,6 +234,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $employeeArray[$primary_uid]['oname'] = explode('|', $row['oname']);
             $employeeArray[$primary_uid]['oname_en'] = explode('|', $row['oname_en']);
             $employeeArray[$primary_uid]['maildelivery'] = explode('|', $row['maildelivery']);
+            if($email) {
+                $employeeArray[$primary_uid]['image'] = $imageArray[$email];
+            }
         }
 
         return $employeeArray;
