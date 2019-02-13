@@ -234,7 +234,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $employeeArray[$primary_uid]['oname'] = explode('|', $row['oname']);
             $employeeArray[$primary_uid]['oname_en'] = explode('|', $row['oname_en']);
             $employeeArray[$primary_uid]['maildelivery'] = explode('|', $row['maildelivery']);
-            if($email) {
+            if($email && $imageArray[$email]) {
                 $employeeArray[$primary_uid]['image'] = 'fileadmin/images/uploads/' . $imageArray[$email];
             }
         }
