@@ -327,7 +327,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
         $image = '';
 
         if($document->image) {
-            $image = $document->image;
+            $image = '/' . ltrim($document->image,'/');
         } else if($document->lucrisPhoto) {
             $image = $document->lucrisPhoto;
         }
