@@ -264,7 +264,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
     if($filterQuery) {
         $filterQuery = str_replace(' ','\\ ',$filterQuery);
         //$filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '* OR title:*' . $filterQuery . '* OR organisationName:*' . $filterQuery . '*)';
-        $query->addFilterQuery(array('key' => $facetChoice, 'query' => 'name:*'. $filterQuery . '*', 'tag'=>'dt'));
+        $query->addFilterQuery(array('key' => 'query', 'query' => 'name:*'. $filterQuery . '*', 'tag'=>'dt'));
     }
     
     if($scope) {

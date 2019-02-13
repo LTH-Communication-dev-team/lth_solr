@@ -52,6 +52,9 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $studentGrsp = $settings['studentGrsp'];
         $hideonwebGrsp = $settings['hideonwebGrsp'];
         $studentMainGroup = $settings['solrStudentMainGroup'];
+        
+        $solrLucrisApiKey = $settings['solrLucrisApiKey'];
+        $solrLucrisApiVersion = $settings['solrLucrisApiVersion'];
 
         $dbhost = $settings['dbhost'];
         $db = $settings['db'];
@@ -59,6 +62,8 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $pw = $settings['pw'];
 
         $con = mysqli_connect($dbhost, $user, $pw, $db) or die("60; ".mysqli_error());
+        
+        //$executionSucceeded = $this->getOrgFiles($solrLucrisApiVersion, $solrLucrisApiKey);
        
         $organisationArray = $this->getLucacheOrganisation($con);
 
@@ -140,7 +145,7 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
             $xml = @simplexml_load_string($xmlPrefix . $xml . $xmlSuffix);
 
-            foreach($xml->xpath('//result//content') as $content) {
+            foreach($xml->xpath('//result//organisationalUnit') as $content) {
                 $organisationId = array();
                 $name_en = '';
                 $name_sv = '';
@@ -168,49 +173,49 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $id = (string)$content->attributes();
                 
                 //portalUrl
-                $portalUrl = (string)$content->portalUrl;
+                $portalUrl = (string)$content->info->portalUrl;
                 
                 //name
                 if($content->name) {
-                    foreach($content->name->localizedString as $localizedString) {
-                        if($localizedString->attributes()->locale == 'en_GB') {
-                            $name_en = (string)$localizedString;
+                    foreach($content->name as $name) {
+                        if($name->attributes()->locale == 'en_GB') {
+                            $name_en = (string)$name;
                         }
-                        if($localizedString->attributes()->locale == 'sv_SE') {
-                            $name_sv = (string)$localizedString;
+                        if($name->attributes()->locale == 'sv_SE') {
+                            $name_sv = (string)$name;
                         }
                     }
                 }
                 
                 //typeClassification
-                if($content->typeClassification) {
-                    foreach($content->typeClassification->term->localizedString as $localizedString) {
-                        if($localizedString->attributes()->locale == 'en_GB') {
-                            $typeClassification_en = (string)$localizedString;
+                if($content->type) {
+                    foreach($content->type as $type) {
+                        if($type->attributes()->locale == 'en_GB') {
+                            $typeClassification_en = (string)$type;
                         }
-                        if($localizedString->attributes()->locale == 'sv_SE') {
-                            $typeClassification_sv = (string)$localizedString;
+                        if($type->attributes()->locale == 'sv_SE') {
+                            $typeClassification_sv = (string)$type;
                         }
                     }
                 }
                 
                 //parents
-                if($content->organisations) {
-                    foreach($content->organisations->organisation as $organisation) {
-                        $parents[] = (string)$organisation->attributes();
-                        if($organisation->name->localizedString->attributes()->locale == 'en_GB') {
-                            $parentName_en[] = (string)$organisation->name->localizedString;
-                        }
-                        if($organisation->name->localizedString->attributes()->locale == 'sv_SE') {
-                            $parentName_sv[] = (string)$organisation->name->localizedString;
-                        }
+                if($content->parents) {
+                    
+                    foreach($content->parents->parent as $parent) {
+                        
+                        $parents[] = (string)$parent->attributes();
+
+                        $parentName_en[] = (string)$parent->name[0];
+
+                        $parentName_sv[] = (string)$parent->name[1];
                     }
                 }
                 
                 //organisationSourceId
-                if($content->external) {
-                    $organisationSourceId[] = $content->external->sourceId;
-                    $orgid = (string)$content->external->sourceId;
+                if($content->externalableInfo) {
+                    $organisationSourceId[] = $content->externalableInfo->sourceId;
+                    $orgid = (string)$content->externalableInfo->sourceId;
                 }
                     
                 //language switch
@@ -266,6 +271,33 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $update->addCommit();
         $client->update($update);
 
+        return TRUE;
+    }
+    
+    function getOrgFiles($solrLucrisApiVersion, $solrLucrisApiKey)
+    {        
+        $numberofloops = 1;
+        $startFromHere=0;
+        $directory = '/var/www/html/typo3/lucrisdump';
+
+        for($i = 0; $i <= $numberofloops; $i++) {
+            
+            $startrecord = $startFromHere + ($i * 20);
+            //$fileName = $startrecord . '.xml';
+            //$xmlpath = "https://lucris.lub.lu.se/ws/rest/organisation.current?namespaces=remove&rendering=xml_long&window.size=20&window.offset=$startrecord";
+            $xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/organisational-units/?apiKey=$solrLucrisApiKey&size=20&offset=$startrecord";
+
+            $xml = @file_get_contents($xmlpath);
+            //echo $xmlpath;
+            $xml = @simplexml_load_string($xml);
+            $numberofloops = ceil($xml->count / 20);
+
+            foreach($xml->xpath('//result//organisationalUnit') as $content) {
+                $id = (string)$content->attributes();                
+                //save content as xml
+                $content->asXml($directory . '/orgfilestoindex/' . $id . '.xml');
+            }
+        }
         return TRUE;
     }
 }

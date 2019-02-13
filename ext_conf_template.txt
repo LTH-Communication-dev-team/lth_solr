@@ -60,3 +60,5 @@ lubasDatabase=
 lubasUserName=
 # cat=basic/dev/189; type=input; label=Lubas password
 lubasPw=
+# cat=basic/dev/190; type=input; label=Image import folder
+solrImageImportFolder=
