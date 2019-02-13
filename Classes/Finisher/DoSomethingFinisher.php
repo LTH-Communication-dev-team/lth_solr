@@ -24,7 +24,7 @@ class DoSomethingFinisher extends AbstractFinisher
         if($image && $email) {
             $image = 'fileadmin/images/uploads/' . addslashes($image[0]);
             $email = addslashes($email);
-            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', 'email='.$email, array('email' => $email, 'name' => $name));
+            $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "email='$email'", array('image' => $image));
         }
     }
 }
