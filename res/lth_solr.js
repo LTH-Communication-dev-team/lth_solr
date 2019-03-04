@@ -833,6 +833,7 @@ function listStatistics()
     var syslang = $('html').attr('lang');
     var id,statTermin,statType,statTitle,statCode,statVal1,statVal2,statApplicants,newRow,first;
     var antagna = 0;
+    var biExist, biiExist, hpExist, bfExist;
 
     $.ajax({
         type : 'POST',
@@ -870,7 +871,7 @@ function listStatistics()
                     statVal1 = '';
                     statVal2 = '';
                     
-                    
+                    antagna=0;
                     if(aData.id) id = aData.id;
                     if(aData.statApplicants) statApplicants = aData.statApplicants;
                     if(aData.statCode) statCode = aData.statCode;
@@ -893,7 +894,7 @@ function listStatistics()
                         $('#lthsolr_statistics_container').append(newRow);
                         
                         var titleObj = { "BI" : "Gymnasiebetyg", "BII" : "Gymnasiebetyg med komplettering", "HP" : "Högskoleprov", "BF" : "Folkhögskola" };
-
+                        
                         for (var i = 0; i < statVal2.length; i++) {
                             var tmpArray = statVal2[i].split(',');
                            
@@ -926,6 +927,10 @@ function listStatistics()
                         $('#lthsolr_statistics_container tbody tr:last').append('<td>' + statApplicants.split(',')[1] + '</td>');
 
                         var ii = 0;
+                        biExist='-';
+                        biiExist='-';
+                        hpExist='-';
+                        bfExist='-';
                         for (var i = 0; i < statVal2.length; i++) {
                             var tmpArray = statVal2[i].split(',');
                             /*for (var ii = 0; ii < tmpArray.length; ii++) {
@@ -933,19 +938,22 @@ function listStatistics()
                                     newRow += '<td>' + tmpArray[ii] + '</td>';
                                 }
                             }*/
-                            if(tmpArray[0] === 'BI' || tmpArray[0] === 'BII' || tmpArray[0] === 'HP' || tmpArray[0] === 'BF') {
-                                //$('#lthsolr_statistics_container thead tr').append('<th>'+tmpArray[0]+'</th>');
-                                $('#lthsolr_statistics_container tbody tr:last').append('<td>'+lthSolrRound(tmpArray[1])+'</td>');
-                                antagna = antagna + parseInt(tmpArray[2]);
-                                ii++;
-                            }
-                            
+                            if(tmpArray[0] === 'BI') biExist=tmpArray[1];
+                            if(tmpArray[0] === 'BII') biiExist=tmpArray[1];
+                            if(tmpArray[0] === 'HP') hpExist=tmpArray[1];
+                            if(tmpArray[0] === 'BF') bfExist=tmpArray[1];
+                            antagna = antagna + parseInt(tmpArray[2]);
+                            ii++;
                         }
-                        var rest = 4 - ii;
+                        $('#lthsolr_statistics_container tbody tr:last').append('<td>'+biExist+'</td>');
+                        $('#lthsolr_statistics_container tbody tr:last').append('<td>'+biiExist+'</td>');
+                        $('#lthsolr_statistics_container tbody tr:last').append('<td>'+hpExist+'</td>');
+                        $('#lthsolr_statistics_container tbody tr:last').append('<td>'+bfExist+'</td>');
+                        /*var rest = 4 - ii;
                         
                         for (var ii = 0; ii < rest; ii++) {
-                            $('#lthsolr_statistics_container tbody tr:last').append('<td></td>');
-                        }
+                            $('#lthsolr_statistics_container tbody tr:last').append('<td>'+ii+'</td>');
+                        }*/
                         /*{
                             $('#lthsolr_statistics_container tbody tr:last').append('<td></td>');
                         }*/
