@@ -198,7 +198,7 @@ function listOrganisation($dataSettings, $config)
         $scopeArray = explode(',', $scope);
         foreach($scopeArray as $key => $value) {
             if($i>0) $term .= ' OR ';
-            $term .= 'organisationParent:' . $value;
+            $term .= 'organisationParent:' . array_shift(explode('__',$value));
             $i++;
         }
         $term .= ')';
@@ -258,13 +258,28 @@ function listOrganisationStaff($dataSettings, $config, $action)
     $query = $client->createSelect();
     
     $fieldArray = array("mailDelivery", "organisationSourceId","organisationTitle");
-    $queryToSet = 'docType:organisation AND (organisationSourceId:' . $scope . ' OR organisationTitleExact:"' . str_replace(' ', '\ ', $scope) . '")';
+    
+    $queryToSet = 'docType:organisation';
+    if($scope) {
+        $scope = urldecode($scope);
+        $i = 0;
+        $queryToSet .= ' AND (';
+        $scopeArray = explode(',', $scope);
+        foreach($scopeArray as $key => $value) {
+            if($i>0) $queryToSet .= ' OR ';
+            $queryToSet .= 'organisationSourceId:' . array_pop(explode('__',$value)) . ' OR organisationTitleExact:' . str_replace(' ', '\ ', $value) ;
+            $i++;
+        }
+        $queryToSet .= ')';
+    }
+
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
-    $response = $client->select($query);  
+    $response = $client->select($query);
+    $scopeArray = array();
     foreach ($response as $document) {
         $mailDelivery = $document->mailDelivery[0];
-        $scope = $document->organisationSourceId[0];
+        $scopeArray[] = $document->organisationSourceId[0];
         $organisationTitle = $document->organisationTitle;
     }
     
@@ -281,8 +296,8 @@ function listOrganisationStaff($dataSettings, $config, $action)
     }
     
     if($scope) {
-        $scope = explode(',', urldecode($scope));
-        foreach($scope as $key => $value) {
+        //$scope = explode(',', urldecode($scope));
+        foreach($scopeArray as $key => $value) {
             if($term) {
                 $term .= ' OR ';
                 
