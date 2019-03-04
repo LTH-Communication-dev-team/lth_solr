@@ -191,7 +191,20 @@ function listOrganisation($dataSettings, $config)
         "organisationStreet":["Sölvegatan 27"],
         "organisationTitle":"Astronomi",
        */
-    $queryToSet = 'docType:organisation AND organisationParentSourceId:' . $scope . $filterQuery;
+    if($scope) {
+        $scope = urldecode($scope);
+        $i = 0;
+        $term .= ' AND (';
+        $scopeArray = explode(',', $scope);
+        foreach($scopeArray as $key => $value) {
+            if($i>0) $term .= ' OR ';
+            $term .= 'organisationParent:' . $value;
+            $i++;
+        }
+        $term .= ')';
+    }
+    
+    $queryToSet = 'docType:organisation' . $term . $filterQuery;
 
     $query->setQuery($queryToSet);
         
