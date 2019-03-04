@@ -436,7 +436,7 @@ function listOrganisationRoles($dataSettings, $config)
         $scopeArray = explode(',', $scope);
         foreach($scopeArray as $key => $value) {
             if($i>0) $term .= ' OR ';
-            $term .= 'heritage2:*' . $value . '*';
+            $term .= 'heritage2:*' . array_pop(explode('__', $value)) . '*';
             $i++;
         }
         $term .= ')';
