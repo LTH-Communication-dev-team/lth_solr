@@ -458,7 +458,7 @@ function listOrganisationStaff(facet, query)
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
 
-                    var phone = '', email = '', image = '', guid = '', uuid = '', title = '', displayName = '', link = '', organisationName = '';
+                    var phone = '', email = '', image = '', guid = '', uuid = '', primaryVroleTitle = '', displayName = '', link = '', organisationName = '';
                     if(aData.guid) guid = aData.guid[0];
                    
                     if(aData.uuid) uuid = aData.uuid;
@@ -470,13 +470,13 @@ function listOrganisationStaff(facet, query)
 
                     if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;
                     if(aData.email) email = aData.email;
-                    if(aData.title) title = titleCase(aData.title);
+                    if(aData.primaryVroleTitle) primaryVroleTitle = titleCase(aData.primaryVroleTitle);
                     if(aData.phone && aData.phone !== 'NULL') phone = formatPhone(aData.phone);
                     if(aData.organisationName) organisationName = '<strong>' + aData.organisationName + '</strong> - ';
                     template = template.replace(/###email###/g, email);
                     template = template.replace('###organisationName###', organisationName);
                     template = template.replace(/###phone###/g, phone);
-                    template = template.replace(/###title###/g, title);
+                    template = template.replace(/###title###/g, primaryVroleTitle);
                     
                     //template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
                     template = template.replace(/###displayName###/g, displayName);
