@@ -178,17 +178,6 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $pageTitle = '';
             $keyword;
             $uuid;
-            /*if($detailPage) {
-                $detailPage = $this->detailUrl($detailPage);
-            }*/
-            
-            /*if($staffDetailPage) {
-                $staffDetailPage = $this->detailUrl($staffDetailPage);
-            }
-            
-            if($projectDetailPage) {
-                $projectDetailPage = $this->detailUrl($projectDetailPage);
-            }*/
 
             $uuid = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('uuid');
             $keyword = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('keyword');
@@ -218,33 +207,39 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
             if($fe_users) {
                 $fe_usersArray = explode(',', $fe_users);
+                if($uuid) {
+                    if(!in_array($uuid,$fe_usersArray)) {
+                        return false;
+                    }
+                }
                 foreach ($fe_usersArray as $fkey => $fvalue) {
                     $lth_solr_uuid['fe_users'][] = $fvalue;
                 }
-                $scope = urlencode(json_encode($lth_solr_uuid));
             }
             if($fe_groups) {
                 $tmpArray = explode(',',$fe_groups);
                 foreach($tmpArray as $tmpValue) {
                     $lth_solr_uuid['fe_groups'][] = $tmpValue;
                 }
-                $scope = urlencode(json_encode($lth_solr_uuid));
             }
             if($projects) {
                 $tmpArray = explode(',',$projects);
                 foreach($tmpArray as $tmpValue) {
                     $lth_solr_uuid['projects'][] = $tmpValue;
                 }
-                $scope = urlencode(json_encode($lth_solr_uuid));
+            }
+
+            if(!$fe_users && !$fe_groups && !$projects) {
+                return false;
             }
                 
             if($showType === 'publication') {
-                $lth_solr_uuid = array();
+                //$lth_solr_uuid = array();
                 $lth_solr_uuid['publication'][] = $uuid;
                 $scope = urlencode(json_encode($lth_solr_uuid));
                 $content .= $FrontEndClass->showPublication($scope, $uuid);
             } else if($showType==='department') {
-                $lth_solr_uuid = array();
+                //$lth_solr_uuid = array();
                 $lth_solr_uuid['fe_groups'][] = $uuid;
                 $scope = urlencode(json_encode($lth_solr_uuid));
                 $content .= $FrontEndClass->listPublications($scope, $noItemsToShow, $categories, '', $pageTitle, $publicationCategories, 
