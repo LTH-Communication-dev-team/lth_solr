@@ -250,6 +250,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 $scope = urlencode(json_encode($lth_solr_uuid));
                 $content = $FrontEndClass->showStaff($scope, $html_template, $noItemsToShow, $selection);
             } else {
+                $scope = urlencode(json_encode($lth_solr_uuid));
                 if($display === "tagcloud" && !$keyword) {
                     $content .= $FrontEndClass->listTagCloud($scope, $noItemsToShow, $categories);
                 } else {
