@@ -1784,19 +1784,44 @@ function showPublication($response, $scope, $syslang, $config)
         "publicationDateDay","publicationType","publicationTypeUri","publisher","publicationStatus","standard_category_en","startDate","supervisorId","supervisorName",
         "supervisorOrganisationId","supervisorOrganisationName","supervisorPersonRole","title","volume");
     
-    if($scope) {
-        $scope = json_decode(urldecode($scope),true);
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($scope, true), 'crdate' => time()));
-        $uuid = $scope['publication'][0];
-        $organisation = $this->getLucrisId($scope['fe_groups'][0],$config);
-    }
-    
     if(!$response) {
         $client = new Solarium\Client($config);
 
         $query = $client->createSelect();
         
-        $queryToSet = 'id:'.$uuid.' AND organisationSourceId:' . $organisation . ' AND (workflow:Granskad OR workflow:Validated)';
+        
+        
+        
+        
+        if($scope) {
+            $term='';
+            $scope = json_decode(urldecode($scope),true);
+            $uuid = $scope['publication'][0];
+            $queryToSet = 'docType:publication AND id:'.$uuid;
+            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($scope, true), 'crdate' => time()));
+            foreach($scope as $key => $value) {
+                if($key==='fe_groups') {
+                    foreach($value as $key1 => $value1) {
+                        if($term) {
+                            $term .= " OR ";
+                        }
+                        $term .= 'organisationSourceId:' . $value1;
+                    }
+                }
+                if($key==='fe_users') {
+                    foreach($value as $key1 => $value1) {
+                        if($term) {
+                            $term .= " OR ";
+                        }
+                        $term .= 'authorId:' . $value1;
+                    }
+                }
+            }
+            if($term) $queryToSet .= ' AND (' . $term . ')';
+            //$organisation = $this->getLucrisId($scope['fe_groups'][0],$config);
+        }
+        
+        $queryToSet .= ' AND (workflow:Granskad OR workflow:Validated)';
 
         $query->setQuery($queryToSet);
         
