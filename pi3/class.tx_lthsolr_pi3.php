@@ -208,7 +208,8 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             if($fe_users) {
                 $fe_usersArray = explode(',', $fe_users);
                 if($uuid) {
-                    if(!in_array($uuid,$fe_usersArray)) {
+                    
+                    if(!in_array($uuid,$fe_usersArray) && $showType !== 'publication') {
                         return false;
                     }
                 }
@@ -232,7 +233,7 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             if(!$fe_users && !$fe_groups && !$projects) {
                 return false;
             }
-                
+
             if($showType === 'publication') {
                 //$lth_solr_uuid = array();
                 $lth_solr_uuid['publication'][] = $uuid;
