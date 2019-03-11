@@ -289,6 +289,35 @@ class lth_solr_ajax {
 
         $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "lucache_id='$username'", $updateArray);
         
+        //English
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_en/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+        $client = new Solarium\Client($config);        
+        $update = $client->createUpdate();
+        ${"doc"} = $update->createDocument(); 
+        ${"doc"}->setKey('id', $username); 
+        if($checked === 'true') {
+            ${"doc"}->addField($hideVar, 1);
+            ${"doc"}->setFieldModifier($hideVar, 'set');
+            $hideArray[$hideVar] = 1;
+        } else {
+            ${"doc"}->addField($hideVar, 0);
+            ${"doc"}->setFieldModifier($hideVar, 'set');
+            $hideArray[$hideVar] = 0;
+        }
+        $docArray[] = ${"doc"};
+        $update->addDocuments($docArray);
+        $update->addCommit();
+        $result = $client->update($update);
+        
         return $result;
     }
    
