@@ -253,7 +253,8 @@ class lth_solr_ajax {
     
     
     public function updateHideonpage($username, $pid, $value, $checked, $syslang, $config)
-    {      
+    {   
+        $docArray = array();
         $client = new Solarium\Client($config);        
         $update = $client->createUpdate();
         ${"doc"} = $update->createDocument(); 
@@ -290,6 +291,7 @@ class lth_solr_ajax {
         $GLOBALS['TYPO3_DB']->exec_UPDATEquery("fe_users", "lucache_id='$username'", $updateArray);
         
         //English
+        $docArray = array();
         $config = array(
             'endpoint' => array(
                 'localhost' => array(
