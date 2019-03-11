@@ -260,6 +260,16 @@ class lth_solr_ajax {
         ${"doc"}->setKey('id', $username); 
         $hideVar = 'lth_solr_hide_' . $pid . '_intS';
         
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_hide", "fe_users", "lucache_id='$username' AND lth_solr_hide != ''");
+        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
+            $hideArray = $row['lth_solr_hide'];
+        }
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+
+        if($hideArray) {
+            $hideArray = json_decode($hideArray, true);
+        } 
+        
         if($checked === 'true') {
             ${"doc"}->addField($hideVar, 1);
             ${"doc"}->setFieldModifier($hideVar, 'set');
@@ -274,17 +284,6 @@ class lth_solr_ajax {
         $update->addDocuments($docArray);
         $update->addCommit();
         $result = $client->update($update);
-
-        
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("lth_solr_hide", "fe_users", "lucache_id='$username' AND lth_solr_hide != ''");
-        while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
-            $hideArray = $row['lth_solr_hide'];
-        }
-        $GLOBALS['TYPO3_DB']->sql_free_result($res);
-
-        if($hideArray) {
-            $hideArray = json_decode($hideArray, true);
-        } 
 
         $updateArray = array('lth_solr_hide' => json_encode($hideArray), 'tstamp' => time());
 
