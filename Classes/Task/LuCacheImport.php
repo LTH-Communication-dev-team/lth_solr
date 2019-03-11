@@ -407,7 +407,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     private function getFeUsers($employeeArray, $grsp)
     {
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT F.username,F.usergroup,F.image,F.image_id,F.lth_solr_cat,F.lucache_id,F.lth_solr_sort,F.lth_solr_intro,F.lth_solr_show',
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT F.username,F.usergroup,F.image,F.image_id,F.lth_solr_cat,F.lucache_id,F.lth_solr_sort,
+                F.lth_solr_intro,F.lth_solr_show,F.lth_solr_hide',
                 'fe_users F JOIN pages P ON P.uid=F.pid',
                 'F.lth_solr_index=1 AND F.deleted=0 AND F.disable=0 AND P.pid='.intval($grsp));
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
@@ -416,6 +417,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $lth_solr_intro = $row['lth_solr_intro'];
             $lth_solr_sort = $row['lth_solr_sort'];
             $lth_solr_show = $row['lth_solr_show'];
+            $lth_solr_hide = $row['lth_solr_hide'];
             $lucache_id = $row['lucache_id'];
             
             if(array_key_exists($username, $employeeArray)) {
@@ -448,6 +450,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 }
         
                 $employeeArray[$username]['lth_solr_show'] = $lth_solr_show;
+                $employeeArray[$username]['lth_solr_hide'] = $lth_solr_hide;
                 $employeeArray[$username]['usergroup'] = $row['usergroup'];
                 if($row['image']) $employeeArray[$username]['image'] = $row['image'];
                 if($row['image_id']) $employeeArray[$username]['image_id'] = $row['image_id'];
@@ -877,6 +880,13 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $lth_solr_showArray = json_decode($value['lth_solr_show'],true);
                             foreach($lth_solr_showArray as $showKey => $showValue) {
                                 $data[$showValue] = 1;
+                            }
+                        }
+                        
+                        if($value['lth_solr_hide']) {
+                            $lth_solr_hideArray = json_decode($value['lth_solr_hide'],true);
+                            foreach($lth_solr_hideArray as $hideKey => $hideValue) {
+                                $data[$hideKey] = $hideValue;
                             }
                         }
                         
