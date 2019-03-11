@@ -292,16 +292,7 @@ class lth_solr_ajax {
         
         //English
         $docArray = array();
-        $config = array(
-            'endpoint' => array(
-                'localhost' => array(
-                    'host' => $settings['solrHost'],
-                    'port' => $settings['solrPort'],
-                    'path' => "/solr/core_en/",//$settings['solrPath'],
-                    'timeout' => $settings['solrTimeout']
-                )
-            )
-        );
+        $config['endpoint']['localhost']['path'] = "/solr/core_en/";
         $client = new Solarium\Client($config);        
         $update = $client->createUpdate();
         ${"doc"} = $update->createDocument(); 
