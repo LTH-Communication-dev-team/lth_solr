@@ -112,8 +112,9 @@
                                         <TCEforms>
                                             <label>Title</label>
                                             <config>
-                                                <type>input</type>
-                                                <size>48</size>
+                                                <type>text</type>
+                                                <cols>24</cols>
+                                                <rows>3</rows>
                                             </config>
                                         </TCEforms>
                                     </title>
@@ -134,7 +135,15 @@
                                                 <size>48</size>
                                             </config>
                                         </TCEforms>
-                                    </organisation>                           
+                                    </organisation>
+                                    <hideOrganisation>
+                                        <TCEforms>
+                                            <label>Hide organisation</label>
+                                            <config>
+                                                <type>check</type>
+                                            </config>
+                                        </TCEforms>
+                                    </hideOrganisation>                          
                                     <phone>
                                         <TCEforms>
                                             <label>Phone</label>

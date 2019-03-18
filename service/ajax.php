@@ -329,10 +329,13 @@ function listOrganisationStaff($dataSettings, $config, $action)
                     $data[$email]['name'] = $value1['vDEF'];
                 }
                 if($key1==='title') {
-                    $data[$email]['primaryVroleTitle'] = $value1['vDEF'];
+                    $data[$email]['primaryVroleTitle'] = str_replace("\n","<br />", $value1['vDEF']);
                 }
                 if($key1==='organisation') {
                     $data[$email]['organisation'] = $value1['vDEF'];
+                }
+                if($key1==='hideOrganisation') {
+                    $data[$email]['hideOrganisation'] = $value1['vDEF'];
                 }
                 if($key1==='phone') {
                     $data[$email]['phone'] = $value1['vDEF'];
@@ -444,7 +447,6 @@ function listOrganisationStaff($dataSettings, $config, $action)
         $data[$email]["firstName"] = mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8");
         $data[$email]["lastName"] = mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8");
         $data[$email]["name"] = $this->isInArray($email, $data, "name", mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8") . ' ' . mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"));
-        
         $data[$email]["phone"] = $this->isInArray($email, $data, "phone", $this->getFromMainKey($document->phone, $mainKey));
         $data[$email]["id"] = $document->guid;
         $data[$email]["email"] = $this->getFromMainKey($document->email, $mainKey);

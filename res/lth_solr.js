@@ -477,7 +477,11 @@ function listOrganisationStaff(facet, query)
                     if(aData.email) email = aData.email;
                     if(aData.primaryVroleTitle) primaryVroleTitle = titleCase(aData.primaryVroleTitle);
                     if(aData.phone && aData.phone !== 'NULL') phone = formatPhone(aData.phone);
-                    if(aData.organisationName) organisationName = '<strong>' + aData.organisationName + '</strong> - ';
+                    if(aData.organisationName && aData.hideOrganisation === "0") {
+                        organisationName = '<strong>' + aData.organisationName + '</strong> - ';
+                    } else {
+                        organisationName = '';
+                    }
                     template = template.replace(/###email###/g, email);
                     template = template.replace('###organisationName###', organisationName);
                     template = template.replace(/###phone###/g, phone);
