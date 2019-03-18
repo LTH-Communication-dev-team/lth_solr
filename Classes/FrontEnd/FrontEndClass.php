@@ -355,7 +355,7 @@ class FrontEndClass
     }
     
     
-    public function listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $action)
+    public function listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $action)
     {
         $syslang = $GLOBALS['TSFE']->config['config']['language'];
         
@@ -382,13 +382,16 @@ class FrontEndClass
             $content .= '<div class="search-result"><section></section></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_new.html");
         }
-        
+
+        if($extraPeople) $extraPeople = urlencode($extraPeople);
+        if($extraPeopleLu) $extraPeopleLu = urlencode($extraPeopleLu);
         $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />';
         $content .= '<input type="hidden" id="lth_solr_vroles" value="' . $vroles . '" />';
         $content .= '<input type="hidden" id="lth_solr_heritage" value="' . $heritage . '" />';
         $content .= '<input type="hidden" id="lth_solr_query" value="' . $query . '" />';
         $content .= '<input type="hidden" id="lth_solr_facetchoice" value="' . $facetChoice . '" />';
         $content .= '<input type="hidden" id="lth_solr_totalcount" value="" />';
+        $content .= '<input type="hidden" id="lth_solr_extrapeople" value="' . $extraPeople . '" />';
         $content .= '<input type="hidden" id="lth_solr_action" value="' . $action . '" />';
         
         return $content;

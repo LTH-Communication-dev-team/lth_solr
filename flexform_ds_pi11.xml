@@ -90,6 +90,94 @@
                             </config>
                         </TCEforms>
                     </facetChoice>
+                    <extraPeople>
+                        <section>1</section>
+                        <title>Add people</title>
+                        <type>array</type>
+                        <el>
+                            <container>
+                                <title>Add</title>
+                                <type>array</type>
+                                <el>
+                                    <email>
+                                        <TCEforms>
+                                            <label>Email (for LU-staff just fill in the this)</label>
+                                            <config>
+                                                <type>input</type>
+                                                <size>48</size>
+                                            </config>
+                                        </TCEforms>
+                                    </email>
+                                    <title>
+                                        <TCEforms>
+                                            <label>Title</label>
+                                            <config>
+                                                <type>input</type>
+                                                <size>48</size>
+                                            </config>
+                                        </TCEforms>
+                                    </title>
+                                    <name>
+                                        <TCEforms>
+                                            <label>Name</label>
+                                            <config>
+                                                <type>input</type>
+                                                <size>48</size>
+                                            </config>
+                                        </TCEforms>
+                                    </name>
+                                    <organisation>
+                                        <TCEforms>
+                                            <label>Organisation</label>
+                                            <config>
+                                                <type>input</type>
+                                                <size>48</size>
+                                            </config>
+                                        </TCEforms>
+                                    </organisation>                           
+                                    <phone>
+                                        <TCEforms>
+                                            <label>Phone</label>
+                                            <config>
+                                                <type>input</type>
+                                                <size>48</size>
+                                            </config>
+                                        </TCEforms>
+                                    </phone>
+                                    <homepage>
+                                        <TCEforms>
+                                            <label>Homepage</label>
+                                            <config>
+                                                <type>input</type>
+                                                <size>48</size>
+                                            </config>
+                                        </TCEforms>
+                                    </homepage>
+                                    <photo>
+                                        <TCEforms>
+                                            <label>Photo</label>
+                                            <config>
+                                                <type>group</type>
+                                                <internal_type>db</internal_type>
+                                                <appearance>
+                                                    <elementBrowserType>file</elementBrowserType>
+                                                    <elementBrowserAllowed>jpg,jpeg,png,gif</elementBrowserAllowed>
+                                                </appearance>
+                                                <allowed>sys_file</allowed>
+                                                <size>1</size>
+                                                <minitems>0</minitems>
+                                                <maxitems>1</maxitems>
+                                                <show_thumbs>1</show_thumbs>
+
+                                                <dce_load_schema>1</dce_load_schema>
+                                                <dce_get_fal_objects>1</dce_get_fal_objects>
+                                            </config>
+                                        </TCEforms>
+                                    </photo>
+                                </el>
+                            </container>
+                        </el>
+                    </extraPeople>
                 </el>
             </ROOT>
         </sDEF>

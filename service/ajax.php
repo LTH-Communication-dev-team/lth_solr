@@ -164,12 +164,10 @@ function myInit()
 
 function listOrganisation($dataSettings, $config)
 {
-    $scope = $dataSettings['scope'];
-    
-    $syslang = $dataSettings['syslang'];
-    
     $filterQuery = $dataSettings['query'];
-    
+    $scope = $dataSettings['scope'];
+    $syslang = $dataSettings['syslang'];
+
     $fieldArray = array("id", "homepage", "mailDelivery", "organisationCity", "organisationParent", 
         "organisationPhone", "organisationPostalAddress", "organisationSourceId", "organisationStreet", "organisationTitle");
     
@@ -245,22 +243,24 @@ function listOrganisation($dataSettings, $config)
 
 function listOrganisationStaff($dataSettings, $config, $action)
 {
-    $filterQuery = $dataSettings['query'];
+    $extraPeople = $dataSettings['extraPeople'];
     $facet = $dataSettings['facet'];
-    $syslang = $dataSettings['syslang'];
-    $scope = $dataSettings['scope'];
-    $vroles = $dataSettings['vroles'];
     $facetChoice = $dataSettings['facetChoice'];
+    $filterQuery = $dataSettings['query'];
+    $scope = $dataSettings['scope'];
+    $syslang = $dataSettings['syslang'];
+    $vroles = $dataSettings['vroles'];
     $term = '';
+    $data = array();
     
     $client = new Solarium\Client($config);
     
     $query = $client->createSelect();
     
-    $fieldArray = array("mailDelivery", "organisationSourceId","organisationTitle");
-    
-    $queryToSet = 'docType:organisation';
+    //Organisation
     if($scope) {
+        $fieldArray = array("mailDelivery", "organisationSourceId","organisationTitle");
+        $queryToSet = 'docType:organisation';
         $scope = urldecode($scope);
         $i = 0;
         $queryToSet .= ' AND (';
@@ -271,29 +271,24 @@ function listOrganisationStaff($dataSettings, $config, $action)
             $i++;
         }
         $queryToSet .= ')';
-    }
-
-    $query->setQuery($queryToSet);
-    $query->setFields($fieldArray);
-    $response = $client->select($query);
-    $scopeArray = array();
-    foreach ($response as $document) {
-        $mailDelivery = $document->mailDelivery[0];
-        $scopeArray[] = $document->organisationSourceId[0];
-        $organisationTitle = $document->organisationTitle;
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        $response = $client->select($query);
+        $scopeArray = array();
+        foreach ($response as $document) {
+            $mailDelivery = $document->mailDelivery[0];
+            $scopeArray[] = $document->organisationSourceId[0];
+            $organisationTitle = $document->organisationTitle;
+        }
     }
     
+    //Staff
     $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName",
         "primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile",
         "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","guid","uuid","heritage",
         "heritageName","heritageName2",
         "primaryVroleOu","primaryVroleTitle","primaryVroleOrgid","primaryVrolePhone");
     
-    if($filterQuery) {
-        $filterQuery = str_replace(' ','\\ ',$filterQuery);
-        //$filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '* OR title:*' . $filterQuery . '* OR organisationName:*' . $filterQuery . '*)';
-        $query->addFilterQuery(array('key' => 'query', 'query' => 'name:*'. $filterQuery . '*', 'tag'=>'dt'));
-    }
     
     if($scope) {
         //$scope = explode(',', urldecode($scope));
@@ -309,11 +304,84 @@ function listOrganisationStaff($dataSettings, $config, $action)
         $term = ' AND (' . $term . ')';
     }
     
+    $photo = array();
+    if($extraPeople) {
+        $i = 0;
+        $ii = 0;
+        $email='';
+        $term .= ' AND (';
+        $extraPeople = json_decode(urldecode($extraPeople), true);
+
+        foreach($extraPeople as $key => $value) {
+            foreach($value['container']['el'] as $key1 => $value1) {
+                if($key1==='email') {
+                    if($i>0) {
+                        $term .= ' OR ';
+                    }
+                    $email = $value1['vDEF'];
+                    $term .= 'email:' . $email;
+                    $i++;
+                    //$extraPeopleLuSortArray[$value1['vDEF']] = $i;
+                    
+                    $data[$email]['email'] = $email;
+                }
+                if($key1==='name') {
+                    $data[$email]['name'] = $value1['vDEF'];
+                }
+                if($key1==='title') {
+                    $data[$email]['primaryVroleTitle'] = $value1['vDEF'];
+                }
+                if($key1==='organisation') {
+                    $data[$email]['organisation'] = $value1['vDEF'];
+                }
+                if($key1==='phone') {
+                    $data[$email]['phone'] = $value1['vDEF'];
+                }
+                if($key1==='homepage') {
+                    $data[$email]['homepage'] = $value1['vDEF'];
+                }
+                if($key1==='photo') {
+                    $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('identifier','sys_file','uid='.intval($value1['vDEF']),'','','');
+                    $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+                    if($row) $data[$email]['image'] = '/fileadmin' . $row['identifier'];
+                }
+                $data[$email]['order'] = $ii;
+                if($filterQuery && !stristr($data[$email]['name'], $filterQuery)) {
+                    unset($data[$email]);
+                }
+            }
+            $ii++;
+        }
+        $term .= ')';
+    }
+    
+    /*if($extraPeopleLu) {
+        $extraPeopleLu = json_decode(urldecode($extraPeopleLu), true);
+        $extraPeopleLuSortArray = array();
+        $i = 0;
+        $term .= ' AND (';
+        foreach($extraPeopleLu as $key => $value) {
+            foreach($value['container']['el'] as $key1 => $value1) {
+                if($i>0) $term .= ' OR ';
+                $term .= 'email:' . $value1['vDEF'];
+                $i++;
+                $extraPeopleLuSortArray[$value1['vDEF']] = $i;
+            }
+        }
+        $term .= ')';
+    }*/
+    
     $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member)' . $term;// . $filterQuery;
 
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
     $query->setStart(0)->setRows(1000);
+    
+    if($filterQuery) {
+        $filterQuery = str_replace(' ','\\ ',$filterQuery);
+        //$filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '* OR title:*' . $filterQuery . '* OR organisationName:*' . $filterQuery . '*)';
+        $query->addFilterQuery(array('key' => 'query', 'query' => 'name:*'. $filterQuery . '*', 'tag'=>'dt'));
+    }
        
     if($facetChoice === 'firstLetter') {
         $facetSet = $query->getFacetSet();
@@ -332,12 +400,13 @@ function listOrganisationStaff($dataSettings, $config, $action)
         if($facet && !$filterQuery) $query->addFilterQuery(array('key' => $facetChoice, 'query' => $facetChoice . ':' . str_replace(' ', '\ ', $facet), 'tag' => 'dt'));
     }
     
-    $sortArray = array(
-        'lastNameExact' => 'asc',
-        'firstNameExact' => 'asc'
-    );
-    
-    $query->addSorts($sortArray);
+    if($scope) {
+        $sortArray = array(
+            'lastNameExact' => 'asc',
+            'firstNameExact' => 'asc'
+        );
+        $query->addSorts($sortArray); 
+    }
 
     $response = $client->select($query);
 
@@ -350,7 +419,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
             if($count > 0) $facetResult[$facetChoice][] = array($value, $count);
         }
     }
-    
+
     foreach ($response as $document) {
         $image = '';
 
@@ -370,40 +439,54 @@ function listOrganisationStaff($dataSettings, $config, $action)
                 $i++;
             }
         }
-        
-        $data[] = array(           
-            "firstName" => mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8"),
-            "lastName" => mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"),
-            "title" => $this->getFromMainKey($document->title, $mainKey),
-            "phone" => $this->getFromMainKey($document->phone, $mainKey),
-            "id" => $document->guid,
-            "email" => $this->getFromMainKey($document->email, $mainKey),
-            "organisationName" => $this->getFromMainKey($document->organisationName, $mainKey),
-            "organisationHideOnWeb" => $document->organisationHideOnWeb,
-            "organisationLeaveOfAbsence" => $document->organisationLeaveOfAbsence,
-            "primaryAffiliation" => $document->primaryAffiliation,
-            "primaryVroleOu" => $document->primaryVroleOu,
-            "primaryVroleTitle" => $document->primaryVroleTitle,
-            "primaryVroleOrgid" => $document->primaryVroleOrgid,
-            "primaryVrolePhone" => $document->primaryVrolePhone,
-            "homepage" => $document->homepage,
-            "image" => $image,
-            "intro" => $intro,
-            "roomNumber" => $this->fixRoomNumber($document->roomNumber),
-            "mobile" => $document->mobile,
-            "organisationId" => $document->organisationId,
-            "guid" => $document->guid,
-            "uuid" => $document->uuid,
-            "imgtest" => $document->image,
-            "heritage" => $document->heritage,
-            "heritageName" => $document->heritageName
-        );
 
+        $email = $this->getFromMainKey($document->email, $mainKey);
+        $data[$email]["firstName"] = mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8");
+        $data[$email]["lastName"] = mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8");
+        $data[$email]["name"] = $this->isInArray($email, $data, "name", mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8") . ' ' . mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"));
+        
+        $data[$email]["phone"] = $this->isInArray($email, $data, "phone", $this->getFromMainKey($document->phone, $mainKey));
+        $data[$email]["id"] = $document->guid;
+        $data[$email]["email"] = $this->getFromMainKey($document->email, $mainKey);
+        $data[$email]["organisationName"] = $this->isInArray($email, $data, "organisation", $this->getFromMainKey($document->organisationName, $mainKey));
+        $data[$email]["organisationHideOnWeb"] = $document->organisationHideOnWeb;
+        $data[$email]["organisationLeaveOfAbsence"] = $document->organisationLeaveOfAbsence;
+        $data[$email]["primaryAffiliation"] = $document->primaryAffiliation;
+        $data[$email]["primaryVroleOu"] = $document->primaryVroleOu;
+        $data[$email]["primaryVroleTitle"] = $this->isInArray($email, $data, "primaryVroleTitle", $document->primaryVroleTitle);
+        $data[$email]["title"] = $this->getFromMainKey($document->title, $mainKey);
+        $data[$email]["primaryVroleOrgid"] = $document->primaryVroleOrgid;
+        $data[$email]["primaryVrolePhone"] = $document->primaryVrolePhone;
+        $data[$email]["homepage"] = $this->isInArray($email, $data, "homepage", $document->homepage);
+        $data[$email]["image"] = $this->isInArray($email, $data, "image", $image);
+        $data[$email]["intro"] = $intro;
+        $data[$email]["roomNumber"] = $this->fixRoomNumber($document->roomNumber);
+        $data[$email]["mobile"] = $document->mobile;
+        $data[$email]["organisationId"] = $document->organisationId;
+        $data[$email]["guid"] = $document->guid;
+        $data[$email]["uuid"] = $document->uuid;
+        $data[$email]["imgtest"] = $document->image;
+        $data[$email]["heritage"] = $document->heritage;
+        $data[$email]["heritageName"] = $document->heritageName;
     }
 
+    usort($data, function($a, $b) {
+        return $a['order'] <=> $b['order'];
+    });
     $resArray = array('data' => $data, 'facet' => $facetResult, 'mailDelivery' => $mailDelivery, 'organisationTitle' => $organisationTitle, 'numFound' => $numFound, 'query' => $queryToSet);
     
     return json_encode($resArray);
+}
+
+
+function isInArray($email, $myArray, $key, $value)
+{
+       // $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $email . ';' . $myArray[$email][$key] . ';' . $key . ';' . $value, 'crdate' => time()));
+    if($myArray[$email][$key]) {
+        return $myArray[$email][$key];
+    } else {
+        return $value;
+    }
 }
 
 

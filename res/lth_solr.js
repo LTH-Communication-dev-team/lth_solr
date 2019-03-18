@@ -325,9 +325,12 @@ function listOrganisation(query)
 
 function listOrganisationStaff(facet, query)
 {
+    var extraPeople = $('#lth_solr_extrapeople').val();
+    var facetChoice = $('#lth_solr_facetchoice').val();
     var sysLang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
     var vroles = $('#lth_solr_vroles').val();
+    
     if($('#lth_solr_query').val().trim().length > 2) {
         query = $('#lth_solr_query').val().trim();
         $('#lthsolr_organisation_filter').val(query);
@@ -337,7 +340,7 @@ function listOrganisationStaff(facet, query)
     } else {
         query = '';
     }*/
-    var facetChoice = $('#lth_solr_facetchoice').val();
+    
     var facetVal, count;
     if(!facet) facet = '';
     var detailPage = 'visa';
@@ -368,13 +371,14 @@ function listOrganisationStaff(facet, query)
             eID: 'lth_solr',
             action: 'listOrganisationStaff',
             dataSettings: {
-                pageid: $('body').attr('id').replace('p',''),
-                scope: scope,
-                vroles: vroles,
-                syslang: sysLang,
-                query: query,
-                facetChoice: facetChoice,
+                extraPeople: extraPeople,
                 facet: facet,
+                facetChoice: facetChoice,
+                pageid: $('body').attr('id').replace('p',''),
+                query: query,
+                scope: scope,
+                syslang: sysLang,
+                vroles: vroles,
             },
             sid : Math.random(),
         },
@@ -397,7 +401,7 @@ function listOrganisationStaff(facet, query)
                 allText = 'All';
                 //var restText = 'Other';
             }
-                
+
             if(d.data) {
                 //
                 if(d.mailDelivery && $('.lth_solr_husmap').length > 0 && facetChoice!=='firstLetter') {
@@ -449,10 +453,11 @@ function listOrganisationStaff(facet, query)
                 } else {
                     $('#facet_container').empty();
                 }
-                if(query || facetChoice==='firstLetter') {
+                
+                if(scope && (query || facetChoice==='firstLetter')) {
                     if(facetChoice==='firstLetter' && !query && !facet) query = 'A';
                     $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + query + facet.toUpperCase() + ' (' + d.numFound + ' av ' + $('#lth_solr_totalcount').val() + ')' + '</h2>');
-                } else {
+                } else if(scope) {
                     $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + d.organisationTitle + ' (' + d.numFound + ')' + '</h2>');
                 }
                 $.each( d.data, function( key, aData ) {
@@ -468,7 +473,7 @@ function listOrganisationStaff(facet, query)
                     
                     template = template.replace('###id###', uuid);
 
-                    if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;
+                    if(aData.name) displayName = aData.name;
                     if(aData.email) email = aData.email;
                     if(aData.primaryVroleTitle) primaryVroleTitle = titleCase(aData.primaryVroleTitle);
                     if(aData.phone && aData.phone !== 'NULL') phone = formatPhone(aData.phone);
@@ -503,6 +508,43 @@ function listOrganisationStaff(facet, query)
                     $('#lthsolr_organisation_container  > div > section').append(template);
                     //console.log(lastHeight+';'+lastId);
                 });
+                
+                /*
+                if(extraPeople) {
+                    extraPeople = JSON.parse(decodeURIComponent(extraPeople));
+                    i = 0;
+                    $.each( extraPeople, function( key, aData ) {
+                        var template = $('#solrStaffTemplate').html();
+                        var phone = '', email = '', image = '', title = '', displayName = '', link = '', organisationName = '';
+
+                        template = template.replace('###id###', 'extraPeople'+i);
+                        if(aData.container.el.name.vDEF) displayName = aData.container.el.name.vDEF;
+                        if(aData.container.el.email.vDEF) email = aData.container.el.email.vDEF;
+                        if(aData.container.el.title.vDEF) title = titleCase(aData.container.el.title.vDEF);
+                        if(aData.container.el.phone.vDEF) phone = aData.container.el.phone.vDEF;
+                        if(aData.container.el.organisation.vDEF) organisationName = '<strong>' + aData.container.el.organisation.vDEF + '</strong> - ';
+                        template = template.replace(/###email###/g, email);
+                        template = template.replace('###organisationName###', organisationName);
+                        template = template.replace(/###phone###/g, phone);
+                        template = template.replace(/###title###/g, title);
+
+                        template = template.replace(/###displayName###/g, displayName);
+
+                        if(aData.container.el.homepage.vDEF) {
+                            link = aData.container.el.homepage.vDEF;
+                        } 
+                        template = template.replace('###link###', link);
+
+                            image = '/typo3conf/ext/lth_solr/res/noimage.gif';
+                            if(d.photo[i]) {
+                                image = '/fileadmin' + d.photo[i];
+                            }
+                        template = template.replace('###image###', image);
+                        $('#lthsolr_organisation_container  > div > section').append(template);
+                        i++;
+                    });
+                }
+                */
             }
             
             toggleFacets();
