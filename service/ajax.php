@@ -447,7 +447,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
         $data[$email]["firstName"] = mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8");
         $data[$email]["lastName"] = mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8");
         $data[$email]["name"] = $this->isInArray($email, $data, "name", mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8") . ' ' . mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"));
-        $data[$email]["phone"] = $this->isInArray($email, $data, "phone", $document->primaryVrolePhone);
+        $data[$email]["phone"] = $this->isInArray($email, $data, "phone", $document->phone);
         $data[$email]["id"] = $document->guid;
         $data[$email]["email"] = $this->getFromMainKey($document->email, $mainKey);
         $data[$email]["organisationName"] = $this->isInArray($email, $data, "organisation", $this->getFromMainKey($document->organisationName, $mainKey));
@@ -458,7 +458,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
         $data[$email]["primaryVroleTitle"] = $this->isInArray($email, $data, "primaryVroleTitle", $document->primaryVroleTitle);
         $data[$email]["title"] = $this->getFromMainKey($document->title, $mainKey);
         $data[$email]["primaryVroleOrgid"] = $document->primaryVroleOrgid;
-        $data[$email]["primaryVrolePhone"] = $document->primaryVrolePhone;
+        $data[$email]["primaryVrolePhone"] = $this->isInArray($email, $data, "phone", $document->primaryVrolePhone);
         $data[$email]["homepage"] = $this->isInArray($email, $data, "homepage", $document->homepage);
         $data[$email]["image"] = $this->isInArray($email, $data, "image", $image);
         $data[$email]["intro"] = $intro;

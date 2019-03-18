@@ -476,7 +476,17 @@ function listOrganisationStaff(facet, query)
                     if(aData.name) displayName = aData.name;
                     if(aData.email) email = aData.email;
                     if(aData.primaryVroleTitle) primaryVroleTitle = titleCase(aData.primaryVroleTitle);
-                    if(aData.phone && aData.phone !== 'NULL') phone = formatPhone(aData.phone);
+                    if(aData.primaryVrolePhone) {
+                        phone = formatPhone(aData.primaryVrolePhone);
+                    } else if(Array.isArray(aData.phone)) {
+                        $.each( aData.phone, function( pKey, pData ) {
+                            if(pData && pData !== 'NULL') {
+                                phone = formatPhone(pData);
+                            }
+                        });
+                    } else if(aData.phone) {
+                        phone = formatPhone(aData.phone);
+                    }
                     if(aData.mobile) {
                         $.each( aData.mobile, function( mKey, mData ) {
                             if(mData && mData !== 'NULL') {
