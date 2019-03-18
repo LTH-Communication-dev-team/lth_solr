@@ -463,7 +463,7 @@ function listOrganisationStaff(facet, query)
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
 
-                    var phone = '', email = '', image = '', guid = '', uuid = '', primaryVroleTitle = '', displayName = '', link = '', organisationName = '';
+                    var phone = '', email = '', image = '', guid = '', mobile = '', uuid = '', primaryVroleTitle = '', displayName = '', link = '', organisationName = '';
                     if(aData.guid) guid = aData.guid[0];
                    
                     if(aData.uuid) uuid = aData.uuid;
@@ -477,6 +477,15 @@ function listOrganisationStaff(facet, query)
                     if(aData.email) email = aData.email;
                     if(aData.primaryVroleTitle) primaryVroleTitle = titleCase(aData.primaryVroleTitle);
                     if(aData.phone && aData.phone !== 'NULL') phone = formatPhone(aData.phone);
+                    if(aData.mobile) {
+                        $.each( aData.mobile, function( mKey, mData ) {
+                            if(mData && mData !== 'NULL') {
+                                mobile = mData;
+                                
+                            }
+                        });
+                        if(mobile && phone) phone += '<br />' + mobile;
+                    }
                     if(aData.organisationName && aData.hideOrganisation === "0") {
                         organisationName = '<strong>' + aData.organisationName + '</strong> - ';
                     } else {
