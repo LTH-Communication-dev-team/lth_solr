@@ -155,7 +155,7 @@ class CourseImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $Sprak = $row['Sprak'];
             $startDatum = $row['startDatum'];
             $syfte = $this->langChoice(explode('|', $row['syfte']),$syslang);
-            $Titel = preg_split('/|/', $row['Titel'], null, PREG_SPLIT_NO_EMPTY);
+            $Titel = explode('|', $row['Titel']);
             $Undertitel = explode('|', $row['Undertitel']);
             $Urval = $row['Urval'];
             $Utgivningsar = explode('|', $row['Utgivningsar']);
