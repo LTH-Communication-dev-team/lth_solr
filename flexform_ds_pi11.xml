@@ -90,6 +90,14 @@
                             </config>
                         </TCEforms>
                     </facetChoice>
+                    <hideSearchField>
+                        <TCEforms>
+                            <label>Hide Search Field</label>
+                            <config>
+                                <type>check</type>
+                            </config>
+                        </TCEforms>
+                    </hideSearchField>
                     <extraPeople>
                         <section>1</section>
                         <title>Add people</title>

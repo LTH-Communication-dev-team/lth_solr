@@ -643,7 +643,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         "organisationId","organisationPhone","organisationStreet",
         "organisationCity","organisationPostalAddress","profileInformationNovo","roomNumber","title","uuid");
     
-    $organisation = strtolower($dataSettings['organisation']);
+    $organisation = array_pop(explode('__', strtolower($dataSettings['organisation'])));
     $scope = $dataSettings['scope'];
     $sysLang = $dataSettings['sysLang'];
     $content = '';
@@ -704,7 +704,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
                 
         if($document->heritage2) {
             $heritage2Array = json_decode($document->heritage2, true);
-            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($heritageName2Array,true), 'crdate' => time()));
+            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($heritage2Array,true), 'crdate' => time()));
             foreach($heritage2Array as $key => $value) {
                 if(array_search($organisation, $value)!==false) {
                     $mailDelivery[] = $document->mailDelivery[$i];
@@ -779,7 +779,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         );
     }
     
-    $resArray = array('staffData' => $staffData, 'publicationsData' => $publicationsData, 'query' => $queryToSet1 . ';' . $queryToSet2);
+    $resArray = array('staffData' => $staffData, 'publicationsData' => $publicationsData, 'query' => $queryToSet1 . ';' . $queryToSet2 . ';' . $organisation);
     
     return json_encode($resArray);
 }

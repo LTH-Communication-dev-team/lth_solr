@@ -502,7 +502,7 @@ function listOrganisationStaff(facet, query)
                         });
                         if(mobile && phone) phone += '<br />' + mobile;
                     }
-                    if(aData.organisationName && aData.hideOrganisation === "0") {
+                    if(aData.organisationName && aData.hideOrganisation !== "1") {
                         organisationName = '<strong>' + aData.organisationName + '</strong> - ';
                     } else {
                         organisationName = '';

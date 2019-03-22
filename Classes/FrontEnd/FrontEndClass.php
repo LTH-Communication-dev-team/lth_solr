@@ -355,23 +355,25 @@ class FrontEndClass
     }
     
     
-    public function listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $action)
+    public function listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, $action)
     {
         $syslang = $GLOBALS['TSFE']->config['config']['language'];
         
         $content .= '';
         
-        $content .= '<div class="form-group">
-            <label class=" w-100">
-               Skriv för att filtrera
-               <div class="input-group rounded-0">
-               <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="Skriv minst 3 tecken" />
-                 <div class="input-group-append">
-                <button class="btn btn-outline-primary rounded-0" type="button">Filtrera</button>
-                 </div>
-               </div>
-             </label>
-           </div>';
+        if(!$hideSearchField) {
+            $content .= '<div class="form-group">
+                <label class=" w-100">
+                   Skriv för att filtrera
+                   <div class="input-group rounded-0">
+                   <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="Skriv minst 3 tecken" />
+                     <div class="input-group-append">
+                    <button class="btn btn-outline-primary rounded-0" type="button">Filtrera</button>
+                     </div>
+                   </div>
+                 </label>
+               </div>';
+        }
         
         $content .= '<div id="lthsolr_organisation_container" class="col-12 mt-3 mt-xl-6">'; 
         

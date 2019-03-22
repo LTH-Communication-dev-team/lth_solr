@@ -63,6 +63,7 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $organisation = $this->pi_getFFvalue($piFlexForm, "organisation", "sDEF", $lDef[$index]);
             $vroles = $this->pi_getFFvalue($piFlexForm, "vroles", "sDEF", $lDef[$index]);
             $facetChoice = $this->pi_getFFvalue($piFlexForm, "facetChoice", "sDEF", $lDef[$index]);
+            $hideSearchField = $this->pi_getFFvalue($piFlexForm, "hideSearchField", "sDEF", $lDef[$index]);
             if(is_array($piFlexForm['data']['sDEF']['lDEF']['extraPeople']['el'])) {
                 $extraPeople = json_encode($piFlexForm['data']['sDEF']['lDEF']['extraPeople']['el']);
             }
@@ -92,9 +93,9 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             } else if($display === 'organisation') {
                 if($uuid) {
                     $scope = $uuid;
-                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, 'listOrganisationStaff');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationStaff');
                 } else {
-                    $content .= $FrontEndClass->listOrganisation($syslang, $organisation, $vroles, $facetChoice, $query, $extraPeople, 'listOrganisation');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $organisation, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisation');
                 }
             } else if($display === 'staff') {
                 if($uuid) {
@@ -102,10 +103,10 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 } else {
                     $scope = $organisation;
                 }
-                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, 'listOrganisationStaff');
+                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationStaff');
             } else if($display === 'roles') {
                 $scope = $organisation;
-                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, 'listOrganisationRoles');
+                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationRoles');
             }
             
             return $content;
