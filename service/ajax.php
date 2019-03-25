@@ -643,7 +643,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         "organisationId","organisationPhone","organisationStreet",
         "organisationCity","organisationPostalAddress","profileInformationNovo","roomNumber","title","uuid");
     
-    $organisation = array_pop(explode('__', strtolower($dataSettings['organisation'])));
+    if($dataSettings['organisation']) $organisation = array_pop(explode('__', strtolower($dataSettings['organisation'])));
     $scope = $dataSettings['scope'];
     $sysLang = $dataSettings['sysLang'];
     $content = '';
@@ -687,7 +687,8 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         $docType = $document->docType;
 
         if($document->image) {
-            $image = '/fileadmin' . $document->image;
+            $image = $document->image;
+            if(!stristr($image, 'fileadmin')) $image = '/fileadmin' . $image;
         } else if($document->lucrisPhoto) {
             $image = $document->lucrisPhoto;
         }
@@ -779,7 +780,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         );
     }
     
-    $resArray = array('staffData' => $staffData, 'publicationsData' => $publicationsData, 'query' => $queryToSet1 . ';' . $queryToSet2 . ';' . $organisation);
+    $resArray = array('staffData' => $staffData, 'publicationsData' => $publicationsData, 'query' => $queryToSet1 . ';' . $queryToSet2);
     
     return json_encode($resArray);
 }
