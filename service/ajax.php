@@ -689,6 +689,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         if($document->image) {
             $image = $document->image;
             if(!stristr($image, 'fileadmin')) $image = '/fileadmin' . $image;
+            if(substr($image,0,1) !== '/') $image = '/' . $image;
         } else if($document->lucrisPhoto) {
             $image = $document->lucrisPhoto;
         }
