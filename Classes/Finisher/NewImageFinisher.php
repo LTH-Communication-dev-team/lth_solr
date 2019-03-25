@@ -9,7 +9,7 @@ use In2code\Powermail\Finisher\AbstractFinisher;
  *
  * @package Vendor\Ext\Finisher
  */
-class DoSomethingFinisher extends AbstractFinisher
+class NewImageFinisher extends AbstractFinisher
 {
 
     /**
@@ -34,6 +34,7 @@ class DoSomethingFinisher extends AbstractFinisher
             
         }
     }
+    
     
     public function updateSolr($settings, $syslang, $email, $image)
     {
