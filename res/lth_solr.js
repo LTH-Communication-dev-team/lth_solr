@@ -721,7 +721,7 @@ function showStaffNovo()
                     if(aData.email) {
                         if(aData.email) email = '<strong>E-post:</strong> <a href="mailto: ' + aData.email + '">' + aData.email + '</a>';
                     }
-                        
+
                     for (var i=0; i<aData.organisationId.length; i++) {
                         if(aData.title) {
                             if(aData.title[i]) organisation += '<strong>' + titleCase(aData.title[i]) + ' vid</strong> ';
@@ -734,19 +734,19 @@ function showStaffNovo()
                         if(aData.phone) {
                             if(aData.phone[i] && aData.phone[i] !== 'NULL') {
                                 phone = aData.phone[i];
-                                organisation += '<br/><strong>Telefon:</strong><a href="tel:'+phone+'">' + phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1')+ '</a>';
+                                organisation += '<br/><strong>Telefon:</strong> <a href="tel:'+phone+'">' + phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1')+ '</a>';
                             }
                         }
                         
                         if(aData.mobile) {
                             if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
                                 mobile = '+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");
-                                organisation += '<br/><strong>Mobiltelefon:</strong><a href="tel:'+mobile+'">' + mobile + '</a>';
+                                organisation += '<br/><strong>Mobiltelefon:</strong> <a href="tel:'+mobile+'">' + mobile + '</a>';
                             }
                         }
                         
                         if(aData.roomNumber) {
-                            if(aData.roomNumber[i]) organisation += '<br/><strong>Rumsnummer:</strong> ' + aData.roomNumber[i];
+                            if(aData.roomNumber[i] && aData.roomNumber[i] !== 'NULL') organisation += '<br/><strong>Rumsnummer:</strong> ' + aData.roomNumber[i];
                         }
                                                 
                         if(aData.mailDelivery) {
@@ -760,7 +760,7 @@ function showStaffNovo()
                         }
                                                
                         if(aData.organisationStreet) {
-                            if(aData.organisationStreet[i]) organisation += '<br/><strong>Postadress:</strong> ' + aData.organisationStreet[i];
+                            if(aData.organisationStreet[i]) organisation += '<br/><strong>Adress:</strong> ' + aData.organisationStreet[i];
                         }
                                                 
                         if(aData.organisationPostalAddress) {
