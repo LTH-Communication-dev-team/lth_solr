@@ -3622,24 +3622,45 @@ function showPublication()
                     }
                 }
                 
-                //electronic version
-                if(electronicVersionVersionType) {
-                    for(var i = 0; i < electronicVersionVersionType.length; i++) {
+                electronicVersion = '';
+                var ii=0;
+                //electronic version doi
+                if(electronicVersionDoi) {
+                    for(var i = 0; i < electronicVersionDoi.length; i++) {
                         if(electronicVersionDoi[i]) {
-                            electronicVersion = '<p><b>DOI</b><br />';
+                            if(ii===0) electronicVersion += '<p><b>DOI</b><br />';
                             electronicVersion += checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
                             electronicVersion += '<a href="'+electronicVersionDoi[i]+'">'+electronicVersionDoi[i]+'</a> (<i>' + electronicVersionVersionType[i] + '</i>)</p>';
-                        } else if(electronicVersionFileURL[i]) {
-                            electronicVersion = '<p><b>Dokument</b><br />';
-                            checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
-                            electronicVersion += '<a href="'+electronicVersionFileURL[i]+'">'+electronicVersionFileName+'</a> (<i>' + electronicVersionVersionType[i] + addComma(formatBytes(electronicVersionSize[i],0)) + addComma(electronicVersionMimeType[i]) + '</i>)</p>';                           
-                        } else if(electronicVersionLink[i]) {
-                            electronicVersion = '<p><b>Länkar</b><br />';
-                            checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
-                            electronicVersion += '<a href="'+electronicVersionLink[i]+'">'+electronicVersionLink[i]+'</a> (<i>' + electronicVersionVersionType[i] + '</i>)</p>';
+                            ii++;
                         }
                     }
                 }
+                ii=0;
+                //electronic version dok
+                if(electronicVersionFileName) {
+                    for(var i = 0; i < electronicVersionFileName.length; i++) {
+                        if(electronicVersionFileURL[i]) {
+                            if(ii===0) electronicVersion += '<p><b>Dokument</b><br />';
+                            checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
+                            electronicVersion += '<a href="'+electronicVersionFileURL[i]+'">'+electronicVersionFileName[i]+'</a> (<i>' + electronicVersionVersionType[i] + addComma(formatBytes(electronicVersionSize[i],0)) + addComma(electronicVersionMimeType[i]) + '</i>)</p>';                           
+                            ii++;
+                        }
+                    }
+                    
+                }
+                ii=0;
+                //electronic version link
+                if(electronicVersionLink) {
+                    for(var i = 0; i < electronicVersionLink.length; i++) {
+                        if(electronicVersionLink[i]) {
+                            if(ii===0) electronicVersion += '<p><b>Länkar</b><br />';
+                            checkOpen(electronicVersionVersionType[i], electronicVersionAccessType[i]);
+                            electronicVersion += '<a href="'+electronicVersionLink[i]+'">'+electronicVersionLink[i]+'</a> (<i>' + electronicVersionVersionType[i] + '</i>)</p>';
+                            ii++;
+                        }
+                    }
+                }
+                
                 /*if(electronicVersionLink || electronicVersionDoi || electronicVersionFileURL) {
                     
                     if(electronicVersionAccessType) {
