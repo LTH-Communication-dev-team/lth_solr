@@ -463,7 +463,7 @@ function listOrganisationStaff(facet, query)
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
 
-                    var phone = '', email = '', image = '', guid = '', mobile = '', uuid = '', primaryVroleTitle = '', displayName = '', link = '', organisationName = '';
+                    var phone = '', email = '', image = '', guid = '', mobile = '', uuid = '', primaryVroleTitle = '', displayName = '', link = '', organisationName = '', organisationLeaveOfAbsence = '';
                     if(aData.guid) guid = aData.guid[0];
                    
                     if(aData.uuid) uuid = aData.uuid;
@@ -476,6 +476,7 @@ function listOrganisationStaff(facet, query)
                     if(aData.name) displayName = aData.name;
                     if(aData.email) email = aData.email;
                     if(aData.primaryVroleTitle) primaryVroleTitle = titleCase(aData.primaryVroleTitle);
+                    if(aData.organisationLeaveOfAbsence) primaryVroleTitle += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
                     if(Array.isArray(aData.phone)) {
                         $.each( aData.phone, function( pKey, pData ) {
                             if(pData && pData !== 'NULL') {
@@ -500,7 +501,11 @@ function listOrganisationStaff(facet, query)
                                 
                             }
                         });
-                        if(mobile && phone) phone += '<br />' + mobile;
+                        if(mobile && phone) {
+                            phone += '<br />' + mobile;
+                        } else if(mobile) {
+                            phone = mobile;
+                        }
                     }
                     if(aData.organisationName && aData.hideOrganisation !== "1") {
                         organisationName = '<strong>' + aData.organisationName + '</strong> - ';
@@ -724,7 +729,9 @@ function showStaffNovo()
 
                     for (var i=0; i<aData.organisationId.length; i++) {
                         if(aData.title) {
-                            if(aData.title[i]) organisation += '<strong>' + titleCase(aData.title[i]) + ' vid</strong> ';
+                            if(aData.title[i]) organisation += '<strong>' + titleCase(aData.title[i]) + '</strong>';
+                            if(aData.organisationLeaveOfAbsence[i]) organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
+                            if(aData.title[i]) organisation += ' vid ';
                         }
                         
                         if(aData.organisationName) {
