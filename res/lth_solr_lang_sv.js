@@ -52,7 +52,7 @@ var lth_solr_messages = {
     of: "av",
     on: "på",
     organisations: "Enheter och grupper",
-    organisationLeaveOfAbsence: "Leave of Absence",
+    organisationLeaveOfAbsence: "tjänstledig",
     overview: "Översikt",
     pages: "Sidor",
     pagesAbbreviation: "s.",
