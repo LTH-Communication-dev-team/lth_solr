@@ -640,7 +640,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
 {
     $fieldArray = array("coordinates","docType","email","firstName","guid","heritageName2","heritage2","homepage","id",
         "image","intro","lastName","lucrisPhoto","mailDelivery","mobile","organisationName","phone","primaryAffiliation",
-        "organisationId","organisationPhone","organisationStreet",
+        "organisationId","organisationLeaveOfAbsence","organisationPhone","organisationStreet",
         "organisationCity","organisationPostalAddress","profileInformationNovo","roomNumber","title","uuid");
     
     if($dataSettings['organisation']) $organisation = array_pop(explode('__', strtolower($dataSettings['organisation'])));
@@ -700,6 +700,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         $mailDelivery = array();
         $mobile = array();
         $organisationId = array();
+        $organisationLeaveOfAbsence = array();
         $organisationName = array();
         $phone = array();
         $roomNumber = array();
@@ -713,6 +714,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
                     $mailDelivery[] = $document->mailDelivery[$i];
                     $mobile[] = $document->mobile[$i];
                     $organisationId[] = $document->organisationId[$i];
+                    $organisationLeaveOfAbsence[] = $document->organisationLeaveOfAbsence[$i];
                     $organisationName[] = $document->organisationName[$i];
                     $phone[] = $document->phone[$i];
                     $roomNumber[] = $document->roomNumber[$i];
@@ -726,6 +728,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
             $mailDelivery = $document->mailDelivery;
             $mobile = $document->mobile;
             $organisationId = $document->organisationId;
+            $organisationLeaveOfAbsence = $document->organisationLeaveOfAbsence;
             $organisationName = $document->organisationName;
             $phone = $document->phone;
             $roomNumber = $document->roomNumber;
@@ -749,6 +752,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
             "uuid" => $document->uuid,
             "guid" => $document->guid,
             "organisationId" => $organisationId,
+            "organisationLeaveOfAbsence" => $organisationLeaveOfAbsence,
             "organisationPhone" => $document->organisationPhone,
             "organisationStreet" => $document->organisationStreet,
             "organisationCity" => $document->organisationCity,
