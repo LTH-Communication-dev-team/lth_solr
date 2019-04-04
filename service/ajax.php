@@ -665,7 +665,8 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
     $fieldArray = array("articleNumber","authorName","bibliographicalNote","documentTitle",
             "electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
             "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
-            "electronicVersionVersionType","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","openAccessPermission","pages","publicationType",
+            "electronicVersionVersionType","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","openAccessPermission",
+            "pages","publicationType",
             "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
     
     $queryToSet2 = 'docType:publication AND authorId:' . $scope;
@@ -704,7 +705,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         $roomNumber = array();
         $title = array();
                 
-        if($document->heritage2) {
+        if($document->heritage2 && $organisation) {
             $heritage2Array = json_decode($document->heritage2, true);
             //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($heritage2Array,true), 'crdate' => time()));
             foreach($heritage2Array as $key => $value) {
@@ -719,6 +720,16 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
                 }
                 $i++;
             }
+        } 
+        
+        if(!$organisationId) {
+            $mailDelivery = $document->mailDelivery;
+            $mobile = $document->mobile;
+            $organisationId = $document->organisationId;
+            $organisationName = $document->organisationName;
+            $phone = $document->phone;
+            $roomNumber = $document->roomNumber;
+            $title = $document->title;
         }
 
         $staffData[] = array(
