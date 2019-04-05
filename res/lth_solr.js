@@ -734,7 +734,7 @@ function showStaffNovo()
                     for (var i=0; i<aData.organisationId.length; i++) {
                         if(aData.title) {
                             if(aData.title[i]) organisation += '<strong>' + titleCase(aData.title[i]) + '</strong>';
-                            if(aData.organisationLeaveOfAbsence[i]) organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
+                            if(aData.organisationLeaveOfAbsence[i]==1) organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
                             if(aData.title[i]) organisation += ' vid ';
                         }
                         
