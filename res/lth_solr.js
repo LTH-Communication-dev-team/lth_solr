@@ -484,9 +484,9 @@ function listOrganisationStaff(facet, query)
                     indexArray = new Array();
                     if(aData.heritage2 && scope && aData.organisationId) {
                         i=0;
-
+                        //console.log(JSON.parse(aData.heritage2));
                         $.each( JSON.parse(aData.heritage2), function( hKey, hData ) {
-                            hData = 's' + hData;
+                            hData = 's' + hKey + ',' + hData;
                             $.each( scopeArray, function( sKey, sData) {
                                 //console.log(displayName + ';' + sData + ';' + hData + ';' + hData.indexOf(sData.split('__').pop()));
                                 if( hData.indexOf(sData.split('__').pop()) > 0) {
@@ -510,6 +510,7 @@ function listOrganisationStaff(facet, query)
                                         if(phone) phone += '<br />';
                                         phone = aData.mobile[i];
                                     }
+                                    return false;
                                 }
                             });
                             i++;

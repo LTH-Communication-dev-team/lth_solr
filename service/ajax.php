@@ -333,7 +333,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
                     $data[$email]['primaryVroleTitle'] = str_replace("\n","<br />", $value1['vDEF']);
                 }
                 if($key1==='organisation') {
-                    $data[$email]['organisation'] = $value1['vDEF'];
+                    $data[$email]['primaryVroleOu'] = $value1['vDEF'];
                 }
                 if($key1==='hideOrganisation') {
                     $data[$email]['hideOrganisation'] = $value1['vDEF'];
@@ -463,7 +463,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
     }
 
     usort($data, function($a, $b) {
-        return $a['lastName'] <=> $b['lastName'];
+        return $a['order'] <=> $b['order'];
     });
     $resArray = array('data' => $data, 'facet' => $facetResult, 'mailDelivery' => $mailDelivery, 'organisationTitle' => $organisationTitle, 'numFound' => $numFound, 'query' => $queryToSet);
     
