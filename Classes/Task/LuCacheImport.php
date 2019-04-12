@@ -90,6 +90,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $feGroupsArray = $this->getFeGroups($grsp);
         
         $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp, $studentMainGroup);
+        
+        $employeeArray = $this->removeHideonweb($employeeArray, $config);
 
         $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritage2Array, $categoriesArray, $config, $syslang, $orgArray);
         
@@ -193,7 +195,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             GROUP_CONCAT(VORG.city SEPARATOR '|') AS ocity,
             GROUP_CONCAT(VORG.postal_address SEPARATOR '|') AS opostal_address
             FROM lucache_person AS P 
-            LEFT JOIN lucache_vrole AS V ON (P.id = V.id AND V.hide_on_web = 0) 
+            LEFT JOIN lucache_vrole AS V ON P.id = V.id 
             LEFT JOIN lucache_vorg VORG ON V.orgid = VORG.orgid 
             GROUP BY P.id
             ORDER BY P.id, V.orgid";
@@ -612,6 +614,24 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username = '" . $key . "'", $updateArray);
             }
         }
+    }
+    
+    
+    private function removeHideonweb($employeeArray, $config)
+    {       
+        //$client = new \Solarium\Client($config);
+        //$update = $client->createUpdate();
+        foreach($employeeArray as $key => $value) {
+            if($value['hide_on_web']) {
+                if(in_array(1, $value['hide_on_web'])) {
+                    //$update->addDeleteQuery('id:' . $value['id']);
+                    //$update->addCommit();
+                    //$result = $client->update($update);
+                    unset($employeeArray[$key]);
+                }
+            }
+        }
+        return $employeeArray;
     }
     
     

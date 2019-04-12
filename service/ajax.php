@@ -270,6 +270,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
             $queryToSet .= 'organisationSourceId:' . array_pop(explode('__',$value)) . ' OR organisationTitleExact:' . str_replace(' ', '\ ', $value) ;
             $i++;
         }
+        if(count($scopeArray)===1) $organisationToShow = $scope;
         $queryToSet .= ')';
         $query->setQuery($queryToSet);
         $query->setFields($fieldArray);
@@ -286,11 +287,11 @@ function listOrganisationStaff($dataSettings, $config, $action)
     $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName",
         "primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile",
         "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","guid","uuid","heritage",
-        "heritageName","heritageName2",
+        "heritageName","heritage2",
         "primaryVroleOu","primaryVroleTitle","primaryVroleOrgid","primaryVrolePhone");
     
     
-    if($scope) {
+    if($scopeArray) {
         //$scope = explode(',', urldecode($scope));
         foreach($scopeArray as $key => $value) {
             if($term) {
@@ -378,7 +379,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
 
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
-    $query->setStart(0)->setRows(1000);
+    $query->setStart(0)->setRows(10000);
     
     if($filterQuery) {
         $filterQuery = str_replace(' ','\\ ',$filterQuery);
@@ -432,35 +433,24 @@ function listOrganisationStaff($dataSettings, $config, $action)
             $image = $document->lucrisPhoto;
         }
 
-        $mainKey=0;
-        $i=0;
-        if($document->heritageName2) {
-            $heritageName2Array = json_decode($document->heritageName2, true);
-            //
-            foreach($heritageName2Array as $key => $value) {
-                if(array_search($scope, $value)!==false) $mainKey = $i;
-                $i++;
-            }
-        }
-
-        $email = $this->getFromMainKey($document->email, $mainKey);
+        $email = $document->email[0];
         $data[$email]["firstName"] = mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8");
         $data[$email]["lastName"] = mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8");
-        $data[$email]["name"] = $this->isInArray($email, $data, "name", mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8") . ' ' . mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8"));
-        $data[$email]["phone"] = $this->isInArray($email, $data, "phone", $document->phone);
+        $data[$email]["name"] = mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8") . ' ' . mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8");
+        $data[$email]["phone"] = $document->phone;
         $data[$email]["id"] = $document->guid;
-        $data[$email]["email"] = $this->getFromMainKey($document->email, $mainKey);
-        $data[$email]["organisationName"] = $this->isInArray($email, $data, "organisation", $this->getFromMainKey($document->organisationName, $mainKey));
+        $data[$email]["email"] = $document->email;
+        $data[$email]["organisationName"] = $document->organisationName;
         $data[$email]["organisationHideOnWeb"] = $document->organisationHideOnWeb;
         $data[$email]["organisationLeaveOfAbsence"] = $document->organisationLeaveOfAbsence;
         $data[$email]["primaryAffiliation"] = $document->primaryAffiliation;
         $data[$email]["primaryVroleOu"] = $document->primaryVroleOu;
-        $data[$email]["primaryVroleTitle"] = $this->isInArray($email, $data, "primaryVroleTitle", $document->primaryVroleTitle);
-        $data[$email]["title"] = $this->getFromMainKey($document->title, $mainKey);
+        $data[$email]["primaryVroleTitle"] = $document->primaryVroleTitle;
+        $data[$email]["title"] = $document->title;
         $data[$email]["primaryVroleOrgid"] = $document->primaryVroleOrgid;
-        $data[$email]["primaryVrolePhone"] = $this->isInArray($email, $data, "phone", $document->primaryVrolePhone);
-        $data[$email]["homepage"] = $this->isInArray($email, $data, "homepage", $document->homepage);
-        $data[$email]["image"] = $this->isInArray($email, $data, "image", $image);
+        $data[$email]["primaryVrolePhone"] = $document->primaryVrolePhone;
+        $data[$email]["homepage"] = $document->homepage;
+        $data[$email]["image"] = $image;
         $data[$email]["intro"] = $intro;
         $data[$email]["roomNumber"] = $this->fixRoomNumber($document->roomNumber);
         $data[$email]["mobile"] = $document->mobile;
@@ -468,12 +458,12 @@ function listOrganisationStaff($dataSettings, $config, $action)
         $data[$email]["guid"] = $document->guid;
         $data[$email]["uuid"] = $document->uuid;
         $data[$email]["imgtest"] = $document->image;
-        $data[$email]["heritage"] = $document->heritage;
+        $data[$email]["heritage2"] = $document->heritage2;
         $data[$email]["heritageName"] = $document->heritageName;
     }
 
     usort($data, function($a, $b) {
-        return $a['order'] <=> $b['order'];
+        return $a['lastName'] <=> $b['lastName'];
     });
     $resArray = array('data' => $data, 'facet' => $facetResult, 'mailDelivery' => $mailDelivery, 'organisationTitle' => $organisationTitle, 'numFound' => $numFound, 'query' => $queryToSet);
     
@@ -639,9 +629,9 @@ function getFromMainKey($value, $key)
 function showStaffNovo($syslang, $scope, $dataSettings, $config)
 {
     $fieldArray = array("coordinates","docType","email","firstName","guid","heritageName2","heritage2","homepage","id",
-        "image","intro","lastName","lucrisPhoto","mailDelivery","mobile","organisationName","phone","primaryAffiliation",
-        "organisationId","organisationLeaveOfAbsence","organisationPhone","organisationStreet",
-        "organisationCity","organisationPostalAddress","profileInformationNovo","roomNumber","title","uuid");
+        "image","intro","lastName","lucrisPhoto","mailDelivery","mobile","organisationCity","organisationDescription",
+        "organisationId","organisationLeaveOfAbsence","organisationName","organisationPhone","organisationStreet",
+        "organisationPostalAddress","phone","primaryAffiliation","profileInformationNovo","roomNumber","title","uuid");
     
     if($dataSettings['organisation']) $organisation = array_pop(explode('__', strtolower($dataSettings['organisation'])));
     $scope = $dataSettings['scope'];
@@ -653,7 +643,6 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
        
     $client = new Solarium\Client($config);
     $query = $client->createSelect();
-    $query->setStart(0)->setRows(10000);
     
     //Staff
     $queryToSet1 = 'docType:staff AND (guid:' . $scope . ' OR uuid:' . $scope . ')';
@@ -670,6 +659,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
             "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
     
     $queryToSet2 = 'docType:publication AND authorId:' . $scope;
+    $query->setStart(0)->setRows(1000);
     $query->setQuery($queryToSet2);
     $query->setFields($fieldArray);
     $sortArray = array(
@@ -706,25 +696,26 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         $roomNumber = array();
         $title = array();
                 
-        if($document->heritage2 && $organisation) {
-            $heritage2Array = json_decode($document->heritage2, true);
-            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($heritage2Array,true), 'crdate' => time()));
-            foreach($heritage2Array as $key => $value) {
-                if(array_search($organisation, $value)!==false) {
+        if($document->organisationId) {
+            //$heritage2Array = json_decode($document->heritage2, true);
+            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($document->organisationId,true), 'crdate' => time()));
+            foreach($document->organisationId as $key => $value) {
+                //if(array_search($organisation, $value)!==false) {
                     $mailDelivery[] = $document->mailDelivery[$i];
                     $mobile[] = $document->mobile[$i];
+                    $organisationDescription[] = $document->organisationDescription[$i];
                     $organisationId[] = $document->organisationId[$i];
                     $organisationLeaveOfAbsence[] = $document->organisationLeaveOfAbsence[$i];
                     $organisationName[] = $document->organisationName[$i];
                     $phone[] = $document->phone[$i];
                     $roomNumber[] = $document->roomNumber[$i];
                     $title[] = $document->title[$i];
-                }
+                //}
                 $i++;
             }
         } 
         
-        if(!$organisationId) {
+        /*if(!$organisationId) {
             $mailDelivery = $document->mailDelivery;
             $mobile = $document->mobile;
             $organisationId = $document->organisationId;
@@ -733,32 +724,39 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
             $phone = $document->phone;
             $roomNumber = $document->roomNumber;
             $title = $document->title;
-        }
+        }*/
 
         $staffData[] = array(
+            "coordinates" => $this->fixArray($document->coordinates),
             "email" => $document->email[0],
             "firstName" => $document->firstName,
-            "lastName" => $document->lastName,
-            "mailDelivery" => $mailDelivery,
-            "title" => $title,
-            "phone" => $phone,
-            "organisationName" => $organisationName,
-            "primaryAffiliation" => $document->primaryAffiliation,
+            "guid" => $document->guid,
             "homepage" => $document->homepage,
             "image" => $image,
             "intro" => $intro,
-            "roomNumber" => $roomNumber,
+            "lastName" => $document->lastName,
+            "mailDelivery" => $mailDelivery,
+            "mailDeliverySame" => $this->checkSame($mailDelivery),
             "mobile" => $mobile,
-            "uuid" => $document->uuid,
-            "guid" => $document->guid,
+            "mobileSame" => $this->checkSame($mobile),
+            "organisationDescription" => $document->organisationDescription,
+            "organisationName" => $organisationName,
             "organisationId" => $organisationId,
             "organisationLeaveOfAbsence" => $organisationLeaveOfAbsence,
             "organisationPhone" => $document->organisationPhone,
             "organisationStreet" => $document->organisationStreet,
+            "organisationStreetSame" => $this->checkSame($document->organisationStreet),
             "organisationCity" => $document->organisationCity,
             "organisationPostalAddress" => $document->organisationPostalAddress,
+            "organisationPostalAddressSame" => $this->checkSame($document->organisationPostalAddress),
+            "primaryAffiliation" => $document->primaryAffiliation,
+            "title" => $title,
+            "phone" => $phone,
+            "phoneSame" => $this->checkSame($phone),
             "profileInformation" => $document->profileInformationNovo,
-            "coordinates" => $this->fixArray($document->coordinates)
+            "roomNumber" => $roomNumber,
+            "roomNumberSame" => $this->checkSame($roomNumber),
+            "uuid" => $document->uuid,
         );
     }
     
@@ -795,10 +793,19 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
             "volume" => $document->volume,
         );
     }
-    
+       
     $resArray = array('staffData' => $staffData, 'publicationsData' => $publicationsData, 'query' => $queryToSet1 . ';' . $queryToSet2);
     
     return json_encode($resArray);
+}
+
+
+function checkSame($allvalues)
+{
+    if ($allvalues && count(array_unique($allvalues)) === 1) {
+        return true;
+    }
+    return false;
 }
 
 

@@ -460,10 +460,14 @@ function listOrganisationStaff(facet, query)
                 } else if(scope) {
                     $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + d.organisationTitle + ' (' + d.numFound + ')' + '</h2>');
                 }
+                var scopeArray = scope.split(',');
+                var indexArray;
+                
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
-
-                    var phone = '', email = '', image = '', guid = '', mobile = '', uuid = '', primaryVroleTitle = '', displayName = '', link = '', organisationName = '', organisationLeaveOfAbsence = '';
+                    
+                    var phone = '', email = '', image = '', guid = '', mobile = '', uuid = '', title = '', displayName = '', link = '', organisation = '', organisationLeaveOfAbsence = '';
+                    var heritage2;
                     if(aData.guid) guid = aData.guid[0];
                    
                     if(aData.uuid) uuid = aData.uuid;
@@ -475,8 +479,53 @@ function listOrganisationStaff(facet, query)
 
                     if(aData.name) displayName = aData.name;
                     if(aData.email) email = aData.email;
-                    if(aData.primaryVroleTitle) primaryVroleTitle = titleCase(aData.primaryVroleTitle);
-                    if(aData.organisationLeaveOfAbsence) {
+                    //if(aData.primaryVroleTitle) primaryVroleTitle = titleCase(aData.primaryVroleTitle);
+                    
+                    indexArray = new Array();
+                    if(aData.heritage2 && scope && aData.organisationId) {
+                        i=0;
+
+                        $.each( JSON.parse(aData.heritage2), function( hKey, hData ) {
+                            hData = 's' + hData;
+                            $.each( scopeArray, function( sKey, sData) {
+                                //console.log(displayName + ';' + sData + ';' + hData + ';' + hData.indexOf(sData.split('__').pop()));
+                                if( hData.indexOf(sData.split('__').pop()) > 0) {
+                                    if(aData.organisationName[i]) {
+                                        //if(organisation) {
+                                            if(organisation && aData.organisationName[i] === aData.organisationName[(i)-1]) {
+                                                organisation += ', ';
+                                            } else {
+                                                if(organisation) organisation += '<br />';
+                                                organisation += '<strong>' + aData.organisationName[i] + '</strong> - ';
+                                            }
+                                        //}
+                                    }
+                                    if(aData.title[i]) organisation += titleCase(aData.title[i]);
+                                    if(aData.organisationLeaveOfAbsence[i]===1) organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
+                                    if(aData.phone[i] && aData.phone[i] !== 'NULL') {
+                                        if(phone) phone += '<br />';
+                                        phone += formatPhone(aData.phone[i]);
+                                    } 
+                                    if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
+                                        if(phone) phone += '<br />';
+                                        phone = aData.mobile[i];
+                                    }
+                                }
+                            });
+                            i++;
+                        });
+                        //console.log(aData.heritage2);
+                        //console.log(scope);
+                    } else {
+                        organisation += '<strong>' + aData.primaryVroleOu + '</strong> - ';
+                        organisation += titleCase(aData.primaryVroleTitle);
+                        
+                    }
+                    if(!phone && aData.primaryVrolePhone && aData.primaryVrolePhone !== 'NULL') {
+                        phone = formatPhone(aData.primaryVrolePhone);
+                    }
+                    
+                    /*if(aData.organisationLeaveOfAbsence) {
                         $.each( aData.organisationLeaveOfAbsence, function( olvKey, olvData ) {
                             if(olvData==1) primaryVroleTitle += aData.organisationLeaveOfAbsence + ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
                         });
@@ -515,11 +564,11 @@ function listOrganisationStaff(facet, query)
                         organisationName = '<strong>' + aData.organisationName + '</strong> - ';
                     } else {
                         organisationName = '';
-                    }
+                    }*/
                     template = template.replace(/###email###/g, email);
-                    template = template.replace('###organisationName###', organisationName);
+                    template = template.replace('###organisation###', organisation);
                     template = template.replace(/###phone###/g, phone);
-                    template = template.replace(/###title###/g, primaryVroleTitle);
+                    //template = template.replace(/###title###/g, primaryVroleTitle);
                     
                     //template = template.replace(/###displayName###/g, '<a href="'+homepage+'">' + displayName + '</a>');
                     template = template.replace(/###displayName###/g, displayName);
@@ -695,8 +744,8 @@ function listOrganisationRoles(query)
 
 function showStaffNovo()
 {
-    var authorName, displayName, documentId, documentTitle, email, image, journalTitle, mailDelivery, organisationName, organisationPostalAddress, organisation='',
-            organisationStreet, mobile, pages, phone, profileInformationJson, profileInformation, publicationDateYear, publicationType, publisher, roomNumber, title;
+    var authorName, displayName, documentId, documentTitle, email, image, journalTitle, mailDelivery, organisationStreet, organisationPostalAddress, organisation='', organisation2='',
+            organisationDescription, mobile, pages, phone, profileInformationJson, profileInformation, publicationDateYear, publicationType, publisher, roomNumber, allSame = false;
     var sysLang = $('html').attr('lang');
     
     $.ajax({
@@ -727,63 +776,99 @@ function showStaffNovo()
 
                     if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;
                     
+                    if(aData.phoneSame && aData.mobileSame && aData.roomNumberSame && aData.mailDeliverySame && aData.organisationStreetSame && aData.organisationPostalAddressSame) {
+                        allSame = true;
+                    }
+                    
+                    if(aData.organisationDescription) {
+                        organisationDescription = '<p>' + aData.organisationDescription + '</p>';
+                    }
+                    
                     if(aData.email) {
-                        if(aData.email) email = '<strong>E-post:</strong> <a href="mailto: ' + aData.email + '">' + aData.email + '</a>';
+                        email = '<strong>E-post:</strong> <a href="mailto: ' + aData.email + '">' + aData.email + '</a>';
                     }
 
                     for (var i=0; i<aData.organisationId.length; i++) {
-                        if(aData.title) {
-                            if(aData.title[i]) organisation += '<strong>' + titleCase(aData.title[i]) + '</strong>';
-                            if(aData.organisationLeaveOfAbsence[i]==1) organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
-                            if(aData.title[i]) organisation += ' vid ';
-                        }
                         
-                        if(aData.organisationName) {
-                            if(aData.organisationName[i]) organisation += titleCase(aData.organisationName[i]);
-                        }
-                        
-                        if(aData.phone) {
-                            if(aData.phone[i] && aData.phone[i] !== 'NULL') {
-                                phone = aData.phone[i];
-                                organisation += '<br/><strong>Telefon:</strong> <a href="tel:'+phone+'">' + phone.replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1')+ '</a>';
+                        //if(aData.title) {
+                            if(aData.title[i]) {
+                                if(organisation && allSame) organisation += '<br />';
+                                organisation += '<strong>' + titleCase(aData.title[i]) + '</strong>';
+                                if(aData.organisationLeaveOfAbsence[i]==1) organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
+                                if(aData.title[i]) organisation += ' vid ';
                             }
-                        }
+                            
+                            
+                        //}
                         
-                        if(aData.mobile) {
-                            if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
+                        //if(aData.organisationName) {
+                            if(aData.organisationName[i]) organisation += titleCase(aData.organisationName[i]);
+                        //}
+                        
+                        //if(aData.phone) {
+                            if(aData.phone[i] && aData.phone[i] !== 'NULL' && allSame) {
+                                phone = '<br/><strong>Telefon:</strong> <a href="tel:'+aData.phone[i]+'">' + aData.phone[i].replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1')+ '</a>';
+                            } else if(aData.phone[i] && aData.phone[i] !== 'NULL') {
+                                organisation += '<br/><strong>Telefon:</strong> <a href="tel:'+aData.phone[i]+'">' + aData.phone[i].replace('+4646222', '+46 46 222 ').replace(/(.{2}$)/, ' $1')+ '</a>';
+                            }
+                        //}
+                        
+                        //if(aData.mobile) {
+                            if(aData.mobile[i] && aData.mobile[i] !== 'NULL' && allSame) {
+                                mobile = '+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");
+                                mobile = '<br/><strong>Mobiltelefon:</strong> <a href="tel:'+mobile+'">' + mobile + '</a>';
+                            } else if(aData.mobile[i] && aData.mobile[i] !== 'NULL') {
                                 mobile = '+46 ' + aData.mobile[i].replace(/ /g, '').replace('+46','').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");
                                 organisation += '<br/><strong>Mobiltelefon:</strong> <a href="tel:'+mobile+'">' + mobile + '</a>';
                             }
-                        }
+                        //}
                         
-                        if(aData.roomNumber) {
-                            if(aData.roomNumber[i] && aData.roomNumber[i] !== 'NULL') organisation += '<br/><strong>Rumsnummer:</strong> ' + aData.roomNumber[i];
-                        }
+                        //if(aData.roomNumber) {
+                            if(aData.roomNumber[i] && aData.roomNumber[i] !== 'NULL' && allSame) {
+                                roomNumber = '<br/><strong>Rumsnummer:</strong> ' + aData.roomNumber[i];
+                            } else if(aData.roomNumber[i] && aData.roomNumber[i] !== 'NULL') {
+                                organisation += '<br/><strong>Rumsnummer:</strong> ' + aData.roomNumber[i];
+                            }
+                        //}
                                                 
-                        if(aData.mailDelivery) {
-                            if(aData.mailDelivery[i]) {
+                        //if(aData.mailDelivery) {
+                            if(aData.mailDelivery[i] && aData.mailDelivery[i] !== 'NULL' && allSame) {
+                                mailDelivery = '<br/><strong>Hämtställe:</strong> ' + aData.mailDelivery[i];
+                                if($('.lth_solr_husmap').length > 0) {
+                                    $('.lth_solr_husmap').show(200);
+                                    $('.lth_solr_husmap #'+aData.mailDelivery[i]).attr('src','/typo3conf/ext/lth_solr/res/reddot.png').show(200);
+                                }
+                            } else if(aData.mailDelivery[i] && aData.mailDelivery[i] !== 'NULL') {
                                 organisation += '<br/><strong>Hämtställe:</strong> ' + aData.mailDelivery[i];
                                 if($('.lth_solr_husmap').length > 0) {
                                     $('.lth_solr_husmap').show(200);
                                     $('.lth_solr_husmap #'+aData.mailDelivery[i]).attr('src','/typo3conf/ext/lth_solr/res/reddot.png').show(200);
                                 }
                             }
-                        }
+                        //}
                                                
-                        if(aData.organisationStreet) {
-                            if(aData.organisationStreet[i]) organisation += '<br/><strong>Adress:</strong> ' + aData.organisationStreet[i];
-                        }
+                        //if(aData.organisationStreet) {
+                            if(aData.organisationStreet[i] && allSame) {
+                                organisationStreet = '<br/><strong>Adress:</strong> ' + aData.organisationStreet[i];
+                            } else if(aData.organisationStreet[i]) {
+                                organisation += '<br/><strong>Adress:</strong> ' + aData.organisationStreet[i];
+                            }
+                        //}
                                                 
-                        if(aData.organisationPostalAddress) {
-                            if(aData.organisationPostalAddress[i]) organisation += '<br/><strong>Postadress:</strong> ' + aData.organisationPostalAddress[i].toString().split('$').join(', ');
-                        }
+                        //if(aData.organisationPostalAddress) {
+                            if(aData.organisationPostalAddress[i] && allSame) {
+                                organisationPostalAddress = '<br/><strong>Postadress:</strong> ' + aData.organisationPostalAddress[i].toString().split('$').join(', ');
+                            } else if(aData.organisationPostalAddress[i]) {
+                                organisation += '<br/><strong>Postadress:</strong> ' + aData.organisationPostalAddress[i].toString().split('$').join(', ');
+                            }
+                        //}
                         
-                        organisation = '<p>' + organisation + '</p>';
+                        if(!allSame) organisation = '<p>' + organisation + '</p>';
                         
                         //template = template.replace('###visitingAddress###', ostreet + ' ' + ocity + addBreak(ophone));
                         //template = template.replace('###postalAddress###', addBreak(organisationPostalAddress));
                     }
-
+                    
                     image = '/typo3conf/ext/lth_solr/res/noimage.gif';
                     //image = "/typo3conf/ext/lth_solr/res/dummy/" + (Math.floor(Math.random() * 10) + 1) + ".jpg";
                     if(aData.image) {
@@ -796,11 +881,16 @@ function showStaffNovo()
                             profileInformation += '<h2>' + key + '</h2>' + profileInformationJson[key];
                         });
                     } 
-                    
+                    if(allSame) organisation = '<p>' + organisation + '</p>';
+                    if(allSame && organisation2) { 
+                        organisation2 = '<p>' + phone + mobile + roomNumber + mailDelivery + organisationStreet + organisationPostalAddress + '</p>';
+                    }
+                    if(organisation2) organisation2 = organisation2.replace('<br/>','');
                     template = template.replace(/###displayName###/g, displayName);
                     template = template.replace('###email###', email);
                     template = template.replace('###image###', image);
-                    template = template.replace('###organisation###', organisation);
+                    template = template.replace('###organisationDescription###', organisationDescription);
+                    template = template.replace('###organisation###', organisation + organisation2);
                     template = template.replace('###profileInformation###', profileInformation);
                     //Change page main header
                     //$('#page_title h1, article h1').remove();//text(displayName).append('<h2>'+title+'</h2>');           

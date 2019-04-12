@@ -55,10 +55,6 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $index = $GLOBALS["TSFE"]->sys_language_uid;
             $sDef = current($piFlexForm["data"]);       
             $lDef = array_keys($sDef);
-            /*echo '<pre>';
-            print_r(['el']);
-            echo '</pre>';
-             * */
             $display = $this->pi_getFFvalue($piFlexForm, "display", "sDEF", $lDef[$index]);
             $organisation = $this->pi_getFFvalue($piFlexForm, "organisation", "sDEF", $lDef[$index]);
             $vroles = $this->pi_getFFvalue($piFlexForm, "vroles", "sDEF", $lDef[$index]);
