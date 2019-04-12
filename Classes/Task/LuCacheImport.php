@@ -91,7 +91,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $this->createFeUsers($folderArray, $employeeArray, $feGroupsArray, $studentGrsp, $hideonwebGrsp, $studentMainGroup);
         
-        $employeeArray = $this->removeHideonweb($employeeArray, $config);
+        //$employeeArray = $this->removeHideonweb($employeeArray, $config);
 
         $executionSucceeded = $this->updateSolr($employeeArray, $heritageArray, $heritage2Array, $categoriesArray, $config, $syslang, $orgArray);
         
