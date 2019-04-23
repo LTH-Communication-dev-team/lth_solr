@@ -678,7 +678,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         $i=0;
                         foreach($orgidArray as $key1 => $value1) {
                             if($lastValue1 === $value1) {
-                                $value1 = $value1 . $i;
+                                $value1 = $value1 . (string)$i;
                                 $i++;
                             }
                             if(key_exists($value1,$coordinatesArray)) {
