@@ -59,7 +59,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $pw = $settings['pw'];
         $solrImageImportFolder = $settings['solrImageImportFolder'];
 
-        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("60; ".mysqli_error());
+        $con = mysqli_connect($dbhost, $user, $pw, $db) or die("62; ".mysqli_error());
 
         $imageArray = $this->getImageArray($solrImageImportFolder);
 
@@ -880,7 +880,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'changed' => $current_date,
                             'digest' => md5($key)
                         );
-
+$this->debug($data);
+die();
                         $GLOBALS['TYPO3_DB']->exec_UPDATEquery('fe_users', "username='".$key."'", array('lth_solr_heritage' => implode(',', $heritage)));
 
                         if($heritage2) {
@@ -932,6 +933,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                 $update->addCommit();
                 $client->update($update);
+                return TRUE;
             } else {
                 echo 'no!!';
             }
