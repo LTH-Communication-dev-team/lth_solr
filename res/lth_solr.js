@@ -490,7 +490,7 @@ function listOrganisationStaff(facet, query)
                             $.each( scopeArray, function( sKey, sData) {
                                 //console.log(displayName + ';' + sData + ';' + hData + ';' + hData.indexOf(sData.split('__').pop()));
                                 if( hData.indexOf(sData.split('__').pop()) > 0) {
-                                    if(aData.organisationHideOnWeb[i]) return false;
+                                    if(aData.organisationHideOnWeb[i]===1) return false;
                                     if(aData.organisationName[i]) {
                                         //if(organisation) {
                                             if(organisation && aData.organisationName[i] === aData.organisationName[(i)-1]) {
