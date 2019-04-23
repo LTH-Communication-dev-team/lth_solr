@@ -490,8 +490,7 @@ function listOrganisationStaff(facet, query)
                             $.each( scopeArray, function( sKey, sData) {
                                 //console.log(displayName + ';' + sData + ';' + hData + ';' + hData.indexOf(sData.split('__').pop()));
                                 if( hData.indexOf(sData.split('__').pop()) > 0) {
-                                    if(aData.organisationPrimaryRole[i]===1) return false;
-                                    if(aData.organisationHideOnWeb[i]) 
+                                    if(aData.organisationHideOnWeb[i]) return false;
                                     if(aData.organisationName[i]) {
                                         //if(organisation) {
                                             if(organisation && aData.organisationName[i] === aData.organisationName[(i)-1]) {
@@ -502,7 +501,11 @@ function listOrganisationStaff(facet, query)
                                             }
                                         //}
                                     }
-                                    if(aData.title[i] && aData.organisationPrimaryRole[i]===1) organisation += titleCase(aData.title[i]);
+                                    if(aData.title[i] && aData.organisationPrimaryRole[i]===1) {
+                                        organisation += titleCase(aData.title[i]);
+                                    } else if(aData.title[i]) {
+                                        organisation += titleCase(aData.title[i]); 
+                                    }
                                     if(aData.organisationLeaveOfAbsence[i]===1) organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
                                     if(aData.phone[i] && aData.phone[i] !== 'NULL') {
                                         if(phone) phone += '<br />';
