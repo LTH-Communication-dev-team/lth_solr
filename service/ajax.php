@@ -1906,7 +1906,7 @@ function showPublication($response, $scope, $syslang, $config)
             $scope = json_decode(urldecode($scope),true);
             $uuid = $scope['publication'][0];
             $queryToSet = 'docType:publication AND id:'.$uuid;
-            $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($scope, true), 'crdate' => time()));
+            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($scope, true), 'crdate' => time()));
             foreach($scope as $key => $value) {
                 if($key==='fe_groups') {
                     foreach($value as $key1 => $value1) {
