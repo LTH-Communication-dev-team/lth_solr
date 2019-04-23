@@ -284,11 +284,9 @@ function listOrganisationStaff($dataSettings, $config, $action)
     }
     
     //Staff
-    $fieldArray = array("firstName","lastName","title","phone","id","email","organisationName",
-        "primaryAffiliation","homepage","image","lucrisPhoto","intro","roomNumber","mobile",
-        "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","guid","uuid","heritage",
-        "heritageName","heritage2",
-        "primaryVroleOu","primaryVroleTitle","primaryVroleOrgid","primaryVrolePhone");
+    $fieldArray = array("email","firstName","guid","heritage","heritageName","heritage2","homepage","id","image","intro","lastName","lucrisPhoto","mobile",
+        "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","organisationName","organisationPrimaryRole",
+        "phone","primaryAffiliation","primaryVroleOu","primaryVroleTitle","primaryVroleOrgid","primaryVrolePhone","roomNumber","title", "uuid");
     
     
     if($scopeArray) {
@@ -434,32 +432,33 @@ function listOrganisationStaff($dataSettings, $config, $action)
         }
 
         $email = $document->email[0];
-        $data[$email]["firstName"] = mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8");
-        $data[$email]["lastName"] = mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8");
-        $data[$email]["name"] = mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8") . ' ' . mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8");
-        $data[$email]["phone"] = $document->phone;
-        $data[$email]["id"] = $document->guid;
         $data[$email]["email"] = $document->email;
+        $data[$email]["firstName"] = mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8");
+        $data[$email]["guid"] = $document->guid;
+        $data[$email]["heritage2"] = $document->heritage2;
+        $data[$email]["heritageName"] = $document->heritageName;
+        $data[$email]["homepage"] = $document->homepage;
+        $data[$email]["id"] = $document->guid;
+        $data[$email]["image"] = $image;
+        $data[$email]["imgtest"] = $document->image;
+        $data[$email]["intro"] = $intro;
+        $data[$email]["lastName"] = mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8");
+        $data[$email]["mobile"] = $document->mobile;
+        $data[$email]["name"] = mb_convert_case(strtolower($document->firstName), MB_CASE_TITLE, "UTF-8") . ' ' . mb_convert_case(strtolower($document->lastName), MB_CASE_TITLE, "UTF-8");
+        $data[$email]["organisationId"] = $document->organisationId;
         $data[$email]["organisationName"] = $document->organisationName;
         $data[$email]["organisationHideOnWeb"] = $document->organisationHideOnWeb;
         $data[$email]["organisationLeaveOfAbsence"] = $document->organisationLeaveOfAbsence;
+        $data[$email]["organisationPrimaryRole"] = $document->organisationPrimaryRole;
+        $data[$email]["phone"] = $this->isInArray($email, $data, "phone", $document->phone);
         $data[$email]["primaryAffiliation"] = $document->primaryAffiliation;
-        $data[$email]["primaryVroleOu"] = $document->primaryVroleOu;
-        $data[$email]["primaryVroleTitle"] = $document->primaryVroleTitle;
-        $data[$email]["title"] = $document->title;
+        $data[$email]["primaryVroleOu"] = $this->isInArray($email, $data, "primaryVroleOu", $document->primaryVroleOu);
+        $data[$email]["primaryVroleTitle"] = $this->isInArray($email, $data, "primaryVroleTitle", $document->primaryVroleTitle);
         $data[$email]["primaryVroleOrgid"] = $document->primaryVroleOrgid;
         $data[$email]["primaryVrolePhone"] = $document->primaryVrolePhone;
-        $data[$email]["homepage"] = $document->homepage;
-        $data[$email]["image"] = $image;
-        $data[$email]["intro"] = $intro;
         $data[$email]["roomNumber"] = $this->fixRoomNumber($document->roomNumber);
-        $data[$email]["mobile"] = $document->mobile;
-        $data[$email]["organisationId"] = $document->organisationId;
-        $data[$email]["guid"] = $document->guid;
+        $data[$email]["title"] = $document->title;
         $data[$email]["uuid"] = $document->uuid;
-        $data[$email]["imgtest"] = $document->image;
-        $data[$email]["heritage2"] = $document->heritage2;
-        $data[$email]["heritageName"] = $document->heritageName;
     }
 
     usort($data, function($a, $b) {
