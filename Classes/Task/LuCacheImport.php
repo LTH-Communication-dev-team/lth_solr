@@ -932,7 +932,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                 $update->addCommit();
                 $client->update($update);
-                return TRUE;
             } else {
                 echo 'no!!';
             }
