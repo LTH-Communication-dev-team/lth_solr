@@ -462,11 +462,12 @@ function listOrganisationStaff(facet, query)
                 }
                 var scopeArray = scope.split(',');
                 var indexArray;
-                
+                var hideOnWeb=false;
                 $.each( d.data, function( key, aData ) {
+                    hideOnWeb = false;
                     var template = $('#solrStaffTemplate').html();
                     
-                    var phone = '', email = '', image = '', guid = '', mobile = '', uuid = '', title = '', displayName = '', link = '', organisation = '', organisationLeaveOfAbsence = '';
+                    var phone = '', email = '', image = '', guid = '', primaryRoleI = 0, uuid = '', title = '', displayName = '', link = '', organisation = '', organisationPrimary = '';
                     var heritage2;
                     if(aData.guid) guid = aData.guid[0];
                    
@@ -480,33 +481,29 @@ function listOrganisationStaff(facet, query)
                     if(aData.name) displayName = aData.name;
                     if(aData.email) email = aData.email;
                     //if(aData.primaryVroleTitle) primaryVroleTitle = titleCase(aData.primaryVroleTitle);
-                    
                     indexArray = new Array();
                     if(aData.heritage2 && scope && aData.organisationId) {
                         i=0;
-                        //console.log(JSON.parse(aData.heritage2));
                         $.each( JSON.parse(aData.heritage2), function( hKey, hData ) {
                             hData = 's' + hKey + ',' + hData;
                             $.each( scopeArray, function( sKey, sData) {
-                                //console.log(displayName + ';' + sData + ';' + hData + ';' + hData.indexOf(sData.split('__').pop()));
-                                if( hData.indexOf(sData.split('__').pop()) > 0) {
-                                    if(aData.organisationHideOnWeb[i]===1) return false;
+                                if( (hData.indexOf(sData.split('__').pop()) > 0) && (aData.organisationHideOnWeb[i] !== '1')) {
                                     if(aData.organisationName[i]) {
-                                        //if(organisation) {
-                                            if(organisation && aData.organisationName[i] === aData.organisationName[(i)-1]) {
-                                                organisation += ', ';
-                                            } else {
-                                                if(organisation) organisation += '<br />';
-                                                organisation += '<strong>' + aData.organisationName[i] + '</strong> - ';
+                                        if(organisation && aData.organisationName[i] === aData.organisationName[(i)-1]) {
+                                            organisation += ', ';
+                                        } else {
+                                            if(organisation) {
+                                                organisation += '<br />';
                                             }
-                                        //}
+                                            organisation += '<strong>' + aData.organisationName[i] + '</strong> - ';
+                                        }
                                     }
-                                    if(aData.title[i] && aData.organisationPrimaryRole[i]===1) {
+                                    if(aData.title[i]) {
                                         organisation += titleCase(aData.title[i]);
-                                    } else if(aData.title[i]) {
-                                        organisation += titleCase(aData.title[i]); 
                                     }
-                                    if(aData.organisationLeaveOfAbsence[i]===1) organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
+                                    if(aData.organisationLeaveOfAbsence[i]==='1') {
+                                        organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
+                                    }
                                     if(aData.phone[i] && aData.phone[i] !== 'NULL') {
                                         if(phone) phone += '<br />';
                                         phone += formatPhone(aData.phone[i]);
@@ -525,7 +522,6 @@ function listOrganisationStaff(facet, query)
                     } else {
                         organisation += '<strong>' + aData.primaryVroleOu + '</strong> - ';
                         organisation += titleCase(aData.primaryVroleTitle);
-                        
                     }
                     if(!phone && aData.primaryVrolePhone && aData.primaryVrolePhone !== 'NULL') {
                         phone = formatPhone(aData.primaryVrolePhone);
@@ -571,6 +567,7 @@ function listOrganisationStaff(facet, query)
                     } else {
                         organisationName = '';
                     }*/
+                    if(organisation)organisationPrimary += '<br />';
                     template = template.replace(/###email###/g, email);
                     template = template.replace('###organisation###', organisation);
                     template = template.replace(/###phone###/g, phone);
