@@ -692,7 +692,7 @@ function listOrganisationRoles(query)
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStaffTemplate').html();
 
-                    var phone = '', email = '', image = '', guid = '', uuid = '', title = '', displayName = '', link = '', organisationName = '';
+                    var phone = '', email = '', image = '', guid = '', uuid = '', title = '', displayName = '', link = '', organisation = '';
                     if(aData.guid) guid = aData.guid[0];
                    
                     if(aData.uuid) uuid = aData.uuid;
@@ -705,12 +705,12 @@ function listOrganisationRoles(query)
                     if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;
 
                     if(aData.email) email = aData.email;
-                    if(aData.organisationName) organisationName = '<strong>' + aData.organisationName + '</strong> - ';
+                    if(aData.organisationName) organisation = '<strong>' + aData.organisation + '</strong> - ';
                     if(aData.phone && aData.phone !== 'NULL') phone = formatPhone(aData.phone);
                     if(aData.title) title = titleCase(aData.title);
                     
                     template = template.replace(/###email###/g, email);
-                    template = template.replace('###organisationName###', organisationName);
+                    template = template.replace('###organisation###', organisation);
                     template = template.replace(/###phone###/g, phone);
                     template = template.replace(/###title###/g, title);
                     
