@@ -707,7 +707,7 @@ function listOrganisationRoles(query)
                     if(aData.email) email = aData.email;
                     if(aData.organisationName) organisation = '<strong>' + aData.organisationName + '</strong> - ';
                     if(aData.phone && aData.phone !== 'NULL') phone = formatPhone(aData.phone);
-                    if(aData.title) title = titleCase(aData.title);
+                    if(aData.title) organisation += titleCase(aData.title);
                     
                     template = template.replace(/###email###/g, email);
                     template = template.replace('###organisation###', organisation);
