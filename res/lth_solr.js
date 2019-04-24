@@ -705,7 +705,7 @@ function listOrganisationRoles(query)
                     if(aData.firstName && aData.lastName) displayName = aData.firstName + ' ' + aData.lastName;
 
                     if(aData.email) email = aData.email;
-                    if(aData.organisationName) organisation = '<strong>' + aData.organisation + '</strong> - ';
+                    if(aData.organisationName) organisation = '<strong>' + aData.organisationName + '</strong> - ';
                     if(aData.phone && aData.phone !== 'NULL') phone = formatPhone(aData.phone);
                     if(aData.title) title = titleCase(aData.title);
                     
