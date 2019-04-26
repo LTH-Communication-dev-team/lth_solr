@@ -462,9 +462,9 @@ function listOrganisationStaff(facet, query)
                 }
                 var scopeArray = scope.split(',');
                 var indexArray;
-                var hideOnWeb=false;
+
                 $.each( d.data, function( key, aData ) {
-                    hideOnWeb = false;
+
                     var template = $('#solrStaffTemplate').html();
                     
                     var phone = '', email = '', image = '', guid = '', primaryRoleI = 0, uuid = '', title = '', displayName = '', link = '', organisation = '', organisationPrimary = '';
@@ -595,7 +595,7 @@ function listOrganisationStaff(facet, query)
                     
                     /*
                     template = template.replace('###roomNumber###', roomNumber);*/
-                    $('#lthsolr_organisation_container  > div > section').append(template);
+                    if(organisation) $('#lthsolr_organisation_container  > div > section').append(template);
                     //console.log(lastHeight+';'+lastId);
                 });
                 
@@ -797,7 +797,6 @@ function showStaffNovo()
                             if(aData.title[i]) {
                                 if(organisation && allSame) organisation += '<br />';
                                 organisation += '<strong>' + titleCase(aData.title[i]) + '</strong>';
-                                if(aData.organisationLeaveOfAbsence[i]==1) organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
                                 if(aData.title[i]) organisation += ' vid ';
                             }
                             
@@ -807,6 +806,7 @@ function showStaffNovo()
                         //if(aData.organisationName) {
                             if(aData.organisationName[i]) organisation += titleCase(aData.organisationName[i]);
                         //}
+                            if(aData.organisationLeaveOfAbsence[i]==1) organisation += ' (' + lth_solr_messages.organisationLeaveOfAbsence + ')';
                         
                         //if(aData.phone) {
                             if(aData.phone[i] && aData.phone[i] !== 'NULL' && allSame) {
