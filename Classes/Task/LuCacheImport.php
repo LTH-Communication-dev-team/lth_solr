@@ -830,10 +830,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $organisationName = $value['oname_en'];
                         }
                         
-                        $firstNameExact = "";
-                        $lastNameExact = "";
-                        if($value['first_name']) $firstNameExact = str_replace(" ", "", $value['first_name']);
-                        if($value['last_name']) $lastNameExact = str_replace(" ", "", $value['last_name']);
+                        $firstNameSort = "";
+                        $lastNameSort = "";
+                        if($value['first_name']) $firstNameSort = str_replace(" ", "", $value['first_name']);
+                        if($value['last_name']) $lastNameSort = str_replace(" ", "", $value['last_name']);
                         
                         $data = array(
                             'appKey' => 'lthsolr',
@@ -844,9 +844,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'name' => $value['first_name'] . ' ' . $value['last_name'],
                             'firstLetter' => mb_substr($value['last_name'],0,1),
                             'firstName' => $value['first_name'],
-                            'firstNameExact' => $firstNameExact,
+                            'firstNameSort' => $firstNameSort,
                             'lastName' => $value['last_name'],
-                            'lastNameExact' => $lastNameExact,
+                            'lastNameSort' => $lastNameSort,
                             'email' => $value['email'],
                             'primaryAffiliation' => $value['primary_affiliation'],
                             'primaryVroleOu' => $value['primary_vrole_ou'],
