@@ -50,6 +50,8 @@ class tx_lthsolr_pi3 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $this->pi_loadLL();
            // print_r($conf);
             
+            $GLOBALS['TSFE']->additionalHeaderData['lth_solr'] = '<meta name="robots" content="noindex, nofollow">';
+            
             $type = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('type');
             if($type) {
                 $pageId = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('id');
