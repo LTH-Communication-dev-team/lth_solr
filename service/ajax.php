@@ -404,8 +404,8 @@ function listOrganisationStaff($dataSettings, $config, $action)
     
     if($scope) {
         $sortArray = array(
-            'lastNameExact' => 'asc',
-            'firstNameExact' => 'asc'
+            'lastNameSort' => 'asc',
+            'firstNameSort' => 'asc'
         );
         $query->addSorts($sortArray); 
     }
@@ -461,9 +461,16 @@ function listOrganisationStaff($dataSettings, $config, $action)
         $data[$email]["uuid"] = $document->uuid;
     }
 
-    usort($data, function($a, $b) {
-        return $a['order'] <=> $b['order'];
-    });
+    if($extraPeople) {
+        usort($data, function($a, $b) {
+            return $a['order'] <=> $b['order'];
+        });
+    } /*else {
+        usort($data, function($a, $b) {
+            return $a['lastName'] <=> $b['lastName'];
+        });
+    }*/
+    
     $resArray = array('data' => $data, 'facet' => $facetResult, 'mailDelivery' => $mailDelivery, 'organisationTitle' => $organisationTitle, 'numFound' => $numFound, 'query' => $queryToSet);
     
     return json_encode($resArray);
