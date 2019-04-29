@@ -829,7 +829,12 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             $title = $title_enArray;
                             $organisationName = $value['oname_en'];
                         }
-
+                        
+                        $firstNameExact = "";
+                        $lastNameExact = "";
+                        if($value['first_name']) $firstNameExact = str_replace(" ", "", $value['first_name']);
+                        if($value['last_name']) $lastNameExact = str_replace(" ", "", $value['last_name']);
+                        
                         $data = array(
                             'appKey' => 'lthsolr',
                             'id' => $value['id'],
@@ -839,7 +844,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'name' => $value['first_name'] . ' ' . $value['last_name'],
                             'firstLetter' => mb_substr($value['last_name'],0,1),
                             'firstName' => $value['first_name'],
+                            'firstNameExact' => $firstNameExact,
                             'lastName' => $value['last_name'],
+                            'lastNameExact' => $lastNameExact,
                             'email' => $value['email'],
                             'primaryAffiliation' => $value['primary_affiliation'],
                             'primaryVroleOu' => $value['primary_vrole_ou'],
