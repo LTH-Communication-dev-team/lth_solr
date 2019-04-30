@@ -379,26 +379,36 @@ class FrontEndClass
         
         $content .= '';
         
+        if($syslang==='en') {
+            $placeholderText = "Write at least 3 characters";
+            $filterText = "Write fo filter";
+            $filterBtntext = "Filter";
+        } else {
+            $placeholderText = "Skriv minst 3 tecken";
+            $filterText = "Skriv för att filtrera";
+            $filterBtntext = "Filtrera";
+        }
+        
         if(!$hideSearchField && $action==='listOrganisationPublications') {
             $content .= '<div class="form-group">
-                <label class=" w-100">
-                   Skriv för att filtrera
-                   <div class="input-group rounded-0">
-                   <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="Skriv minst 3 tecken" />
+                <label class=" w-100">' .
+                   $filterText .
+                   '<div class="input-group rounded-0">
+                   <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="' . $placeholderText . '" />
                      <div class="input-group-append">
-                    <button class="btn btn-outline-primary rounded-0" type="button">Filtrera</button>
+                    <button class="btn btn-outline-primary rounded-0" type="button">' . $filterBtntext . '</button>
                      </div>
                    </div>
                  </label>
                </div>';
         } else if(!$hideSearchField) {
             $content .= '<div class="form-group">
-                <label class=" w-100">
-                   Skriv för att filtrera
-                   <div class="input-group rounded-0">
-                   <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="Skriv minst 3 tecken" />
+                <label class=" w-100">' .
+                   $filterText .
+                   '<div class="input-group rounded-0">
+                   <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="' . $placeholderText . '" />
                      <div class="input-group-append">
-                    <button class="btn btn-outline-primary rounded-0" type="button">Filtrera</button>
+                    <button class="btn btn-outline-primary rounded-0" type="button">' . $filterBtntext . '</button>
                      </div>
                    </div>
                  </label>
@@ -420,7 +430,7 @@ class FrontEndClass
 
         if($extraPeople) $extraPeople = urlencode($extraPeople);
         if($extraPeopleLu) $extraPeopleLu = urlencode($extraPeopleLu);
-        $content .= '<form action="" method="post" name="postIt" id="postIt">';
+        //$content .= '<form action="" method="post" name="postIt" id="postIt">';
         $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />';
         $content .= '<input type="hidden" id="lth_solr_vroles" value="' . $vroles . '" />';
         $content .= '<input type="hidden" id="lth_solr_heritage" value="' . $heritage . '" />';
@@ -430,7 +440,7 @@ class FrontEndClass
         $content .= '<input type="hidden" id="lth_solr_extrapeople" value="' . $extraPeople . '" />';
         $content .= '<input type="hidden" id="lth_solr_action" value="' . $action . '" />';
         $content .= '<input type="hidden" id="lth_solr_id" name="uuid" value="" />';
-        $content .= '</form>';
+        //$content .= '</form>';
         return $content;
     }
     

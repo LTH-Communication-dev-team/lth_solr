@@ -48,7 +48,17 @@ function myInit()
     date_default_timezone_set('Europe/Stockholm');
 
     $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
-    if(!$syslang) $syslang = "sv";
+    if(!$syslang) {
+        if($dataSettings['syslang']) {
+            $syslang = $dataSettings['syslang'];
+        } else {
+            if($dataSettings['sysLang']) {
+                $syslang = $dataSettings['sysLang'];
+            } else {
+                $syslang = "sv";
+            }
+        }
+    }
 
     $config = array(
         'endpoint' => array(

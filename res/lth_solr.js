@@ -522,7 +522,8 @@ function listOrganisationPublications(facet, query)
                     //"portalUrl":"http://portal.research.lu.se/portal/en/publications/universal-exiles(599b6b45-7f64-4e97-a013-85afddd92bbb).html",
                     if(aData.portalUrl) {
                         portalUrl = aData.portalUrl;
-                        link = portalUrl.split('/').pop().split('(').shift();
+                        link = path + '/' + portalUrl.split('/').pop().split('(').shift();
+                        //link = portalUrl.split('/').pop().split('(').shift();
                     }
                     
                     //publicationDate
@@ -588,9 +589,9 @@ function listOrganisationPublications(facet, query)
 
                     $('#lthsolr_organisation_container  > div > section').append(template);
 
-                    $('#' + id + ' > div > h2 > a.postTitle').click(function(e){
-                        postIt(e, id);
-                    });
+                    /*$('#' + id + ' > div > h2 > a.postItLink').click(function(e){
+                        postIt(e, id, link);
+                    });*/
                         
                     
                 });
@@ -609,10 +610,12 @@ function listOrganisationPublications(facet, query)
 }
 
 
-function postIt(e, id)
+function postIt(e, id, link)
 {
     e.preventDefault();
     $('#lth_solr_id').val(id);
+    //
+    window.history.pushState({path:link},'',link);
     $('#postIt').submit();
 }
 
@@ -750,7 +753,7 @@ function listOrganisationStaff(facet, query)
                 
                 if(scope && (query || facetChoice==='firstLetter')) {
                     if(facetChoice==='firstLetter' && !query && !facet) query = 'A';
-                    $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + query + facet.toUpperCase() + ' (' + d.numFound + ' av ' + $('#lth_solr_totalcount').val() + ')' + '</h2>');
+                    $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + query + facet.toUpperCase() + ' (' + d.numFound + ' ' + lth_solr_messages.of + ' ' + $('#lth_solr_totalcount').val() + ')' + '</h2>');
                 } else if(scope) {
                     $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + d.organisationTitle + ' (' + d.numFound + ')' + '</h2>');
                 }
@@ -874,6 +877,7 @@ function listOrganisationStaff(facet, query)
                         link = aData.homepage;
                     } else {
                         link = detailPage + '/' + displayName.replace(' ','-') + '(' + uuid + ')/';
+                        //link = displayName.replace(' ','-');
                     }
                     template = template.replace('###link###', link);
 
@@ -890,6 +894,10 @@ function listOrganisationStaff(facet, query)
                     /*
                     template = template.replace('###roomNumber###', roomNumber);*/
                     if(organisation) $('#lthsolr_organisation_container  > div > section').append(template);
+                    
+                    /*$('#' + uuid + ' > div > h2 > a.postItLink').click(function(e){
+                        postIt(e, uuid);
+                    });*/
                     //console.log(lastHeight+';'+lastId);
                 });
                 
@@ -1220,7 +1228,13 @@ function showStaffNovo()
 
             //Publications
             var i = 0;
-            if(d.publicationsData.length > 0) {
+            if(d.publicationsData.length > 0 || 1+1===2) {
+                $('#lthSolrLatestPublications h3').text(lth_solr_messages.latestPublications);
+                $('#lthSolrAllPublications h3').text(lth_solr_messages.allPublications);
+                $('#lthSolrLatestPublications p, #lthSolrAllPublications p').text(lth_solr_messages.fromLucris);
+                $('.lthSolrShowAllPublications').text(lth_solr_messages.showAllPublications);
+                $('.lthSolrShowLatestPublications').text(lth_solr_messages.showLatestPublications);
+                
                 $.each( d.publicationsData, function( key, aData ) {
                     authorName = '';
                     documentTitle = '';
@@ -1289,6 +1303,8 @@ function showStaffNovo()
                     $(this).toggle();
                 });
                 //$('#my-accordion').collapse({ parent: true, toggle: true }); 
+            } else {
+                //$('#lthSolrLatestPublications').parent().parent().parent().hide();
             }
         },
         failure: function(errMsg) {
