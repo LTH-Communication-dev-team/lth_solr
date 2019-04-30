@@ -103,6 +103,13 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             } else if($display === 'roles') {
                 $scope = $organisation;
                 $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationRoles');
+            } else if($display === 'publications') {
+                if($uuid) {
+                    $content .= $FrontEndClass->showPublicationNovo($syslang, $uuid, $organisation);
+                } else {
+                    $scope = $organisation;
+                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationPublications');
+                }
             }
             
             return $content;

@@ -30,6 +30,10 @@
                                         <numIndex index="0">Roles</numIndex>
                                         <numIndex index="1">roles</numIndex>
                                     </numIndex>
+                                    <numIndex index="3" type="array">
+                                        <numIndex index="0">Publications</numIndex>
+                                        <numIndex index="1">publications</numIndex>
+                                    </numIndex>
                                 </items>
                             </config>
                         </TCEforms>

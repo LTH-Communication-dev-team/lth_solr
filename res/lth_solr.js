@@ -68,6 +68,8 @@ $(document).ready(function() {
         listOrganisationRoles('');
     } else if($('#lth_solr_action').val() == 'showStaffNovo') {
         showStaffNovo();
+    } else if($('#lth_solr_action').val() == 'listOrganisationPublications') {
+        listOrganisationPublications();
     }
     
     $('#lthsolr_studentpapers_filter').keyup(function() {
@@ -320,6 +322,298 @@ function listOrganisation(query)
             }
         }
     });
+}
+
+
+function listOrganisationPublications(facet, query)
+{
+    var facetChoice = $('#lth_solr_facetchoice').val();
+    var sysLang = $('html').attr('lang');
+    var scope = $('#lth_solr_scope').val();
+    
+    var i = 0;
+    var authorName, count, facetHeader, more, content, numberOfPages, publicationDate, journalTitle, title, placeOfPublication, authorName, openAccessPermission;
+    var id, publisher, hostPublicationTitle, volume, pages, articleNumber, bibliographicalNote;
+    var electronicIsbn, electronicVersionFileURL, electronicVersionLicenseType;
+    var electronicVersion, link, portalUrl, publicationStatus, publicationType;
+    
+    if($('#lth_solr_query').val().trim().length > 2) {
+        query = $('#lth_solr_query').val().trim();
+        $('#lthsolr_organisation_filter').val(query);
+        $('#lth_solr_query').val('');
+    }
+    
+    var facetVal, count;
+    if(!facet) facet = '';
+    var detailPage = 'visa';
+    if(sysLang==='en') detailPage = 'show';
+    //var exportArray = ["firstName","lastName","title","phone","email","organisationName","homepage","roomNumber","mobile"];
+     
+    if($('.lth_solr_culdesac').length === 0) {
+        $('#lthsolr_organisation_filter').parent().find('button').addClass('lth_solr_culdesac').click(function() {
+            if($('#lthsolr_organisation_filter').val().trim().length > 2) {
+                /*if(facetChoice==='firstLetter')*/ $('#facet_container .nav-link').removeClass('active');
+                listOrganisationStaff($('#facet_container > li > .active').attr('data-val'), $('#lthsolr_organisation_filter').val().trim());
+            } else if(facetChoice==='firstLetter') {
+                $('#facet_container .nav-link:eq(0)').addClass('active');
+                listOrganisationStaff('a','');
+                $('#lthsolr_organisation_filter').val('');
+            } else {
+                $('#facet_container .nav-link:eq(0)').addClass('active');
+                listOrganisationStaff('','');
+            }
+            
+        });
+    }
+                    
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID: 'lth_solr',
+            action: 'listOrganisationPublications',
+            dataSettings: {
+                facet: facet,
+                facetChoice: facetChoice,
+                pageid: $('body').attr('id').replace('p',''),
+                query: query,
+                scope: scope,
+                syslang: sysLang,
+            },
+            sid : Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(st + " : " + err);
+        },
+        beforeSend: function () {
+            $('#lthsolr_organisation_container > div > section').empty();
+            $('#lthsolr_organisation_container > div > section').append(getSpinner(sysLang));
+        },
+        success: function(d) {
+            $('.spinner').remove();
+            
+            //var staffDetailPage = 'visa';
+            var allText = 'Alla';
+            //var restText = 'Övriga';
+            if(sysLang=='en') {
+                //staffDetailPage = 'show';
+                allText = 'All';
+                //var restText = 'Other';
+            }
+
+            if(d.data) {
+                                
+                if(d.facet) {
+                    if($('#facet_container').length === 0) {
+                        $('#lthsolr_organisation_container').before('<div class="row lth_solr_hide"><div class="col-12 border-lg-bottom"><ul id="facet_container" class="nav nav-pills"></ul></div></div>');
+                    
+                        var facetNavActiveClass = '';
+                        var i = 0;
+                        var totalCount = 0;
+                        $.each( d.facet, function( key, value ) {
+                            $.each( value, function( key1, value1 ) {
+                                facetNavActiveClass = '';
+                                facetVal = value1[0].toString();
+                                count = value1[1];
+                                $('#facet_container').append('<li class="nav-item lth_solr_facet"><a class="nav-link" data-val="' + facetVal + '" href="javascript:">' + facetVal.replace(/_/g, ' ') + ' (' + count + ')</a></li>');
+                            });
+
+                            $('.lth_solr_facet a').each(function() {
+                                $(this).click(function() {
+                                    $('#facet_container .nav-link').removeClass('active');
+                                    $(this).addClass('active');
+                                    //if(facetChoice==='firstLetter') $('#lthsolr_organisation_filter').val('');
+                                    $('#lthsolr_organisation_filter').val('');
+                                    listOrganisationStaff($(this).attr('data-val'), $('#lthsolr_organisation_filter').val());
+                                });
+                            });
+                        });
+                        $('#lth_solr_totalcount').val(totalCount);
+                    }
+                } else {
+                    $('#facet_container').empty();
+                }
+                
+                $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + d.organisationTitle + ' (' + d.numFound + ')' + '</h2>');
+
+                var scopeArray = scope.split(',');
+                var indexArray;
+
+                $.each( d.data, function( key, aData ) {
+
+                    var template = $('#solrPublicationTemplate').html();
+                    
+                    articleNumber = '';
+                    authorName = '';
+                    bibliographicalNote = ''.
+                    documentTitle = '';
+                    electronicIsbn = '';
+                    electronicVersion = '';
+                    
+                    hostPublicationTitle = '';
+                    journalTitle = '';
+                    link = '';
+                    numberOfPages = '';
+                    openAccessPermission = '';
+                    pages = '';
+                    publicationDate = '';
+                    publisher = '';
+                    placeOfPublication = '';
+                    portalUrl = '';
+                    publicationStatus = '';
+                    publicationType = '';
+                    title = '';
+                    
+                    volume = '';
+                    
+                    //id
+                    id = aData.id;
+                    
+                    //documentTitle
+                    if(aData.documentTitle) {
+                        title = aData.documentTitle; //.charAt(0).toUpperCase() + aData.documentTitle.slice(1).toLowerCase();
+                    } else {
+                        title = 'untitled';
+                    }
+                    
+                    var path = '';
+                    var publicationDetailPage = 'visa';
+                    if(sysLang=='en') {
+                        publicationDetailPage = 'show';
+                    }
+
+                    path = window.location.href + publicationDetailPage;
+
+                    //title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '('+id+')(publication)">' + title + '</a>';
+                    
+                    //articleNumber
+                    if(aData.articleNumber) articleNumber = ', ' + aData.articleNumber;
+                    
+                    //openAccessPermission
+                    if(aData.openAccessPermission) openAccessPermission = aData.openAccessPermission;
+
+                    if(electronicVersionFileURL || openAccessPermission) {
+                        if(electronicVersionFileURL) {
+                            electronicVersion = '<i class="fa fa-paperclip"></i>';
+                        }
+                        if(openAccessPermission) {
+                            if(openAccessPermission==='Öppen' || openAccessPermission==='Open') {
+                                electronicVersion += '<i class="fa fa-unlock"></i> Open access';
+                            }
+                        }
+                    }
+        
+                    //authorName
+                    if(aData.authorName) {
+                        $.each( aData.authorName, function( anKey, anValue ) {
+                            if(authorName) authorName += ', ';
+                            authorName += anValue;
+                        });
+                    }
+                    
+                    //hostPublicationTitle
+                    if(aData.hostPublicationTitle) hostPublicationTitle = '<i>' + aData.hostPublicationTitle + '</i>. ';
+                    
+                    //pages
+                    if(aData.pages) pages = lth_solr_messages.pagesAbbreviation + ' ' + aData.pages + ' ';
+                    
+                    //portalUrl
+                    //"portalUrl":"http://portal.research.lu.se/portal/en/publications/universal-exiles(599b6b45-7f64-4e97-a013-85afddd92bbb).html",
+                    if(aData.portalUrl) {
+                        portalUrl = aData.portalUrl;
+                        link = portalUrl.split('/').pop().split('(').shift();
+                    }
+                    
+                    //publicationDate
+                    if(aData.publicationDateYear) publicationDate = aData.publicationDateYear;
+                    if(aData.publicationDateMonth) publicationDate += '-'+aData.publicationDateMonth;
+                    if(aData.publicationDateDay) publicationDate += '-'+aData.publicationDateDay;
+                    if(publicationDate) publicationDate = publicationDate + ' ';
+                    
+                    //publicationStatus
+                    if(aData.publicationStatus) publicationStatus = aData.publicationStatus;
+                    
+                    //publicationStatus
+                    if(aData.publicationType) publicationType = aData.publicationType;
+                    
+                    //publisher
+                    if(aData.publisher) {
+                        publisher = aData.publisher + ' ';
+                    }
+                    
+                    //placeOfPublication
+                    if(aData.placeOfPublication) {
+                        placeOfPublication = aData.placeOfPublication + ': ';
+                    }
+                    
+                    //numberOfPages
+                    if(aData.numberOfPages) {
+                        numberOfPages = aData.numberOfPages + ' ' + lth_solr_messages.pagesAbbreviation;
+                    }
+                    
+                    if(aData.journalTitle) {
+                        journalTitle = ' ' + lth_solr_messages.in + ': ' + aData.journalTitle + '.';
+                    }
+                    
+                    if(aData.journalTitle && aData.journalNumber) journalTitle += ' ' + aData.journalNumber + ', ';
+                    
+                    //volume
+                    if(aData.volume) {
+                        volume = aData.volume + ',';
+                    }
+                    
+                    //###bibliographicalNote
+                    if(aData.bibliographicalNote) {
+                        bibliographicalNote = aData.bibliographicalNote;
+                    }
+
+                    template = template.replace('###articleNumber###', articleNumber);
+                    template = template.replace('###authorName###', authorName);
+                    template = template.replace('###bibliographicalNote###', bibliographicalNote);
+                    template = template.replace('###id###', id);
+                    template = template.replace('###hostPublicationTitle###', hostPublicationTitle);
+                    template = template.replace('###journalTitle###', journalTitle);
+                    template = template.replace('###link###', link);
+                    template = template.replace('###numberOfPages###', numberOfPages);
+                    template = template.replace('###pages###', pages);
+                    template = template.replace('###publicationType###', publicationType);
+                    template = template.replace('###publicationDate###', publicationDate);
+                    template = template.replace('###publicationStatus###', publicationStatus);
+                    template = template.replace('###publisher###', publisher);
+                    template = template.replace('###placeOfPublication###', placeOfPublication);
+                    template = template.replace('###title###', title);
+                    template = template.replace('###volume###', volume);
+                    template = template.replace('###electronicVersion###', electronicVersion);
+
+                    $('#lthsolr_organisation_container  > div > section').append(template);
+
+                    $('#' + id + ' > div > h2 > a.postTitle').click(function(e){
+                        postIt(e, id);
+                    });
+                        
+                    
+                });
+                
+                $('.lthsolr_loader').remove();
+
+            } else if(!query) {
+                $('.lth_solr_filter_container').next().remove();
+                $('.lth_solr_filter_container').remove();
+            }
+
+            
+            toggleFacets();
+        }
+    });
+}
+
+
+function postIt(e, id)
+{
+    e.preventDefault();
+    $('#lth_solr_id').val(id);
+    $('#postIt').submit();
 }
 
 
@@ -747,8 +1041,10 @@ function listOrganisationRoles(query)
 
 function showStaffNovo()
 {
-    var authorName, displayName, documentId, documentTitle, email, image, journalTitle, mailDelivery, organisationStreet, organisationPostalAddress, organisation='', organisation2='',
-            organisationDescription, mobile, pages, phone, profileInformationJson, profileInformation, publicationDateYear, publicationType, publisher, roomNumber, allSame = false;
+    var authorName, displayName, documentId, documentTitle, email, image, journalTitle, mailDelivery, organisationHideOnWeb, organisationStreet, 
+            organisationPostalAddress, organisation='', organisation2='',
+            organisationDescription, mobile, pages, phone, profileInformationJson, profileInformation, publicationDateYear, 
+            publicationType, publisher, roomNumber, allSame = false;
     var sysLang = $('html').attr('lang');
     
     $.ajax({
@@ -792,7 +1088,7 @@ function showStaffNovo()
                     }
 
                     for (var i=0; i<aData.organisationId.length; i++) {
-                        
+                        if(aData.organisationHideOnWeb[i] === '0') {
                         //if(aData.title) {
                             if(aData.title[i]) {
                                 if(organisation && allSame) organisation += '<br />';
@@ -866,8 +1162,9 @@ function showStaffNovo()
                             }
                         //}
                         
-                        if(!allSame) organisation = '<p>' + organisation + '</p>';
+                            if(!allSame) organisation = '<p>' + organisation + '</p>';
                         
+                        }
                         //template = template.replace('###visitingAddress###', ostreet + ' ' + ocity + addBreak(ophone));
                         //template = template.replace('###postalAddress###', addBreak(organisationPostalAddress));
                     }

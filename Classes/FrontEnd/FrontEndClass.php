@@ -337,6 +337,24 @@ class FrontEndClass
     }
     
     
+    public function showPublicationNovo($syslang, $scope, $organisation)
+    {
+        //Staff 
+        $content .= '<div id="lthsolr_show_publication_container"></div>';
+        
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_novo_show.html");
+
+        //hidden fields
+        $content .= '
+            <input type="hidden" id="lth_solr_action" value="showPublicationNovo" />
+            <input type="hidden" id="lth_solr_organisation" value="' . $organisation . '" />
+            <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+            ';
+
+        return $content;
+    }
+    
+    
     public function showStaffNovo($syslang, $scope, $organisation)
     {
         //Staff 
@@ -361,7 +379,19 @@ class FrontEndClass
         
         $content .= '';
         
-        if(!$hideSearchField) {
+        if(!$hideSearchField && $action==='listOrganisationPublications') {
+            $content .= '<div class="form-group">
+                <label class=" w-100">
+                   Skriv för att filtrera
+                   <div class="input-group rounded-0">
+                   <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="Skriv minst 3 tecken" />
+                     <div class="input-group-append">
+                    <button class="btn btn-outline-primary rounded-0" type="button">Filtrera</button>
+                     </div>
+                   </div>
+                 </label>
+               </div>';
+        } else if(!$hideSearchField) {
             $content .= '<div class="form-group">
                 <label class=" w-100">
                    Skriv för att filtrera
@@ -383,10 +413,14 @@ class FrontEndClass
         } else if($action==='listOrganisationStaff' || $action==='listOrganisationRoles') {
             $content .= '<div class="search-result"><section></section></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_new.html");
+        } else if($action==='listOrganisationPublications') {
+            $content .= '<div class="search-result"><section></section></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publications_novo_list.html");
         }
 
         if($extraPeople) $extraPeople = urlencode($extraPeople);
         if($extraPeopleLu) $extraPeopleLu = urlencode($extraPeopleLu);
+        $content .= '<form action="" method="post" name="postIt" id="postIt">';
         $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />';
         $content .= '<input type="hidden" id="lth_solr_vroles" value="' . $vroles . '" />';
         $content .= '<input type="hidden" id="lth_solr_heritage" value="' . $heritage . '" />';
@@ -395,7 +429,8 @@ class FrontEndClass
         $content .= '<input type="hidden" id="lth_solr_totalcount" value="" />';
         $content .= '<input type="hidden" id="lth_solr_extrapeople" value="' . $extraPeople . '" />';
         $content .= '<input type="hidden" id="lth_solr_action" value="' . $action . '" />';
-        
+        $content .= '<input type="hidden" id="lth_solr_id" name="uuid" value="" />';
+        $content .= '</form>';
         return $content;
     }
     

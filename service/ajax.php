@@ -155,10 +155,238 @@ function myInit()
         case 'showStaffNovo':
             $content = $this->showStaffNovo($syslang, $scope, $dataSettings, $config);
             break;
+        case 'listOrganisationPublications':
+            $content = $this->listOrganisationPublications($dataSettings, $config, $action);
+            break;
     }
 
     print $content;
 
+}
+
+
+function listOrganisationPublications($dataSettings, $config, $action)
+{
+    $filterQuery = $dataSettings['query'];
+    $scope = $dataSettings['scope'];
+    $syslang = $dataSettings['syslang'];
+    
+    if($action==='exportPublications') {
+        $fieldArray = json_decode($tableFields, true);
+    } else {
+        $fieldArray = array("articleNumber","authorName","bibliographicalNote","documentTitle",
+            "electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
+            "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
+            "electronicVersionVersionType","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","openAccessPermission","pages",
+            "placeOfPublication","publicationDateYear","publicationDateMonth","publicationDateDay","portalUrl","publicationStatus","publicationType",
+            "publisher","volume");
+    }
+    
+    $currentDate = gmDate("Y-m-d\TH:i:s\Z");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+       
+    if($filterQuery) {
+        $filterQuery = str_replace(" ","\ ",$filterQuery);
+        $filterQuery = " AND ((documentTitle:*$filterQuery*) OR authorName:*$filterQuery*)";
+    }
+    
+    //Organisation
+    if($scope) {
+        $queryToSet = 'docType:publication';
+        $scope = urldecode($scope);
+        $i = 0;
+        $queryToSet .= ' AND (';
+        $scopeArray = explode(',', $scope);
+        foreach($scopeArray as $key => $value) {
+            if($i>0) $queryToSet .= ' OR ';
+            $queryToSet .= 'organisationSourceId:' . array_shift(explode('__',$value)) . ' OR organisationTitleExact:' . str_replace(' ', '\ ', $value) ;
+            $i++;
+        }
+
+        $queryToSet .= ')';
+    }
+    
+    $listComingDissertations = '';
+    if($action==='listComingDissertations') {
+        $listComingDissertations = ' AND awardedDate:[' . $currentDate . ' TO *]';
+    }
+    $queryToSet .= ' AND (workflow:Granskad OR workflow:Validated) AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . ']' . $filterQuery;
+
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    if(!$tableStart) $tableStart = 0;
+    if(!$tableLength) $tableLength = 10;
+    $query->setStart($tableStart)->setRows($tableLength);
+    
+    // get the facetset component
+    $facetSet = $query->getFacetSet();
+    
+    // create a facet field instance and set options
+    $facetSet->createFacetField('standard')->setField('standardCategory');
+    $facetSet->createFacetField('language')->setField('language');
+    $facetSet->createFacetField('year')->setField('publicationDateYear');
+    $facetSet->createFacetField('electronicVersionAccessType')->setField('electronicVersionAccessType');
+
+    if($facet) {
+        $facetArray = json_decode($facet, true);
+
+        $facetQuery = '';
+        foreach($facetArray as $key => $value) {
+            $facetTempArray = explode('###', $value);
+            if($facetQuery) {
+                $facetQuery .= ' AND ';
+            }
+            $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"';
+        }
+
+        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
+    }
+
+    if($sorting) {
+        switch($sorting) {
+            case 'publicationType':
+                $sortArray = array(
+                    'publicationType' => 'asc',
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                    'documentTitle' => 'asc'
+                );
+                break;
+            case 'publicationYear':
+                $sortArray = array(
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                    'documentTitle' => 'asc'
+                );
+                break;
+            case 'documentTitle':
+                $sortArray = array(
+                    'documentTitle' => 'asc',
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                );
+                break;
+            case 'authorName':
+                $sortArray = array(
+                    'authorLastNameExact' => 'asc',
+                    'authorFirstNameExact' => 'asc',
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                    'documentTitle' => 'asc',
+                );
+                break;
+        }
+    } else {
+        $sortArray = array(
+            'lth_solr_sort_' . $pageid . '_i' => 'asc',
+            'publicationDateYear' => 'desc',
+            'publicationDateMonth' => 'desc',
+            'publicationDateDay' => 'desc',
+            'documentTitle' => 'asc',
+            'lastNameExact' => 'asc',
+            'firstNameExact' => 'asc'
+        );
+    }
+
+    $query->addSorts($sortArray);
+
+    $response = $client->select($query);
+    
+    $numFound = $response->getNumFound();
+    
+    // display facet query count
+    $facetStandard = $response->getFacetSet()->getFacet('standard');
+    if($syslang==="en") {
+        $facetHeader = "Publication Type";
+    } else {
+        $facetHeader = "Publikationstyp";
+    }
+    foreach ($facetStandard as $value => $count) {
+        if($count > 0) $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+    }
+
+    $facetLanguage = $response->getFacetSet()->getFacet('language');
+    if($syslang==="en") {
+        $facetHeader = "Language";
+    } else {
+        $facetHeader = "Språk";
+    }
+    foreach ($facetLanguage as $value => $count) {
+        if($count > 0) $facetResult["language"][] = array($value, $count, $facetHeader);
+    }
+
+    $facetYear = $response->getFacetSet()->getFacet('year');
+    if($syslang==="en") {
+        $facetHeader = "Publication Year";
+    } else {
+        $facetHeader = "Publikationsår";
+    }
+    foreach ($facetYear as $value => $count) {
+        if($count > 0) $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
+    }
+    if($facetResult['publicationDateYear']) usort($facetResult['publicationDateYear'],array($this,'compareOrder'));
+    
+    $facetElectronicVersionAccessType = $response->getFacetSet()->getFacet('electronicVersionAccessType');
+    if($syslang==="en") {
+        $facetHeader = "Full text";
+    } else {
+        $facetHeader = "Fulltext";
+    }
+    foreach ($facetElectronicVersionAccessType as $value => $count) {
+        if($count > 0) $facetResult['electronicVersionAccessType'][] = array($value, $count, $facetHeader);
+    }
+        
+    foreach ($response as $document) {
+        if($action==='exportPublications') {
+            foreach($fieldArray as $field) {
+                $data[$i][$field] = $document->$field;
+            }
+            $i++;
+        } else {
+            $data[] = array(
+                "articleNumber" => $document->$articleNumber,
+                "authorName" => $document->authorName,
+                "bibliographicalNote" => "",//$document->bibliographicalNote,
+                "documentTitle" => $document->documentTitle,
+                "electronicIsbn" => $document->electronicIsbn,
+                "electronicVersionAccessType" => $document->electronicVersionAccessType,
+                "electronicVersionDoi" => $document->electronicVersionDoi,
+                "electronicVersionFileName" => $document->electronicVersionFileName,
+                "electronicVersionFileURL" => $document->electronicVersionFileURL,
+                "electronicVersionLicenseType" => $document->electronicVersionLicenseType,
+                "electronicVersionLink" => $document->electronicVersionLink,
+                "electronicVersionMimeType" => $document->electronicVersionMimeType,
+                "electronicVersionSize" => $document->electronicVersionSize,
+                "electronicVersionTitle" => $document->electronicVersionTitle,
+                "electronicVersionVersionType" => $document->electronicVersionVersionType,
+                "hostPublicationTitle" => $document->hostPublicationTitle,
+                "id" => $document->id,
+                "journalTitle" => $document->journalTitle,
+                "journalNumber" => $document->journalNumber,
+                "numberOfPages" => $document->numberOfPages,
+                "openAccessPermission" => $document->openAccessPermission,
+                "pages" => $document->pages,
+                "portalUrl" => $document->portalUrl,
+                "publicationStatus" => $document->publicationStatus,
+                "publicationType" => $document->publicationType,
+                "publicationDateYear" => $document->publicationDateYear,
+                "publicationDateMonth" => $document->publicationDateMonth,
+                "publicationDateDay" => $document->publicationDateDay,
+                "placeOfPublication" => $document->placeOfPublication,
+                "publisher" => $document->publisher,
+                "volume" => $document->volume,
+            );
+        }
+    }
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult, 'query' => $queryToSet);
+    return json_encode($resArray);
 }
 
 
@@ -636,7 +864,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
 {
     $fieldArray = array("coordinates","docType","email","firstName","guid","heritageName2","heritage2","homepage","id",
         "image","intro","lastName","lucrisPhoto","mailDelivery","mobile","organisationCity","organisationDescription",
-        "organisationId","organisationLeaveOfAbsence","organisationName","organisationPhone","organisationStreet",
+        "organisationHideOnWeb","organisationId","organisationLeaveOfAbsence","organisationName","organisationPhone","organisationStreet",
         "organisationPostalAddress","phone","primaryAffiliation","profileInformationNovo","roomNumber","title","uuid");
     
     if($dataSettings['organisation']) $organisation = array_pop(explode('__', strtolower($dataSettings['organisation'])));
@@ -695,6 +923,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         $i=0;
         $mailDelivery = array();
         $mobile = array();
+        $organisationHideOnWeb = array();
         $organisationId = array();
         $organisationLeaveOfAbsence = array();
         $organisationName = array();
@@ -710,6 +939,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
                     $mailDelivery[] = $document->mailDelivery[$i];
                     $mobile[] = $document->mobile[$i];
                     $organisationDescription[] = $document->organisationDescription[$i];
+                    $organisationHideOnWeb[] = $document->organisationHideOnWeb[$i];
                     $organisationId[] = $document->organisationId[$i];
                     $organisationLeaveOfAbsence[] = $document->organisationLeaveOfAbsence[$i];
                     $organisationName[] = $document->organisationName[$i];
@@ -749,6 +979,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
             "organisationName" => $organisationName,
             "organisationId" => $organisationId,
             "organisationLeaveOfAbsence" => $organisationLeaveOfAbsence,
+            "organisationHideOnWeb" => $organisationHideOnWeb,
             "organisationPhone" => $document->organisationPhone,
             "organisationStreet" => $document->organisationStreet,
             "organisationStreetSame" => $this->checkSame($document->organisationStreet),
