@@ -89,7 +89,7 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             } else if($display === 'organisation') {
                 if($uuid) {
                     $scope = $uuid;
-                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationStaff');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listSingleOrganisationStaff');
                 } else {
                     $content .= $FrontEndClass->listOrganisation($syslang, $organisation, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisation');
                 }

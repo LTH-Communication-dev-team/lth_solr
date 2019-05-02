@@ -342,7 +342,7 @@ class FrontEndClass
         //Staff 
         $content .= '<div id="lthsolr_show_publication_container"></div>';
         
-        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_novo_show.html");
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_novo_presentation.html");
 
         //hidden fields
         $content .= '
@@ -414,13 +414,13 @@ class FrontEndClass
                  </label>
                </div>';
         }
-        
+
         $content .= '<div id="lthsolr_organisation_container" class="col-12 mt-3 mt-xl-6">'; 
-        
+                
         if($action==='listOrganisation') {
             $content .= '<div class="search-result"><section></section></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/organisation_list.html");
-        } else if($action==='listOrganisationStaff' || $action==='listOrganisationRoles') {
+        } else if($action==='listOrganisationStaff' || $action==='listOrganisationRoles' || $action==='listSingleOrganisationStaff') {
             $content .= '<div class="search-result"><section></section></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_new.html");
         } else if($action==='listOrganisationPublications') {

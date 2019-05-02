@@ -150,6 +150,7 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $name_en = '';
                 $name_sv = '';
                 $organisationTitle = '';
+                $organisationTitleExact = '';
                 $typeClassification_sv = '';
                 $typeClassification_en = '';
                 $typeClassification = '';
@@ -229,6 +230,8 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $parentName = $parentName_en;
                 }
                 
+                if($organisationTitle) $organisationTitleExact = strtolower ($organisationTitle);
+                
                 //Extradata from lucache
                 $homepage = $organisationArray[$orgid]['homepage'];
                 $mailDelivery = (string)$organisationArray[$orgid]['maildelivery'];
@@ -254,6 +257,7 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'organisationSourceId' => $organisationSourceId,
                     'organisationStreet' => $organisationStreet,
                     'organisationTitle' => $organisationTitle,
+                    'organisationTitleExact' => $organisationTitleExact,
                     'portalUrl' => $portalUrl,
                     'typeClassification' => $typeClassification,
                     'type' => 'organisation',

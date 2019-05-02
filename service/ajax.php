@@ -157,6 +157,7 @@ function myInit()
             break;
         case 'listOrganisationStaff':
         case 'listOrganisationStaffFirstLetter':
+        case 'listSingleOrganisationStaff':
             $content = $this->listOrganisationStaff($dataSettings, $config, $action);
             break;
         case 'listOrganisationRoles':
@@ -520,7 +521,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
             $organisationTitle = $document->organisationTitle;
         }
     }
-    
+
     //Staff
     $fieldArray = array("email","firstName","guid","heritage","heritageName","heritage2","homepage","id","image","intro","lastName","lucrisPhoto","mobile",
         "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","organisationName","organisationPrimaryRole",
@@ -530,16 +531,19 @@ function listOrganisationStaff($dataSettings, $config, $action)
     if($scopeArray) {
         //$scope = explode(',', urldecode($scope));
         foreach($scopeArray as $key => $value) {
-            if($term) {
+            if($term && $value) {
                 $term .= ' OR ';
                 
             }
-            $term .= 'heritage2:*' . $value . '*';
+            if($value) $term .= 'heritage2:*' . $value . '*';
         }
         
         //$term .= ' OR heritageName2:*' . str_replace('$',',',str_replace(' ', '\ ', strtolower($scope))) . '*';
         $term = ' AND (' . $term . ')';
     }
+    
+    $singleScope = '';
+    if($action==='listSingleOrganisationStaff') $singleScope = $value;
     
     $photo = array();
     if($extraPeople) {
@@ -612,6 +616,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
     }*/
     
     $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member)' . $term;// . $filterQuery;
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
 
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
@@ -709,7 +714,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
         });
     }*/
     
-    $resArray = array('data' => $data, 'facet' => $facetResult, 'mailDelivery' => $mailDelivery, 'organisationTitle' => $organisationTitle, 'numFound' => $numFound, 'query' => $queryToSet);
+    $resArray = array('data' => $data, 'facet' => $facetResult, 'singleScope' => $singleScope, 'mailDelivery' => $mailDelivery, 'organisationTitle' => $organisationTitle, 'numFound' => $numFound, 'query' => $queryToSet);
     
     return json_encode($resArray);
 }
@@ -1622,7 +1627,7 @@ function searchLong($term, $inputQuery, $tableLength, $peopleOffset, $pageOffset
     
     if($term) {
         //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $term, 'crdate' => time()));
-        $term = array_pop(explode(',', htmlspecialchars_decode($term)));
+        $term = array_pop(explode(',', htmlspecialchars_decode(urldecode($term))));
     } else {
         $term = $inputQuery;
     }

@@ -62,7 +62,7 @@ $(document).ready(function() {
     
     if($('#lth_solr_action').val() == 'listOrganisation') {
         listOrganisation('');
-    } else if($('#lth_solr_action').val() == 'listOrganisationStaff') {
+    } else if($('#lth_solr_action').val() == 'listOrganisationStaff' || $('#lth_solr_action').val() == 'listSingleOrganisationStaff') {
         listOrganisationStaff('', '');
     } else if($('#lth_solr_action').val() == 'listOrganisationRoles') {
         listOrganisationRoles('');
@@ -627,6 +627,7 @@ function listOrganisationStaff(facet, query)
     var sysLang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
     var vroles = $('#lth_solr_vroles').val();
+    var action = $('#lth_solr_action').val();
     
     if($('#lth_solr_query').val().trim().length > 2) {
         query = $('#lth_solr_query').val().trim();
@@ -666,7 +667,7 @@ function listOrganisationStaff(facet, query)
         url : 'index.php',
         data: {
             eID: 'lth_solr',
-            action: 'listOrganisationStaff',
+            action: action,
             dataSettings: {
                 extraPeople: extraPeople,
                 facet: facet,
@@ -758,6 +759,7 @@ function listOrganisationStaff(facet, query)
                     $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + d.organisationTitle + ' (' + d.numFound + ')' + '</h2>');
                 }
                 var scopeArray = scope.split(',');
+                if(d.singleScope) scopeArray = d.singleScope.split(',');
                 var indexArray;
 
                 $.each( d.data, function( key, aData ) {
