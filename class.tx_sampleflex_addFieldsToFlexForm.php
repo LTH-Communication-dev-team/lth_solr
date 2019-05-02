@@ -617,6 +617,7 @@ class user_sampleflex_addFieldsToFlexForm
         require(__DIR__.'/service/init.php');
         
         $content = "";
+        $i = 0;
 
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
         
@@ -658,13 +659,56 @@ class user_sampleflex_addFieldsToFlexForm
             foreach ($facetTitles as $value => $count) {
                 $tmpArray[] = strtolower($value); 
             }
+            /*asort($tmpArray);
+            foreach ($tmpArray as $key => $value) {
+                $config['items'][$i] = array(0 => $value, 1 => str_replace(',','$', $value));
+                $i++;
+            }*/
+        }
+        
+        $sconfig = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $settings['solrHost'],
+                    'port' => $settings['solrPort'],
+                    'path' => "/solr/core_en/",//$settings['solrPath'],
+                    'timeout' => $settings['solrTimeout']
+                )
+            )
+        );
+      
+        $client = new Solarium\Client($sconfig);
+        $query = $client->createSelect();
+        
+        $queryToSet = '(docType:staff)';
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        $sortArray = array(
+            'primaryVroleTitle' => 'asc'
+        );
+        $query->addSorts($sortArray);
+        $query->setStart(0)->setRows(10);
+        $facetSet = $query->getFacetSet();
+        $facetSet->setLimit(1000);
+        $facetSet->createFacetField('mysTitle')->setField('title');
+        $response = $client->select($query);
+        
+        if($response) {
+            $facetTitles = $response->getFacetSet()->getFacet('mysTitle');
+            //$tmpArray = array();
+            foreach ($facetTitles as $value => $count) {
+                $tmpArray[] = strtolower($value); 
+            }
+            
+        }
+        if($tmpArray) {
             asort($tmpArray);
             foreach ($tmpArray as $key => $value) {
                 $config['items'][$i] = array(0 => $value, 1 => str_replace(',','$', $value));
                 $i++;
             }
         }
-
+        
         return $config;
     }
     
