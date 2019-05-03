@@ -2699,13 +2699,16 @@ function listProjects($scope, $syslang, $config, $tableLength, $tableStart, $fil
     }
     
     if($scope) {
+        
         $scope = json_decode(urldecode($scope),true);
         
         foreach($scope as $key => $value) {
-            if($term) {
-                $term .= " OR ";
+            foreach($value as $skey => $svalue) {
+                if($term) {
+                    $term .= " OR ";
+                }
+                $term .= "organisationSourceId:$svalue";
             }
-            $term .= "organisationSourceId:$value[0]";
         }
     }
 
@@ -2713,6 +2716,11 @@ function listProjects($scope, $syslang, $config, $tableLength, $tableStart, $fil
     $query->setQuery($queryToSet);
     //$query->addParam('rows', 1500);
     $query->setStart($tableStart)->setRows($tableLength);
+    
+    $sortArray = array(
+        'projectTitle' => 'asc'
+    );
+    $query->addSorts($sortArray);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
@@ -2786,7 +2794,7 @@ function listProjects($scope, $syslang, $config, $tableLength, $tableStart, $fil
             'visibility' => $document->visibility,
         );
     }
-    $resArray = array('data' => $data, 'facet' => $facetResult, 'numFound'=> $numFound, 'debug' => $queryToSet);
+    $resArray = array('data' => $data, 'facet' => $facetResult, 'numFound'=> $numFound, 'debug' => $queryToSet . $debug);
     return json_encode($resArray);
 }
 
