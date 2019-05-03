@@ -4470,8 +4470,10 @@ function showProject()
 {
     var id, projectTitle, curtailed, endDate, managingOrganisationId, managingOrganisationName, managingOrganisationType;
     var organisationId, organisationName, organisationType, participantId, participantName, participantOrganisationId;
-    var participantOrganisationName, participantOrganisationType, participantRole, participants, projectStatus, projectType, startDate, visibility;
-    var projectTitle, projectDescription, projectDescriptionType, homepage;
+    var participantOrganisationName, participantOrganisationType, participantRole, projectStatus, projectType, startDate, visibility;
+    var projectTitle, projectDescriptionType, homepage;
+    var participants = '';
+    var projectDescription = '';
     
     var syslang = $('html').attr('lang');
     
@@ -4499,13 +4501,13 @@ function showProject()
             if(d.data) {
                 id = d.data.id;
                 curtailed = d.data.curtailed;
-                endDate = d.data.endDate;
+                endDate = d.data.endDate.substr(0,10);
                 managingOrganisationName = d.data.managingOrganisationName;
                 organisationId = d.data.organisationId;
                 organisationName = d.data.organisationName;
                 organisationType = d.data.organisationType;
                 
-                if(d.data.participantId) {
+                if(d.data.participantName) {
                     participantId = d.data.participantId;
                     participantName = d.data.participantName;
                     participantOrganisationId = d.data.participantOrganisationId;
@@ -4515,9 +4517,11 @@ function showProject()
                     var participantIdArray = participantId.split(',');
                     var participantNameArray = participantName.split(',');
                     
-                    for (var j = 0; j < participantIdArray.length; j++) {
+                    for (var j = 0; j < participantNameArray.length; j++) {
+                        if(participantIdArray[j]) {
                         homepage = window.location.href.split(staffDetailPage).shift() + staffDetailPage + '/' + 
                                 participantNameArray[j].trim().replace(' ','-') + '('+participantIdArray[j].trim()+')(participant)';
+                        }
                         participants += '<li><a href="' + homepage + '">' + participantNameArray[j].trim() + '</a></li>'
                     }
                     
@@ -4525,41 +4529,38 @@ function showProject()
                     '<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseParticipants" aria-expanded="true" aria-controls="collapseParticipants">'+
                         'Participants'+
                     '</button></h5></div>'+
-                    '<div id="collapseParticipants" class="collapse" aria-labelledby="headingParticipants" data-parent="#lthSolrAccordion">'+
+                    '<div id="collapseParticipants" class="panel-collapse collapse show in" aria-labelledby="headingParticipants" data-parent="#lthSolrAccordion">'+
                     '<div class="card-body"><ul class="list">' + participants + '</ul></div></div></div>';
                 }
                 
                 if(d.data.projectDescription) {
-                    projectDescription = d.data.projectDescription;
-                    projectDescription = '<div class="card"><div class="card-header" id="headingDescription"><h5 class="mb-0">'+
-                    '<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">'+
-                        'Description'+
-                    '</button></h5></div>'+
-                    '<div id="collapseDescription" class="collapse show" aria-labelledby="headingDescription" data-parent="#lthSolrAccordion">'+
-                    '<div class="card-body">'+ projectDescription + '</div></div></div>';
+                    $.each(d.data.projectDescription, function( descKey, descData ) {
+                        if(descData && descData != 'false') projectDescription += '<div class="card"><div class="card-header" id="headingDescription"><h5 class="mb-0">'+
+                        '<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">'+
+                            'Description'+
+                        '</button></h5></div>'+
+                        '<div id="collapseDescription" class="collapse show in" aria-labelledby="headingDescription" data-parent="#lthSolrAccordion">'+
+                        '<div class="card-body">'+ descData + '</div></div></div>';
+                    });
+                    //projectDescription = d.data.projectDescription;
+                    
                 }
                 
-                projectDescriptionType = d.data.projectDescriptionType;
+                //projectDescriptionType = d.data.projectDescriptionType;
                 projectStatus = d.data.projectStatus;
                 projectTitle = d.data.projectTitle;
-                projectType = d.data.projectType;
-                startDate = d.data.startDate;
-                visibility = d.data.visibility;
+                startDate = d.data.startDate.substr(0,10);
                 
                 var template = $('#solrProjectTemplate').html();
                
                 template = template.replace('###endDate###', endDate.substr(0,12));
-                template = template.replace('###managingOrganisationName###', managingOrganisationName);
+                //template = template.replace('###managingOrganisationName###', managingOrganisationName);
                 template = template.replace('###organisationId###', organisationId);
-                template = template.replace('###organisationName###', organisationName);
-                template = template.replace('###organisationType###', organisationType);
                 template = template.replace('###participants###', participants);
                 template = template.replace('###projectDescription###', projectDescription);
                 template = template.replace('###projectDescriptionType###', projectDescriptionType);
                 template = template.replace('###projectStatus###', projectStatus);
-                template = template.replace('###projectType###', projectType);
                 template = template.replace('###startDate###', startDate.substr(0,12));
-                template = template.replace('###visibility###', d.data.visibility);
 
                 $('#lthsolr_projects_container').html(template);
                 

@@ -2709,7 +2709,8 @@ function listProjects($scope, $syslang, $config, $tableLength, $tableStart, $fil
         }
     }
 
-    $query->setQuery('docType:project AND (' . $term . ')' . $filterQuery);
+    $queryToSet = 'docType:project AND (' . $term . ')' . $filterQuery;
+    $query->setQuery($queryToSet);
     //$query->addParam('rows', 1500);
     $query->setStart($tableStart)->setRows($tableLength);
     
@@ -2785,7 +2786,7 @@ function listProjects($scope, $syslang, $config, $tableLength, $tableStart, $fil
             'visibility' => $document->visibility,
         );
     }
-    $resArray = array('data' => $data, 'facet' => $facetResult, 'numFound'=> $numFound);
+    $resArray = array('data' => $data, 'facet' => $facetResult, 'numFound'=> $numFound, 'debug' => $queryToSet);
     return json_encode($resArray);
 }
 
@@ -2824,7 +2825,7 @@ function showProject($scope, $syslang, $config)
             'participantOrganisationName' => $this->fixArray($document->participantOrganisationName),
             'participantOrganisationType' => $this->fixArray($document->participantOrganisationType),
             'participantRole' => $this->fixArray($document->participantRole),
-            'projectDescription' => $this->fixArray($document->projectDescription),
+            'projectDescription' => $document->projectDescription,
             'projectStatus' => $document->projectStatus,
             'projectTitle' => $document->projectTitle,
             'projectType' => $document->projectType,

@@ -237,14 +237,14 @@ class FrontEndClass
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_presentation.html");
         
         //Publications
-        $content .= '<div class="card">
+        $content .= '<div style="margin-top:20px;" class="card">
             <div class="card-header" id="headingPublications"><h5 class="mb-0">
         <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapsePublications" aria-expanded="true" aria-controls="collapsePublications">
           Publications
         </button>
       </h5>
     </div>
-    <div id="collapsePublications" class="collapse" aria-labelledby="headingOne" data-parent="#lthSolrAccordion">
+    <div id="collapsePublications" class="collapse show" aria-labelledby="headingOne" data-parent="#lthSolrAccordion">
       <div class="card-body">';
         $content .= $this->listPublications($scope, '', '', '', '', '', '', 'showProject','fullList','','','');
         $content .= '</div></div></div>';

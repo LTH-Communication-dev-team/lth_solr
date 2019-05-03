@@ -41,14 +41,14 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $buffer = $client->getPlugin('bufferedadd');
         $buffer->setBufferSize(200);
         
-        $mode = 'reindex';
+        $mode = '';
         
         $startFromHere = 0;
         
         if($mode==='') {
             $executionSucceeded = $this->getFiles($startFromHere, $solrLucrisApiKey, $solrLucrisApiVersion);        
         }
-        
+
         if($mode==='reindex') {
             //$this->deleteOldProjects($client);
         }
@@ -169,6 +169,7 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             
             $participantId = array();
             $participantName = array();
+            $name= '';
             $name_en = '';
             $name_sv = '';
             $participantRole = array();
@@ -243,9 +244,10 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         if((string)$description->attributes()->locale === 'en_GB') $description_en = (string)$description;
                         if((string)$description->attributes()->locale === 'sv_SE') $description_sv = (string)$description;
                         
+                        $projectDescriptionType[] = $this->languageSelector($syslang, $descriptionType_en, $descriptionType_sv);
+                        $projectDescription[] = $this->languageSelector($syslang, $description_en, $description_sv);
                     }
-                    $projectDescriptionType[] = $this->languageSelector($syslang, $descriptionType_en, $descriptionType_sv);
-                    $projectDescription[] = $this->languageSelector($syslang, $description_en, $description_sv);
+                    
                 }
                 
                 //participants
@@ -256,6 +258,10 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             if($participant->person->name[0]) $name_en = (string)$participant->person->name[0];
                             if($participant->person->name[1]) $name_sv = (string)$participant->person->name[1];
                             $participantName[] = $this->languageSelector($syslang, $name_en, $name_sv);
+                        } else {
+                            if($participant->name->firstName) $name = (string)$participant->name->firstName;
+                            if($participant->name->lastName) $name .= ' ' . (string)$participant->name->lastName;
+                            if($name) $participantName[] = $name;
                         }
                         if($participant->personRole) {
                             $personRole_en = (string)$participant->personRole[0];
@@ -432,6 +438,7 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     function getFiles($startFromHere, $solrLucrisApiKey, $solrLucrisApiVersion)
     {
+        $numberofloops = 1;
         
         $directory = '/var/www/html/typo3/lucrisdump';
         
@@ -444,12 +451,14 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             
             $startrecord = $startFromHere + ($i * 20);
             
-            $xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/projects?size=20&offset=$startrecord&apiKey=$solrLucrisApiKey";
-                    
+            $xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/projects/?size=20&offset=$startrecord&apiKey=$solrLucrisApiKey";
+            //$xmlpath = "https://lucris.lub.lu.se/ws/api/$solrLucrisApiVersion/projects/71f4cc87-44fc-44c1-b834-347ef4f3f750?apiKey=$solrLucrisApiKey";
+
             $xml = file_get_contents($xmlpath);
         
             $xml = @simplexml_load_string($xml);
-
+//$id = (string)$xml->attributes();
+//$xml->asXml($directory . '/projectstoindex/' . $id . '.xml');
             $numberofloops = ceil($xml->count / 20);
             
             foreach($xml->project as $project) {
