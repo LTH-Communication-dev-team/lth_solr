@@ -169,10 +169,200 @@ function myInit()
         case 'listOrganisationPublications':
             $content = $this->listOrganisationPublications($dataSettings, $config, $action);
             break;
+        case 'listOrganisationStudentPapers':
+            $content = $this->listOrganisationStudentPapers($dataSettings, $config, $action);
+            break;
     }
 
     print $content;
 
+}
+
+
+function listOrganisationStudentPapers($dataSettings, $config, $action)
+{
+    $filterQuery = $dataSettings['query'];
+    $scope = $dataSettings['scope'];
+    $syslang = $dataSettings['syslang'];
+    
+    if($action==='exportPublications') {
+        $fieldArray = json_decode($tableFields, true);
+    } else {
+        $fieldArray = array("id","abstract","authorId","genre","documentTitle","authorName","supervisorName",
+            "organisationName","organisationSourceId","publicationDateYear","language","keywordsUser","standardCategory");
+    }
+    
+    $currentDate = gmDate("Y-m-d\TH:i:s\Z");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+       
+    if($filterQuery) {
+        $filterQuery = str_replace(" ","\ ",$filterQuery);
+        $filterQuery = " AND ((documentTitle:*$filterQuery*) OR authorName:*$filterQuery*)";
+    }
+    
+    //Organisation
+    if($scope) {
+        $queryToSet = 'docType:studentPaper';
+        $scope = urldecode($scope);
+        $i = 0;
+        $queryToSet .= ' AND (';
+        $scopeArray = explode(',', $scope);
+        foreach($scopeArray as $key => $value) {
+            if($i>0) $queryToSet .= ' OR ';
+            $queryToSet .= 'organisationSourceId:' . array_pop(explode('__',$value));
+            $i++;
+        }
+
+        $queryToSet .= ')';
+    }
+    
+    $queryToSet .= $filterQuery;
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    $query->setStart(0)->setRows(100);
+    
+    // get the facetset component
+    $facetSet = $query->getFacetSet();
+    
+    // create a facet field instance and set options
+    $facetSet->createFacetField('standard')->setField('standardCategory');
+    $facetSet->createFacetField('language')->setField('language');
+    $facetSet->createFacetField('year')->setField('publicationDateYear');
+
+    if($facet) {
+        $facetArray = json_decode($facet, true);
+
+        $facetQuery = '';
+        foreach($facetArray as $key => $value) {
+            $facetTempArray = explode('###', $value);
+            if($facetQuery) {
+                $facetQuery .= ' AND ';
+            }
+            $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"';
+        }
+
+        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
+    }
+
+    if($sorting) {
+        switch($sorting) {
+            case 'publicationType':
+                $sortArray = array(
+                    'publicationType' => 'asc',
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                    'documentTitle' => 'asc'
+                );
+                break;
+            case 'publicationYear':
+                $sortArray = array(
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                    'documentTitle' => 'asc'
+                );
+                break;
+            case 'documentTitle':
+                $sortArray = array(
+                    'documentTitle' => 'asc',
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                );
+                break;
+            case 'authorName':
+                $sortArray = array(
+                    'authorLastNameExact' => 'asc',
+                    'authorFirstNameExact' => 'asc',
+                    'publicationDateYear' => 'desc',
+                    'publicationDateMonth' => 'desc',
+                    'publicationDateDay' => 'desc',
+                    'documentTitle' => 'asc',
+                );
+                break;
+        }
+    } else {
+        $sortArray = array(
+            'lth_solr_sort_' . $pageid . '_i' => 'asc',
+            'publicationDateYear' => 'desc',
+            'publicationDateMonth' => 'desc',
+            'publicationDateDay' => 'desc',
+            'documentTitle' => 'asc',
+            'lastNameExact' => 'asc',
+            'firstNameExact' => 'asc'
+        );
+    }
+
+    $query->addSorts($sortArray);
+
+    $response = $client->select($query);
+    
+    $numFound = $response->getNumFound();
+    
+    // display facet query count
+    $facetStandard = $response->getFacetSet()->getFacet('standard');
+    if($syslang==="en") {
+        $facetHeader = "Publication Type";
+    } else {
+        $facetHeader = "Publikationstyp";
+    }
+    foreach ($facetStandard as $value => $count) {
+        if($count > 0) $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+    }
+
+    $facetLanguage = $response->getFacetSet()->getFacet('language');
+    if($syslang==="en") {
+        $facetHeader = "Language";
+    } else {
+        $facetHeader = "Språk";
+    }
+    foreach ($facetLanguage as $value => $count) {
+        if($count > 0) $facetResult["language"][] = array($value, $count, $facetHeader);
+    }
+
+    $facetYear = $response->getFacetSet()->getFacet('year');
+    if($syslang==="en") {
+        $facetHeader = "Publication Year";
+    } else {
+        $facetHeader = "Publikationsår";
+    }
+    foreach ($facetYear as $value => $count) {
+        if($count > 0) $facetResult['publicationDateYear'][] = array($value, $count, $facetHeader);
+    }
+    if($facetResult['publicationDateYear']) usort($facetResult['publicationDateYear'],array($this,'compareOrder'));
+    
+        
+    foreach ($response as $document) {
+        if($action==='exportPublications') {
+            foreach($fieldArray as $field) {
+                $data[$i][$field] = $document->$field;
+            }
+            $i++;
+        } else {
+            $data[] = array(
+                "id" => $document->id,
+                "abstract" => $document->abstract,
+                "authorId" => $document->authorId,
+                "genre" => $document->genre,
+                "documentTitle" => $document->documentTitle,
+                "authorName" => $document->authorName,
+                "supervisorName" => $document->supervisorName,
+                "organisationName" => $document->organisationName,
+                "organisationSourceId" => $document->organisationSourceId,
+                "publicationDateYear" => $document->publicationDateYear,
+                "language" => $document->language,
+                "keywordsUser" => $document->keywordsUser,
+                "standardCategory" => $document->standardCategory,
+                "volume" => $document->volume
+            );
+        }
+    }
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult, 'query' => $queryToSet);
+    return json_encode($resArray);
 }
 
 

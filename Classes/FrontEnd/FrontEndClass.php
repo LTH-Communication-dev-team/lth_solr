@@ -426,6 +426,9 @@ class FrontEndClass
         } else if($action==='listOrganisationPublications') {
             $content .= '<div class="search-result"><section></section></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publications_novo_list.html");
+        } else if($action==='listOrganisationStudentPapers') {
+            $content .= '<div class="search-result"><section></section></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/studentpapers_novo_list.html");
         }
 
         if($extraPeople) $extraPeople = urlencode($extraPeople);
