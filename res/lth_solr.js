@@ -702,7 +702,32 @@ function latestDissertationsStudentPapers(tableStart)
                 $(".swipe-inner").swipe( {
                     //Generic swipe handler for all directions
                     swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
-                      $(this).text("You swiped " + direction );  
+                        //$(this).text("You swiped " + direction );
+                        if(direction==='right') {
+                            $('.swipe-target').first().remove();
+                            lastIndex = $('.swipe-target').last().attr('data-index');
+                            addSwipe(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after');
+                            firstIndex = $('.swipe-target').first().attr('data-index');
+                            if(parseInt(firstIndex)===0) {
+                                $('.swipe-control.left').addClass('disabled');
+                            } else {
+                                $('.swipe-control.left').removeClass('disabled');
+                            }
+                        }
+                        if(direction==='left') {
+                            firstIndex = $('.swipe-target').first().attr('data-index');
+                            if(parseInt(firstIndex)===0) {
+                                $('.swipe-control.left').addClass('disabled');
+                            } else {
+                                $('.swipe-target').last().remove();
+                                addSwipe(d.data[parseInt(firstIndex)-1], path, parseInt(firstIndex)-1, 'before');                   
+                                if(parseInt(firstIndex)-1===0) {
+                                    $('.swipe-control.left').addClass('disabled');
+                                } else {
+                                    $('.swipe-control.left').removeClass('disabled');
+                                }
+                            }
+                        }
                     },
                     //Default is 75px, set to 0 for demo so any distance triggers swipe
                     threshold:0
