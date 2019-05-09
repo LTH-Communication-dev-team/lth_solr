@@ -702,7 +702,7 @@ function latestDissertationsStudentPapers(tableStart)
                     //Generic swipe handler for all directions
                     swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
                         //$(this).text("You swiped " + direction );
-                        if(direction==='right') {
+                        if(direction==='left') {
                             $('.swipe-target').first().remove();
                             lastIndex = $('.swipe-target').last().attr('data-index');
                             addSwipeItem(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after');
@@ -713,7 +713,7 @@ function latestDissertationsStudentPapers(tableStart)
                                 $('.swipe-control.left').removeClass('disabled');
                             }
                         }
-                        if(direction==='left') {
+                        if(direction==='right') {
                             firstIndex = $('.swipe-target').first().attr('data-index');
                             if(parseInt(firstIndex)===0) {
                                 $('.swipe-control.left').addClass('disabled');
