@@ -658,7 +658,7 @@ function latestDissertationsStudentPapers(tableStart)
                 $.each( d.data, function( key, aData ) {
                     if(i>3) return false;
                     //if(i<3) {
-                        addSwipe(aData, path, i, 'after');
+                        addSwipeItem(aData, path, i, 'after');
                         
                         if(i===0) {
                             activeSwipe=' active';
@@ -679,7 +679,7 @@ function latestDissertationsStudentPapers(tableStart)
                         $('.swipe-control.left').addClass('disabled');
                     } else {
                         $('.swipe-target').last().remove();
-                        addSwipe(d.data[parseInt(firstIndex)-1], path, parseInt(firstIndex)-1, 'before');                   
+                        addSwipeItem(d.data[parseInt(firstIndex)-1], path, parseInt(firstIndex)-1, 'before');                   
                         if(parseInt(firstIndex)-1===0) {
                             $('.swipe-control.left').addClass('disabled');
                         } else {
@@ -690,7 +690,7 @@ function latestDissertationsStudentPapers(tableStart)
                 $('.swipe-control.right').click(function() {
                     $('.swipe-target').first().remove();
                     lastIndex = $('.swipe-target').last().attr('data-index');
-                    addSwipe(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after');
+                    addSwipeItem(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after');
                     firstIndex = $('.swipe-target').first().attr('data-index');
                     if(parseInt(firstIndex)===0) {
                         $('.swipe-control.left').addClass('disabled');
@@ -698,7 +698,39 @@ function latestDissertationsStudentPapers(tableStart)
                         $('.swipe-control.left').removeClass('disabled');
                     }
                 });
-                
+                $(".swipe-inner").swipe( {
+                    //Generic swipe handler for all directions
+                    swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
+                        //$(this).text("You swiped " + direction );
+                        if(direction==='right') {
+                            $('.swipe-target').first().remove();
+                            lastIndex = $('.swipe-target').last().attr('data-index');
+                            addSwipeItem(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after');
+                            firstIndex = $('.swipe-target').first().attr('data-index');
+                            if(parseInt(firstIndex)===0) {
+                                $('.swipe-control.left').addClass('disabled');
+                            } else {
+                                $('.swipe-control.left').removeClass('disabled');
+                            }
+                        }
+                        if(direction==='left') {
+                            firstIndex = $('.swipe-target').first().attr('data-index');
+                            if(parseInt(firstIndex)===0) {
+                                $('.swipe-control.left').addClass('disabled');
+                            } else {
+                                $('.swipe-target').last().remove();
+                                addSwipeItem(d.data[parseInt(firstIndex)-1], path, parseInt(firstIndex)-1, 'before');                   
+                                if(parseInt(firstIndex)-1===0) {
+                                    $('.swipe-control.left').addClass('disabled');
+                                } else {
+                                    $('.swipe-control.left').removeClass('disabled');
+                                }
+                            }
+                        }
+                    },
+                    //Default is 75px, set to 0 for demo so any distance triggers swipe
+                    threshold:0
+                });
                 
             }
         }
@@ -706,7 +738,7 @@ function latestDissertationsStudentPapers(tableStart)
 }
 
 
-function addSwipe(aData, path, i, type)
+function addSwipeItem(aData, path, i, type)
 {
     var template = $('#solrSwipeTemplate').html();
     var title, link;
@@ -742,40 +774,7 @@ function addSwipe(aData, path, i, type)
                         } else if(type==='before') {
                             $('.swipe-target').first().before(template);
                         }
-                        var firstIndex, lastIndex;
-                        $("#swipe-target-"+i).swipe( {
-                    //Generic swipe handler for all directions
-                    swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
-                        //$(this).text("You swiped " + direction );
-                        if(direction==='right') {
-                            $('.swipe-target').first().remove();
-                            lastIndex = $('.swipe-target').last().attr('data-index');
-                            addSwipe(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after');
-                            firstIndex = $('.swipe-target').first().attr('data-index');
-                            if(parseInt(firstIndex)===0) {
-                                $('.swipe-control.left').addClass('disabled');
-                            } else {
-                                $('.swipe-control.left').removeClass('disabled');
-                            }
-                        }
-                        if(direction==='left') {
-                            firstIndex = $('.swipe-target').first().attr('data-index');
-                            if(parseInt(firstIndex)===0) {
-                                $('.swipe-control.left').addClass('disabled');
-                            } else {
-                                $('.swipe-target').last().remove();
-                                addSwipe(d.data[parseInt(firstIndex)-1], path, parseInt(firstIndex)-1, 'before');                   
-                                if(parseInt(firstIndex)-1===0) {
-                                    $('.swipe-control.left').addClass('disabled');
-                                } else {
-                                    $('.swipe-control.left').removeClass('disabled');
-                                }
-                            }
-                        }
-                    },
-                    //Default is 75px, set to 0 for demo so any distance triggers swipe
-                    threshold:0
-                });
+                        
 }
 
 
