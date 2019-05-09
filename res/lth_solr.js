@@ -699,7 +699,7 @@ function latestDissertationsStudentPapers(tableStart)
                     }
                 });
                 
-                $(".swipe-inner").swipe( {
+                $(".swipe-target").swipe( {
                     //Generic swipe handler for all directions
                     swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
                         //$(this).text("You swiped " + direction );
