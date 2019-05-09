@@ -699,7 +699,51 @@ function latestDissertationsStudentPapers(tableStart)
                     }
                 });
                 
-                $(".swipe-target").swipe( {
+                
+            }
+        }
+    });
+}
+
+
+function addSwipe(aData, path, i, type)
+{
+    var template = $('#solrSwipeTemplate').html();
+    var title, link;
+
+                        if(aData.documentTitle) {
+                            //title = '<a href="index.php?id=' + detailPage + '&uuid=' + aData[0] + '&no_cache=1">' + aData[1] + '</a>';
+                            title = aData.documentTitle.charAt(0).toUpperCase() + aData.documentTitle.slice(1).toLowerCase();
+                        } else {
+                            title = 'untitled';
+                        }
+                        var bgColorArray = ['copper','dark','flower','plaster','sky','stone'];
+                        var rn = Math.floor(Math.random() * 5);
+                        var publicationDate = ''
+                        if(aData.publicationDate) publicationDate = aData.publicationDate;
+                        //title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '('+aData[0]+')">' + title + '</a>';
+                        link = path + '/' + title.toLowerCase();//.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase();
+
+                        //template = template.replace('###id###', aData.id);
+                        template = template.replace(/###i###/g, i);
+                        template = template.replace('###title###', title);
+                        template = template.replace('###link###', link);
+                        template = template.replace('###authorName###', aData.authorName);
+                        template = template.replace(/###publicationDate###/g, publicationDate);
+                        template = template.replace('###organisationName###', aData.organisationName);
+                        template = template.replace('###docType###', aData.docType.replace('publication','Avhandling').replace('studentPaper','Examensarbete'));
+                        template = template.replace('###supervisorName###', aData.supervisorName);
+                        template = template.replace(/###bgColor###/g, bgColorArray[rn]);
+
+                        if($('.swipe-target').length === 0) {
+                            $('.swipe-inner').append(template);
+                        } else if(type==='after') {
+                            $('.swipe-target').last().after(template);
+                        } else if(type==='before') {
+                            $('.swipe-target').first().before(template);
+                        }
+                        var firstIndex, lastIndex;
+                        $("#swipe-target-"+i).swipe( {
                     //Generic swipe handler for all directions
                     swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
                         //$(this).text("You swiped " + direction );
@@ -732,48 +776,6 @@ function latestDissertationsStudentPapers(tableStart)
                     //Default is 75px, set to 0 for demo so any distance triggers swipe
                     threshold:0
                 });
-            }
-        }
-    });
-}
-
-
-function addSwipe(aData, path, i, type)
-{
-    var template = $('#solrSwipeTemplate').html();
-    var title, link;
-
-                        if(aData.documentTitle) {
-                            //title = '<a href="index.php?id=' + detailPage + '&uuid=' + aData[0] + '&no_cache=1">' + aData[1] + '</a>';
-                            title = aData.documentTitle.charAt(0).toUpperCase() + aData.documentTitle.slice(1).toLowerCase();
-                        } else {
-                            title = 'untitled';
-                        }
-                        var bgColorArray = ['copper','dark','flower','plaster','sky','stone'];
-                        var rn = Math.floor(Math.random() * 5);
-                        var publicationDate = ''
-                        if(aData.publicationDate) publicationDate = aData.publicationDate;
-                        //title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '('+aData[0]+')">' + title + '</a>';
-                        link = path + '/' + title.toLowerCase();//.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase();
-
-                        template = template.replace('###id###', aData.id);
-                        template = template.replace(/###i###/g, i);
-                        template = template.replace('###title###', title);
-                        template = template.replace('###link###', link);
-                        template = template.replace('###authorName###', aData.authorName);
-                        template = template.replace(/###publicationDate###/g, publicationDate);
-                        template = template.replace('###organisationName###', aData.organisationName);
-                        template = template.replace('###docType###', aData.docType.replace('publication','Avhandling').replace('studentPaper','Examensarbete'));
-                        template = template.replace('###supervisorName###', aData.supervisorName);
-                        template = template.replace(/###bgColor###/g, bgColorArray[rn]);
-
-                        if($('.swipe-target').length === 0) {
-                            $('.swipe-inner').append(template);
-                        } else if(type==='after') {
-                            $('.swipe-target').last().after(template);
-                        } else if(type==='before') {
-                            $('.swipe-target').first().before(template);
-                        }
 }
 
 
