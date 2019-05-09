@@ -698,6 +698,13 @@ function latestDissertationsStudentPapers(tableStart)
                         $('.swipe-control.left').removeClass('disabled');
                     }
                 });
+                
+                $( ".swipe-inner" ).on( "swipeleft", swipeleftHandler );
+ 
+                // Callback function references the event target and adds the 'swipeleft' class to it
+                function swipeleftHandler( event ){
+                    alert('jjj');//$( event.target ).addClass( "swipeleft" );
+                }
             }
         }
     });
