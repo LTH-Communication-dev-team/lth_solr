@@ -669,7 +669,7 @@ function latestDissertationsStudentPapers(tableStart)
                         i++;
                     //}
                 });
-                console.log(i);
+                //console.log(i);
                 $('.swipe-inner').prepend('<a class="swipe-control left" href="javascript:" data-slide="prev">&lsaquo;</a>');
                 $('.swipe-inner').append('<a class="swipe-control right" href="javascript:" data-slide="prev">&rsaquo;</a>');
                 $('.swipe-control.left').addClass('disabled');
