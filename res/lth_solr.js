@@ -757,10 +757,10 @@ function addSwipeItem(aData, path, i, type, dissertationsLink, publicationsLink,
                         //title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '('+aData[0]+')">' + title + '</a>';
                         
                         if(aData.docType === 'publication') {
-                            link = publicationsLink.replace('//', '/') + '/' + detailPage + '/' + title.toLowerCase();
+                            link = '/' + publicationsLink.replace('//', '/') + '/' + detailPage + '/' + title.toLowerCase();
                         }
                         if(aData.docType === 'studentPaper') {
-                            link = dissertationsLink.replace('//', '/') + '/'  + detailPage + '/' + title.toLowerCase();
+                            link = '/' + dissertationsLink.replace('//', '/') + '/'  + detailPage + '/' + title.toLowerCase();
                         }
                         //.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase();
 
