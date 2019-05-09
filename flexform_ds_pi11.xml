@@ -112,7 +112,7 @@
                     </hideSearchField>
                     <publicationsLink>
                         <TCEforms>
-                            <label>Title</label>
+                            <label>Link to display dissertation</label>
                             <displayCond>FIELD:display:=:latestdissertationsstudentpapers</displayCond>
                             <config>
                                 <type>text</type>
@@ -123,7 +123,7 @@
                     </publicationsLink>
                     <dissertationsLink>
                         <TCEforms>
-                            <label>Title</label>
+                            <label>Link to display student paper</label>
                             <displayCond>FIELD:display:=:latestdissertationsstudentpapers</displayCond>
                             <config>
                                 <type>text</type>

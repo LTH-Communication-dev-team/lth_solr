@@ -60,6 +60,9 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $vroles = $this->pi_getFFvalue($piFlexForm, "vroles", "sDEF", $lDef[$index]);
             $facetChoice = $this->pi_getFFvalue($piFlexForm, "facetChoice", "sDEF", $lDef[$index]);
             $hideSearchField = $this->pi_getFFvalue($piFlexForm, "hideSearchField", "sDEF", $lDef[$index]);
+            $publicationsLink = $this->pi_getFFvalue($piFlexForm, "publicationsLink", "sDEF", $lDef[$index]);
+            $dissertationsLink = $this->pi_getFFvalue($piFlexForm, "dissertationsLink", "sDEF", $lDef[$index]);
+            
             if(is_array($piFlexForm['data']['sDEF']['lDEF']['extraPeople']['el'])) {
                 $extraPeople = json_encode($piFlexForm['data']['sDEF']['lDEF']['extraPeople']['el']);
             }
@@ -89,9 +92,9 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             } else if($display === 'organisation') {
                 if($uuid) {
                     $scope = $uuid;
-                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listSingleOrganisationStaff');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, $publicationsLink, $dissertationsLink, 'listSingleOrganisationStaff');
                 } else {
-                    $content .= $FrontEndClass->listOrganisation($syslang, $organisation, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisation');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $organisation, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, $publicationsLink, $dissertationsLink, 'listOrganisation');
                 }
             } else if($display === 'staff') {
                 if($uuid) {
@@ -99,30 +102,30 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 } else {
                     $scope = $organisation;
                 }
-                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationStaff');
+                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, $publicationsLink, $dissertationsLink, 'listOrganisationStaff');
             } else if($display === 'roles') {
                 $scope = $organisation;
-                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationRoles');
+                $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, $publicationsLink, $dissertationsLink, 'listOrganisationRoles');
             } else if($display === 'publications') {
                 if($uuid) {
                     $content .= $FrontEndClass->showPublicationNovo($syslang, $uuid, $organisation);
                 } else {
                     $scope = $organisation;
-                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationPublications');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, $publicationsLink, $dissertationsLink, 'listOrganisationPublications');
                 }
             } else if($display === 'studentpapers') {
                 if($uuid) {
                     $content .= $FrontEndClass->showStudentPaperNovo($syslang, $uuid, $organisation);
                 } else {
                     $scope = $organisation;
-                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationStudentPapers');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, $publicationsLink, $dissertationsLink, 'listOrganisationStudentPapers');
                 }
             } else if($display === 'latestdissertationsstudentpapers') {
                 if($uuid) {
                     $content .= $FrontEndClass->showStudentPaperNovo($syslang, $uuid, $organisation);
                 } else {
                     $scope = $organisation;
-                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'latestDissertationsStudentPapers');
+                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, $publicationsLink, $dissertationsLink, 'latestDissertationsStudentPapers');
                 }
             }
             

@@ -620,7 +620,8 @@ function latestDissertationsStudentPapers(tableStart)
 {
     var sysLang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
-    var facetVal, count;
+    var publicationsLink = $('#lth_solr_publicationslink').val();
+    var dissertationsLink = $('#lth_solr_dissertationslink').val();
     var detailPage = 'visa';
     if(sysLang==='en') detailPage = 'show';
     //var exportArray = ["firstName","lastName","title","phone","email","organisationName","homepage","roomNumber","mobile"];
@@ -651,14 +652,14 @@ function latestDissertationsStudentPapers(tableStart)
 
             if(d.data) {
              
-                var path = window.location.href + detailPage;
+                var path = window.location.href;
                 
                 var title, link, activeSwipe='', lastIndex=0, firstIndex=0;
                 var i = 0;
                 $.each( d.data, function( key, aData ) {
                     if(i>3) return false;
                     //if(i<3) {
-                        addSwipeItem(aData, path, i, 'after');
+                        addSwipeItem(aData, path, i, 'after', dissertationsLink, publicationsLink, detailPage);
                         
                         if(i===0) {
                             activeSwipe=' active';
@@ -679,7 +680,7 @@ function latestDissertationsStudentPapers(tableStart)
                         $('.swipe-control.left').addClass('disabled');
                     } else {
                         $('.swipe-target').last().remove();
-                        addSwipeItem(d.data[parseInt(firstIndex)-1], path, parseInt(firstIndex)-1, 'before');                   
+                        addSwipeItem(d.data[parseInt(firstIndex)-1], path, parseInt(firstIndex)-1, 'before', dissertationsLink, publicationsLink, detailPage);                   
                         if(parseInt(firstIndex)-1===0) {
                             $('.swipe-control.left').addClass('disabled');
                         } else {
@@ -690,7 +691,7 @@ function latestDissertationsStudentPapers(tableStart)
                 $('.swipe-control.right').click(function() {
                     $('.swipe-target').first().remove();
                     lastIndex = $('.swipe-target').last().attr('data-index');
-                    addSwipeItem(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after');
+                    addSwipeItem(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after', dissertationsLink, publicationsLink, detailPage);
                     firstIndex = $('.swipe-target').first().attr('data-index');
                     if(parseInt(firstIndex)===0) {
                         $('.swipe-control.left').addClass('disabled');
@@ -705,7 +706,7 @@ function latestDissertationsStudentPapers(tableStart)
                         if(direction==='left') {
                             $('.swipe-target').first().remove();
                             lastIndex = $('.swipe-target').last().attr('data-index');
-                            addSwipeItem(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after');
+                            addSwipeItem(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after', dissertationsLink, publicationsLink, detailPage);
                             firstIndex = $('.swipe-target').first().attr('data-index');
                             if(parseInt(firstIndex)===0) {
                                 $('.swipe-control.left').addClass('disabled');
@@ -719,7 +720,7 @@ function latestDissertationsStudentPapers(tableStart)
                                 $('.swipe-control.left').addClass('disabled');
                             } else {
                                 $('.swipe-target').last().remove();
-                                addSwipeItem(d.data[parseInt(firstIndex)-1], path, parseInt(firstIndex)-1, 'before');                   
+                                addSwipeItem(d.data[parseInt(firstIndex)-1], path, parseInt(firstIndex)-1, 'before', dissertationsLink, publicationsLink, detailPage);                   
                                 if(parseInt(firstIndex)-1===0) {
                                     $('.swipe-control.left').addClass('disabled');
                                 } else {
@@ -738,7 +739,7 @@ function latestDissertationsStudentPapers(tableStart)
 }
 
 
-function addSwipeItem(aData, path, i, type)
+function addSwipeItem(aData, path, i, type, dissertationsLink, publicationsLink, detailPage)
 {
     var template = $('#solrSwipeTemplate').html();
     var title, link;
@@ -754,7 +755,14 @@ function addSwipeItem(aData, path, i, type)
                         var publicationDate = ''
                         if(aData.publicationDate) publicationDate = aData.publicationDate;
                         //title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '('+aData[0]+')">' + title + '</a>';
-                        link = path + '/' + title.toLowerCase();//.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase();
+                        
+                        if(aData.docType === 'publication') {
+                            link = path + publicationsLink.replace('//', '/') + '/' + detailPage + '/' + title.toLowerCase();
+                        }
+                        if(aData.docType === 'studentPaper') {
+                            link = path + dissertationsLink.replace('//', '/') + '/'  + detailPage + '/' + title.toLowerCase();
+                        }
+                        //.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase();
 
                         //template = template.replace('###id###', aData.id);
                         template = template.replace(/###i###/g, i);
