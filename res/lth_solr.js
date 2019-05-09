@@ -656,7 +656,7 @@ function latestDissertationsStudentPapers(tableStart)
                 var title, link, activeSwipe='', lastIndex=0, firstIndex=0;
                 var i = 0;
                 $.each( d.data, function( key, aData ) {
-                    if(i>4) return false;
+                    if(i>3) return false;
                     //if(i<3) {
                         addSwipe(aData, path, i, 'after');
                         
