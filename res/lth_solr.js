@@ -699,12 +699,14 @@ function latestDissertationsStudentPapers(tableStart)
                     }
                 });
                 
-                $( ".swipe-target" ).on( "swipeleft", swipeleftHandler );
- 
-                // Callback function references the event target and adds the 'swipeleft' class to it
-                function swipeleftHandler( event ){
-                    alert('jjj');//$( event.target ).addClass( "swipeleft" );
-                }
+                $(".swipe-inner").swipe( {
+                    //Generic swipe handler for all directions
+                    swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
+                      $(this).text("You swiped " + direction );  
+                    },
+                    //Default is 75px, set to 0 for demo so any distance triggers swipe
+                    threshold:0
+                });
             }
         }
     });
