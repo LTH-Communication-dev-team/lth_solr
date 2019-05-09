@@ -355,6 +355,23 @@ class FrontEndClass
     }
     
     
+    public function showStudentPaperNovo($syslang, $scope, $organisation)
+    {
+        //Staff 
+        $content .= '<div id="lthsolr_show_studentpapercontainer"></div>';
+        
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/studentpaper_presentation_novo.html");
+
+        //hidden fields
+        $content .= '
+            <input type="hidden" id="lth_solr_action" value="showStudentPaperNovo" />
+            <input type="hidden" id="lth_solr_scope" value="' . urlencode($scope) . '" />
+            ';
+
+        return $content;
+    }
+    
+    
     public function showStaffNovo($syslang, $scope, $organisation)
     {
         //Staff 
@@ -429,6 +446,9 @@ class FrontEndClass
         } else if($action==='listOrganisationStudentPapers') {
             $content .= '<div class="search-result"><section></section></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/studentpapers_novo_list.html");
+        } else if($action==='latestDissertationsStudentPapers') {
+            //$content .= '<div class="search-result"><section></section></div></div>';
+            $content = file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/latestdissertationsstudentpapers.html");
         }
 
         if($extraPeople) $extraPeople = urlencode($extraPeople);

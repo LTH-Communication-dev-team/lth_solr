@@ -81,7 +81,7 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
             $scope = trim($scope);
             $scope = rtrim($scope, '/') . '/';
-            if(strstr($scope, ')')) {
+            if($display === 'staff' && strstr($scope, ')')) {
                 $scopeArray = explode('(', $scope);
 		//array_pop($scopeArray);
 		$scope = str_replace(')/', '', array_pop($scopeArray));
@@ -116,6 +116,13 @@ class tx_lthsolr_pi11 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 } else {
                     $scope = $organisation;
                     $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'listOrganisationStudentPapers');
+                }
+            } else if($display === 'latestdissertationsstudentpapers') {
+                if($uuid) {
+                    $content .= $FrontEndClass->showStudentPaperNovo($syslang, $uuid, $organisation);
+                } else {
+                    $scope = $organisation;
+                    $content .= $FrontEndClass->listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, 'latestDissertationsStudentPapers');
                 }
             }
             

@@ -162,7 +162,8 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
                     $modified;
                     $genre;
-                    $documentTitle;
+                    $documentTitle = '';
+                    $documentTitleExact = '';
                     $alternativeTitle;
                     $authorName = array();
                     $supervisorName = array();
@@ -329,6 +330,7 @@ class StudentPaperImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         'docType' => 'studentPaper',
                         'genre' => $genre,
                         'documentTitle' => $documentTitle,
+                        'documentTitleExact' => strtolower($documentTitle),
                         'documentUrl' => $documentUrl,
                         'documentType' => $documentType,
                         'documentSize' => $documentSize,

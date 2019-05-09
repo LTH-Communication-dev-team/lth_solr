@@ -71,7 +71,11 @@ $(document).ready(function() {
     } else if($('#lth_solr_action').val() == 'listOrganisationPublications') {
         listOrganisationPublications();
     } else if($('#lth_solr_action').val() == 'listOrganisationStudentPapers') {
-        listOrganisationStudentPapers();
+        listOrganisationStudentPapers('', '', 0);
+    } else if($('#lth_solr_action').val() == 'showStudentPaperNovo') {
+        showStudentPaperNovo();
+    } else if($('#lth_solr_action').val() == 'latestDissertationsStudentPapers') {
+        latestDissertationsStudentPapers(0);
     }
     
     $('#lthsolr_studentpapers_filter').keyup(function() {
@@ -612,7 +616,134 @@ function listOrganisationPublications(facet, query)
 }
 
 
-function listOrganisationStudentPapers(facet, query)
+function latestDissertationsStudentPapers(tableStart)
+{
+    var sysLang = $('html').attr('lang');
+    var scope = $('#lth_solr_scope').val();
+    var facetVal, count;
+    var detailPage = 'visa';
+    if(sysLang==='en') detailPage = 'show';
+    //var exportArray = ["firstName","lastName","title","phone","email","organisationName","homepage","roomNumber","mobile"];
+    
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID : 'lth_solr',
+            action : 'latestDissertationsStudentPapers',
+            dataSettings: {
+                pageid: $('body').attr('id').replace('p',''),
+                scope: scope,
+                syslang: sysLang,
+                tableStart: tableStart
+            },
+            sid : Math.random(),
+        },
+        dataType: 'json',
+        error : function(jq, st, err) {
+            alert(jq + ';' + st + " : " + err);
+        },
+        beforeSend: function () {
+            $('.swipe-inner').append(getSpinner(sysLang));
+        },
+        success: function(d) {
+            $('.spinner').remove();
+
+            if(d.data) {
+             
+                var path = window.location.href + detailPage;
+                
+                var title, link, activeSwipe='', lastIndex=0, firstIndex=0;
+                var i = 0;
+                $.each( d.data, function( key, aData ) {
+                    if(i>4) return false;
+                    //if(i<3) {
+                        addSwipe(aData, path, i, 'after');
+                        
+                        if(i===0) {
+                            activeSwipe=' active';
+                        } else {
+                            activeSwipe='';
+                        }
+                        //$('#swipe').append('<div class="swipe-step' + activeSwipe + '"></div>')
+                        i++;
+                    //}
+                });
+                console.log(i);
+                $('.swipe-inner').prepend('<a class="swipe-control left" href="javascript:" data-slide="prev">&lsaquo;</a>');
+                $('.swipe-inner').append('<a class="swipe-control right" href="javascript:" data-slide="prev">&rsaquo;</a>');
+                $('.swipe-control.left').addClass('disabled');
+                $('.swipe-control.left').click(function() {
+                    firstIndex = $('.swipe-target').first().attr('data-index');
+                    if(parseInt(firstIndex)===0) {
+                        $('.swipe-control.left').addClass('disabled');
+                    } else {
+                        $('.swipe-target').last().remove();
+                        addSwipe(d.data[parseInt(firstIndex)-1], path, parseInt(firstIndex)-1, 'before');                   
+                        if(parseInt(firstIndex)-1===0) {
+                            $('.swipe-control.left').addClass('disabled');
+                        } else {
+                            $('.swipe-control.left').removeClass('disabled');
+                        }
+                    }
+                });
+                $('.swipe-control.right').click(function() {
+                    $('.swipe-target').first().remove();
+                    lastIndex = $('.swipe-target').last().attr('data-index');
+                    addSwipe(d.data[parseInt(lastIndex)+1], path, parseInt(lastIndex)+1, 'after');
+                    firstIndex = $('.swipe-target').first().attr('data-index');
+                    if(parseInt(firstIndex)===0) {
+                        $('.swipe-control.left').addClass('disabled');
+                    } else {
+                        $('.swipe-control.left').removeClass('disabled');
+                    }
+                });
+            }
+        }
+    });
+}
+
+
+function addSwipe(aData, path, i, type)
+{
+    var template = $('#solrSwipeTemplate').html();
+    var title, link;
+
+                        if(aData.documentTitle) {
+                            //title = '<a href="index.php?id=' + detailPage + '&uuid=' + aData[0] + '&no_cache=1">' + aData[1] + '</a>';
+                            title = aData.documentTitle.charAt(0).toUpperCase() + aData.documentTitle.slice(1).toLowerCase();
+                        } else {
+                            title = 'untitled';
+                        }
+                        var bgColorArray = ['copper','dark','flower','plaster','sky','stone'];
+                        var rn = Math.floor(Math.random() * 5);
+                        var publicationDate = ''
+                        if(aData.publicationDate) publicationDate = aData.publicationDate;
+                        //title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '('+aData[0]+')">' + title + '</a>';
+                        link = path + '/' + title.toLowerCase();//.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase();
+
+                        template = template.replace('###id###', aData.id);
+                        template = template.replace(/###i###/g, i);
+                        template = template.replace('###title###', title);
+                        template = template.replace('###link###', link);
+                        template = template.replace('###authorName###', aData.authorName);
+                        template = template.replace(/###publicationDate###/g, publicationDate);
+                        template = template.replace('###organisationName###', aData.organisationName);
+                        template = template.replace('###docType###', aData.docType.replace('publication','Avhandling').replace('studentPaper','Examensarbete'));
+                        template = template.replace('###supervisorName###', aData.supervisorName);
+                        template = template.replace(/###bgColor###/g, bgColorArray[rn]);
+
+                        if($('.swipe-target').length === 0) {
+                            $('.swipe-inner').append(template);
+                        } else if(type==='after') {
+                            $('.swipe-target').last().after(template);
+                        } else if(type==='before') {
+                            $('.swipe-target').first().before(template);
+                        }
+}
+
+
+function listOrganisationStudentPapers(facet, query, tableStart)
 {
     var sysLang = $('html').attr('lang');
     var scope = $('#lth_solr_scope').val();
@@ -654,6 +785,7 @@ function listOrganisationStudentPapers(facet, query)
                 query: query,
                 scope: scope,
                 syslang: sysLang,
+                tableStart: tableStart
             },
             sid : Math.random(),
         },
@@ -662,11 +794,15 @@ function listOrganisationStudentPapers(facet, query)
             alert(jq + ';' + st + " : " + err);
         },
         beforeSend: function () {
-            $('#lthsolr_organisation_container > div > section').empty();
-            $('#lthsolr_organisation_container > div > section').append(getSpinner(sysLang));
+            if($('.lthSolrMoreContainer').length > 0) {
+                $('.lthSolrMoreContainer').replaceWith(getSpinner(sysLang));
+            } else {
+                $('#lthsolr_organisation_container > div > section').empty();
+                $('#lthsolr_organisation_container > div > section').append(getSpinner(sysLang));
+            }
         },
         success: function(d) {
-            $('.loader').remove();
+            $('.spinner').remove();
             $('.lthsolr_more').remove();
             if(d.data) {
                 var allText = 'Alla';
@@ -705,12 +841,19 @@ function listOrganisationStudentPapers(facet, query)
                 }
                 
                 if(scope) {
-                    $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">' + d.organisationTitle + ' (' + d.numFound + ')' + '</h2>');
+                    $('#lthsolr_organisation_container > div > section').remove('h2').append('<h2 class="m-0 pb-2 border-bottom">Student papers (' + d.numFound + ')' + '</h2>');
                 }
                 
                 var path = window.location.href + detailPage;
                 
-                var title;
+                var title, link;
+                
+                var supervisorLabel = "Handledare", moreText = 'Visa fler resultat', authorLabel = 'Författare';
+                if(sysLang==='en') {
+                    moreText = 'Show more results';
+                    supervisorLabel = "Supervisor";
+                    authorLabel = 'Author';
+                }
                 
                 $.each( d.data, function( key, aData ) {
                     var template = $('#solrStudentPapersTemplate').html();
@@ -722,18 +865,27 @@ function listOrganisationStudentPapers(facet, query)
                         title = 'untitled';
                     }
                     
-                    title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '('+aData[0]+')">' + title + '</a>';
+                    //title = '<a href="' + path + '/' + title.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase() + '('+aData[0]+')">' + title + '</a>';
+                    link = path + '/' + title.toLowerCase();//.replace(/[^\w\s-]/g,'').replace(/ /g,'-').toLowerCase();
 
                     template = template.replace('###id###', aData.id);
                     template = template.replace('###title###', title);
-                    template = template.replace('###authorName###', aData.authorName);
+                    template = template.replace('###link###', link);
+                    template = template.replace('###authorName###', '<b>' + authorLabel + '</b>: ' + aData.authorName);
                     template = template.replace(/###publicationDateYear###/g, aData.publicationDateYear);
                     template = template.replace('###organisationName###', aData.organisationName);
-                    template = template.replace('###supervisorName###', aData.supervisorName);
+                    template = template.replace('###supervisorName###', '<b>' + supervisorLabel + '</b>: ' + aData.supervisorName);
+                    template = template.replace('###bibtex###', aData.bibtex);
 
                     $('#lthsolr_organisation_container').append(template);
-                });             
+                });
                 
+                if(d.numFound > (parseInt(tableStart) + 100)) {
+                    $('#lthsolr_organisation_container').append('<div class="lthSolrMoreContainer"><button type="button" class="btn  btn-outline-primary">' + moreText + '</button></div>');
+                    $('.lthSolrMoreContainer .btn').click(function(){
+                        listOrganisationStudentPapers(facet, query, parseInt(tableStart) + 100);
+                    });
+                }
                 
             }
             toggleFacets();
@@ -3865,6 +4017,104 @@ function listStudentPapers(tableStart, facet, query, more)
                 }
             }
             toggleFacets();
+        }
+    });
+}
+
+
+function showStudentPaperNovo()
+{
+    var sysLang = $('html').attr('lang');
+    var abstract,documentTitle,authors,organisations,externalOrganisations,publicationType,language,publicationDateYear,
+        keywords,documentUrl,supervisorName,organisationSourceId,bibtex;
+    
+    $.ajax({
+        type : 'POST',
+        url : 'index.php',
+        data: {
+            eID : 'lth_solr',
+            action : 'showStudentPaperNovo',
+            dataSettings: {
+                pageid : $('body').attr('id'),
+                scope : $('#lth_solr_scope').val(),
+                sysLang : sysLang,
+            },
+            sid : Math.random(),
+        },
+        //contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        beforeSend: function () {
+            $('#lthsolr_show_studentpapercontainer').append(getSpinner(sysLang));
+        },
+        success: function(d) {
+            $('.spinner').remove();
+            abstract = d.data.abstract;
+            documentTitle = d.data.documentTitle;
+            authors = d.data.authors;
+            organisations = d.data.organisations;
+            externalOrganisations = d.data.externalOrganisations;
+            publicationType = d.data.publicationType;
+            language = d.data.language;
+            publicationDateYear = d.data.publicationDateYear;
+            keywords = d.data.keywords;
+            documentUrl = d.data.documentUrl;
+            supervisorName = d.data.supervisorName;
+            organisationSourceId = d.data.organisationSourceId;
+            bibtex = d.data.bibtex;
+            
+            $('#page_title h1, #pageTitle').text(documentTitle).css('max-width','650px');
+            
+            var organisations = '', abstractShort = '', abstractFull = '';
+            var path = window.location.href.split('(').shift().split('/');
+            path.pop();
+            path = path.join('/');
+                
+            if(d.data) {
+                $('.spiner').remove();
+                
+                var template = $('#solrTemplate').html();
+                if(abstract) {
+                    if(abstract.length > 200) {
+                        abstractShort = abstract.substr(0,200);
+                        abstractFull = abstract.substr(200, abstract.length);
+                    } else {
+                        abstractShort = abstract;
+                        abstractFull = '';
+                    }
+                }
+                template = template.replace('###abstractShort###', abstractShort);
+                template = template.replace('###abstractFull###', abstractFull);
+                template = template.replace('###title###', documentTitle);
+                template = template.replace('###authors###', checkData(authors, lth_solr_messages.authors));
+                template = template.replace('###organisations###', checkData(organisations, lth_solr_messages.organisations));
+                template = template.replace('###externalOrganisations###', checkData(externalOrganisations));
+                template = template.replace('###publicationType###', checkData(publicationType, lth_solr_messages.type));
+                template = template.replace('###language###', checkData(language, lth_solr_messages.language));
+                template = template.replace('###publicationDateYear###', checkData(publicationDateYear, lth_solr_messages.publicationDateYear));
+                template = template.replace('###keywordsUser###', checkData(keywords, lth_solr_messages.keywords_user));
+                template = template.replace('###documentUrl###', checkData(documentUrl, lth_solr_messages.fulltext, '', true));
+                template = template.replace('###supervisorName###', checkData(supervisorName, lth_solr_messages.supervisor));
+                template = template.replace('###bibtex###', checkData(bibtex));
+                
+                
+                                
+                $('#page_title h1').text(documentTitle).css('max-width','650px');
+                $('#page_title h1').after('<h3>' + publicationType + '</h3>');
+                $('#lthsolr_show_studentpapercontainer').html(template);
+                
+                if(abstract) {
+                    $('.expand-closed').click(function() {
+                        $('.expand-content-body, .expand-open').show(200);
+                        $(this).toggle();
+                    });
+                    $('.expand-open').click(function() {
+                        $('.expand-content-body').hide(200);
+                        $('.expand-closed').toggle();
+                        $(this).toggle();
+                    });
+                }
+            }
+            
         }
     });
 }

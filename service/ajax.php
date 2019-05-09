@@ -172,10 +172,135 @@ function myInit()
         case 'listOrganisationStudentPapers':
             $content = $this->listOrganisationStudentPapers($dataSettings, $config, $action);
             break;
+        case 'showStudentPaperNovo':
+            $content = $this->showStudentPaperNovo($syslang, $scope, $dataSettings, $config);
+            break;
+        case 'latestDissertationsStudentPapers':
+            $content = $this->latestDissertationsStudentPapers($syslang, $scope, $dataSettings, $config);
+            break;
     }
 
     print $content;
 
+}
+
+
+function latestDissertationsStudentPapers($syslang, $scope, $dataSettings, $config)
+{
+    $scope = $dataSettings['scope'];
+    $syslang = $dataSettings['syslang'];
+    $tableStart = $dataSettings['tableStart'];
+    
+        $fieldArray = array("id","abstract","authorId","genre","documentTitle","authorName","supervisorName",
+            "organisationName","organisationSourceId","publicationDateYear","language","keywordsUser","docType");
+    
+    $currentDate = gmDate("Y-m-d\TH:i:s\Z");
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+    if($scope) {
+        $queryToSet = 'docType:studentPaper';
+        $i = 0;
+        $queryToSet .= ' AND (';
+        $scopeArray = explode(',', $scope);
+        foreach($scopeArray as $key => $value) {
+            if($i>0) $queryToSet .= ' OR ';
+            $queryToSet .= 'organisationSourceId:' . array_pop(explode('__',$value));
+            $i++;
+        }
+        $queryToSet .= ') AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . ']';
+    }
+    $debug = $queryToSet;
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    $query->setStart($tableStart)->setRows(100);
+    $sortArray = array(
+        'publicationDateYear' => 'desc',
+        'id' => 'desc',
+        'documentTitle' => 'asc'
+    );
+    $query->addSorts($sortArray);
+    $response1 = $client->select($query);
+    
+    $fieldArray = array("id","abstract","authorId","genre","documentTitle","authorName","supervisorName",
+            "organisationName","organisationSourceId","publicationDateYear","publicationDateMonth","publicationDateDay","language","keywordsUser","docType");
+    $query = $client->createSelect();
+    if($scope) {
+        $queryToSet = 'docType:publication';
+        $i = 0;
+        $queryToSet .= ' AND (';
+        $scopeArray = explode(',', $scope);
+        foreach($scopeArray as $key => $value) {
+            if($i>0) $queryToSet .= ' OR ';
+            $queryToSet .= 'organisationSourceId:' . array_shift(explode('__',$value));
+            $i++;
+        }
+        $queryToSet .= ') AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . ']';
+    }
+    $debug .= $queryToSet;
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    $query->setStart($tableStart)->setRows(100);
+    $sortArray = array(
+        'publicationDateYear' => 'desc',
+        'publicationDateMonth' => 'desc',
+        'publicationDateDay' => 'desc',
+        'documentTitle' => 'asc'
+    );
+    $query->addSorts($sortArray);
+    $response2 = $client->select($query);
+     
+    $numFound = $response1->getNumFound();
+    
+    $response = (object)array_merge((array)$response1, (array)$response2);
+    //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($response,true), 'crdate' => time()));
+    $i=0;
+    foreach ($response1 as $document) {
+        $data[$i] = array(
+            "id" => $document->id,
+            "abstract" => $document->abstract,
+            "authorId" => $document->authorId,
+            "genre" => $document->genre,
+            "documentTitle" => $document->documentTitle,
+            "authorName" => $document->authorName,
+            "supervisorName" => $document->supervisorName,
+            "organisationName" => $document->organisationName,
+            "organisationSourceId" => $document->organisationSourceId,
+            //"publicationDate" => $document->publicationDateYear,
+            "language" => $document->language,
+            "keywordsUser" => $document->keywordsUser,
+            "docType" => $document->docType,
+            "volume" => $document->volume
+        );
+        $i = $i + 2;
+    }
+    
+    $i = 1;
+    foreach ($response2 as $document) {
+        $data[$i] = array(
+            "id" => $document->id,
+            "abstract" => $document->abstract,
+            "authorId" => $document->authorId,
+            "genre" => $document->genre,
+            "documentTitle" => $document->documentTitle,
+            "authorName" => $document->authorName,
+            "supervisorName" => $document->supervisorName,
+            "organisationName" => $document->organisationName,
+            "organisationSourceId" => $document->organisationSourceId,
+            "publicationDate" => $document->publicationDateYear . '-' . $document->publicationDateMonth . '-' . $document->publicationDateDay,
+            "publicationDateMonth" => $document->publicationDateMonth,
+            "publicationDateDay" => $document->publicationDateDay,
+            "language" => $document->language,
+            "keywordsUser" => $document->keywordsUser,
+            "docType" => $document->docType,
+            "volume" => $document->volume
+        );
+        $i = $i + 2;
+    }
+    if($data) ksort($data);
+    $resArray = array('data' => $data, 'numFound' => $numFound, 'facet' => $facetResult, 'query' => $debug);
+    return json_encode($resArray);
 }
 
 
@@ -184,6 +309,7 @@ function listOrganisationStudentPapers($dataSettings, $config, $action)
     $filterQuery = $dataSettings['query'];
     $scope = $dataSettings['scope'];
     $syslang = $dataSettings['syslang'];
+    $tableStart = $dataSettings['tableStart'];
     
     if($action==='exportPublications') {
         $fieldArray = json_decode($tableFields, true);
@@ -216,13 +342,13 @@ function listOrganisationStudentPapers($dataSettings, $config, $action)
             $i++;
         }
 
-        $queryToSet .= ')';
+        $queryToSet .= ') AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . ']';
     }
     
     $queryToSet .= $filterQuery;
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
-    $query->setStart(0)->setRows(100);
+    $query->setStart($tableStart)->setRows(100);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
@@ -246,6 +372,8 @@ function listOrganisationStudentPapers($dataSettings, $config, $action)
 
         $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
     }
+    
+    $sorting = "publicationDateYear";
 
     if($sorting) {
         switch($sorting) {
@@ -258,11 +386,9 @@ function listOrganisationStudentPapers($dataSettings, $config, $action)
                     'documentTitle' => 'asc'
                 );
                 break;
-            case 'publicationYear':
+            case 'publicationDateYear':
                 $sortArray = array(
                     'publicationDateYear' => 'desc',
-                    'publicationDateMonth' => 'desc',
-                    'publicationDateDay' => 'desc',
                     'documentTitle' => 'asc'
                 );
                 break;
@@ -2769,6 +2895,97 @@ function listTagCloud($scope, $syslang, $config, $pageid, $path, $tableLength)
         }
     }
     $resArray = array('data' => $data, 'numFound' => $numFound, 'queryToSet' => $queryToSet);
+    return json_encode($resArray);
+}
+
+
+function showStudentPaperNovo($syslang, $scope, $dataSettings, $config)
+{
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+    
+    $scope = $dataSettings['scope'];
+    
+    if($scope) {
+        /*$scope = str_replace('--', '$$$', $scope);
+        $scope = str_replace('-', ' ', $scope);
+        $scope = str_replace('$$$', '- ', $scope);*/
+        $queryToSet = 'docType:studentPaper AND documentTitleExact:"' . urldecode($scope) . '"';
+    }
+
+    $query->setQuery($queryToSet);
+    
+    $response = $client->select($query);
+    $numFound = $response->getNumFound();
+    $content = '';
+        
+    foreach ($response as $document) {
+        $id = $document->id;
+        $abstract = $document->abstract;
+        $documentTitle = $document->documentTitle;
+        $authorNameArray = $document->authorName;
+        //$authorIdArray = $document->authorId;
+        $i=0;
+        if(is_array($authorNameArray)) {
+            foreach ($authorNameArray as $key => $authorName) {
+                if($authors) $authors .= ', ';
+                $authors .=  mb_convert_case(strtolower($authorName), MB_CASE_TITLE, "UTF-8");
+                //$authors .= '<a href="' . $staffDetailPage . '?no_cache=1&uuid=' . $authorIdArray[$i] . '">' . mb_convert_case(strtolower($authorName), MB_CASE_TITLE, "UTF-8") . '</a>';
+                $i++;
+            }
+        }
+
+        $organisations = $document->organisationName[0];
+
+        if($document->externalOrganisationsName) {
+            $externalOrganisationsNameArray = $document->externalOrganisationsName;
+            $externalOrganisationsIdArray = $document->externalOrganisationsId;
+            $i=0;
+            foreach($externalOrganisationsNameArray as $key => $externalOrganisationsName) {
+                if($externalOrganisations) $externalOrganisations .= ', ';
+                $externalOrganisations .= '<a href="' . $externalOrganisationsIdArray[$i] . '">' . $externalOrganisationsName . '</a>';
+                $i++;
+            }
+        }
+
+        $publicationType = $document->genre;
+        $language = $this->fixArray($document->language);
+        $publicationDateYear = $document->publicationDateYear;
+        $keywords = $this->fixArray($document->keywordsUser);
+        $documentUrl = $document->documentUrl;
+        $supervisorName = $document->supervisorName;
+        $organisationSourceId = $document->organisationSourceId[0];
+        $bibtex = "@misc{" . $id . ",<br />";
+        if($abstract) $bibtex .= "abstract = {" . $abstract . "},<br />";
+        $bibtex .= "author = {" . $authors . "},<br />";
+        $bibtex .= "keyword = {" . $keywords . "},<br />";
+        $bibtex .= "language = {" . $language . "},<br />";
+        $bibtex .= "note = {Student Paper},<br />";
+        $bibtex .= "title = {" . $documentTitle . "},<br />";
+        $bibtex .= "year = {" . $publicationDateYear . "},<br />";
+        $bibtex .= "}";
+                
+        $data = array(
+            "abstract" => $abstract,
+            "documentTitle" => $documentTitle,
+            "authors" => $authors,
+            "organisations" => $organisations,
+            "externalOrganisations" => $externalOrganisations,
+            "publicationType" => $publicationType,
+            "language" => $language,
+            "publicationDateYear" => $publicationDateYear,
+            "keywords" => $keywords,
+            "documentUrl" => $documentUrl,
+            "supervisorName" => $supervisorName,
+            "organisationSourceId" => $organisationSourceId,
+            "bibtex" => $bibtex
+        );
+
+    }
+    
+    $resArray = array('data' => $data, 'debug' => $queryToSet);
+    
     return json_encode($resArray);
 }
 

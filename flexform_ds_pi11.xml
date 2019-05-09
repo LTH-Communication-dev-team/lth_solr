@@ -38,6 +38,10 @@
                                         <numIndex index="0">Student Papers</numIndex>
                                         <numIndex index="1">studentpapers</numIndex>
                                     </numIndex>
+                                    <numIndex index="5" type="array">
+                                        <numIndex index="0">Latest dissertations and student papers</numIndex>
+                                        <numIndex index="1">latestdissertationsstudentpapers</numIndex>
+                                    </numIndex>
                                 </items>
                             </config>
                         </TCEforms>
@@ -106,6 +110,28 @@
                             </config>
                         </TCEforms>
                     </hideSearchField>
+                    <publicationsLink>
+                        <TCEforms>
+                            <label>Title</label>
+                            <displayCond>FIELD:display:=:latestdissertationsstudentpapers</displayCond>
+                            <config>
+                                <type>text</type>
+                                <cols>24</cols>
+                                <rows>3</rows>
+                            </config>
+                        </TCEforms>
+                    </publicationsLink>
+                    <dissertationsLink>
+                        <TCEforms>
+                            <label>Title</label>
+                            <displayCond>FIELD:display:=:latestdissertationsstudentpapers</displayCond>
+                            <config>
+                                <type>text</type>
+                                <cols>24</cols>
+                                <rows>3</rows>
+                            </config>
+                        </TCEforms>
+                    </dissertationsLink>
                     <extraPeople>
                         <section>1</section>
                         <title>Add people</title>

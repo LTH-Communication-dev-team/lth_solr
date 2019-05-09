@@ -1,0 +1,63 @@
+<!--<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
+    <thead><tr><th></th></tr></thead>
+    <tbody id="table_data_container">
+        
+    </tbody>
+</table>-->
+
+<script id="solrTemplate" type="text/x-jquery-templ">
+    
+    <div class="container-fill mx-sm-0">
+        <div class="expand bg-copper-50 mb-3">
+            <div class="expand-content">
+                <div class="expand-content-lead">
+                    <div class="row">
+                        <div class="col flex-grow-1">
+                            <h3 class="mt-0">Abstract</h3>
+                            ###abstractShort###
+                        </div>
+                    </div>
+
+                </div>
+                <div class="expand-content-body">
+                    ###abstractFull###
+                </div>
+            </div>
+            <div class="expand-control">
+                <div class="expand-closed">
+                    Read the full story&nbsp;<span class="ml-1"><i class="fal fa-chevron-down"></i></span>
+                </div>
+                <div class="expand-open">
+                    Hide story&nbsp;<span class="ml-1"><i class="fal fa-chevron-up"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex mb-6 flex-column flex-lg-row">
+        <div>
+            ###authors###
+            ###supervisorName###
+            ###organisations###
+            ###externalOrganisations###
+            ###publicationDateYear###
+            ###keywordsUser###
+            ###language###
+            ###publicationType###
+            ###documentUrl###
+        </div>
+    </div>
+    <div class="publication-cite">
+        <h3>Cite this</h3>
+        <ul class="nav nav-tabs nav-undecorated" id="tabControls" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="bibtex-tab" data-toggle="tab" href="#bibtex" role="tab" aria-controls="bibtex" aria-selected="true">BIBTEX</a>
+            </li>
+        </ul>
+        
+        <div class="tab-content my-5" id="myTabContent">
+            <div class="tab-pane show active" id="bibtex" role="tabpanel" aria-labelledby="bibtex-tab">
+                ###bibtex###
+            </div>
+        </div>
+    </div>
+</script>

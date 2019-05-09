@@ -1,0 +1,29 @@
+<div class="row my-8">
+        <div class="col-12 text-center">
+            <h2>Avhandlingar och examensarbeten</h2>
+        </div>
+    </div>
+<div class="swipe swipe-sm-none search-result" id="swipe">
+    
+    
+    <div class="row swipe-inner" style="width: calc(300% - 30px);">
+        
+    </div>
+</div>
+<!-- <div class="swipe-steps d-sm-none" data-spy="scroll-x" data-source="#swipe"></div> -->
+<script id="solrSwipeTemplate" type="text/x-jquery-templ">
+    <div class="col swipe-target col-sm-6 col-md d-none d-sm-flex mb-sm-5" data-index="###i###" id="swipe-target-###i###" style="max-width:300px; height:300px; overflow:hidden;">
+        <a href="###link###" class="nav-block p-3 h-100 w-100 flex-column justify-content-between  nav-block-###bgColor###-50 nav-block-hover-###bgColor###-50">
+            <div class="mb-5">
+                <h6>###docType###: ###title###</h6>
+                <p>###authorName###</p>
+                <p>###publicationDate###</p>
+            </div>
+            <!-- <div class="nav-block-link  align-self-end nav-block-link">Läs mer&nbsp;<i class="fal fa-chevron-circle-right  fa-lg"></i>
+            </div> -->
+        </a>
+    </div>
+</script>
+
+
+
