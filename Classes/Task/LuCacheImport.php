@@ -898,6 +898,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'organisationCity' => $value['ocity'],
                             'organisationPostalAddress' => $value['opostal_address'],
                             'phone' => $value['phone'],
+                            'portalUrl' => $value['portalUrl'],
                             'roomNumber' => $value['room_number'],
                             'title' => $title,
                             //extra:
