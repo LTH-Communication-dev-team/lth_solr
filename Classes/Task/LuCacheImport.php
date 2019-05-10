@@ -65,7 +65,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         $employeeArray = $this->getEmployee($con, $imageArray);
 
-        $employeeArray = $this->getLucrisData($employeeArray);
+        $employeeArray = $this->getLucrisData($employeeArray, $config);
 
         $folderArray = $this->getFolderStructure($grsp);
         
@@ -249,8 +249,18 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    private function getLucrisData($employeeArray)
+    private function getLucrisData($employeeArray, $config)
     {
+        $client = new \Solarium\Client($config);
+        $query = $client->createSelect();
+        $queryToSet = 'docType:staff AND portalUrl:*';
+        $query->setQuery($queryToSet);
+        $query->setFields(array('id','portalUrl'));
+        $response = $client->select($query);
+        foreach ($response as $document) {  
+            $employeeArray[$document->id]['portalUrl'] = $document->portalUrl;
+        }
+        
         $tmpPortalUrlArray = array();
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT typo3_id,lucris_id,lucris_photo,lucris_profile_information,lucris_portal_url","tx_lthsolr_lucrisdata","typo3_id!=''");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
@@ -296,6 +306,11 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
+        $return = array_unique($tmpPortalUrlArray);
+var_dump(
+    array_diff($tmpPortalUrlArray, array_diff($return, array_diff_assoc($tmpPortalUrlArray, $return)))
+);
+die();
         //check unique
         asort($tmpPortalUrlArray);
 
@@ -305,9 +320,15 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $tmpI = 1;
         foreach ($tmpPortalUrlArray as $pKey => $pValue) {
             if($pValue===$oValue) {
-                //count(array_keys($tmpPortalUrlArray, $pKey, true));
-                $employeeArray[$pKey]['portalUrl'] = $pValue . '-' . $tmpI;
-                $tmpI++;
+                //We have a duplicate
+                foreach($tmpPortalUrlArray as $pKey => $pValue)
+                if($employeeArray[$pKey]['portalUrl']) {
+                    $tmpI++;
+                }  else {
+                    //count(array_keys($tmpPortalUrlArray, $pKey, true));
+                    $employeeArray[$pKey]['portalUrl'] = $pValue . '-' . $tmpI;
+                    $tmpI++;
+                }
             } else {
                 $tmpI = 1;
             }
