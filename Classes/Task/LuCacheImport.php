@@ -299,8 +299,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //check unique
         asort($tmpPortalUrlArray);
 
-        $this->debug($tmpPortalUrlArray);
-        die();
+        //$this->debug($tmpPortalUrlArray);
+        //die();
         $oValue = '';
         $tmpI = 1;
         foreach ($tmpPortalUrlArray as $pKey => $pValue) {
@@ -311,7 +311,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             } else {
                 $tmpI = 1;
             }
-            $pValue = $oValue;
+            $oValue = $pValue;
         }
         
         return $employeeArray;
