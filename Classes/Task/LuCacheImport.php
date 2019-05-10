@@ -298,7 +298,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         //check unique
         ksort($tmpPortalUrlArray);
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($tmpPortalUrlArray,true), 'crdate' => time()));
+
+        $this->debug($tmpPortalUrlArray);
+        die();
         $oKey = '';
         $tmpI = 1;
         foreach ($tmpPortalUrlArray as $pKey => $pValue) {
