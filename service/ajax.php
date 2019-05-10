@@ -3241,6 +3241,7 @@ function showProject($scope, $syslang, $config)
             'participantOrganisationType' => $this->fixArray($document->participantOrganisationType),
             'participantRole' => $this->fixArray($document->participantRole),
             'projectDescription' => $document->projectDescription,
+            'projectDescriptionType' => $document->projectDescriptionType,
             'projectStatus' => $document->projectStatus,
             'projectTitle' => $document->projectTitle,
             'projectType' => $document->projectType,

@@ -59,6 +59,8 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
             $lDef = array_keys($sDef);
             $fe_groups = $this->pi_getFFvalue($piFlexForm, "fe_groups", "sDEF", $lDef[$index]);
             $noItemsToShow = $this->pi_getFFvalue($piFlexForm, "noItemsToShow", "sDEF", $lDef[$index]);
+            $publicationLink = $this->pi_getFFvalue($piFlexForm, "publicationLink", "sDEF", $lDef[$index]);
+            $peopleLink = $this->pi_getFFvalue($piFlexForm, "peopleLink", "sDEF", $lDef[$index]);
             
             if($fe_groups) {
                 $tmpArray = explode(',',$fe_groups);
@@ -100,9 +102,9 @@ class tx_lthsolr_pi4 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
                 return 'Please add organisation uuid';
             }
             $content = '';
-                                
+
             if($showType === 'project') {
-                $content = $FrontEndClass->showProject($uuid);
+                $content = $FrontEndClass->showProject($uuid, $publicationLink, $peopleLink);
             } else if($showType === 'participant') {
                 $lth_solr_uuid = array();
                 $lth_solr_uuid['fe_users'][] = $uuid;

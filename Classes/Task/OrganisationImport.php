@@ -66,8 +66,10 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //$executionSucceeded = $this->getOrgFiles($solrLucrisApiVersion, $solrLucrisApiKey);
        
         $organisationArray = $this->getLucacheOrganisation($con);
+        
+        $heritage2Array = $this->getHeritage2($config);
 
-        $executionSucceeded = $this->getOrganisations($organisationArray, $config, $syslang);
+        $executionSucceeded = $this->getOrganisations($organisationArray, $heritage2Array, $config, $syslang);
         
         $syslang = "en";
         
@@ -81,7 +83,7 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 )
             )
         );
-        $executionSucceeded = $this->getOrganisations($organisationArray, $config, $syslang);
+        $executionSucceeded = $this->getOrganisations($organisationArray, $heritage2Array, $config, $syslang);
         
         return $executionSucceeded;
     }
@@ -118,7 +120,7 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     }
     
     
-    function getOrganisations($organisationArray, $config, $syslang)
+    function getOrganisations($organisationArray, $heritage2Array, $config, $syslang)
     {
         //$this->debug($organisationArray);
         //die();
@@ -213,6 +215,137 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     }
                 }
                 
+                
+                foreach($parents as $key1 => $value1) {
+                            if($lastValue1 === $value1) {
+                                $extraValue1 = (string)$i;
+                                $i++;
+                            }
+                            /*if(key_exists($value1,$coordinatesArray)) {
+                                $value['coordinates'][] = $coordinatesArray[$value1];
+                            } else {
+                                $value['coordinates'][] = "";
+                            }*/
+                            $heritage[] = $value1;
+                            
+                            $heritageName[] = strtolower(utf8_decode($orgArray[$value1][$nameTmp]));
+                            $parent = $heritageArray[$value1];
+                            $parent2 = $heritage2Array[$value1];
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1 . $extraValue1][] = $value2;
+                                        //$heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
+                                    }
+                                }
+                            }
+                            $parent2 = $heritage2Array[$parent];
+                            $parent = $heritageArray[$parent];
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1 . $extraValue1][] = $value2;
+                                        //$heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
+                                    }
+                                }
+                            }
+                            $parent2 = $heritage2Array[$parent];
+                            $parent = $heritageArray[$parent];
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1 . $extraValue1][] = $value2;
+                                        //$heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
+                                    }
+                                }
+                            }
+                            $parent2 = $heritage2Array[$parent];
+                            $parent = $heritageArray[$parent];
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1 . $extraValue1][] = $value2;
+                                        //$heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
+                                    }
+                                }
+                            }
+                            $parent2 = $heritage2Array[$parent];
+                            $parent = $heritageArray[$parent];
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1 . $extraValue1][] = $value2;
+                                        //$heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
+                                    }
+                                }
+                            }
+                            $parent2 = $heritage2Array[$parent];
+                            $parent = $heritageArray[$parent];
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1 . $extraValue1][] = $value2;
+                                        //$heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
+                                    }
+                                }
+                            }
+                            $parent2 = $heritage2Array[$parent];
+                            $parent = $heritageArray[$parent];
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1 . $extraValue1][] = $value2;
+                                        //$heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
+                                    }
+                                }
+                            }
+                            $parent2 = $heritage2Array[$parent];
+                            $parent = $heritageArray[$parent];
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1 . $extraValue1][] = $value2;
+                                        //$heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
+                                    }
+                                }
+                            }
+                            $parent2 = $heritage2Array[$parent];
+                            $parent = $heritageArray[$parent];
+                            if($parent) {
+                                $heritage[] = $parent;
+                                $heritageName[] = strtolower(utf8_decode($orgArray[$parent][$nameTmp]));
+                                if($parent2) {
+                                    foreach($parent2 as $key2 => $value2) {
+                                        $heritage2[$value1 . $extraValue1][] = $value2;
+                                        //$heritageName2[strtolower($orgArray[$value1][$nameTmp])][] = strtolower($orgArray[$value2][$nameTmp]);
+                                    }
+                                }
+                            }
+                            $lastValue1 = $value1;
+                        }
+
+                        array_filter($heritage);
+                        array_filter($heritageName);
+                
+                
+                
+                
                 //organisationSourceId
                 if($content->externalableInfo) {
                     $organisationSourceId[] = $content->externalableInfo->sourceId;
@@ -246,6 +379,8 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     'appKey' => 'lthsolr',
                     'id' => $id,
                     'docType' => 'organisation',
+                    'heritage' => $heritage,
+                    'heritageName' => $heritageName,
                     'homepage' => $homepage,
                     'mailDelivery' => $mailDelivery,
                     'organisationCity' => $organisationCity,
@@ -304,4 +439,37 @@ class OrganisationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         }
         return TRUE;
     }
+    
+    private function getHeritage2($config)
+    {
+        $heritageArray = array();
+        $organisationArray = array();
+        
+        $client = new \Solarium\Client($config);
+        $query = $client->createSelect();
+        $query->setQuery('docType:organisation');
+        $query->setFields(array("id", "organisationSourceId", "organisationParent"));
+        $query->setStart(0)->setRows(10000);
+        $response = $client->select($query);
+        foreach ($response as $document) {
+            if($document->organisationSourceId && substr($document->organisationSourceId[0],0,1)==='v') {
+                $organisationArray[$document->id] = array('parent' => $document->organisationParent, 'organisationSourceId' => $document->organisationSourceId[0]);
+            }
+        }
+
+        if($organisationArray) {
+            foreach ($organisationArray as $key => $value) {
+                if($value['organisationSourceId'] && $value['parent']) {
+                    foreach($value['parent'] as $key2 => $value2) {
+                        if($organisationArray[$value2]['organisationSourceId']) {
+                            $heritageArray[$value['organisationSourceId']][] = $organisationArray[$value2]['organisationSourceId'];
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $heritageArray;
+    }
+    
 }

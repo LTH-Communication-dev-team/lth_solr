@@ -4767,7 +4767,7 @@ function listProjects(tableStart, query, more)
                                 });
                             }
                         }
-                        
+                        var facet, count, facetHeader;
                         $.each( d.facet, function( key, value ) {
                             maxClass='';
                             more='';
@@ -4901,6 +4901,8 @@ function showProject()
     var projectDescription = '';
     
     var syslang = $('html').attr('lang');
+    var publicationlink = $('#lth_solr_publicationlink').val();
+    var peopleLink = $('#lth_solr_peoplelink').val();
     
     $.ajax({
         type : 'POST',
@@ -4944,8 +4946,13 @@ function showProject()
                     
                     for (var j = 0; j < participantNameArray.length; j++) {
                         if(participantIdArray[j]) {
-                        homepage = window.location.href.split(staffDetailPage).shift() + staffDetailPage + '/' + 
-                                participantNameArray[j].trim().replace(' ','-') + '('+participantIdArray[j].trim()+')(participant)';
+                            if(peopleLink) {
+                                homepage = peopleLink + '/' + staffDetailPage + '/' + 
+                                        participantNameArray[j].trim().replace(' ','-') + '('+participantIdArray[j].trim()+')';
+                            } else {
+                                homepage = window.location.href.split(staffDetailPage).shift() + staffDetailPage + '/' + 
+                                        participantNameArray[j].trim().replace(' ','-') + '('+participantIdArray[j].trim()+')';
+                            }
                         }
                         participants += '<li><a href="' + homepage + '">' + participantNameArray[j].trim() + '</a></li>'
                     }
@@ -4960,12 +4967,15 @@ function showProject()
                 
                 if(d.data.projectDescription) {
                     $.each(d.data.projectDescription, function( descKey, descData ) {
-                        if(descData && descData != 'false') projectDescription += '<div class="card"><div class="card-header" id="headingDescription"><h5 class="mb-0">'+
-                        '<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">'+
-                            'Description'+
-                        '</button></h5></div>'+
-                        '<div id="collapseDescription" class="collapse show in" aria-labelledby="headingDescription" data-parent="#lthSolrAccordion">'+
-                        '<div class="card-body">'+ descData + '</div></div></div>';
+                        if(descData && descData != 'false') {
+                            projectDescription += '<div class="card"><div class="card-header" id="headingDescription"><h5 class="mb-0">'+
+                            '<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">'+
+                                'Description'+
+                            '</button></h5></div>'+
+                            '<div id="collapseDescription" class="collapse show in" aria-labelledby="headingDescription" data-parent="#lthSolrAccordion">'+
+                            '<div class="card-body">'+ descData + '</div></div></div>';
+                            return false;
+                        }
                     });
                     //projectDescription = d.data.projectDescription;
                     

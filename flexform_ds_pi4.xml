@@ -55,6 +55,26 @@
                             </config>
                         </TCEforms>
                     </noItemsToShow>
+                    <publicationLink>
+                        <TCEforms>
+                            <label>Link to display publication</label>
+                            <config>
+                                <type>text</type>
+                                <cols>24</cols>
+                                <rows>3</rows>
+                            </config>
+                        </TCEforms>
+                    </publicationLink>
+                    <peopleLink>
+                        <TCEforms>
+                            <label>Link to display people</label>
+                            <config>
+                                <type>text</type>
+                                <cols>24</cols>
+                                <rows>3</rows>
+                            </config>
+                        </TCEforms>
+                    </peopleLink>
                 </el>
             </ROOT>
         </sDEF>

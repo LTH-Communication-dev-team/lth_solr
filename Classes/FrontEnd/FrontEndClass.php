@@ -223,7 +223,7 @@ class FrontEndClass
         return $content;
     }
     
-    public function showProject($uuid)
+    public function showProject($uuid, $publicationLink, $peopleLink)
     {
         $lth_solr_uuid['projects'][] = $uuid;
         if(count($lth_solr_uuid > 0)) {
@@ -274,6 +274,8 @@ class FrontEndClass
             </div>';
 
         $content .= '<input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+                                <input type="hidden" id="lth_solr_publicationlink" value="' . $publicationLink . '" />
+                    <input type="hidden" id="lth_solr_peoplelink" value="' . $peopleLink . '" />
                 <input type="hidden" id="lth_solr_action" value="showProject" />';
         
         return $content;
