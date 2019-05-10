@@ -251,15 +251,19 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     private function getLucrisData($employeeArray)
     {
-        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT typo3_id,lucris_id,lucris_photo,lucris_profile_information","tx_lthsolr_lucrisdata","typo3_id!=''");
+        $tmpPortalUrlArray = array();
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery("DISTINCT typo3_id,lucris_id,lucris_photo,lucris_profile_information,lucris_portal_url","tx_lthsolr_lucrisdata","typo3_id!=''");
         while ($row = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($res)) {
             $typo3_id = $row['typo3_id'];
             $lucris_id = $row['lucris_id'];
             $lucrisphoto = $row['lucris_photo'];
             $lucris_profile_information = $row['lucris_profile_information'];
+            $lucris_portal_url = $row['lucris_portal_url'];
 
             $profileInformation_en = '';
             $profileInformation_sv = '';
+            $lucris_portal_url = '';
+            
             $resArray = array();
             if($lucris_profile_information) {
                 $profileInformationArray = json_decode($lucris_profile_information, true);
@@ -279,13 +283,35 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             } 
             
             if(array_key_exists($typo3_id, $employeeArray)) {
+                if($lucris_portal_url) {
+                    $lucris_portal_url = array_shift(explode('(', array_pop(explode('/',$lucris_portal_url))));
+                    $tmpPortalUrlArray[$lucris_portal_url] = $typo3_id;
+                }
                 $employeeArray[$typo3_id]['uuid'] = $lucris_id;
                 $employeeArray[$typo3_id]['lucrisphoto'] = $lucrisphoto;
                 $employeeArray[$typo3_id]['profileInformation_en'] = $profileInformation_en;
                 $employeeArray[$typo3_id]['profileInformation_sv'] = $profileInformation_sv;
+                $employeeArray[$typo3_id]['portalUrl'] = $lucris_portal_url;
+                
             }
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
+        
+        //check unique
+        ksort($tmpPortalUrlArray);
+        $oKey = '';
+        $tmpI = 1;
+        foreach ($tmpPortalUrlArray as $pKey => $pValue) {
+            if($pKey===$oKey) {
+                //count(array_keys($tmpPortalUrlArray, $pKey, true));
+                $employeeArray[$pValue]['portalUrl'] = $pKey . '-' . $tmpI;
+                $tmpI++;
+            } else {
+                $tmpI = 1;
+            }
+            $oKey = $pKey;
+        }
+        
         return $employeeArray;
     }
      
