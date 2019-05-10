@@ -91,6 +91,7 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $sourceId = (string)$content->externalableInfo->sourceId;
                 $uuid = (string)$content->attributes();
                 $photo = '';
+                $portalUrl = '';
                 $profileInformation = '';
                 
                 //profileInformation
@@ -106,15 +107,19 @@ class AddLucrisUuid extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $photo = (string)$content->profilePhotos->profilePhoto->attributes()->url;
                 }
                 
+                if($content->info->portalUrl) {
+                    $portalUrl = (string)$content->info->portalUrl;
+                }
+                
                 if($sourceId && $uuid) {
                     $sourceIdArray = explode('@', $sourceId);
                     $sourceId = $sourceIdArray[0];
                    
                     $id = (string)$sourceId;
                     if(in_array($id, $current)) {
-                        $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_lthsolr_lucrisdata', "typo3_id='$id'", array('lucris_id' => $uuid, 'lucris_photo' => $photo, 'lucris_profile_information' => $profileInformation, 'lucris_type' => 'staff'));
+                        $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_lthsolr_lucrisdata', "typo3_id='$id'", array('lucris_id' => $uuid, 'lucris_photo' => $photo, 'lucris_profile_information' => $profileInformation, 'lucris_type' => 'staff','lucris_portal_url' => $portalUrl));
                     } else {
-                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_lthsolr_lucrisdata', array('typo3_id' => $id, 'lucris_id' => $uuid, 'lucris_photo' => $photo, 'lucris_profile_information' => $profileInformation, 'lucris_type' => 'staff'));
+                        $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_lthsolr_lucrisdata', array('typo3_id' => $id, 'lucris_id' => $uuid, 'lucris_photo' => $photo, 'lucris_profile_information' => $profileInformation, 'lucris_type' => 'staff','lucris_portal_url' => $portalUrl));
                     }
                 }
             }
