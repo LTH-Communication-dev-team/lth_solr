@@ -284,7 +284,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             if(array_key_exists($typo3_id, $employeeArray)) {
                 if($lucris_portal_url) {
                     $lucris_portal_url = array_shift(explode('(', array_pop(explode('/',$lucris_portal_url))));
-                    $tmpPortalUrlArray[$lucris_portal_url] = $typo3_id;
+                    $tmpPortalUrlArray[$typo3_id] = $lucris_portal_url;
                 }
                 $employeeArray[$typo3_id]['uuid'] = $lucris_id;
                 $employeeArray[$typo3_id]['lucrisphoto'] = $lucrisphoto;
@@ -297,21 +297,21 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
         //check unique
-        ksort($tmpPortalUrlArray);
+        asort($tmpPortalUrlArray);
 
-        $this->debug($tmpPortalUrlArray);
-        die();
-        $oKey = '';
+        //$this->debug($tmpPortalUrlArray);
+        //die();
+        $oValue = '';
         $tmpI = 1;
         foreach ($tmpPortalUrlArray as $pKey => $pValue) {
-            if($pKey===$oKey) {
+            if($pValue===$oValue) {
                 //count(array_keys($tmpPortalUrlArray, $pKey, true));
-                $employeeArray[$pValue]['portalUrl'] = $pKey . '-' . $tmpI;
+                $employeeArray[$pKey]['portalUrl'] = $pValue . '-' . $tmpI;
                 $tmpI++;
             } else {
                 $tmpI = 1;
             }
-            $oKey = $pKey;
+            $pValue = $oValue;
         }
         
         return $employeeArray;
