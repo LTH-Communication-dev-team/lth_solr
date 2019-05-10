@@ -262,7 +262,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
             $profileInformation_en = '';
             $profileInformation_sv = '';
-            $lucris_portal_url = '';
             
             $resArray = array();
             if($lucris_profile_information) {
