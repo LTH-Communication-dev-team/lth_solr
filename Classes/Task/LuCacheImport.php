@@ -26,7 +26,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
     function indexItems()
     {
-
         require(__DIR__.'/init.php');
 
         $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['lth_solr']);
@@ -294,7 +293,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             if(array_key_exists($typo3_id, $employeeArray)) {
                 if($lucris_portal_url) {
                     $lucris_portal_url = array_shift(explode('(', array_pop(explode('/',$lucris_portal_url))));
-                    $tmpPortalUrlArray[$typo3_id] = $lucris_portal_url;
+                    $tmpPortalUrlArray[$lucris_portal_url][$typo3_id];
                 }
                 $employeeArray[$typo3_id]['uuid'] = $lucris_id;
                 $employeeArray[$typo3_id]['lucrisphoto'] = $lucrisphoto;
@@ -306,33 +305,36 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         }
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
-        $return = array_unique($tmpPortalUrlArray);
-var_dump(
-    array_diff($tmpPortalUrlArray, array_diff($return, array_diff_assoc($tmpPortalUrlArray, $return)))
-);
-die();
         //check unique
-        asort($tmpPortalUrlArray);
+        ksort($tmpPortalUrlArray);
 
-        //$this->debug($tmpPortalUrlArray);
-        //die();
+        $this->debug($tmpPortalUrlArray);
+        die();
         $oValue = '';
         $tmpI = 1;
+        $cArray = array_count_values($tmpPortalUrlArray);
+        
         foreach ($tmpPortalUrlArray as $pKey => $pValue) {
-            if($pValue===$oValue) {
+            if($pKey===$oKey) {
                 //We have a duplicate
-                foreach($tmpPortalUrlArray as $pKey => $pValue)
-                if($employeeArray[$pKey]['portalUrl']) {
+                do {
+                    echo $i;
+                } while ($i > 0);
+
+                if(!$employeeArray[$pKey]['portalUrl']) {
                     $tmpI++;
                 }  else {
                     //count(array_keys($tmpPortalUrlArray, $pKey, true));
+                    if($cArray[$pKey] === $tmpI) {
+                        
+                    }
                     $employeeArray[$pKey]['portalUrl'] = $pValue . '-' . $tmpI;
                     $tmpI++;
                 }
             } else {
                 $tmpI = 1;
             }
-            $oValue = $pValue;
+            $oKey = $pKey;
         }
         
         return $employeeArray;
