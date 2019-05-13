@@ -308,11 +308,11 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //check unique
         ksort($tmpPortalUrlArray);
 
-        /*$this->debug($tmpPortalUrlArray);
+        $this->debug($tmpPortalUrlArray);
         die();
-        $oValue = '';
-        $cArray = array_count_values($tmpPortalUrlArray);
-        */
+        //$oValue = '';
+        //$cArray = array_count_values($tmpPortalUrlArray);
+        
         foreach ($tmpPortalUrlArray as $pKey => $pValue) {
             if(count($pValue) > 1) {
                 //We have a duplicate
