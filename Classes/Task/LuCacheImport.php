@@ -308,33 +308,35 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //check unique
         ksort($tmpPortalUrlArray);
 
-        $this->debug($tmpPortalUrlArray);
+        /*$this->debug($tmpPortalUrlArray);
         die();
         $oValue = '';
-        $tmpI = 1;
         $cArray = array_count_values($tmpPortalUrlArray);
-        
+        */
         foreach ($tmpPortalUrlArray as $pKey => $pValue) {
-            if($pKey===$oKey) {
+            if(count($pValue) > 1) {
                 //We have a duplicate
-                do {
-                    echo $i;
-                } while ($i > 0);
-
-                if(!$employeeArray[$pKey]['portalUrl']) {
-                    $tmpI++;
-                }  else {
-                    //count(array_keys($tmpPortalUrlArray, $pKey, true));
-                    if($cArray[$pKey] === $tmpI) {
-                        
+                $tmpArray = array();
+                $tmpI = 0;
+                foreach ($pValue as $dKey => $dValue) {
+                    if($employeeArray[$dValue]['portalUrl']) {
+                        $tmpI++;
+                    }  else {
+                        $tmpArray[$dValue][];
+                        //$employeeArray[$dValue]['portalUrl'] = $dKey . '-' . count($pValue);
+                        //$tmpI++;
                     }
-                    $employeeArray[$pKey]['portalUrl'] = $pValue . '-' . $tmpI;
+                }
+
+                foreach ($tmpArray as $tKey => $tValue) {
+                    if($tmpI > 0) {
+                        $employeeArray[$tKey]['portalUrl'] = $pKey . '-' . $tmpI;
+                    } else {
+                        $employeeArray[$tKey]['portalUrl'] = $pKey;
+                    }
                     $tmpI++;
                 }
-            } else {
-                $tmpI = 1;
             }
-            $oKey = $pKey;
         }
         
         return $employeeArray;
