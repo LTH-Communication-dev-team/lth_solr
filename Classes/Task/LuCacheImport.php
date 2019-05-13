@@ -322,7 +322,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     if($employeeArray[$dValue]['portalUrl']) {
                         $tmpI++;
                     }  else {
-                        $tmpArray[$dValue][];
+                        $tmpArray[$dValue][] = 'foe';
                         //$employeeArray[$dValue]['portalUrl'] = $dKey . '-' . count($pValue);
                         //$tmpI++;
                     }
