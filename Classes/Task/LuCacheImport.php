@@ -308,10 +308,20 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         //check unique
         ksort($tmpPortalUrlArray);
 
-        $this->debug($tmpPortalUrlArray);
-        die();
+        //$this->debug($tmpPortalUrlArray);
+        //die();
         //$oValue = '';
         //$cArray = array_count_values($tmpPortalUrlArray);
+        /*
+         *  [johan-nilsson] => Array
+        (
+            [0] => zooe-jni
+            [1] => med-jn3
+            [2] => teol-jon
+            [3] => thor-jni
+            [4] => elma-jni
+            [5] => onh-jni
+         */
         
         foreach ($tmpPortalUrlArray as $pKey => $pValue) {
             if(count($pValue) > 1) {
@@ -329,6 +339,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     } else {
                         $employeeArray[$dValue]['portalUrl'] = $pKey;
                     }
+                    $tmpI++;
                 }
 
                 foreach ($tmpArray as $tKey => $tValue) {
