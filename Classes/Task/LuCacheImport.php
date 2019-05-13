@@ -329,25 +329,21 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $tmpArray = array();
                 $tmpI = 0;
                 foreach ($pValue as $dKey => $dValue) {
-                    /*if($employeeArray[$dValue]['portalUrl']) {
+                    if($employeeArray[$dValue]['portalUrl']) {
                         $tmpI++;
                     }  else {
                         $tmpArray[$dValue][] = 'foe';
-                    }*/
-                    if($tmpI > 0) {
+                    }
+                    /*if($tmpI > 0) {
                         $employeeArray[$dValue]['portalUrl'] = $pKey . '-' . $tmpI;
                     } else {
                         $employeeArray[$dValue]['portalUrl'] = $pKey;
                     }
-                    $tmpI++;
+                    $tmpI++;*/
                 }
 
                 foreach ($tmpArray as $tKey => $tValue) {
-                    if($tmpI > 0) {
-                        $employeeArray[$tKey]['portalUrl'] = $pKey . '-' . $tmpI;
-                    } else {
-                        $employeeArray[$tKey]['portalUrl'] = $pKey;
-                    }
+                    $employeeArray[$tKey]['portalUrl'] = $pKey . '-' . $tmpI;
                     $tmpI++;
                 }
             } else {
