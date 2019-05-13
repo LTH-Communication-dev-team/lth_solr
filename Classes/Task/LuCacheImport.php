@@ -293,7 +293,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             if(array_key_exists($typo3_id, $employeeArray)) {
                 if($lucris_portal_url) {
                     $lucris_portal_url = array_shift(explode('(', array_pop(explode('/',$lucris_portal_url))));
-                    $tmpPortalUrlArray[$lucris_portal_url][$typo3_id];
+                    $tmpPortalUrlArray[$lucris_portal_url][] = $typo3_id;
                 }
                 $employeeArray[$typo3_id]['uuid'] = $lucris_id;
                 $employeeArray[$typo3_id]['lucrisphoto'] = $lucrisphoto;
