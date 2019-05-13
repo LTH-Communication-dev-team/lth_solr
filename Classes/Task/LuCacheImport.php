@@ -337,6 +337,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     }
                     $tmpI++;
                 }
+            } else {
+                $employeeArray[$pValue]['portalUrl'] = $pKey;
             }
         }
         
