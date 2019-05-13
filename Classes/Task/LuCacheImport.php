@@ -326,7 +326,9 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     }*/
                     if($tmpI > 0) {
                         $employeeArray[$dValue]['portalUrl'] = $pKey . '-' . $tmpI;
-                    } 
+                    } else {
+                        $employeeArray[$dValue]['portalUrl'] = $pKey;
+                    }
                 }
 
                 foreach ($tmpArray as $tKey => $tValue) {
@@ -338,7 +340,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $tmpI++;
                 }
             } else {
-                $employeeArray[$pValue]['portalUrl'] = $pKey;
+                $employeeArray[$pValue[0]]['portalUrl'] = $pKey;
             }
         }
         
