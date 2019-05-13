@@ -254,6 +254,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $query = $client->createSelect();
         $queryToSet = 'docType:staff AND portalUrl:*';
         $query->setQuery($queryToSet);
+        $query->setStart(0)->setRows(100000);
         $query->setFields(array('id','portalUrl'));
         $response = $client->select($query);
         foreach ($response as $document) {  
@@ -329,21 +330,25 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $tmpArray = array();
                 $tmpI = 0;
                 foreach ($pValue as $dKey => $dValue) {
-                    /*if($employeeArray[$dValue]['portalUrl']) {
+                    if($employeeArray[$dValue]['portalUrl']) {
                         $tmpI++;
                     }  else {
                         $tmpArray[$dValue][] = 'foe';
-                    }*/
-                    if($tmpI > 0) {
+                    }
+                    /*if($tmpI > 0) {
                         $employeeArray[$dValue]['portalUrl'] = $pKey . '-' . $tmpI;
                     } else {
                         $employeeArray[$dValue]['portalUrl'] = $pKey;
                     }
-                    $tmpI++;
+                    $tmpI++;*/
                 }
 
                 foreach ($tmpArray as $tKey => $tValue) {
-                    $employeeArray[$tKey]['portalUrl'] = $pKey . '-' . $tmpI;
+                    if($tmpI > 0) {
+                        $employeeArray[$tKey]['portalUrl'] = $pKey . '-' . $tmpI;
+                    } else {
+                        $employeeArray[$tKey]['portalUrl'] = $pKey;
+                    }
                     $tmpI++;
                 }
             } else {
