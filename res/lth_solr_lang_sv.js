@@ -42,7 +42,7 @@ var lth_solr_messages = {
     keywords_uka: "UKÄ",
     keywords_user: "Nyckelord",
     language: "Språk",
-    latestPublications: "Senaster publikationer",
+    latestPublications: "Senaste publikationer",
     more: "Mer",
     moreFilteringOptions: "Fler filtreringsmöjlighter",
     namelabel: "Namn",
