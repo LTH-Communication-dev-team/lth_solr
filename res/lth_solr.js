@@ -1298,8 +1298,8 @@ function listOrganisationStaff(facet, query)
                         //console.log(aData.heritage2);
                         //console.log(scope);
                     } else {
-                        organisation += '<strong>' + aData.primaryVroleOu + '</strong> - ';
-                        organisation += titleCase(aData.organisationName[0]);
+                        organisation += '<strong>' + aData.organisationName[0] + '</strong> - ';
+                        organisation += titleCase(aData.primaryVroleTitle);
                     }
                     if(!phone && aData.primaryVrolePhone && aData.primaryVrolePhone !== 'NULL') {
                         phone = formatPhone(aData.primaryVrolePhone);
