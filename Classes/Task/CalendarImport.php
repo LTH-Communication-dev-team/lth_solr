@@ -150,6 +150,7 @@ class CalendarImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     foreach($tmpEvents as $key => $value) {
                         $data = array(
                             'id' => $value['uuid'],
+                            'nid' => $value['nid'],
                             'boost' => '1.0',
                             'changed' => gmdate('Y-m-d\TH:i:s\Z', $value['changed']),
                             'digest' => md5($value['uuid']),
