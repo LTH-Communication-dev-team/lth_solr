@@ -122,6 +122,36 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     function getProjects($config, $client, $buffer, $current_date, $maximumrecords, 
             $settings, $lastModified, $heritageArray, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion, $mode)
     {
+        $portalUrlArray = array();
+        
+        $query = $client->createSelect();
+        $queryToSet = 'docType:project AND portalUrl:*';
+        $query->setQuery($queryToSet);
+        $query->setStart(0)->setRows(100000);
+        $query->setFields(array('id','portalUrl'));
+        $response = $client->select($query);
+        foreach ($response as $document) {  
+            $portalUrlArray[$document->portalUrl][] = $document->id;
+        }
+        
+        foreach ($portalUrlArray as $pKey => $pValue) {
+            if(count($pValue) > 1) {
+                //We have a duplicate :(
+                $tmpI=0;
+                foreach($pValue as $dKey => $dValue) {
+                    if($tmpI > 0) {
+                        $finalPortalArray[$dValue] = $pKey . '-' . $tmpI;
+                    } else {
+                        $finalPortalArray[$dValue] = $pKey;
+                    }
+                    $tmpI++;
+                }
+            } else {
+                //No duplicate :)
+                $finalPortalArray[$pValue[0]] = $pKey;
+            }
+        }
+        
         $heritageArray = $heritageArray[0];
         $directory = '/var/www/html/typo3/lucrisdump';
 
@@ -332,6 +362,19 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                     $modifiedDate = (string)$value->modifiedDate;
                     $portalUrl = (string)$value->portalUrl;
                 }
+                
+                if($finalPortalArray[$id]) {
+                    $portalUrl = $finalPortalArray[$id];
+                } else {
+                    $portalUrl = array_shift(explode('(', array_pop(explode('/',$portalUrl))));
+                    if(count($portalUrlArray[$portalUrl]) > 1) {
+                        for($i=1; $i<200; $i++) {
+                            if(!$portalUrlArray[$portalUrl . '-' . $i]) {
+                               $portalUrl = $portalUrl . '-' . $i;
+                            }
+                        }
+                    }
+                }
             }
             
             if($organisationId) {
@@ -404,6 +447,7 @@ class ProjectImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 'participantOrganisationName' => $participantOrganisationName,
                 'participantOrganisationType' => $participantOrganisationType,
                 'participantRole' => $participantRole,
+                'portalUrl' => $portalUrl,
                 'projectDescription' => $projectDescription,
                 'projectDescriptionType' => $projectDescriptionType,
                 'projectStatus' => $projectStatus,

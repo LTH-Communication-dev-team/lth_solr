@@ -42,6 +42,10 @@
                                         <numIndex index="0">Latest dissertations and student papers</numIndex>
                                         <numIndex index="1">latestdissertationsstudentpapers</numIndex>
                                     </numIndex>
+                                    <numIndex index="6" type="array">
+                                        <numIndex index="0">Projects</numIndex>
+                                        <numIndex index="1">projects</numIndex>
+                                    </numIndex>
                                 </items>
                             </config>
                         </TCEforms>
@@ -132,6 +136,69 @@
                             </config>
                         </TCEforms>
                     </dissertationsLink>
+                    
+                    
+                    <projectDetailPage>
+                        <TCEforms>
+                            <displayCond>FIELD:display:IN:projects,publications,staff</displayCond>
+                            <label>Page to show full project post</label>
+                            <config>
+                                 <type>group</type>
+                                 <internal_type>db</internal_type>
+                                 <allowed>pages</allowed>
+                                 <maxitems>1</maxitems>
+                                 <wizards>
+                                     <suggest>
+                                         <type>suggest</type>
+                                         <default>
+                                             <searchWholePhrase>1</searchWholePhrase>
+                                         </default>
+                                     </suggest>
+                                 </wizards>
+                             </config>
+                        </TCEforms>
+                    </projectDetailPage>
+                    <publicationDetailPage>
+                        <TCEforms>
+                            <displayCond>FIELD:display:IN:projects,publications,staff</displayCond>
+                            <label>Page to show full publication post</label>
+                            <config>
+                                 <type>group</type>
+                                 <internal_type>db</internal_type>
+                                 <allowed>pages</allowed>
+                                 <maxitems>1</maxitems>
+                                 <wizards>
+                                     <suggest>
+                                         <type>suggest</type>
+                                         <default>
+                                             <searchWholePhrase>1</searchWholePhrase>
+                                         </default>
+                                     </suggest>
+                                 </wizards>
+                             </config>
+                        </TCEforms>
+                    </publicationDetailPage>
+                    <staffDetailPage>
+                        <TCEforms>
+                            <displayCond>FIELD:display:IN:projects,publications,staff</displayCond>
+                            <label>Page to show full staff post</label>
+                            <config>
+                                 <type>group</type>
+                                 <internal_type>db</internal_type>
+                                 <allowed>pages</allowed>
+                                 <maxitems>1</maxitems>
+                                 <wizards>
+                                     <suggest>
+                                         <type>suggest</type>
+                                         <default>
+                                             <searchWholePhrase>1</searchWholePhrase>
+                                         </default>
+                                     </suggest>
+                                 </wizards>
+                             </config>
+                        </TCEforms>
+                    </staffDetailPage>
+                    
                     <extraPeople>
                         <section>1</section>
                         <title>Add people</title>

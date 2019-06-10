@@ -340,9 +340,31 @@ class FrontEndClass
     }
     
     
-    public function showPublicationNovo($syslang, $scope, $organisation)
+    public function showProjectNovo($syslang, $scope, $organisation)
     {
         //Staff 
+        $content .= '<div id="lthsolr_project_container"></div>';
+        
+        $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/project_novo.html");
+
+        //hidden fields
+        $content .= '
+            <input type="hidden" id="lth_solr_action" value="showProjectNovo" />
+            <input type="hidden" id="lth_solr_organisation" value="' . $organisation . '" />
+            <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+            ';
+
+        return $content;
+    }
+    
+    
+    public function showPublicationNovo($frontEndArray)
+    {
+        $syslang = $frontEndArray['syslang'];
+        $scope = $frontEndArray['scope'];
+        $organisation = $frontEndArray['organisation'];
+        $content = '';
+        
         $content .= '<div id="lthsolr_show_publication_container"></div>';
         
         $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publication_novo_presentation.html");
@@ -375,8 +397,21 @@ class FrontEndClass
     }
     
     
-    public function showStaffNovo($syslang, $scope, $organisation)
+    public function showStaffNovo($frontEndArray)
     {
+        $syslang = $frontEndArray['syslang'];
+        $scope = $frontEndArray['scope'];
+        $organisation = $frontEndArray['organisation'];
+        $projectDetailPage = $frontEndArray['projectDetailPage']; 
+        $publicationDetailPage = $frontEndArray['publicationDetailPage'];
+        
+        $publicationDetailPage = $GLOBALS['TSFE']->cObj->typoLink_URL(
+            array(
+                'parameter' => $publicationDetailPage,
+                'forceAbsoluteUrl' => true,
+            )
+        );
+                
         //Staff 
         $content .= '<div id="lthsolr_show_staff_container"></div>';
         
@@ -387,26 +422,39 @@ class FrontEndClass
             <input type="hidden" id="lth_solr_action" value="showStaffNovo" />
             <input type="hidden" id="lth_solr_organisation" value="' . $organisation . '" />
             <input type="hidden" id="lth_solr_scope" value="' . $scope . '" />
+            <input type="hidden" id="lth_solr_publicationdetailpage" value="' . $publicationDetailPage . '" />
+            <input type="hidden" id="lth_solr_projectdetailpage" value="' . $projectDetailPage . '" />
             ';
 
         return $content;
     }
     
     
-    public function listOrganisation($syslang, $scope, $vroles, $facetChoice, $query, $extraPeople, $hideSearchField, $publicationsLink, $dissertationsLink, $action)
+    public function listOrganisation($frontEndArray)
     {
+        $action = $frontEndArray['action'];
+        $syslang = $frontEndArray['syslang']; 
+        $scope = $frontEndArray['scope']; 
+        $vroles = $frontEndArray['vroles']; 
+        $facetChoice = $frontEndArray['facetChoice']; 
+        $query = $frontEndArray['query'];
+        $extraPeople = $frontEndArray['extraPeople']; 
+        $hideSearchField = $frontEndArray['hideSearchField']; 
+        $publicationsLink = $frontEndArray['publicationsLink']; 
+        $dissertationsLink = $frontEndArray['dissertationsLink']; 
+        $staffDetailPage = $frontEndArray['staffDetailPage'];
+                
         $syslang = $GLOBALS['TSFE']->config['config']['language'];
-        
         $content .= '';
         
         if($syslang==='en') {
             $placeholderText = "Write at least 3 characters";
             $filterText = "Write fo filter";
-            $filterBtntext = "Filter";
+            $filterBtntext = "Search";
         } else {
             $placeholderText = "Skriv minst 3 tecken";
             $filterText = "Skriv för att filtrera";
-            $filterBtntext = "Filtrera";
+            $filterBtntext = "Sök";
         }
         
         if(!$hideSearchField && $action==='listOrganisationPublications') {
@@ -414,25 +462,28 @@ class FrontEndClass
                 <label class=" w-100">' .
                    $filterText .
                    '<div class="input-group rounded-0">
-                   <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="' . $placeholderText . '" />
-                     <div class="input-group-append">
-                    <button class="btn btn-outline-primary rounded-0" type="button">' . $filterBtntext . '</button>
-                     </div>
-                   </div>
+                        <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="' . $placeholderText . '" />
+                        <div class="input-group-append">
+                            <button id="lthSolrFacetShow" class="btn btn-outline-primary rounded-0" type="button"><span class="fal fa-filter"></span></button>
+                            <button id="lthSolrClear" class="btn btn-outline-primary rounded-0" type="button"><span class="fa fa-times"></span></button>
+                            <button id="lthSolrSearch" class="btn btn-outline-primary rounded-0" type="button">' . $filterBtntext . '</button>
+                        </div>
+                    </div>
                  </label>
                </div>';
         } else if(!$hideSearchField) {
             $content .= '<div class="form-group">
-                <label class=" w-100">' .
-                   $filterText .
-                   '<div class="input-group rounded-0">
-                   <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="' . $placeholderText . '" />
-                     <div class="input-group-append">
-                    <button class="btn btn-outline-primary rounded-0" type="button">' . $filterBtntext . '</button>
-                     </div>
-                   </div>
-                 </label>
-               </div>';
+                <label class=" w-100">
+                    <div class="input-group rounded-0">
+                        <input id="lthsolr_organisation_filter" type="text" class="form-control" name="text" value="" placeholder="' . $placeholderText . '" />
+                        <div class="input-group-append">
+                            <button id="lthSolrFacetShow" class="btn btn-outline-primary rounded-0" type="button"><span class="fal fa-filter"></span></button>
+                            <button id="lthSolrClear" class="btn btn-outline-primary rounded-0" type="button"><span class="fa fa-times"></span></button>
+                            <button id="lthSolrSearch" class="btn btn-outline-primary rounded-0" type="button">' . $filterBtntext . '</button>
+                        </div>
+                    </div>
+                </label>
+            </div>';
         }
 
         $content .= '<div id="lthsolr_organisation_container" class="col-12 mt-3 mt-xl-6">'; 
@@ -444,6 +495,43 @@ class FrontEndClass
             $content .= '<div class="search-result"><section></section></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/contact_new.html");
         } else if($action==='listOrganisationPublications') {
+            $content .= '<style>.list-group-item {
+  user-select: none;
+}
+
+.list-group input[type="checkbox"] {
+  display: none;
+}
+
+.list-group input[type="checkbox"] + .list-group-item {
+  cursor: pointer;
+}
+
+.list-group input[type="checkbox"] + .list-group-item:before {
+  content: "\2713";
+  color: transparent;
+  font-weight: bold;
+  margin-right: 1em;
+}
+
+.list-group input[type="checkbox"]:checked + .list-group-item {
+  background-color: #0275D8;
+  color: #FFF;
+}
+
+.list-group input[type="checkbox"]:checked + .list-group-item:before {
+  color: inherit;
+}
+.lthSolrFacetButton {
+border-radius:0px !important;
+}
+@media (min-width: 768px) {
+article .twitter-typeahead { width:51% !important; display:block;}
+}
+.lthSolrFacetGroup {
+    margin-left:20px;
+    }
+</style>';
             $content .= '<div class="search-result"><section></section></div></div>';
             $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/publications_novo_list.html");
         } else if($action==='listOrganisationStudentPapers') {
@@ -452,6 +540,9 @@ class FrontEndClass
         } else if($action==='latestDissertationsStudentPapers') {
             //$content .= '<div class="search-result"><section></section></div></div>';
             $content = file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/latestdissertationsstudentpapers.html");
+        } else if($action==='listOrganisationProjects') {
+            $content .= '<div class="search-result"><section></section></div></div>';
+            $content .= file_get_contents("/var/www/html/typo3/typo3conf/ext/lth_solr/templates/projects_novo_list.html");
         }
 
         if($extraPeople) $extraPeople = urlencode($extraPeople);

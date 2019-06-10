@@ -1,58 +1,35 @@
-<!--<table id="lthsolr_table" class="display" cellspacing="0" cellpadding="0" width="100%">
-    <thead><tr><th></th></tr></thead>
-    <tbody id="table_data_container">
-        
-    </tbody>
-</table>-->
-
 <script id="solrTemplate" type="text/x-jquery-templ">
-    <ul class="nav nav-tabs" style="max-width:650px;">
-        <li class="active"><a data-toggle="tab" href="#1a">###tabOverview###</a></li>
-        <li><a data-toggle="tab" href="#2a">Cite</a></li>
-        <li><a data-toggle="tab" href="#3a">Bibtex</a></li>
-    </ul>
-    <div class="tab-content clearfix" style="max-width:650px;">
-        <div class="tab-pane active" id="1a">
-            <div style="margin-bottom:20px;" id="lthsolrAbstract">
-                <div class="textblock">###abstract###</div>
-            </div>
-            
-            
-    
-            <div>
-                ###authors###
-                ###electronicVersion###
-                ###additionalLink###
-                ###externalOrganisations###
-                ###keywords_uka###
-                ###keywords_user###
-                ###language###
-                ###hostPublicationTitle###
-                ###supervisors###
-                ###pages###
-                ###numberOfPages###
-                ###journalTitle###
-                ###volume###
-                ###journalNumber###
-                ###placeOfPublication###
-                ###edition###
-                ###publisher###
-                ###printIsbns###
-                ###electronicIsbns###
-                ###publicationStatus###
-                ###peerReview###
-                ###event###
-            </div>
-        </div>
-
-        <div class="tab-pane" id="2a">
-            ###cite###
-	</div>
-
-        <div class="tab-pane" id="3a">
-            ###bibtex###
-        </div>
-
+    <div class="mt-6 flex-lg-row" id="lthSolrAuthors">
     </div>
-  
+    <div class="my-4 flex-lg-row" id="lthSolrOrganisations">
+    </div>
+    <div class="mb-6 flex-lg-row" id="lthSolrAbstract">
+    </div>
+    <div class="mb-6 flex-lg-row">
+        <table class="table" id="lthSolrPublicationFactsTable">
+            <tbody class="">
+            </tbody>
+        </table>
+    </div>
+    <div class="mb-6 flex-lg-row" id="lthSolrBibliographicalNote">
+    </div>
+    <div class="mb-6 flex-lg-row" id="lthSolrKeywords">
+        <table class="table">
+            <tbody class="">
+            </tbody>
+        </table>
+    </div>
+    <div class="mb-6 flex-lg-row" id="lthSolrEvent">
+        <table class="table">
+            <tbody class="">
+            </tbody>
+        </table>
+    </div>
+    <div class="mb-6 flex-lg-row" id="lthSolrCiteThis">
+        <ul class="nav nav-tabs nav-undecorated">
+        </ul>
+        <div class="tab-content mb-6">
+            
+        </div>
+    </div>
 </script>

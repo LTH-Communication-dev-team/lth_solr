@@ -81,7 +81,7 @@ class PublicationImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         
         $singleId = '';//'a575156e-f1ab-4d63-90e9-d197e8216888'; //'ae845c71-2e0d-42cf-ba16-4e292d8a81d7';
         
-        $mode = ''; //'restart'; //'reindex'; // 'files';
+        $mode = 'reindex'; //''; //restart'; //'reindex'; // 'files';
         if($mode==='' && $mode!='files' && !$singleId) {
             //Novo
             $executionSucceeded = $this->getFilesNovo($buffer, $maximumrecords, $numberofloops, $heritageArray, $startFromHere, $lastModified, $syslang, $solrLucrisApiKey, $solrLucrisApiVersion);

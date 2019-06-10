@@ -17,7 +17,7 @@ CREATE TABLE tt_news (
 );
 
 #
-# Table structure for table 'tt_news'
+# Table structure for table 'fe_users'
 #
 CREATE TABLE fe_users (
     lth_solr_cat text NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE sys_file (
 );
 
 #
-# Table structure for table 'tt_news'
+# Table structure for table 'tx_lthsolr_categories'
 #
 CREATE TABLE tx_lthsolr_categories (
   id int(11) NOT NULL auto_increment,
@@ -63,7 +63,7 @@ CREATE TABLE tx_lthsolr_categories (
 );
 
 #
-# Table structure for table 'tt_news'
+# Table structure for table 'tx_lthsolr_titles'
 #
 CREATE TABLE tx_lthsolr_titles (
     id int(11) NOT NULL auto_increment,
@@ -80,7 +80,7 @@ CREATE TABLE tx_lthsolr_titles (
 );
 
 #
-# Table structure for table 'tt_news'
+# Table structure for table 'tx_lthsolr_lucrisdata'
 #
 CREATE TABLE tx_lthsolr_lucrisdata (
     id int(11) NOT NULL auto_increment,
@@ -91,11 +91,12 @@ CREATE TABLE tx_lthsolr_lucrisdata (
     lucris_photo_height int(10) NOT NULL,
     lucris_profile_information text NOT NULL,
     lucris_type varchar(25) NOT NULL,
+    lucris_portal_url varchar(255) NOT NULL,
     PRIMARY KEY (id)
 );
 
 #
-# Table structure for table 'tt_news'
+# Table structure for table 'tx_lthsolr_uniquetitle'
 #
 CREATE TABLE tx_lthsolr_uniquetitle (
     uid int(11) NOT NULL auto_increment,
