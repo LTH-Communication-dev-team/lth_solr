@@ -178,6 +178,15 @@ function myInit()
         case 'latestDissertationsStudentPapers':
             $content = $this->latestDissertationsStudentPapers($syslang, $scope, $dataSettings, $config);
             break;
+        case 'listOrganisationProjects':
+            $content = $this->listOrganisationProjects($dataSettings, $config, $action);
+            break;
+        case 'showProjectNovo':
+            $content = $this->showProjectNovo($syslang, $scope, $dataSettings, $config);
+            break;
+        case 'showPublicationNovo':
+            $content = $this->showPublicationNovo($dataSettings, $config, $action);
+            break;
     }
 
     print $content;
@@ -306,6 +315,7 @@ function latestDissertationsStudentPapers($syslang, $scope, $dataSettings, $conf
 
 function listOrganisationStudentPapers($dataSettings, $config, $action)
 {
+    $facet = $dataSettings['facet'];
     $filterQuery = $dataSettings['query'];
     $scope = $dataSettings['scope'];
     $syslang = $dataSettings['syslang'];
@@ -370,7 +380,7 @@ function listOrganisationStudentPapers($dataSettings, $config, $action)
             $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"';
         }
 
-        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
+        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'outer'));
     }
     
     $sorting = "publicationDateYear";
@@ -494,9 +504,18 @@ function listOrganisationStudentPapers($dataSettings, $config, $action)
 
 function listOrganisationPublications($dataSettings, $config, $action)
 {
+    /*
+     * $(".dropdown-menu li a").click(function(){
+  var selText = $(this).text();
+  $(this).parents('.btn-group').find('.dropdown-toggle').html(selText+' <span class="caret"></span>');
+});
+     */
+    $facet = $dataSettings['facet'];
     $filterQuery = $dataSettings['query'];
     $scope = $dataSettings['scope'];
     $syslang = $dataSettings['syslang'];
+    $tableLength = $dataSettings['tableLength'];
+    $tableStart = $dataSettings['tableStart'];
     
     if($action==='exportPublications') {
         $fieldArray = json_decode($tableFields, true);
@@ -536,40 +555,42 @@ function listOrganisationPublications($dataSettings, $config, $action)
         $queryToSet .= ')';
     }
     
-    $listComingDissertations = '';
-    if($action==='listComingDissertations') {
-        $listComingDissertations = ' AND awardedDate:[' . $currentDate . ' TO *]';
-    }
     $queryToSet .= ' AND (workflow:Granskad OR workflow:Validated) AND publicationDateYear:[* TO ' . date('Y', strtotime('+1 years')) . ']' . $filterQuery;
 
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
     if(!$tableStart) $tableStart = 0;
-    if(!$tableLength) $tableLength = 10;
+    if(!$tableLength) $tableLength = 50;
     $query->setStart($tableStart)->setRows($tableLength);
     
     // get the facetset component
     $facetSet = $query->getFacetSet();
     
     // create a facet field instance and set options
-    $facetSet->createFacetField('standard')->setField('standardCategory');
-    $facetSet->createFacetField('language')->setField('language');
+    $facetSet->createFacetField('type')->setField('publicationTypeExact');
+    $facetSet->createFacetField('language')->setField('languageExact');
     $facetSet->createFacetField('year')->setField('publicationDateYear');
     $facetSet->createFacetField('electronicVersionAccessType')->setField('electronicVersionAccessType');
 
     if($facet) {
         $facetArray = json_decode($facet, true);
-
-        $facetQuery = '';
+        $oldFacetKey = '';
+        $facetQuery = '(';
         foreach($facetArray as $key => $value) {
             $facetTempArray = explode('###', $value);
-            if($facetQuery) {
-                $facetQuery .= ' AND ';
+            
+            if($facetQuery !== '(') {
+                if($facetTempArray[0] === $oldFacetKey) {
+                    $facetQuery .= ' OR ';
+                } else {
+                    $facetQuery .= ') AND (';
+                }
             }
             $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"';
+            $oldFacetKey = $facetTempArray[0];
         }
-
-        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
+        $facetQuery .= ')';
+        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'outer'));
     }
 
     if($sorting) {
@@ -629,14 +650,14 @@ function listOrganisationPublications($dataSettings, $config, $action)
     $numFound = $response->getNumFound();
     
     // display facet query count
-    $facetStandard = $response->getFacetSet()->getFacet('standard');
+    $facetType = $response->getFacetSet()->getFacet('type');
     if($syslang==="en") {
         $facetHeader = "Publication Type";
     } else {
         $facetHeader = "Publikationstyp";
     }
-    foreach ($facetStandard as $value => $count) {
-        if($count > 0) $facetResult["standardCategory"][] = array($value, $count, $facetHeader);
+    foreach ($facetType as $value => $count) {
+        if($count > 0) $facetResult["publicationTypeExact"][] = array($value, $count, $facetHeader);
     }
 
     $facetLanguage = $response->getFacetSet()->getFacet('language');
@@ -646,7 +667,7 @@ function listOrganisationPublications($dataSettings, $config, $action)
         $facetHeader = "Språk";
     }
     foreach ($facetLanguage as $value => $count) {
-        if($count > 0) $facetResult["language"][] = array($value, $count, $facetHeader);
+        if($count > 0) $facetResult["languageExact"][] = array($value, $count, $facetHeader);
     }
 
     $facetYear = $response->getFacetSet()->getFacet('year');
@@ -802,6 +823,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
     $facet = $dataSettings['facet'];
     $facetChoice = $dataSettings['facetChoice'];
     $filterQuery = $dataSettings['query'];
+    $tableStart = $dataSettings['tableStart'];
     $scope = $dataSettings['scope'];
     $syslang = $dataSettings['syslang'];
     $vroles = $dataSettings['vroles'];
@@ -841,7 +863,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
     //Staff
     $fieldArray = array("email","firstName","guid","heritage","heritageName","heritage2","homepage","id","image","intro","lastName","lucrisPhoto","mobile",
         "organisationId","organisationHideOnWeb","organisationLeaveOfAbsence","organisationName","organisationPrimaryRole",
-        "phone","primaryAffiliation","primaryVroleOu","primaryVroleTitle","primaryVroleOrgid","primaryVrolePhone","roomNumber","title", "uuid");
+        "phone","portalUrl","primaryAffiliation","primaryVroleOu","primaryVroleTitle","primaryVroleOrgid","primaryVrolePhone","roomNumber","title", "uuid");
     
     
     if($scopeArray) {
@@ -915,50 +937,43 @@ function listOrganisationStaff($dataSettings, $config, $action)
         $term .= ')';
     }
     
-    /*if($extraPeopleLu) {
-        $extraPeopleLu = json_decode(urldecode($extraPeopleLu), true);
-        $extraPeopleLuSortArray = array();
-        $i = 0;
-        $term .= ' AND (';
-        foreach($extraPeopleLu as $key => $value) {
-            foreach($value['container']['el'] as $key1 => $value1) {
-                if($i>0) $term .= ' OR ';
-                $term .= 'email:' . $value1['vDEF'];
-                $i++;
-                $extraPeopleLuSortArray[$value1['vDEF']] = $i;
-            }
-        }
-        $term .= ')';
-    }*/
+    if($filterQuery) {
+        $filterQuery = str_replace(" ","\ ",$filterQuery);
+        $filterQuery = " AND (lastNameExact:*$filterQuery* OR firstNameExact:*$filterQuery* OR email:*$filterQuery*)";
+    }
     
-    $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member)' . $term;// . $filterQuery;
+    $queryToSet = 'docType:staff AND (primaryAffiliation:employee OR primaryAffiliation:member)' . $term . $filterQuery;
     //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => $queryToSet, 'crdate' => time()));
 
     $query->setQuery($queryToSet);
     $query->setFields($fieldArray);
-    $query->setStart(0)->setRows(10000);
-    
-    if($filterQuery) {
-        $filterQuery = str_replace(' ','\\ ',$filterQuery);
-        //$filterQuery = ' AND (name:*' . $filterQuery . '* OR phone:*' . $filterQuery . '* OR title:*' . $filterQuery . '* OR organisationName:*' . $filterQuery . '*)';
-        $query->addFilterQuery(array('key' => 'query', 'query' => 'name:*'. $filterQuery . '*', 'tag'=>'dt'));
-    }
-       
-    if($facetChoice === 'firstLetter') {
+    $query->setStart($tableStart)->setRows(100);
+         
+    if($facetChoice) {
         $facetSet = $query->getFacetSet();
-        if(!$facet) $facet = 'a';
         $exclude = array('dt');
-        $facetChoice = 'firstLetterExact';
-        if(!$filterQuery) {
-            $query->addFilterQuery(array('key' => $facetChoice, 'query' => 'firstLetterExact:' . $facet, 'tag' => 'dt'));
-        }
-        $facetSet->createFacetField('standard')->setField('firstLetterExact')->setExcludes($exclude);
+        $facetSet->createFacetField('firstLetter')->setField('firstLetterExact')->setExcludes($exclude);
+        $facetSet->createFacetField('standard')->setField('standardCategory')->setExcludes($exclude);
         $facetSet->setLimit(1000);
         $facetSet->setSort(SORT_INDEX);
-    } else if($facetChoice) {
-        $facetSet = $query->getFacetSet();
-        $facetSet->createFacetField('standard')->setField($facetChoice);
-        if($facet && !$filterQuery) $query->addFilterQuery(array('key' => $facetChoice, 'query' => $facetChoice . ':' . str_replace(' ', '\ ', $facet), 'tag' => 'dt'));
+        
+        if($facet) {
+            $facetArray = json_decode($facet, true);
+            //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($facetArray,true), 'crdate' => time()));
+            foreach($facetArray as $key => $value) {
+                $facetTempArray = explode('###', $value);
+                if($facetQuery) {
+                    $facetQuery .= ' AND ';
+                }
+                $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"'; 
+            }
+            if($facetTempArray[0] === 'firstLetterExact') {
+                $tag = 'dt';
+            } else {
+                $tag = 'outer';
+            }
+            $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag' => $tag));
+        }
     }
     
     if($scope) {
@@ -974,10 +989,13 @@ function listOrganisationStaff($dataSettings, $config, $action)
     $numFound = $response->getNumFound();
     
     if($facetChoice) {
-        $facetStandard = $response->getFacetSet()->getFacet('standard');
-        //$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_devlog', array('msg' => print_r($facetStandard, true), 'crdate' => time()));
-        foreach ($facetStandard as $value => $count) {
-            if($count > 0) $facetResult[$facetChoice][] = array($value, $count);
+        $facets = $response->getFacetSet()->getFacet('firstLetter');
+        foreach ($facets as $value => $count) {
+            if($count > 0) $facetResult['firstLetterExact'][] = array($value, $count);
+        }
+        $facets = $response->getFacetSet()->getFacet('standard');
+        foreach ($facets as $value => $count) {
+            if($count > 0) $facetResult['standardCategory'][] = array($value, $count);
         }
     }
 
@@ -1010,6 +1028,7 @@ function listOrganisationStaff($dataSettings, $config, $action)
         $data[$email]["organisationLeaveOfAbsence"] = $document->organisationLeaveOfAbsence;
         $data[$email]["organisationPrimaryRole"] = $document->organisationPrimaryRole;
         $data[$email]["phone"] = $this->isInArray($email, $data, "phone", $document->phone);
+        $data[$email]["portalUrl"] = $document->portalUrl;
         $data[$email]["primaryAffiliation"] = $document->primaryAffiliation;
         $data[$email]["primaryVroleOu"] = $this->isInArray($email, $data, "primaryVroleOu", $document->primaryVroleOu);
         $data[$email]["primaryVroleTitle"] = $this->isInArray($email, $data, "primaryVroleTitle", $document->primaryVroleTitle);
@@ -1191,6 +1210,126 @@ function getFromMainKey($value, $key)
 }
 
 
+function showProjectNovo($syslang, $scope, $dataSettings, $config)
+{
+    $fieldArray = array('id','curtailed','endDate','managingOrganisationId','managingOrganisationName','managingOrganisationType','organisationId',
+            'organisationName','organisationType','participantId','participantName','participantOrganisationId','participantOrganisationName',
+            'participantOrganisationType','participantRole','portalUrl','projectDescription','projectDescriptionType','projectStatus','projectTitle','projectType',
+            'startDate','visibility');
+    
+    if($dataSettings['organisation']) $organisation = array_pop(explode('__', strtolower($dataSettings['organisation'])));
+    $scope = $dataSettings['scope'];
+    $sysLang = $dataSettings['sysLang'];
+    $content = '';
+    $staffData = array();
+    $publicationsData = array();
+    //$projectData = array();
+       
+    $client = new Solarium\Client($config);
+    $query = $client->createSelect();
+    
+    //Staff
+    $queryToSet1 = 'docType:project AND portalUrl:"' . $scope . '"';
+    $query->setQuery($queryToSet1);
+    $query->setFields($fieldArray);
+    $projectResponse = $client->select($query);
+    
+    foreach ($projectResponse as $document) {    
+        $id = $document->id;
+        $docType = $document->docType;
+        
+        $mainKey=0;
+        $i=0;
+                
+        $projectData[] = array(
+            'id' => $document->id,
+            'curtailed' => $document->curtailed,
+            'endDate' => (string)$document->endDate,
+            'managingOrganisationId' => $document->managingOrganisationId,
+            'managingOrganisationName' => $document->managingOrganisationName,
+            'managingOrganisationType' => $document->managingOrganisationType,
+            'organisationId' => $this->fixArray($document->organisationId),
+            'organisationName' => $this->fixArray($document->organisationName),
+            'organisationType' => $this->fixArray($document->organisationType),
+            'participantId' => $this->fixArray($document->participantId),
+            'participantName' => $document->participantName,
+            'participantOrganisationId' => $this->fixArray($document->participantOrganisationId),
+            'participantOrganisationName' => $this->fixArray($document->participantOrganisationName),
+            'participantOrganisationType' => $this->fixArray($document->participantOrganisationType),
+            'participantRole' => $this->fixArray($document->participantRole),
+            'projectDescription' => $document->projectDescription,
+            'projectDescriptionType' => $document->projectDescriptionType,
+            'projectStatus' => $document->projectStatus,
+            'projectTitle' => $document->projectTitle,
+            'projectType' => $document->projectType,
+            'startDate' => (string)$document->startDate,
+            'visibility' => $document->visibility,
+        );
+    }
+    
+    //Publications
+    $fieldArray = array("articleNumber","authorName","bibliographicalNote","documentTitle",
+            "electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
+            "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
+            "electronicVersionVersionType","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","openAccessPermission",
+            "pages","publicationType",
+            "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
+    
+    $queryToSet2 = 'docType:publication AND relatedProjectId:' . $id;
+    $query->setStart(0)->setRows(1000);
+    $query->setQuery($queryToSet2);
+    $query->setFields($fieldArray);
+    $sortArray = array(
+        'publicationDateYear' => 'desc',
+        'publicationDateMonth' => 'desc',
+        'publicationDateDay' => 'desc',
+        'documentTitle' => 'asc',
+        'lastNameExact' => 'asc',
+        'firstNameExact' => 'asc'
+    );
+    $query->addSorts($sortArray);
+    $publicationsResponse = $client->select($query);
+
+    foreach ($publicationsResponse as $document) {
+        $publicationsData[] = array(
+            "articleNumber" => $document->$articleNumber,
+            "authorName" => ucwords(strtolower($this->fixArray($document->authorName))),
+            "bibliographicalNote" => "",//$document->bibliographicalNote,
+            "documentTitle" => $document->documentTitle,
+            "electronicIsbn" => $document->electronicIsbn,
+            "electronicVersionAccessType" => $document->electronicVersionAccessType,
+            "electronicVersionDoi" => $document->electronicVersionDoi,
+            "electronicVersionFileName" => $document->electronicVersionFileName,
+            "electronicVersionFileURL" => $document->electronicVersionFileURL,
+            "electronicVersionLicenseType" => $document->electronicVersionLicenseType,
+            "electronicVersionLink" => $document->electronicVersionLink,
+            "electronicVersionMimeType" => $document->electronicVersionMimeType,
+            "electronicVersionSize" => $document->electronicVersionSize,
+            "electronicVersionTitle" => $document->electronicVersionTitle,
+            "electronicVersionVersionType" => $document->electronicVersionVersionType,
+            "hostPublicationTitle" => $document->hostPublicationTitle,
+            "id" => $document->id,
+            "journalTitle" => $document->journalTitle,
+            "journalNumber" => $document->journalNumber,
+            "numberOfPages" => $document->numberOfPages,
+            "openAccessPermission" => $document->openAccessPermission,
+            "pages" => $document->pages,
+            "publicationType" => $this->fixArray($document->publicationType),
+            "publicationDateYear" => $document->publicationDateYear,
+            "publicationDateMonth" => $document->publicationDateMonth,
+            "publicationDateDay" => $document->publicationDateDay,
+            "placeOfPublication" => $document->placeOfPublication,
+            "publisher" => $document->publisher,
+            "volume" => $document->volume,
+        );
+    }
+       
+    $resArray = array('projectData' => $projectData, 'publicationsData' => $publicationsData, 'query' => $queryToSet1 . ';' . $queryToSet2);
+    
+    return json_encode($resArray);
+}
+
+
 function showStaffNovo($syslang, $scope, $dataSettings, $config)
 {
     $fieldArray = array("coordinates","docType","email","firstName","guid","heritageName2","heritage2","homepage","id",
@@ -1211,6 +1350,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
     
     //Staff
     $queryToSet1 = 'docType:staff AND (guid:' . $scope . ' OR uuid:' . $scope . ')';
+    //$queryToSet1 = 'docType:staff AND portalUrl:' . $scope;
     $query->setQuery($queryToSet1);
     $query->setFields($fieldArray);
     $staffResponse = $client->select($query);
@@ -1220,10 +1360,10 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
             "electronicIsbn","electronicVersionAccessType","electronicVersionDoi","electronicVersionFileName","electronicVersionFileURL",
             "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
             "electronicVersionVersionType","hostPublicationTitle","id","journalTitle","journalNumber","numberOfPages","openAccessPermission",
-            "pages","publicationType",
-            "publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
+            "pages","portalUrl","publicationType","publicationDateYear","publicationDateMonth","publicationDateDay","placeOfPublication","publisher","volume");
     
     $queryToSet2 = 'docType:publication AND authorId:' . $scope;
+    $queryToSet2 .= ' AND (workflow:Granskad OR workflow:Validated)';
     $query->setStart(0)->setRows(1000);
     $query->setQuery($queryToSet2);
     $query->setFields($fieldArray);
@@ -1352,6 +1492,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
             "numberOfPages" => $document->numberOfPages,
             "openAccessPermission" => $document->openAccessPermission,
             "pages" => $document->pages,
+            "portalUrl" => $document->portalUrl,
             "publicationType" => $this->fixArray($document->publicationType),
             "publicationDateYear" => $document->publicationDateYear,
             "publicationDateMonth" => $document->publicationDateMonth,
@@ -1362,7 +1503,7 @@ function showStaffNovo($syslang, $scope, $dataSettings, $config)
         );
     }
        
-    $resArray = array('staffData' => $staffData, 'publicationsData' => $publicationsData, 'query' => $queryToSet1 . ';' . $queryToSet2);
+    $resArray = array('staffData' => $staffData, 'publicationsData' => $publicationsData, 'publicationDetailUrl' => $publicationDetailUrl, 'query' => $queryToSet1 . ';' . $queryToSet2);
     
     return json_encode($resArray);
 }
@@ -2466,10 +2607,6 @@ function showPublication($response, $scope, $syslang, $config)
 
         $query = $client->createSelect();
         
-        
-        
-        
-        
         if($scope) {
             $term='';
             $scope = json_decode(urldecode($scope),true);
@@ -2659,6 +2796,231 @@ function showPublication($response, $scope, $syslang, $config)
             'journalNumber' => $journalNumber,
             'keywords_uka' => $keywordsUka,
             'keywords_user' => $keywordsUser,
+            'language' => $language,
+            'numberOfPages' => $numberOfPages,
+            'openAccessPermission' => $openAccessPermission,
+            'organisationName' => $organisationName,
+            'organisationId' => $organisationId,
+            'organisationSourceId' => $organisationSourceId,
+            'pages' => $pages,
+            'peerReview' => $peerReview,
+            'placeOfPublication' => $placeOfPublication,
+            'printIsbns' => $printIsbns,
+            'publicationDateYear' => $publicationDateYear,
+            'publicationDateMonth' => $publicationDateMonth,
+            'publicationDateDay' => $publicationDateDay,
+            'publicationType' => $publicationType,
+            'publicationTypeUri' => $publicationTypeUri,
+            'publisher' => $publisher,
+            'publicationStatus' => $publicationStatus,
+            'standard_category_en' => $standardCategory,
+            'startDate' => $startDate,
+            'supervisors' => $supervisors,
+            'supervisorId' => $document->supervisorId,
+            'supervisorName' => $document->supervisorName,
+            'supervisorOrganisationId' => $document->supervisorOrganisationId,
+            'supervisorOrganisationName' => $document->supervisorOrganisationName,
+            'supervisorPersonRole' => $document->supervisorPersonRole,
+            'title' => $title,
+            'volume' => $volume,
+        );
+
+    }
+    
+    $resArray = array('data' => $data, 'title' => $title, 'query' => $queryToSet);
+    
+    return json_encode($resArray);
+}
+
+
+function showPublicationNovo($dataSettings, $config, $action)
+{
+    $fieldArray = array("abstract","additionalLink","authorExternal","authorId","authorName","authorOrganisationId","authorReverseName","authorReverseNameShort",
+        "bibliographicalNote","bibtex","cite","documentTitle","doi","edition","electronicIsbn","electronicVersionAccessType","electronicVersionDoi",
+        "electronicVersionFileName","electronicVersionFileURL",
+        "electronicVersionLicenseType","electronicVersionLink","electronicVersionMimeType","electronicVersionSize","electronicVersionTitle",
+        "electronicVersionVersionType","electronicIsbns","endDate","externalOrganisations","eventCity","eventCountry","eventName","eventLink","eventType",
+        "id","hostPublicationTitle","issn","isbn2","journalTitle","journalNumber","keyword","keywordType","language","numberOfPages","openAccessPermission","organisationName",
+        "organisationId","organisationSourceId","pages","peerReview","placeOfPublication","printIsbns","publicationDateYear","publicationDateMonth",
+        "publicationDateDay","publicationType","publicationTypeUri","publisher","publicationStatus","standard_category_en","startDate","supervisorId","supervisorName",
+        "supervisorOrganisationId","supervisorOrganisationName","supervisorPersonRole","title","volume");
+    
+    $scope = $dataSettings['scope'];
+    
+    $client = new Solarium\Client($config);
+
+    $query = $client->createSelect();
+
+    if($scope) {
+        $queryToSet = 'docType:publication AND portalUrl:*' . $scope . '*';
+        //(id:7658dc68-1b43-4510-83ea-cd5f28b70b64)
+    }
+
+    //$queryToSet .= ' AND (workflow:Granskad OR workflow:Validated)';
+
+    $query->setQuery($queryToSet);
+
+    $query->setFields($fieldArray);
+
+    $response = $client->select($query);
+
+    $content = '';
+        
+    $organisationNameHolder = 'organisationName_' . $syslang;
+    $publicationTypeHolder = 'publicationType_' . $syslang;
+    $languageHolder = 'language_' . $syslang;
+    
+    /*$detailPageArray = explode(',', $detailPage);
+    $staffDetailPage = $detailPageArray[0];
+    $projectDetailPage = $detailPageArray[1];*/
+        
+    foreach ($response as $document) {
+        $id = $document->id;
+        $title = $this->fixArray($document->documentTitle);
+        $abstract = $this->fixArray($document->abstract);
+        $additionalLink = $document->additionalLink;
+        $authorNameArray = $document->authorName;
+        $authorFirstNameArray = $document->authorFirstName;
+        $authorLastNameArray = $document->authorLastName;
+        $authorExternalArray = $document->authorExternal;
+        $authorOrganisationId = $document->authorOrganisationId;
+        $authorIdArray = $document->authorId;
+        $i=0;
+        foreach ($authorNameArray as $key => $name) {
+            if($authorName) $authorName .= ',';
+            if($authorId) $authorId .= ',';
+            if($authorExternal || $authorExternal=='0') $authorExternal .= ',';
+            if($authorOrganisation) $authorOrganisation .= ';';
+            if($authorReverseName) $authorReverseName .= '; ';
+            if($authorReverseNameShort) $authorReverseNameShort .= '$';
+            $authorName .= mb_convert_case(strtolower($name), MB_CASE_TITLE, "UTF-8");
+            $authorReverseName .= mb_convert_case(strtolower($authorLastNameArray[$i]), MB_CASE_TITLE, "UTF-8") . ', ' . mb_convert_case(strtolower($authorFirstNameArray[$i]), MB_CASE_TITLE, "UTF-8");
+            $authorReverseNameShort .= mb_convert_case(strtolower($authorLastNameArray[$i]), MB_CASE_TITLE, "UTF-8") . ', ' . substr($authorFirstNameArray[$i], 0, 1) . '.';
+            $authorId .= $authorIdArray[$i];
+            $authorExternal .= $authorExternalArray[$i];
+            $authorExternal = (string)$authorExternal;
+            $i++;
+        }
+        if($document->organisationName) {
+            $organisationName = $document->organisationName;
+            $organisationId = $document->organisationId;
+            /*$i=0;
+            foreach($organisationNameArray as $key => $organisationName) {
+                if($organisations) $organisations .= ', ';
+                $organisations .= '<a href="' . $organisationIdArray[$i] . '">' . $organisationName . '</a>';
+                $i++;
+            }*/
+        }
+        if($document->organisationSourceId) {
+            $organisationSourceId = $document->organisationSourceId[0];
+        }
+        if($document->externalOrganisationsName) {
+            $externalOrganisationsNameArray = $document->externalOrganisationsName;
+            $externalOrganisationsIdArray = $document->externalOrganisationsId;
+            $i=0;
+            foreach($externalOrganisationsNameArray as $key => $externalOrganisationsName) {
+                if($externalOrganisations) $externalOrganisations .= ', ';
+                //$externalOrganisations .= '<a href="' . $externalOrganisationsIdArray[$i] . '">' . $externalOrganisationsName . '</a>';
+                $externalOrganisations .= $externalOrganisationsName;
+                $i++;
+            }
+        }
+        $bibliographicalNote = $document->bibliographicalNote;
+        $bibtex = $document->bibtex;
+        $cite = $document->cite;
+        $doi = $document->doi;
+        $electronicIsbn = $document->electronicIsbn;
+        $electronicVersionAccessType = $document->electronicVersionAccessType;
+        $electronicVersionDoi = $document->electronicVersionDoi;
+        $electronicVersionFileName = $document->electronicVersionFileName;
+        $electronicVersionFileURL = $document->electronicVersionFileURL;
+        $electronicVersionLicenseType = $document->electronicVersionLicenseType;
+        $electronicVersionLink = $document->electronicVersionLink;
+        $electronicVersionMimeType = $document->electronicVersionMimeType;
+        $electronicVersionSize = $document->electronicVersionSize;
+        $electronicVersionTitle = $document->electronicVersionTitle;
+        $electronicVersionVersionType = $document->electronicVersionVersionType;
+        $edition = $document->edition;
+        $endDate = $document->endDate;
+        $eventName = $document->eventName;
+        $eventLink = $document->eventLink;
+        $eventType = $document->eventType;
+        $eventCity = $document->eventCity;
+        $eventCountry = $document->eventCountry;
+        $hostPublicationTitle = $document->hostPublicationTitle;
+        $isbn2 = $document->issn;
+        $issn = $document->issn;
+        $journalNumber = $document->journalNumber;
+        $journalTitle = $document->journalTitle;
+        $keyword = $document->keyword;
+        $keywordType = $document->keywordType;
+        $language = $this->fixArray($document->language);
+        $numberOfPages = $document->numberOfPages;
+        $openAccessPermission = $document->openAccessPermission;
+        $pages = $document->pages;
+        $peerReview = $document->peerReview;
+        $printIsbns = $document->printIsbns;
+        $publicationDateYear = $document->publicationDateYear;
+        $publicationDateMonth = $document->publicationDateMonth;
+        $publicationDateDay = $document->publicationDateDay;
+        $publicationStatus = $document->publicationStatus;
+        $placeOfPublication = $document->placeOfPublication;
+        $publisher = $document->publisher;
+        $publicationType = $document->publicationType;
+        $publicationTypeUri = $document->publicationTypeUri;
+        $startDate = $document->startDate;
+        $supervisors = $document->supervisorName;
+        //Novo begin
+        $supervisorId = $document->supervisorId;
+        $supervisorName = $document->supervisorName;
+        $supervisorOrganisationId = $document->supervisorOrganisationId;
+        $supervisorOrganisationName = $document->supervisorOrganisationName;
+        $supervisorPersonRole = $document->supervisorPersonRole;
+        //Novo ends
+        $type = $document->type;
+        $volume = $document->volume;
+        
+        $data = array(
+            'abstract' => $abstract,
+            'additionalLink' => $additionalLink,
+            'authorExternal' => $authorExternal,
+            'authorId' => $document->authorId,
+            'authorName' => $document->authorName,
+            'authorOrganisationId' => $authorOrganisationId,
+            'authorReverseName' => rawurlencode($authorReverseName),
+            'authorReverseNameShort' => rawurlencode(str_replace("$", ", ", $this->str_lreplace("$", " and ", $authorReverseNameShort))),
+            'bibliographicalNote' => $bibliographicalNote,
+            'bibtex' => $bibtex,
+            'cite' => $cite,
+            'doi' => $doi,
+            'edition' => $edition,
+            'electronicIsbns' => $electronicIsbns,
+            'electronicIsbn' => $electronicIsbn,
+            'electronicVersionAccessType' => $electronicVersionAccessType,
+            'electronicVersionDoi' => $electronicVersionDoi,
+            'electronicVersionFileName' => $electronicVersionFileName,
+            'electronicVersionFileURL' => $electronicVersionFileURL,
+            'electronicVersionLicenseType' => $electronicVersionLicenseType,
+            'electronicVersionLink' => $electronicVersionLink,
+            'electronicVersionMimeType' => $electronicVersionMimeType,
+            'electronicVersionSize' => $electronicVersionSize,
+            'electronicVersionTitle' => $electronicVersionTitle,
+            'electronicVersionVersionType' => $electronicVersionVersionType,
+            'endDate' => $endDate,
+            'eventName' => $eventName,
+            'eventLink' => $eventLink,
+            'eventType' => $eventType,
+            'eventCity' => $eventCity,
+            'eventCountry' => $eventCountry,
+            'externalOrganisations' => $externalOrganisations,
+            'id' => $id,
+            'hostPublicationTitle' => $hostPublicationTitle,
+            'isbn' => $isbn2,
+            'issn' => $issn,
+            'journalTitle' => $journalTitle,
+            'journalNumber' => $journalNumber,
+            'keyword' => $keyword,
+            'keywordType' => $keywordType,
             'language' => $language,
             'numberOfPages' => $numberOfPages,
             'openAccessPermission' => $openAccessPermission,
@@ -3094,6 +3456,125 @@ function showStudentPaper($term, $syslang, $config)
 }
 
 
+function listOrganisationProjects($dataSettings, $config, $action)
+{
+    $filterQuery = $dataSettings['query'];
+    $scope = $dataSettings['scope'];
+    $syslang = $dataSettings['syslang'];
+    
+    $fieldArray = array('id','curtailed','endDate','managingOrganisationId','managingOrganisationName','managingOrganisationType','organisationId',
+            'organisationName','organisationType','participantId','participantName','participantOrganisationId','participantOrganisationName',
+            'participantOrganisationType','participantRole','portalUrl','projectDescription','projectDescriptionType','projectStatus','projectTitle','projectType',
+            'startDate','visibility');
+    
+    $client = new Solarium\Client($config);
+    $query = $client->createSelect();
+    
+    if($filterQuery) {
+        $filterQuery = str_replace(" ","\ ",$filterQuery);
+        $filterQuery = " AND ((projectTitle:*$filterQuery*) OR participantName:*$filterQuery*)";
+    }
+    
+    if($scope) {
+        $queryToSet = 'docType:project';
+        $scope = urldecode($scope);
+        $i = 0;
+        $queryToSet .= ' AND (';
+        $scopeArray = explode(',', $scope);
+        foreach($scopeArray as $key => $value) {
+            if($i>0) $queryToSet .= ' OR ';
+            $queryToSet .= 'organisationSourceId:' . array_shift(explode('__',$value)) . ' OR organisationTitleExact:' . str_replace(' ', '\ ', $value) ;
+            $i++;
+        }
+        $queryToSet .= ')';
+    }
+
+    $query->setQuery($queryToSet);
+    $query->setFields($fieldArray);
+    $query->setStart($tableStart)->setRows(100);
+    
+    $sortArray = array(
+        'projectTitle' => 'asc'
+    );
+    $query->addSorts($sortArray);
+    
+    // get the facetset component
+    $facetSet = $query->getFacetSet();
+    
+    // create a facet field instance and set options
+    $facetSet->createFacetField('status')->setField('projectStatus');
+    $facetSet->createFacetField('type')->setField('projectType');
+
+    if($facet) {
+        $facetArray = json_decode($facet, true);
+        $facetQuery = '';
+        foreach($facetArray as $key => $value) {
+            $facetTempArray = explode('###', $value);
+            if($facetQuery) {
+                $facetQuery .= ' AND ';
+            }
+            $facetQuery .= $facetTempArray[0] . ':"' . $facetTempArray[1] . '"';
+        }
+        $query->addFilterQuery(array('key' => 0, 'query' => $facetQuery, 'tag'=>'inner'));
+    }
+    
+    $response = $client->select($query);
+    
+    $numFound = $response->getNumFound();
+    
+    // display facet query count
+    $facetStatus = $response->getFacetSet()->getFacet('status');
+    if($syslang==="en") {
+        $facetHeader = "Project Status";
+    } else {
+        $facetHeader = "Projektstatus";
+    }
+    foreach ($facetStatus as $value => $count) {
+        if($count > 0) $facetResult["status"][] = array($value, $count, $facetHeader);
+    }
+    
+    $facetType = $response->getFacetSet()->getFacet('type');
+    if($syslang==="en") {
+        $facetHeader = "Project Type";
+    } else {
+        $facetHeader = "Projekttyp";
+    }
+    foreach ($facetType as $value => $count) {
+        if($count > 0) $facetResult["type"][] = array($value, $count, $facetHeader);
+    }
+        
+    foreach ($response as $document) {     
+        $data[] = array(
+            'id' => $document->id,
+            'curtailed' => $document->curtailed,
+            'endDate' => (string)$document->endDate,
+            'managingOrganisationId' => $document->managingOrganisationId,
+            'managingOrganisationName' => $document->managingOrganisationName,
+            'managingOrganisationType' => $document->managingOrganisationType,
+            'organisationId' => $this->fixArray($document->organisationId),
+            'organisationName' => $this->fixArray($document->organisationName),
+            'organisationType' => $this->fixArray($document->organisationType),
+            'participantId' => $this->fixArray($document->participantId),
+            'participantName' => $this->fixArray($document->participantName),
+            'participantOrganisationId' => $this->fixArray($document->participantOrganisationId),
+            'participantOrganisationName' => $this->fixArray($document->participantOrganisationName),
+            'participantOrganisationType' => $this->fixArray($document->participantOrganisationType),
+            'participantRole' => $this->fixArray($document->participantRole),
+            'portalUrl' => $document->portalUrl,
+            'projectDescription' => $this->fixArray($document->projectDescription),
+            'projectDescriptionType' => $this->fixArray($document->projectDescriptionType),
+            'projectStatus' => $document->projectStatus,
+            'projectTitle' => $document->projectTitle,
+            'projectType' => $document->projectType,
+            'startDate' => (string)$document->startDate,
+            'visibility' => $document->visibility,
+        );
+    }
+    $resArray = array('data' => $data, 'facet' => $facetResult, 'numFound'=> $numFound, 'debug' => $queryToSet . $debug);
+    return json_encode($resArray);
+}
+
+
 function listProjects($scope, $syslang, $config, $tableLength, $tableStart, $filterQuery)
 {
     $client = new Solarium\Client($config);
@@ -3209,22 +3690,17 @@ function listProjects($scope, $syslang, $config, $tableLength, $tableStart, $fil
 function showProject($scope, $syslang, $config)
 {
     $client = new Solarium\Client($config);
-
     $query = $client->createSelect();
-    
     if($scope) {
         $scope = json_decode(urldecode($scope),true);
         $scope = $scope['projects'][0];
     }
-
+    
+    //Project
     $query->setQuery('id:'.$scope);
-    
-    $response = $client->select($query);
-    
-    $content = '';
-        
+    $response = $client->select($query);       
     foreach ($response as $document) {     
-        $data = array(
+        $projectData = array(
             'id' => $document->id,
             'curtailed' => $document->curtailed,
             'endDate' => (string)$document->endDate,
@@ -3249,7 +3725,11 @@ function showProject($scope, $syslang, $config)
             'visibility' => $document->visibility,
         );
     }
-    $resArray = array('data' => $data);
+    
+    //Publications
+    $publicationData = $this->listOrganisationPublications($dataSettings, $config, $action);
+    
+    $resArray = array('projectData' => $projectData, 'publicationData' => $publicationData);
     return json_encode($resArray);
 }
 
