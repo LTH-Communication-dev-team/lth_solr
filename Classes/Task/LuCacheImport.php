@@ -143,24 +143,28 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $client = new Solarium\Client($config);
         $query = $client->createSelect();
         $fieldArray = array("first_name", "last_name", "id", "uniqueLink");
+        $queryToSet = "docType:staff;";
         $query->setQuery($queryToSet);
         $query->setFields($fieldArray);
         $response = $client->select($query);
         foreach ($response as $document) {
-            if(!$document->uniqueLink) {
-                $uniqueLink = $document->first_name . '-' . $document->last_name;
+            $employeeArray[$document->id]['uniqueLink'] = $document->uniqueLink;
+        }
+        foreach ($employeeArray as $key => $value) {
+            if(!$value['uniqueLink']) {
+                $uniqueLink = $value['first_name'] . '-' . $value['last_name'];
                 
                 if($this->checkUniqueLink($uniqueLink, $employeeArray)) {
                     $i = 0;
                     do {
                         if($this->checkUniqueLink($uniqueLink . $i, $employeeArray) === false) {
-                            $employeeArray[$document->id]['uniqueLink'] = $uniqueLink . $i;
+                            $employeeArray[$key]['uniqueLink'] = $uniqueLink . $i;
                             return false;
                         }
                         $i++;
                     } while ($i > 0);
                 } else {
-                    $employeeArray[$document->id]['uniqueLink'] = $uniqueLink;
+                    $employeeArray[$key]['uniqueLink'] = $uniqueLink;
                 }
             }
             
@@ -171,7 +175,12 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     private function checkUniqueLink($uniqueLink, $employeeArray)
     {
-        if(array_search($uniqueLink, $employeeArray)) return true;
+        //if(array_search($uniqueLink, $employeeArray)) return true;
+        if(array_search($uniqueLink, array_column($employeeArray, 'uniqueLink'))) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     
