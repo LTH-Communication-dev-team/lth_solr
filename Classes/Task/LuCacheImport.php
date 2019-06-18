@@ -64,7 +64,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         $employeeArray = $this->getEmployee($con, $imageArray);
         
-        $employeeArray = $this->getCurrentIndex($employeeArray, $config);
+        //$employeeArray = $this->getCurrentIndex($employeeArray, $config);
 
         $employeeArray = $this->getLucrisData($employeeArray, $config);
 
@@ -142,33 +142,37 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     {
         $client = new \Solarium\Client($config);
         $query = $client->createSelect();
-        $fieldArray = array("first_name", "last_name", "primary_uid", "uniqueLink");
-        $queryToSet = "docType:staff;";
+        $fieldArray = array("firstName", "lastName", "primaryUid", "uniqueLink");
+        $queryToSet = "docType:staff AND type:staff";
         $query->setQuery($queryToSet);
         $query->setFields($fieldArray);
         $response = $client->select($query);
         foreach ($response as $document) {
-            $employeeArray[$document->primary_uid]['uniqueLink'] = $document->uniqueLink;
+            $employeeArray[$document->primaryUid]['uniqueLink'] = $document->firstName . '-' . $document->lastName;
+            $this->debug($employeeArray['kans-th0']);
+            die();
         }
+        
         foreach ($employeeArray as $key => $value) {
             if(!$value['uniqueLink']) {
                 $uniqueLink = $value['first_name'] . '-' . $value['last_name'];
                 
                 if($this->checkUniqueLink($uniqueLink, $employeeArray)) {
-                    $sucker = false;;
+                    $sucker = false;
                     do {
                         if($this->checkUniqueLink($uniqueLink . $i, $employeeArray) === false) {
                             $employeeArray[$key]['uniqueLink'] = $uniqueLink . $i;
                             $sucker = true;
                         }
                         $i++;
-                    } while ($sucker = false);
+                    } while ($sucker === false);
                 } else {
                     $employeeArray[$key]['uniqueLink'] = $uniqueLink;
                 }
             }
             
         }
+        
         return $employeeArray;
     }
     
