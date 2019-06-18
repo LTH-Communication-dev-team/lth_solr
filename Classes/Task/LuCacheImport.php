@@ -64,7 +64,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         $employeeArray = $this->getEmployee($con, $imageArray);
         
-        //$employeeArray = $this->getCurrentIndex($employeeArray, $config);
+        $employeeArray = $this->getCurrentIndex($employeeArray, $config);
 
         $employeeArray = $this->getLucrisData($employeeArray, $config);
 
@@ -143,14 +143,14 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $client = new \Solarium\Client($config);
         $query = $client->createSelect();
         $fieldArray = array("firstName", "lastName", "primaryUid", "uniqueLink");
-        $queryToSet = "docType:staff AND type:staff";
+        $queryToSet = "docType:staff AND primaryAffiliation:employee";
         $query->setQuery($queryToSet);
         $query->setFields($fieldArray);
         $response = $client->select($query);
         foreach ($response as $document) {
-            $employeeArray[$document->primaryUid]['uniqueLink'] = $document->firstName . '-' . $document->lastName;
-            $this->debug($employeeArray['kans-th0']);
-            die();
+            if($employeeArray[$document->primaryUid]) {
+                $employeeArray[$document->primaryUid]['uniqueLink'] = $document->uniqueLink;
+            } 
         }
         
         foreach ($employeeArray as $key => $value) {
@@ -160,14 +160,14 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 if($this->checkUniqueLink($uniqueLink, $employeeArray)) {
                     $sucker = false;
                     do {
-                        if($this->checkUniqueLink($uniqueLink . $i, $employeeArray) === false) {
+                        if(!$this->checkUniqueLink($uniqueLink . $i, $employeeArray)) {
                             $employeeArray[$key]['uniqueLink'] = $uniqueLink . $i;
                             $sucker = true;
                         }
                         $i++;
                     } while ($sucker === false);
                 } else {
-                    $employeeArray[$key]['uniqueLink'] = $uniqueLink;
+                    $employeeArray[$key]['uniqueLink'] = strtolower($uniqueLink);
                 }
             }
             
@@ -252,7 +252,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             GROUP BY P.id
             ORDER BY P.id, V.orgid";
         
-        $res = mysqli_query($con, $sql) or die("183; ".mysqli_error());
+        $res = mysqli_query($con, $sql) or die("258; ".mysqli_error());
 
         while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
             $primary_uid = $row['primary_uid'];
