@@ -155,14 +155,14 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 $uniqueLink = $value['first_name'] . '-' . $value['last_name'];
                 
                 if($this->checkUniqueLink($uniqueLink, $employeeArray)) {
-                    $i = 0;
+                    $sucker = false;;
                     do {
                         if($this->checkUniqueLink($uniqueLink . $i, $employeeArray) === false) {
                             $employeeArray[$key]['uniqueLink'] = $uniqueLink . $i;
-                            return false;
+                            $sucker = true;
                         }
                         $i++;
-                    } while ($i > 0);
+                    } while ($sucker = false);
                 } else {
                     $employeeArray[$key]['uniqueLink'] = $uniqueLink;
                 }
