@@ -63,6 +63,8 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $imageArray = $this->getImageArray($solrImageImportFolder);
 
         $employeeArray = $this->getEmployee($con, $imageArray);
+        
+        $employeeArray = $this->getCurrentIndex($employeeArray, $config);
 
         $employeeArray = $this->getLucrisData($employeeArray, $config);
 
@@ -133,6 +135,43 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             $imageArray[$email] = $filename;
         }
         return array_slice($imageArray, 2);
+    }
+    
+    
+    private function getCurrentIndex($employeeArray, $config)
+    {
+        $client = new Solarium\Client($config);
+        $query = $client->createSelect();
+        $fieldArray = array("first_name", "last_name", "id", "uniqueLink");
+        $query->setQuery($queryToSet);
+        $query->setFields($fieldArray);
+        $response = $client->select($query);
+        foreach ($response as $document) {
+            if(!$document->uniqueLink) {
+                $uniqueLink = $document->first_name . '-' . $document->last_name;
+                
+                if($this->checkUniqueLink($uniqueLink, $employeeArray)) {
+                    $i = 0;
+                    do {
+                        if($this->checkUniqueLink($uniqueLink . $i, $employeeArray) === false) {
+                            $employeeArray[$document->id]['uniqueLink'] = $uniqueLink . $i;
+                            return false;
+                        }
+                        $i++;
+                    } while ($i > 0);
+                } else {
+                    $employeeArray[$document->id]['uniqueLink'] = $uniqueLink;
+                }
+            }
+            
+        }
+        return $employeeArray;
+    }
+    
+    
+    private function checkUniqueLink($uniqueLink, $employeeArray)
+    {
+        if(array_search($uniqueLink, $employeeArray)) return true;
     }
     
     
@@ -927,6 +966,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'language' => $value['lang'],
                             'degree' => $value['degree'],
                             'standardCategory' => $standardCategory,
+                            'uniqueLink' => $value['uniqueLink'],
                             //arrays:
                             'guid' => $value['guid'],
                             'mailDelivery' => $value['maildelivery'],
