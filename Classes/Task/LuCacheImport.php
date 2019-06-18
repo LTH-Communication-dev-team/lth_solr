@@ -64,7 +64,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         $employeeArray = $this->getEmployee($con, $imageArray);
         
-        $employeeArray = $this->getCurrentIndex($employeeArray, $config);
+        //$employeeArray = $this->getCurrentIndex($employeeArray, $config);
 
         $employeeArray = $this->getLucrisData($employeeArray, $config);
 
@@ -157,10 +157,10 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             if(!$value['uniqueLink']) {
                 $uniqueLink = strtolower($value['first_name']) . '-' . strtolower($value['last_name']);
                 $i=0;
-                if($this->checkUniqueLink($uniqueLink, $employeeArray)) {
+                if(array_keys(array_combine(array_keys($employeeArray), array_column($employeeArray, 'uniqueLink')),$uniqueLink)) {
                     $sucker = true;
                     while($sucker){
-                        if(!$this->checkUniqueLink($uniqueLink . $i, $employeeArray)) {
+                        if(!array_keys(array_combine(array_keys($employeeArray), array_column($employeeArray, 'uniqueLink')),$uniqueLink)) {
                             $employeeArray[$key]['uniqueLink'] = $uniqueLink . $i;
                             $sucker = false;
                         }
@@ -174,13 +174,6 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         }
         
         return $employeeArray;
-    }
-    
-    
-    private function checkUniqueLink($uniqueLink, $employeeArray)
-    {
-        //if(array_search($uniqueLink, $employeeArray)) return true;
-        return array_search($uniqueLink, array_column($employeeArray, 'uniqueLink'));
     }
     
     
@@ -975,7 +968,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'language' => $value['lang'],
                             'degree' => $value['degree'],
                             'standardCategory' => $standardCategory,
-                            'uniqueLink' => $value['uniqueLink'],
+                            //'uniqueLink' => $value['uniqueLink'],
                             //arrays:
                             'guid' => $value['guid'],
                             'mailDelivery' => $value['maildelivery'],
