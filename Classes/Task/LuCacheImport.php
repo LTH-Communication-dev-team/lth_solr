@@ -167,7 +167,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                         $i++;
                     }                        
                 } else {
-                    $employeeArray[$key]['uniqueLink'] = strtolower($uniqueLink);
+                    $employeeArray[$key]['uniqueLink'] = $uniqueLink;
                 }
             }
             
@@ -180,11 +180,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     private function checkUniqueLink($uniqueLink, $employeeArray)
     {
         //if(array_search($uniqueLink, $employeeArray)) return true;
-        if(array_search($uniqueLink, array_column($employeeArray, 'uniqueLink'))) {
-            return true;
-        } else {
-            return false;
-        }
+        return array_search($uniqueLink, array_column($employeeArray, 'uniqueLink'));
     }
     
     
