@@ -140,7 +140,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     
     private function getCurrentIndex($employeeArray, $config)
     {
-        $client = new Solarium\Client($config);
+        $client = new \Solarium\Client($config);
         $query = $client->createSelect();
         $fieldArray = array("first_name", "last_name", "id", "uniqueLink");
         $queryToSet = "docType:staff;";
