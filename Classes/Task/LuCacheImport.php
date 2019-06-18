@@ -142,13 +142,13 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
     {
         $client = new \Solarium\Client($config);
         $query = $client->createSelect();
-        $fieldArray = array("first_name", "last_name", "id", "uniqueLink");
+        $fieldArray = array("first_name", "last_name", "primary_uid", "uniqueLink");
         $queryToSet = "docType:staff;";
         $query->setQuery($queryToSet);
         $query->setFields($fieldArray);
         $response = $client->select($query);
         foreach ($response as $document) {
-            $employeeArray[$document->id]['uniqueLink'] = $document->uniqueLink;
+            $employeeArray[$document->primary_uid]['uniqueLink'] = $document->uniqueLink;
         }
         foreach ($employeeArray as $key => $value) {
             if(!$value['uniqueLink']) {
