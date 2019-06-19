@@ -969,7 +969,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'language' => $value['lang'],
                             'degree' => $value['degree'],
                             'standardCategory' => $standardCategory,
-                            //'uniqueLink' => $value['uniqueLink'],
+                            'uniqueLink' => $value['uniqueLink'],
                             //arrays:
                             'guid' => $value['guid'],
                             'mailDelivery' => $value['maildelivery'],
