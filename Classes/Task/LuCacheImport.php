@@ -160,7 +160,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                 if(array_keys(array_combine(array_keys($employeeArray), array_column($employeeArray, 'uniqueLink')),$uniqueLink)) {
                     $sucker = true;
                     while($sucker){
-                        if(!array_keys(array_combine(array_keys($employeeArray), array_column($employeeArray, 'uniqueLink')),$uniqueLink)) {
+                        if(!array_keys(array_combine(array_keys($employeeArray), array_column($employeeArray, 'uniqueLink')),$uniqueLink . $i)) {
                             $employeeArray[$key]['uniqueLink'] = $uniqueLink . $i;
                             $sucker = false;
                         }
