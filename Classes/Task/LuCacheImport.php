@@ -155,15 +155,17 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         }
         
         foreach ($employeeArray as $key => $value) {
-            if(!$value['uniqueLink']) {
-                $uniqueLink = strtolower($value['first_name']) . '-' . strtolower($value['last_name']);
+            
+            if(!$value['uniqueLink'] && $value['primary_affiliation'] === 'employee') {
+                $uniqueLink = str_replace(' ', '-', strtolower($value['first_name']) . '-' . strtolower($value['last_name']));
+                //die($uniqueLink . $key);
                 $i=0;
-                if(array_keys(array_combine(array_keys($employeeArray), array_column($employeeArray, 'uniqueLink')),$uniqueLink)) {
-                    $sucker = true;
+                if(array_search($uniqueLink, array_column($employeeArray, 'uniqueLink'))===TRUE) {
+                    $sucker = TRUE;
                     while($sucker){
-                        if(!array_keys(array_combine(array_keys($employeeArray), array_column($employeeArray, 'uniqueLink')),$uniqueLink . $i)) {
+                        if(array_search($uniqueLink . $i, array_column($employeeArray, 'uniqueLink'))===FALSE) {
                             $employeeArray[$key]['uniqueLink'] = $uniqueLink . $i;
-                            $sucker = false;
+                            $sucker = FALSE;
                         }
                         $i++;
                     }                        
