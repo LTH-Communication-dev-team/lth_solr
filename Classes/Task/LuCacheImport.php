@@ -146,6 +146,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $queryToSet = "docType:staff AND primaryAffiliation:employee";
         $query->setQuery($queryToSet);
         $query->setFields($fieldArray);
+        $query->setStart(0)->setRows(100000000);
         $response = $client->select($query);
         foreach ($response as $document) {
             if($employeeArray[$document->primaryUid]) {
