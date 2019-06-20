@@ -59,12 +59,12 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
         $solrImageImportFolder = $settings['solrImageImportFolder'];
 
         $con = mysqli_connect($dbhost, $user, $pw, $db) or die("62; ".mysqli_error());
-
+        
         $imageArray = $this->getImageArray($solrImageImportFolder);
 
         $employeeArray = $this->getEmployee($con, $imageArray);
         
-        $employeeArray = $this->getCurrentIndex($employeeArray, $config);
+        //$employeeArray = $this->getCurrentIndex($employeeArray, $config);
 
         $employeeArray = $this->getLucrisData($employeeArray, $config);
 
@@ -159,6 +159,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             if(!$value['uniqueLink'] && $value['primary_affiliation'] === 'employee') {
                 $uniqueLink = $value['first_name'] . '-' . $value['last_name'];
                 $uniqueLink = str_replace(' ', '-', $uniqueLink);
+                setlocale(LC_CTYPE, 'sv_SE.UTF8');
                 $uniqueLink = iconv('utf-8', 'ascii//TRANSLIT', $uniqueLink);
                 $uniqueLink = strtolower($uniqueLink);
                 //die($uniqueLink . $key);
@@ -974,7 +975,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'language' => $value['lang'],
                             'degree' => $value['degree'],
                             'standardCategory' => $standardCategory,
-                            'uniqueLink' => $value['uniqueLink'],
+                            //'uniqueLink' => $value['uniqueLink'],
                             //arrays:
                             'guid' => $value['guid'],
                             'mailDelivery' => $value['maildelivery'],
