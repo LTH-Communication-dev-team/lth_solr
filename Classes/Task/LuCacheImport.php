@@ -64,7 +64,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
         $employeeArray = $this->getEmployee($con, $imageArray);
         
-        $employeeArray = $this->getCurrentIndex($employeeArray, $config);
+        //$employeeArray = $this->getCurrentIndex($employeeArray, $config);
 
         $employeeArray = $this->getLucrisData($employeeArray, $config);
 
@@ -159,6 +159,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
             if(!$value['uniqueLink'] && $value['primary_affiliation'] === 'employee') {
                 $uniqueLink = $value['first_name'] . '-' . $value['last_name'];
                 $uniqueLink = str_replace(' ', '-', $uniqueLink);
+                $uniqueLink = iconv('utf-8', 'ascii//TRANSLIT', $uniqueLink);
                 $uniqueLink = strtolower($uniqueLink);
                 //die($uniqueLink . $key);
                 $i=0;
@@ -973,7 +974,7 @@ class LuCacheImport extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
                             'language' => $value['lang'],
                             'degree' => $value['degree'],
                             'standardCategory' => $standardCategory,
-                            'uniqueLink' => $value['uniqueLink'],
+                            //'uniqueLink' => $value['uniqueLink'],
                             //arrays:
                             'guid' => $value['guid'],
                             'mailDelivery' => $value['maildelivery'],
